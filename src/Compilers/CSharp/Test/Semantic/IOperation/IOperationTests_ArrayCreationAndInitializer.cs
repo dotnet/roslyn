@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -691,7 +691,7 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.In
             VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18193"), WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
         public void ArrayCreationErrorCase_MissingDimension()
         {
             string source = @"
@@ -704,9 +704,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (Dimension sizes: 0, Element Type: System.String) (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid)
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[]')
+  Dimension Sizes(0)
+  Initializer: 
+    null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1586: Array creation must have array size or array initializer
+                //         var a = /*<bind>*/new string[]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 37)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

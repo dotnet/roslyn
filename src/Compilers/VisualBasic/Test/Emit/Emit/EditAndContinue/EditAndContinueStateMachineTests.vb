@@ -1992,7 +1992,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size      162 (0xa2)
+  // Code size      163 (0xa3)
   .maxstack  5
   .locals init (Boolean V_0,
                 Integer V_1,
@@ -2008,7 +2008,7 @@ End Class
   IL_000e:  beq.s      IL_0014
   IL_0010:  br.s       IL_0016
   IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_0074
+  IL_0014:  br.s       IL_0075
   IL_0016:  ldc.i4.0
   IL_0017:  ret
   IL_0018:  ldarg.0
@@ -2032,48 +2032,49 @@ End Class
   IL_0046:  ldarg.0
   IL_0047:  ldc.i4.0
   IL_0048:  stfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
-  IL_004d:  br.s       IL_008c
+  IL_004d:  br.s       IL_008d
   IL_004f:  ldarg.0
   IL_0050:  ldarg.0
   IL_0051:  ldfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
   IL_0056:  ldarg.0
   IL_0057:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
   IL_005c:  ldelem.r8
-  IL_005d:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$4 As Double""
-  IL_0062:  ldarg.0
-  IL_0063:  ldc.i4.1
-  IL_0064:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
-  IL_0069:  ldarg.0
-  IL_006a:  ldc.i4.1
-  IL_006b:  dup
-  IL_006c:  stloc.1
-  IL_006d:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0072:  ldc.i4.1
-  IL_0073:  ret
-  IL_0074:  ldarg.0
-  IL_0075:  ldc.i4.m1
-  IL_0076:  dup
-  IL_0077:  stloc.1
-  IL_0078:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_007d:  nop
-  IL_007e:  ldarg.0
+  IL_005d:  conv.r8
+  IL_005e:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$4 As Double""
+  IL_0063:  ldarg.0
+  IL_0064:  ldc.i4.1
+  IL_0065:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_006a:  ldarg.0
+  IL_006b:  ldc.i4.1
+  IL_006c:  dup
+  IL_006d:  stloc.1
+  IL_006e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0073:  ldc.i4.1
+  IL_0074:  ret
+  IL_0075:  ldarg.0
+  IL_0076:  ldc.i4.m1
+  IL_0077:  dup
+  IL_0078:  stloc.1
+  IL_0079:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_007e:  nop
   IL_007f:  ldarg.0
-  IL_0080:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
-  IL_0085:  ldc.i4.1
-  IL_0086:  add.ovf
-  IL_0087:  stfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
-  IL_008c:  ldarg.0
-  IL_008d:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
-  IL_0092:  ldarg.0
-  IL_0093:  ldfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
-  IL_0098:  ldlen
-  IL_0099:  conv.i4
-  IL_009a:  clt
-  IL_009c:  stloc.2
-  IL_009d:  ldloc.2
-  IL_009e:  brtrue.s   IL_004f
-  IL_00a0:  ldc.i4.0
-  IL_00a1:  ret
+  IL_0080:  ldarg.0
+  IL_0081:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
+  IL_0086:  ldc.i4.1
+  IL_0087:  add.ovf
+  IL_0088:  stfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
+  IL_008d:  ldarg.0
+  IL_008e:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
+  IL_0093:  ldarg.0
+  IL_0094:  ldfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
+  IL_0099:  ldlen
+  IL_009a:  conv.i4
+  IL_009b:  clt
+  IL_009d:  stloc.2
+  IL_009e:  ldloc.2
+  IL_009f:  brtrue.s   IL_004f
+  IL_00a1:  ldc.i4.0
+  IL_00a2:  ret
 }
 ")
             End Using
