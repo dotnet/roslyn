@@ -196,13 +196,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // explicitly overriden - so use it as a native invocation.
                     if (string.IsNullOrEmpty(ToolPath) || ToolExe == ToolName)
                     {
-                        _dotnetHostInfo = DotnetHost.CreateManagedToolInvocation(ToolName, commandLine);
+                        _dotnetHostInfo = DotnetHost.CreateManagedInvocationTool(ToolName, commandLine);
                     }
                     else
                     {
                         // Explicitly provided ToolPath or ToolExe, don't try to
                         // figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateNativeToolInvocation(Path.Combine(ToolPath, ToolExe), commandLine);
+                        _dotnetHostInfo = DotnetHost.CreateNativeInvocationTool(Path.Combine(ToolPath, ToolExe), commandLine);
                     }
                 }
                 return _dotnetHostInfo;

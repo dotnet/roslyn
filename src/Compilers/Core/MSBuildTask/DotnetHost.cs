@@ -12,23 +12,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         /// <summary>
         /// True if this tool is a managed executable, and will be invoked with `dotnet`.
-        /// False if this executable is being invoked directly.
+        /// False if this executable is being invoked directly
+        /// (it may still be a managed executable, but will be invoked directly).
         /// </summary>
-        public bool IsManagedTool { get; }
+        public bool IsManagedInvocation { get; }
 
-        private DotnetHost(string pathToToolOpt, string commandLineArgs, bool isManagedTool)
+        private DotnetHost(string pathToToolOpt, string commandLineArgs, bool isManagedInvocation)
         {
             PathToToolOpt = pathToToolOpt;
             CommandLineArgs = commandLineArgs;
-            IsManagedTool = isManagedTool;
+            IsManagedInvocation = isManagedInvocation;
         }
 
-        public static DotnetHost CreateNativeToolInvocation(string pathToTool, string commandLineArgs)
+        public static DotnetHost CreateNativeInvocationTool(string pathToTool, string commandLineArgs)
         {
-            return new DotnetHost(pathToTool, commandLineArgs, isManagedTool: false);
+            return new DotnetHost(pathToTool, commandLineArgs, isManagedInvocation: false);
         }
 
-        public static DotnetHost CreateManagedToolInvocation(string toolName, string commandLineArgs)
+        public static DotnetHost CreateManagedInvocationTool(string toolName, string commandLineArgs)
         {
             var pathToToolOpt = Utilities.GenerateFullPathToTool(toolName);
             // Desktop executes tool directly, only prepend if we're on CLI
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 pathToToolOpt = pathToDotnet;
             }
 
-            return new DotnetHost(pathToToolOpt, commandLineArgs, isManagedTool: true);
+            return new DotnetHost(pathToToolOpt, commandLineArgs, isManagedInvocation: true);
         }
 
         private static bool IsCliHost(out string pathToDotnet)
