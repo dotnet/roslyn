@@ -24,12 +24,14 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0 ... Exit Select')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0 ... Exit Select')
                 IBranchStatement (BranchKind.Break, Label: exit) (OperationKind.BranchStatement) (Syntax: 'Exit Select')
@@ -57,19 +59,24 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections:
       ISwitchCase (2 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0, 1 ... riteLine(0)')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '1')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0, 1 ... riteLine(0)')
                 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(0)')
-                  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(0)')
-                      Instance Receiver: null
+                  Expression: 
+                    IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(0)')
+                      Instance Receiver: 
+                        null
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '0')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -101,17 +108,21 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0 ... riteLine(0)')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0 ... riteLine(0)')
                 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(0)')
-                  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(0)')
-                      Instance Receiver: null
+                  Expression: 
+                    IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(0)')
+                      Instance Receiver: 
+                        null
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '0')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -120,12 +131,15 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 1 ... riteLine(1)')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '1')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case 1 ... riteLine(1)')
                 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(1)')
-                  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(1)')
-                      Instance Receiver: null
+                  Expression: 
+                    IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(1)')
+                      Instance Receiver: 
+                        null
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '1')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -154,14 +168,17 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'DirectCast( ... r, Integer)')
+  Switch expression: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'DirectCast( ... r, Integer)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'number')
+      Operand: 
+        IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'number')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0')
 ]]>.Value
@@ -185,14 +202,17 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Byte) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Byte) (Syntax: 'number')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 0) (Syntax: '0')
+                Value: 
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 0) (Syntax: '0')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    Operand: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0')
 ]]>.Value
@@ -263,21 +283,25 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0 ... End Select')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0 ... End Select')
                 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-                  Switch expression: IParameterReferenceExpression: number2 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number2')
+                  Switch expression: 
+                    IParameterReferenceExpression: number2 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number2')
                   Sections:
                       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0')
                           Clauses:
                               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                Value: 
+                                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                           Body:
                               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0')
 ]]>.Value
@@ -301,14 +325,17 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections:
       ISwitchCase (2 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0, 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0, 0')
 ]]>.Value
@@ -333,18 +360,21 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0')
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0')
 ]]>.Value
@@ -368,12 +398,14 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case number2')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: 'number2')
-                Value: IParameterReferenceExpression: number2 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number2')
+                Value: 
+                  IParameterReferenceExpression: number2 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number2')
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case number2')
 ]]>.Value
@@ -402,13 +434,16 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: state (OperationKind.ParameterReferenceExpression, Type: Test.State) (Syntax: 'state')
+  Switch expression: 
+    IParameterReferenceExpression: state (OperationKind.ParameterReferenceExpression, Type: Test.State) (Syntax: 'state')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case State.Active')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: 'State.Active')
-                Value: IFieldReferenceExpression: Test.State.Active (Static) (OperationKind.FieldReferenceExpression, Type: Test.State, Constant: 0) (Syntax: 'State.Active')
-                    Instance Receiver: null
+                Value: 
+                  IFieldReferenceExpression: Test.State.Active (Static) (OperationKind.FieldReferenceExpression, Type: Test.State, Constant: 0) (Syntax: 'State.Active')
+                    Instance Receiver: 
+                      null
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case State.Active')
 ]]>.Value
@@ -434,12 +469,14 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0')
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Else ... Exit Select')
@@ -470,19 +507,22 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0 ... Integer = 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Case 0 ... Integer = 0')
                 Locals: Local_1: number2 As System.Int32
                 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim number2 ... Integer = 0')
                   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'number2')
                     Variables: Local_1: number2 As System.Int32
-                    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    Initializer: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -507,30 +547,35 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0 ... Integer = 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           Body:
               IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Case 0 ... Integer = 0')
                 Locals: Local_1: number2 As System.Int32
                 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim number2 ... Integer = 0')
                   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'number2')
                     Variables: Local_1: number2 As System.Int32
-                    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    Initializer: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 1 ... Integer = 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '1')
-                Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Body:
               IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Case 1 ... Integer = 0')
                 Locals: Local_1: number2 As System.Int32
                 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim number2 ... Integer = 0')
                   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'number2')
                     Variables: Local_1: number2 As System.Int32
-                    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    Initializer: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -552,13 +597,15 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'Select Case ... End Select')
-  Switch expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+  Switch expression: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: null
+                Value: 
+                  null
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0')
 ]]>.Value
@@ -585,7 +632,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (0 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
+  Switch expression: 
+    IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
   Sections(0)
 ]]>.Value
 
@@ -608,13 +656,15 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'Select Case ... End Select')
-  Switch expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'num')
+  Switch expression: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'num')
       Children(0)
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-                Value: null
+                Value: 
+                  null
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0')
 ]]>.Value
@@ -667,7 +717,8 @@ End Class]]>.Value
 ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 0'BIND ... Exit Select')
     Clauses:
         ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-          Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+          Value: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
     Body:
         IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case 0'BIND ... Exit Select')
           IBranchStatement (BranchKind.Break, Label: exit) (OperationKind.BranchStatement) (Syntax: 'Exit Select')
@@ -694,7 +745,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '0')
-  Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  Value: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -717,8 +769,10 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IRangeCaseClause (CaseKind.Range) (OperationKind.CaseClause) (Syntax: '0 To 10')
-  Min: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-  Max: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+  Min: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  Max: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -741,7 +795,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IRelationalCaseClause (Relational operator kind: BinaryOperatorKind.LessThan) (CaseKind.Relational) (OperationKind.CaseClause) (Syntax: '< 10')
-  Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+  Value: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
