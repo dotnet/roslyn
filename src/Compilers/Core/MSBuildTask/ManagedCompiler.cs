@@ -409,6 +409,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #endregion
 
+        internal static DotnetHost CreateDotnetHostInfo(string toolPath, string toolExe, string toolName, string commandLine)
+        {
+            // ToolExe delegates back to ToolName if the override is not
+            // set.  So, if ToolExe == ToolName, we know ToolExe is not
+            // explicitly overriden.  So, if both ToolPath is unset and
+            // ToolExe == ToolName, we know nothing is overridden, and
+            // we can use our own csc.
+            if (string.IsNullOrEmpty(toolPath) && toolExe == toolName)
+            {
+                return DotnetHost.CreateManagedInvocationTool(toolName, commandLine);
+            }
+            else
+            {
+                // Explicitly provided ToolPath or ToolExe, don't try to
+                // figure anything out
+                return DotnetHost.CreateNativeInvocationTool(Path.Combine(toolPath ?? "", toolExe), commandLine);
+            }
+        }
+
         private DotnetHost _dotnetHostInfo;
         private DotnetHost DotnetHostInfo
         {
@@ -420,21 +439,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     AddCommandLineCommands(commandLineBuilder);
                     var commandLine = commandLineBuilder.ToString();
 
-                    // ToolExe delegates back to ToolName if the override is not
-                    // set.  So, if ToolExe == ToolName, we know ToolExe is not
-                    // explicitly overriden.  So, if both ToolPath is unset and
-                    // ToolExe == ToolName, we know nothing is overridden, and
-                    // we can use our own csc.
-                    if (string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName)
-                    {
-                        _dotnetHostInfo = DotnetHost.CreateManagedInvocationTool(ToolName, commandLine);
-                    }
-                    else
-                    {
-                        // Explicitly provided ToolPath or ToolExe, don't try to
-                        // figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateNativeInvocationTool(Path.Combine(ToolPath ?? "", ToolExe), commandLine);
-                    }
+                    _dotnetHostInfo = CreateDotnetHostInfo(ToolPath, ToolExe, ToolName, commandLine);
                 }
                 return _dotnetHostInfo;
             }
@@ -442,20 +447,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected abstract string ToolNameWithoutExtension { get; }
 
-        protected sealed override string ToolName
+        internal static string GenerateToolName(string toolNameWithoutExtension)
         {
-            get
+            if (CoreClrShim.IsRunningOnCoreClr)
             {
-                if (CoreClrShim.IsRunningOnCoreClr)
-                {
-                    return $"{ToolNameWithoutExtension}.dll";
-                }
-                else
-                {
-                    return $"{ToolNameWithoutExtension}.exe";
-                }
+                return $"{toolNameWithoutExtension}.dll";
+            }
+            else
+            {
+                return $"{toolNameWithoutExtension}.exe";
             }
         }
+
+        protected sealed override string ToolName => GenerateToolName(ToolNameWithoutExtension);
 
         /// <summary>
         /// Method for testing only

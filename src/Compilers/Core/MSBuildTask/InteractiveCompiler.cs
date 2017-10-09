@@ -191,21 +191,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     AddCommandLineCommands(commandLineBuilder);
                     var commandLine = commandLineBuilder.ToString();
 
-                    // ToolExe delegates back to ToolName if the override is not
-                    // set.  So, if ToolExe == ToolName, we know ToolExe is not
-                    // explicitly overriden.  So, if both ToolPath is unset and
-                    // ToolExe == ToolName, we know nothing is overridden, and
-                    // we can use our own csc.
-                    if (string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName)
-                    {
-                        _dotnetHostInfo = DotnetHost.CreateManagedInvocationTool(ToolName, commandLine);
-                    }
-                    else
-                    {
-                        // Explicitly provided ToolPath or ToolExe, don't try to
-                        // figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateNativeInvocationTool(Path.Combine(ToolPath ?? "", ToolExe), commandLine);
-                    }
+                    _dotnetHostInfo = ManagedCompiler.CreateDotnetHostInfo(ToolPath, ToolExe, ToolName, commandLine);
                 }
                 return _dotnetHostInfo;
             }
@@ -215,20 +201,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected abstract string ToolNameWithoutExtension { get; }
 
-        protected sealed override string ToolName
-        {
-            get
-            {
-                if (CoreClrShim.IsRunningOnCoreClr)
-                {
-                    return $"{ToolNameWithoutExtension}.dll";
-                }
-                else
-                {
-                    return $"{ToolNameWithoutExtension}.exe";
-                }
-            }
-        }
+        protected sealed override string ToolName => ManagedCompiler.GenerateToolName(ToolNameWithoutExtension);
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
