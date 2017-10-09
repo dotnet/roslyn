@@ -3202,7 +3202,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Referenced member.
         /// </summary>
-        public virtual ISymbol Member { get; }
+        public ISymbol Member { get; }
     }
 
     /// <summary>
