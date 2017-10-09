@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis
         DynamicIndexerAccessExpression = 0x128,
         /// <summary>Indicates an <see cref="ITranslatedQueryExpression"/>.</summary>
         TranslatedQueryExpression = 0x129,
-        
+
         // Expressions that occur only in C#.
 
         /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
