@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -30,7 +30,8 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IPropertyReferenceExpression: Property M1.C1.P1 As System.Object (OperationKind.PropertyReferenceExpression, Type: System.Object) (Syntax: 'P1')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1.C2) (Syntax: 'New C2 With ... New Object}')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1.C2, IsImplicit) (Syntax: 'New C2 With ... New Object}')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -61,7 +62,8 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IPropertyReferenceExpression: Property M1.C1.P1 As System.Object (OperationKind.PropertyReferenceExpression, Type: System.Object) (Syntax: '.P1')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1.C2) (Syntax: 'New C2 With {.P2 = .P1}')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1.C2, IsImplicit) (Syntax: 'New C2 With {.P2 = .P1}')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

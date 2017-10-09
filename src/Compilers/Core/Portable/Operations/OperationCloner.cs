@@ -480,5 +480,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return new TranslatedQueryExpression(Visit(operation.Expression), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
+
+        public override IOperation VisitRaiseEventStatement(IRaiseEventStatement operation, object argument)
+        {
+            return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.ArgumentsInEvaluationOrder), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
     }
 }

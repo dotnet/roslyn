@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -169,7 +169,8 @@ class C
 ";
             string expectedOperationTree = @"
 IInvocationExpression ( ? System.Int32.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'sizeof(M2()')
-  Instance Receiver: ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(M2')
+  Instance Receiver: 
+    ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(M2')
       TypeOperand: M2
   Arguments(0)
 ";

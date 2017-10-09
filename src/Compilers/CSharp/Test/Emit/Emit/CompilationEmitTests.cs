@@ -857,6 +857,50 @@ public class C
         }
 
         [Fact]
+        public void RefAssemblyClient_RefReadonlyParameters()
+        {
+            VerifyRefAssemblyClient(@"
+public class C
+{
+    public void RR_input(in int x) => throw null;
+    public ref readonly int RR_output() => throw null;
+    public ref readonly int P => throw null;
+    public ref readonly int this[in int i] => throw null;
+    public delegate ref readonly int Delegate(in int i);
+}
+public static class Extensions
+{
+    public static void RR_extension(in this int x) => throw null;
+    public static void R_extension(ref this int x) => throw null;
+}",
+@"class D
+{
+    void M(C c, in int y)
+    {
+        c.RR_input(y);
+        VerifyRR(c.RR_output());
+        VerifyRR(c.P);
+        VerifyRR(c[y]);
+        C.Delegate x = VerifyDelegate;
+        y.RR_extension();
+        1.RR_extension();
+        y.R_extension(); // error 1
+        1.R_extension(); // error 2
+    }
+    void VerifyRR(in int y) => throw null;
+    ref readonly int VerifyDelegate(in int y) => throw null;
+}",
+comp => comp.VerifyDiagnostics(
+                // (12,9): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                //         y.R_extension(); // error 1
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(12, 9),
+                // (13,9): error CS1510: A ref or out value must be an assignable variable
+                //         1.R_extension(); // error 2
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(13, 9)
+                ));
+        }
+
+        [Fact]
         public void RefAssemblyClient_StructWithPrivateReferenceTypeField()
         {
             VerifyRefAssemblyClient(@"
@@ -1356,7 +1400,7 @@ comp => comp.VerifyDiagnostics(
         private static void VerifyRefAssemblyClient(string lib_cs, string source, Action<CSharpCompilation> validator, EmitOptions emitOptions)
         {
             string name = GetUniqueName();
-            var libComp = CreateStandardCompilation(Parse(lib_cs), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
+            var libComp = CreateStandardCompilation(lib_cs, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             libComp.VerifyDiagnostics();
             var libImage = libComp.EmitToImageReference(emitOptions);

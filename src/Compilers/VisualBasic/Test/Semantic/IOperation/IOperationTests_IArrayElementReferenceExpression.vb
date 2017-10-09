@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -21,7 +21,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(0)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
@@ -43,7 +44,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(x)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
@@ -69,8 +71,10 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'F2()(0)')
-  Array reference: IInvocationExpression ( Function C.F2() As System.String()) (OperationKind.InvocationExpression, Type: System.String()) (Syntax: 'F2()')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'F2')
+  Array reference: 
+    IInvocationExpression ( Function C.F2() As System.String()) (OperationKind.InvocationExpression, Type: System.String()) (Syntax: 'F2()')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'F2')
       Arguments(0)
   Indices(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -93,7 +97,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(0, 1)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(,)) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(,)) (Syntax: 'args')
   Indices(2):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -116,7 +121,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(x, y)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(,)) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(,)) (Syntax: 'args')
   Indices(2):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
@@ -143,11 +149,13 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(x, F2)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(,)) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(,)) (Syntax: 'args')
   Indices(2):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       IInvocationExpression ( Function C.F2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F2')
-        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'F2')
+        Instance Receiver: 
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'F2')
         Arguments(0)
 ]]>.Value
 
@@ -168,8 +176,10 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(0)(1)')
-  Array reference: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String()) (Syntax: 'args(0)')
-      Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()()) (Syntax: 'args')
+  Array reference: 
+    IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String()) (Syntax: 'args(0)')
+      Array reference: 
+        IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()()) (Syntax: 'args')
       Indices(1):
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Indices(1):
@@ -198,13 +208,16 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(x)(F2)')
-  Array reference: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String()) (Syntax: 'args(x)')
-      Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()()) (Syntax: 'args')
+  Array reference: 
+    IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String()) (Syntax: 'args(x)')
+      Array reference: 
+        IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()()) (Syntax: 'args')
       Indices(1):
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Indices(1):
       IInvocationExpression ( Function C.F2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F2')
-        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'F2')
+        Instance Receiver: 
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'F2')
         Arguments(0)
 ]]>.Value
 
@@ -230,14 +243,17 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(x)(0, F2)')
-  Array reference: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String(,)) (Syntax: 'args(x)')
-      Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()(,)) (Syntax: 'args')
+  Array reference: 
+    IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String(,)) (Syntax: 'args(x)')
+      Array reference: 
+        IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()(,)) (Syntax: 'args')
       Indices(1):
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Indices(2):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
       IInvocationExpression ( Function C.F2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F2')
-        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'F2')
+        Instance Receiver: 
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'F2')
         Arguments(0)
 ]]>.Value
 
@@ -258,11 +274,13 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(b)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'b')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Byte) (Syntax: 'b')
+        Operand: 
+          IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Byte) (Syntax: 'b')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -284,11 +302,13 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(Direct ... , Integer))')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'DirectCast(o, Integer)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
+        Operand: 
+          IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -314,11 +334,13 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(c)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'c')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.Int32)
-        Operand: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+        Operand: 
+          IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -344,11 +366,13 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(CType(c, Integer))')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Explicit(c As C) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'CType(c, Integer)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Explicit(c As C) As System.Int32)
-        Operand: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+        Operand: 
+          IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -368,9 +392,11 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'DirectCast( ... tring())(x)')
-  Array reference: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String()) (Syntax: 'DirectCast(o, String())')
+  Array reference: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String()) (Syntax: 'DirectCast(o, String())')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
+      Operand: 
+        IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
   Indices(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
@@ -394,11 +420,13 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'args(c)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'c')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+        Operand: 
+          IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -428,11 +456,13 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'args(c)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Explicit(c As C) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'c')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Explicit(c As C) As System.Int32)
-        Operand: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+        Operand: 
+          IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -458,7 +488,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'args()')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
   Indices(0)
 ]]>.Value
 
@@ -513,7 +544,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'args(0, 0)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
   Indices(2):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
@@ -544,7 +576,8 @@ End Class]]>.Value
 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'args(0)()')
   Children(1):
       IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: C, IsInvalid) (Syntax: 'args(0)')
-        Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: C(), IsInvalid) (Syntax: 'args')
+        Array reference: 
+          IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: C(), IsInvalid) (Syntax: 'args')
         Indices(1):
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ]]>.Value
@@ -601,7 +634,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'args(0,)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
   Indices(2):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
       IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null, IsInvalid) (Syntax: '')
@@ -630,7 +664,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'args(')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
@@ -662,7 +697,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'args(0')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ]]>.Value
@@ -697,10 +733,11 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax
               Children(1):
                   IInvalidExpression (OperationKind.InvalidExpression, Type: System.Char, IsInvalid) (Syntax: 'args(y)()')
                     Children(1):
-                        IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'args(y)')
+                        IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: 'args(y)')
                           Children(1):
                               IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'args(y)')
-                                Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
+                                Array reference: 
+                                  IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
                                 Indices(1):
                                     IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -729,7 +766,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'args(name:=x)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
   Indices(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ]]>.Value
@@ -755,10 +793,12 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'args(-1)')
-  Array reference: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
+  Array reference: 
+    IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
       IUnaryOperatorExpression (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Int32, Constant: -1) (Syntax: '-1')
-        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Operand: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
