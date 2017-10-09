@@ -73,6 +73,7 @@ End Module")
                     typeof(CompilerServerUnitTests).Assembly.Location + ".client-server.log"));
                 return list;
             }
+
             return vars;
         }
 
@@ -128,6 +129,7 @@ End Module")
             {
                 return func();
             }
+
             var resetVariables = new Dictionary<string, string>();
             try
             {
@@ -136,6 +138,7 @@ End Module")
                     resetVariables.Add(variable.Key, Environment.GetEnvironmentVariable(variable.Key));
                     Environment.SetEnvironmentVariable(variable.Key, variable.Value);
                 }
+
                 return func();
             }
             finally
@@ -161,6 +164,7 @@ End Module")
                 memoryStream = new MemoryStream();
                 writer = new StreamWriter(memoryStream, encoding);
             }
+
             var result = func(writer);
             writer.Flush();
             if (memoryStream != null)
