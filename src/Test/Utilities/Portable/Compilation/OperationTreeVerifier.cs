@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArguments(operation);
         }
 
-        private void VisitArguments(IHasArgumentsExpression operation)
+        private void VisitArguments(IHasArguments operation)
         {
             VisitArray(operation.ArgumentsInEvaluationOrder, "Arguments", logElementCount: true);
         }
@@ -815,6 +815,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(" (IsVirtual)");
             }
 
+            Assert.Null(operation.Type);
+
             VisitMemberReferenceExpressionCommon(operation);
         }
 
@@ -843,7 +845,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var kindStr = operation.Adds ? "EventAdd" : "EventRemove";
             LogString($"{nameof(IEventAssignmentExpression)} ({kindStr})");
-            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.EventReference, header: "Event Reference");
@@ -1021,6 +1022,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitAnonymousFunctionExpression(operation);
+        }
+
+        public override void VisitDelegateCreationExpression(IDelegateCreationExpression operation)
+        {
+            LogString(nameof(IDelegateCreationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, nameof(operation.Target));
         }
 
         public override void VisitLiteralExpression(ILiteralExpression operation)
@@ -1451,6 +1460,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Expression, "Expression");
+        }
+
+        public override void VisitRaiseEventStatement(IRaiseEventStatement operation)
+        {
+            LogString(nameof(IRaiseEventStatement));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.EventReference, header: "Event Reference");
+            VisitArguments(operation);
         }
 
         #endregion

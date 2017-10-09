@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IHasArgumentsExpression : IOperation
+    public interface IHasArguments : IOperation
     {
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.

@@ -175,6 +175,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
+        [WorkItem(21747, "https://github.com/dotnet/roslyn/issues/21747")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestTriviaFieldFix1()
+        {
+            var code =
+@"class C
+{
+    int i = (/* CommentLeading */ [|1 + 1|] /* CommentTrailing */) + (1 + 1);
+}";
+
+            var expected =
+@"class C
+{
+    private const int {|Rename:V|} = 1 + 1;
+    int i = /* CommentLeading */ V /* CommentTrailing */ + V;
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(21747, "https://github.com/dotnet/roslyn/issues/21747")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestTriviaFieldFix2()
+        {
+            var code =
+@"class C
+{
+    int i = (/* CommentLeading */ [|1 + /*CommentEmbedded*/ 1|] /* CommentTrailing */) + (1 + 1);
+}";
+
+            var expected =
+@"class C
+{
+    private const int {|Rename:V|} = 1 + /*CommentEmbedded*/ 1;
+    int i = /* CommentLeading */ V /* CommentTrailing */ + V;
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestConstFieldFix1()
         {

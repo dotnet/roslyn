@@ -1,22 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a reference to a property.
+    /// Represents a delegate creation expression. This is created whenever a new delegate is created.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IPropertyReferenceExpression : IMemberReferenceExpression, IHasArguments
+    public interface IDelegateCreationExpression : IOperation
     {
         /// <summary>
-        /// Referenced property.
+        /// The lambda or method binding that this delegate is created from.
         /// </summary>
-        IPropertySymbol Property { get; }
+        IOperation Target { get; }
     }
 }
-
