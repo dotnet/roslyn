@@ -522,7 +522,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             private void AddError<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key, DiagnosticData diagnostic)
             {
                 var errors = GetErrorSet(map, key);
-                errors.Add(diagnostic, GetNextIncrement());
+                AddError(errors, diagnostic);
+            }
+
+            private void AddError(Dictionary<DiagnosticData, int> errors, DiagnosticData diagnostic)
+            {
+                // add only new errors
+                if (!errors.TryGetValue(diagnostic, out _))
+                {
+                    errors.Add(diagnostic, GetNextIncrement());
+                }
             }
 
             private int GetNextIncrement()
