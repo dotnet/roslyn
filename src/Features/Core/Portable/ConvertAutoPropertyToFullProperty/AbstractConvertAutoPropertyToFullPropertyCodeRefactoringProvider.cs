@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 {
@@ -97,14 +98,18 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 propertySymbol.Type, fieldName,
                 initializer: GetInitializerValue(property));
 
-            //var containingType = GetTypeBlock(
-            //    propertySymbol.ContainingType.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax(cancellationToken));
-            var containingType = propertySymbol.ContainingType.DeclaringSyntaxReferences
-                    .Select(r => GetTypeBlock(r.GetSyntax(cancellationToken)))
-                    .Single(d => property.Ancestors().Contains(d));
-            editor.ReplaceNode(containingType, (currentTypeDecl, _)
-                => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, workspace)
-                .WithAdditionalAnnotations(Formatter.Annotation));
+            var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;
+            foreach (var td in typeDeclaration)
+            {
+                var block = GetTypeBlock(await td.GetSyntaxAsync(cancellationToken).ConfigureAwait(false));
+                if (property.Ancestors().Contains(block))
+                {
+                    editor.ReplaceNode(block, (currentTypeDecl, _)  
+                        => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, workspace)
+                        .WithAdditionalAnnotations(Formatter.Annotation));
+                }
+            }
+
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
         }
