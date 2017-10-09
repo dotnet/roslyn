@@ -1215,6 +1215,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Value, "Right");
         }
 
+        public override void VisitDeclarationExpression(IDeclarationExpression operation)
+        {
+            LogString(nameof(IDeclarationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+        }
+
         public override void VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)
         {
             LogString(nameof(ICompoundAssignmentExpression));

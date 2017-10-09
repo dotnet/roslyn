@@ -149,8 +149,6 @@ namespace Microsoft.CodeAnalysis
         DynamicIndexerAccessExpression = 0x128,
         /// <summary>Indicates an <see cref="ITranslatedQueryExpression"/>.</summary>
         TranslatedQueryExpression = 0x129,
-        /// <summary>Indicates an <see cref="IDeconstructionAssignmentExpression"/>.</summary>
-        DeconstructionAssignmentExpression = 0x12a,
         
         // Expressions that occur only in C#.
 
@@ -174,6 +172,10 @@ namespace Microsoft.CodeAnalysis
         ThrowExpression = 0x207,
         /// <summary>Indicates an <see cref="IIncrementOrDecrementExpression"/> for decrement operator.</summary>
         DecrementExpression = 0x208,
+        /// <summary>Indicates an <see cref="IDeconstructionAssignmentExpression"/>.</summary>
+        DeconstructionAssignmentExpression = 0x209,
+        /// <summary>Indicates an <see cref="IDeclarationExpression"/>.</summary>
+        DeclarationExpression = 0x20a,
 
         // Expressions that occur only in Visual Basic.
 

@@ -872,14 +872,11 @@ class X
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
   Locals: Local_1: System.Int32 a
     Local_2: System.Int32 b
-  LoopControlVariable: IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 a, System.Int32 b)) (Syntax: 'var (a, b)')
-      Left: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 a, System.Int32 b)) (Syntax: 'var (a, b)')
+  LoopControlVariable: IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 a, System.Int32 b)) (Syntax: 'var (a, b)')
+      Expression: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 a, System.Int32 b)) (Syntax: '(a, b)')
           Elements(2):
               ILocalReferenceExpression: a (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
               ILocalReferenceExpression: b (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
-      Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 a, System.Int32 b)) (Syntax: 'x')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IPlaceholderExpression (OperationKind.None) (Syntax: 'x')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'x')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: (System.Int32, System.Int32)[]) (Syntax: 'x')
@@ -911,17 +908,14 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 
   Locals: Local_1: System.Int32 a
     Local_2: System.Int32 b
     Local_3: System.Int32 c
-  LoopControlVariable: IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 a, (System.Int32 b, System.Int32 c))) (Syntax: 'var (a, (b, c))')
-      Left: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 a, (System.Int32 b, System.Int32 c))) (Syntax: 'var (a, (b, c))')
+  LoopControlVariable: IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 a, (System.Int32 b, System.Int32 c))) (Syntax: 'var (a, (b, c))')
+      Expression: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 a, (System.Int32 b, System.Int32 c))) (Syntax: '(a, (b, c))')
           Elements(2):
               ILocalReferenceExpression: a (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
               ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 b, System.Int32 c)) (Syntax: '(b, c)')
                 Elements(2):
                     ILocalReferenceExpression: b (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
                     ILocalReferenceExpression: c (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'c')
-      Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 a, (System.Int32 b, System.Int32 c))) (Syntax: 'x')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IPlaceholderExpression (OperationKind.None) (Syntax: 'x')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'x')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: (System.Int32, (System.Int32, System.Int32))[]) (Syntax: 'x')

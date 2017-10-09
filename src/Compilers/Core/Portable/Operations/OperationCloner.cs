@@ -380,6 +380,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new DeconstructionAssignmentExpression(Visit(operation.Target), Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        public override IOperation VisitDeclarationExpression(IDeclarationExpression operation, object argument)
+        {
+            return new DeclarationExpression(Visit(operation.Expression), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
         public override IOperation VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation, object argument)
         {
             return new CompoundAssignmentExpression(operation.OperatorKind, operation.IsLifted, operation.IsChecked, Visit(operation.Target), Visit(operation.Value), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);

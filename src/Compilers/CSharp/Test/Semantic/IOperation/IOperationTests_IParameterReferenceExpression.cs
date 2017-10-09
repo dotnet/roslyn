@@ -73,13 +73,12 @@ class Class1
 ";
             string expectedOperationTree = @"
 IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y) = point')
-  Left: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
-      Elements(2):
-          ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-          ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-  Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'point')
-      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IParameterReferenceExpression: point (OperationKind.ParameterReferenceExpression, Type: Point) (Syntax: 'point')
+  Left: IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
+      Expression: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+          Elements(2):
+              ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+              ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Right: IParameterReferenceExpression: point (OperationKind.ParameterReferenceExpression, Type: Point) (Syntax: 'point')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

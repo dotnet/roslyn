@@ -283,7 +283,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IDeconstructionAssignmentExpression CreateBoundDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator boundDeconstructionAssignmentOperator)
         {
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundDeconstructionAssignmentOperator.Left));
-            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundDeconstructionAssignmentOperator.Right));
+            // Skip the synthetic deconstruction conversion wrapping the right operand.
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundDeconstructionAssignmentOperator.Right.Operand));
             SyntaxNode syntax = boundDeconstructionAssignmentOperator.Syntax;
             ITypeSymbol type = boundDeconstructionAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundDeconstructionAssignmentOperator.ConstantValue);
@@ -330,10 +331,18 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundLocal.Type;
             Optional<object> constantValue = ConvertToOptional(boundLocal.ConstantValue);
             bool isImplicit = boundLocal.WasCompilerGenerated;
+            if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
+            {
+                Debug.Assert(isDeclaration);
+                syntax = declarationExpressionSyntax.Designation;
+                Lazy<IOperation> localReferenceExpression = new Lazy<IOperation>(() =>
+                    new LocalReferenceExpression(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit));
+                return new LazyDeclarationExpression(localReferenceExpression, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
+            }
             return new LocalReferenceExpression(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IFieldReferenceExpression CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess)
+        private IOperation CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess)
         {
             IFieldSymbol field = boundFieldAccess.FieldSymbol;
             bool isDeclaration = boundFieldAccess.IsDeclaration;
@@ -343,6 +352,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundFieldAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundFieldAccess.ConstantValue);
             bool isImplicit = boundFieldAccess.WasCompilerGenerated;
+            if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
+            {
+                Debug.Assert(isDeclaration);
+                syntax = declarationExpressionSyntax.Designation;
+                Lazy<IOperation> fieldReferenceExpression = new Lazy<IOperation>(() =>
+                    new LazyFieldReferenceExpression(field, isDeclaration, instance, member, _semanticModel, syntax, type, constantValue, isImplicit));
+                return new LazyDeclarationExpression(fieldReferenceExpression, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
+            }
             return new LazyFieldReferenceExpression(field, isDeclaration, instance, member, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -1251,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<IOperation> loopControlVariable;
             if (boundForEachStatement.DeconstructionOpt != null)
             {
-                loopControlVariable = new Lazy<IOperation>(() => Create(boundForEachStatement.DeconstructionOpt.DeconstructionAssignment));
+                loopControlVariable = new Lazy<IOperation>(() => Create(boundForEachStatement.DeconstructionOpt.DeconstructionAssignment.Left));
             }
             else if (locals.Length == 1)
             {
@@ -1504,13 +1521,20 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyExpressionStatement(expression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ITupleExpression CreateBoundTupleExpressionOperation(BoundTupleExpression boundTupleExpression)
+        private IOperation CreateBoundTupleExpressionOperation(BoundTupleExpression boundTupleExpression)
         {
             Lazy<ImmutableArray<IOperation>> elements = new Lazy<ImmutableArray<IOperation>>(() => boundTupleExpression.Arguments.SelectAsArray(element => Create(element)));
             SyntaxNode syntax = boundTupleExpression.Syntax;
-            ITypeSymbol type = boundTupleExpression.Type;
-            Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundTupleExpression.WasCompilerGenerated;
+            ITypeSymbol type = boundTupleExpression.Type;
+            Optional<object> constantValue = default;
+            if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
+            {
+                var tupleSyntax = declarationExpressionSyntax.Designation;
+                Lazy<IOperation> tupleExpression = new Lazy<IOperation>(() => new LazyTupleExpression(elements, _semanticModel, tupleSyntax, type, constantValue, isImplicit));
+                return new LazyDeclarationExpression(tupleExpression, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
+            }
+
             return new LazyTupleExpression(elements, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 

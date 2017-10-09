@@ -30,7 +30,8 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILocalReferenceExpression: i (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
+IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
+  Expression: ILocalReferenceExpression: i (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -55,8 +56,10 @@ public class C1
             string expectedOperationTree = @"
 ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(var i1, var i2)')
   Elements(2):
-      ILocalReferenceExpression: i1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i1')
-      ILocalReferenceExpression: i2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i2')
+      IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i1')
+        Expression: ILocalReferenceExpression: i1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+      IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i2')
+        Expression: ILocalReferenceExpression: i2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -79,10 +82,11 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: 'var (i1, i2)')
-  Elements(2):
-      ILocalReferenceExpression: i1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
-      ILocalReferenceExpression: i2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i2')
+IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: 'var (i1, i2)')
+  Expression: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
+      Elements(2):
+          ILocalReferenceExpression: i1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+          ILocalReferenceExpression: i2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
