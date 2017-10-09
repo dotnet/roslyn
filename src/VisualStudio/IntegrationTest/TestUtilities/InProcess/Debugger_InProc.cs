@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// </summary>
         private static readonly TimeSpan DefaultPollingInterCallSleep = TimeSpan.FromMilliseconds(250);
 
-        private readonly Debugger _debugger;
+        private readonly EnvDTE.Debugger _debugger;
 
         private Debugger_InProc()
         {
