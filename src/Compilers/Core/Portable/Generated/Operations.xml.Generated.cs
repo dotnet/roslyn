@@ -5032,7 +5032,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
         }
 
-        protected abstract IOperation ExpressionImpl { get; }
+        protected abstract IOperation ResourcesImpl { get; }
         protected abstract IOperation BodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -5046,7 +5046,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Declaration introduced or resource held by the using.
         /// </summary>
-        public IOperation Resources => Operation.SetParentOperation(ExpressionImpl, this);
+        public IOperation Resources => Operation.SetParentOperation(ResourcesImpl, this);
 
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.
@@ -5068,14 +5068,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class UsingStatement : BaseUsingStatement, IUsingStatement
     {
-        public UsingStatement(IOperation expression, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public UsingStatement(IOperation resources, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            ExpressionImpl = expression;
+            ResourcesImpl = resources;
             BodyImpl = body;
         }
 
-        protected override IOperation ExpressionImpl { get; }
+        protected override IOperation ResourcesImpl { get; }
         protected override IOperation BodyImpl { get; }
     }
 
@@ -5084,16 +5084,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyUsingStatement : BaseUsingStatement, IUsingStatement
     {
-        private readonly Lazy<IOperation> _lazyExpression;
+        private readonly Lazy<IOperation> _lazyResources;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyUsingStatement(Lazy<IOperation> expression, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyUsingStatement(Lazy<IOperation> resources, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+            _lazyResources = resources ?? throw new System.ArgumentNullException(nameof(resources));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        protected override IOperation ExpressionImpl => _lazyExpression.Value;
+        protected override IOperation ResourcesImpl => _lazyResources.Value;
         protected override IOperation BodyImpl => _lazyBody.Value;
     }
 
