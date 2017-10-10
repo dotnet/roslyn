@@ -150,6 +150,8 @@ namespace Microsoft.CodeAnalysis
         DynamicIndexerAccessExpression = 0x128,
         /// <summary>Indicates an <see cref="ITranslatedQueryExpression"/>.</summary>
         TranslatedQueryExpression = 0x129,
+        /// <summary>Indicates a <see cref="IDelegateCreationExpression"/>.</summary>
+        DelegateCreationExpression = 0x130,
 
         // Expressions that occur only in C#.
 

@@ -36,9 +36,11 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
           Instance Receiver: 
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
       Handler: 
-        IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+          Target: 
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -73,9 +75,11 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
           Instance Receiver: 
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
       Handler: 
-        IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+          Target: 
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -110,9 +114,11 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
           Instance Receiver: 
             null
       Handler: 
-        IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+          Target: 
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -147,9 +153,11 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
           Instance Receiver: 
             null
       Handler: 
-        IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+          Target: 
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -184,9 +192,8 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Re
           Instance Receiver: 
             null
       Handler: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'AddressOf M')
-          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf M')
+          Target: 
             IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M')
               Children(1):
                   IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')
@@ -228,9 +235,11 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
           Instance Receiver: 
             null
       Handler: 
-        IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+          Target: 
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -268,9 +277,11 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Ad
           Instance Receiver: 
             IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'TestClass')
       Handler: 
-        IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+          Target: 
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

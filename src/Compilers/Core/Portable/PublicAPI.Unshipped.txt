@@ -78,6 +78,7 @@ Microsoft.CodeAnalysis.OperationKind.DeclarationPattern = 1038 -> Microsoft.Code
 Microsoft.CodeAnalysis.OperationKind.DeconstructionAssignmentExpression = 521 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DecrementExpression = 520 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DefaultValueExpression = 512 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.DelegateCreationExpression = 304 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DynamicIndexerAccessExpression = 296 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DynamicInvocationExpression = 295 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DynamicMemberReferenceExpression = 294 -> Microsoft.CodeAnalysis.OperationKind
@@ -279,6 +280,8 @@ Microsoft.CodeAnalysis.Semantics.IDeclarationPattern.DeclaredSymbol.get -> Micro
 Microsoft.CodeAnalysis.Semantics.IDeconstructionAssignmentExpression
 Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause
 Microsoft.CodeAnalysis.Semantics.IDefaultValueExpression
+Microsoft.CodeAnalysis.Semantics.IDelegateCreationExpression
+Microsoft.CodeAnalysis.Semantics.IDelegateCreationExpression.Target.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IDoLoopStatement
 Microsoft.CodeAnalysis.Semantics.IDoLoopStatement.Condition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IDoLoopStatement.DoLoopKind.get -> Microsoft.CodeAnalysis.Semantics.DoLoopKind
@@ -549,6 +552,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDeclarationPatter
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDeconstructionAssignmentExpression(Microsoft.CodeAnalysis.Semantics.IDeconstructionAssignmentExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDefaultCaseClause(Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDefaultValueExpression(Microsoft.CodeAnalysis.Semantics.IDefaultValueExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDelegateCreationExpression(Microsoft.CodeAnalysis.Semantics.IDelegateCreationExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDoLoopStatement(Microsoft.CodeAnalysis.Semantics.IDoLoopStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDynamicIndexerAccessExpression(Microsoft.CodeAnalysis.Semantics.IDynamicIndexerAccessExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDynamicInvocationExpression(Microsoft.CodeAnalysis.Semantics.IDynamicInvocationExpression operation) -> void
@@ -641,6 +645,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDeconstructionAssignmentExpression(Microsoft.CodeAnalysis.Semantics.IDeconstructionAssignmentExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDefaultCaseClause(Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDefaultValueExpression(Microsoft.CodeAnalysis.Semantics.IDefaultValueExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDelegateCreationExpression(Microsoft.CodeAnalysis.Semantics.IDelegateCreationExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDoLoopStatement(Microsoft.CodeAnalysis.Semantics.IDoLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDynamicIndexerAccessExpression(Microsoft.CodeAnalysis.Semantics.IDynamicIndexerAccessExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDynamicInvocationExpression(Microsoft.CodeAnalysis.Semantics.IDynamicInvocationExpression operation, TArgument argument) -> TResult

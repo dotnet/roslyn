@@ -815,6 +815,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(" (IsVirtual)");
             }
 
+            Assert.Null(operation.Type);
+
             VisitMemberReferenceExpressionCommon(operation);
         }
 
@@ -1020,6 +1022,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitAnonymousFunctionExpression(operation);
+        }
+
+        public override void VisitDelegateCreationExpression(IDelegateCreationExpression operation)
+        {
+            LogString(nameof(IDelegateCreationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, nameof(operation.Target));
         }
 
         public override void VisitLiteralExpression(ILiteralExpression operation)

@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitMethodReferenceExpression(IMethodReferenceExpression operation, object argument)
         {
-            return new MethodReferenceExpression(operation.Method, operation.IsVirtual, Visit(operation.Instance), operation.Member, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new MethodReferenceExpression(operation.Method, operation.IsVirtual, Visit(operation.Instance), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitPropertyReferenceExpression(IPropertyReferenceExpression operation, object argument)
@@ -293,6 +293,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override IOperation VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation, object argument)
         {
             return new AnonymousFunctionExpression(operation.Symbol, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitDelegateCreationExpression(IDelegateCreationExpression operation, object argument)
+        {
+            return new DelegateCreationExpression(Visit(operation.Target), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLiteralExpression(ILiteralExpression operation, object argument)
