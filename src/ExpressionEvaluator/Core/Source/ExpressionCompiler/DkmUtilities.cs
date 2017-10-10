@@ -324,6 +324,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 this.MetadataContext = metadataContext;
             }
 
+            // This override is needed to keep the DkmDataItem from being unloaded ahead of this component.
+            // See https://github.com/dotnet/roslyn/issues/22617.
             protected override void OnClose() { }
         }
     }
