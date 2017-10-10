@@ -19,14 +19,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         IOperation Body { get; }
 
         /// <summary>
-        /// Declaration introduced by the using statement. Null if the using statement does not declare any variables.
+        /// Declaration introduced or resource held by the using.
         /// </summary>
-        IVariableDeclarationStatement Declaration { get; }
-
-        /// <summary>
-        /// Resource held by the using. Can be null if Declaration is not null.
-        /// </summary>
-        IOperation Value { get; }
+        IOperation Expression { get; }
     }
 }
 

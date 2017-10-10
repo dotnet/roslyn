@@ -40,8 +40,8 @@ End Module
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
             Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
 
-            Assert.NotNull(op.Declaration.Syntax)
-            Assert.Same(node.UsingStatement, op.Declaration.Syntax)
+            Assert.NotNull(op.Expression.Syntax)
+            Assert.Same(node.UsingStatement, op.Expression.Syntax)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -80,7 +80,7 @@ BC30201: Expression expected.
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
             Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
 
-            Assert.Null(op.Declaration)
+            Assert.Null(op.Expression)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -114,8 +114,6 @@ End Module
             Dim tree = comp.SyntaxTrees.Single()
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
             Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
-
-            Assert.Null(op.Declaration)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>

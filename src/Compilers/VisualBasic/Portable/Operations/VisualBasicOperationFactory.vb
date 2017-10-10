@@ -1347,16 +1347,19 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundUsingStatementOperation(boundUsingStatement As BoundUsingStatement) As IUsingStatement
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUsingStatement.Body))
-            Dim declaration As Lazy(Of IVariableDeclarationStatement) = New Lazy(Of IVariableDeclarationStatement)(
+            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(
                 Function()
-                    Return GetUsingStatementDeclaration(boundUsingStatement.ResourceList, DirectCast(boundUsingStatement.Syntax, UsingBlockSyntax).UsingStatement)
+                    If Not boundUsingStatement.ResourceList.IsDefault Then
+                        Return GetUsingStatementDeclaration(boundUsingStatement.ResourceList, DirectCast(boundUsingStatement.Syntax, UsingBlockSyntax).UsingStatement)
+                    Else
+                        Return Create(boundUsingStatement.ResourceExpressionOpt)
+                    End If
                 End Function)
-            Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUsingStatement.ResourceExpressionOpt))
             Dim syntax As SyntaxNode = boundUsingStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundUsingStatement.WasCompilerGenerated
-            Return New LazyUsingStatement(body, declaration, value, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyUsingStatement(expression, body, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundExpressionStatementOperation(boundExpressionStatement As BoundExpressionStatement) As IExpressionStatement

@@ -1384,14 +1384,13 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IUsingStatement CreateBoundUsingStatementOperation(BoundUsingStatement boundUsingStatement)
         {
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create((BoundNode)boundUsingStatement.DeclarationsOpt ?? boundUsingStatement.ExpressionOpt));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundUsingStatement.Body));
-            Lazy<IVariableDeclarationStatement> declaration = new Lazy<IVariableDeclarationStatement>(() => (IVariableDeclarationStatement)Create(boundUsingStatement.DeclarationsOpt));
-            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundUsingStatement.ExpressionOpt));
             SyntaxNode syntax = boundUsingStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
-            return new LazyUsingStatement(body, declaration, value, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyUsingStatement(expression, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IExpressionStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)

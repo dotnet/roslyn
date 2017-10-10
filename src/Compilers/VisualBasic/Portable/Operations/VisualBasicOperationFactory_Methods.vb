@@ -248,9 +248,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationStatement
-            If resourceList.IsDefault Then
-                Return Nothing
-            End If
             Dim declaration = resourceList.Select(Function(n) Create(n)).OfType(Of IVariableDeclaration).ToImmutableArray()
             Return New VariableDeclarationStatement(
                             declaration,
