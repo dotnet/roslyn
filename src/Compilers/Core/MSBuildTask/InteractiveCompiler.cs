@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -190,21 +191,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     AddCommandLineCommands(commandLineBuilder);
                     var commandLine = commandLineBuilder.ToString();
 
-                    if (string.IsNullOrEmpty(ToolPath))
-                    {
-                        _dotnetHostInfo = DotnetHost.CreateManagedToolInvocation(ToolNameWithoutExtension, commandLine);
-
-                        // See comment in ManagedCompiler.cs on why this if statement is here.
-                        if (ToolExe != _dotnetHostInfo.ToolNameOpt)
-                        {
-                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
-                        }
-                    }
-                    else
-                    {
-                        // Explicitly provided ToolPath, don't try to figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
-                    }
+                    _dotnetHostInfo = ManagedCompiler.CreateDotnetHostInfo(ToolPath, ToolExe, ToolName, commandLine);
                 }
                 return _dotnetHostInfo;
             }
@@ -214,7 +201,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected abstract string ToolNameWithoutExtension { get; }
 
-        protected sealed override string ToolName => DotnetHostInfo.ToolNameOpt;
+        protected sealed override string ToolName => ManagedCompiler.GenerateToolName(ToolNameWithoutExtension);
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {

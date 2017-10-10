@@ -267,7 +267,63 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentExpression(
                 eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=statement.WasCompilerGenerated)
-        End Function        
+        End Function
+
+        Private Shared Function IsDelegateCreation(conversionKind As ConversionKind, conversionSyntax As SyntaxNode, operand As BoundNode, targetType As TypeSymbol) As Boolean
+            If Not targetType.IsDelegateType() Then
+                Return False
+            End If
+
+            ' Any of the explicit cast types, as well as New DelegateType(AddressOf Method)
+            ' Additionally, AddressOf, if the child AddressOf is the same SyntaxNode (ie, an implicit delegate creation)
+            ' In the case of AddressOf, the operand can be a BoundDelegateCreationExpression, a BoundAddressOfOperator, or
+            ' a BoundBadExpression. For simplicity, we just do a syntax check to make sure it's an AddressOfExpression so
+            ' we don't have to compare against all 3 BoundKinds
+            Dim validAddressOfConversionSyntax = operand.Syntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
+                                                 (conversionSyntax.Kind() = SyntaxKind.CTypeExpression OrElse
+                                                  conversionSyntax.Kind() = SyntaxKind.DirectCastExpression OrElse
+                                                  conversionSyntax.Kind() = SyntaxKind.TryCastExpression OrElse
+                                                  conversionSyntax.Kind() = SyntaxKind.ObjectCreationExpression OrElse
+                                                  (conversionSyntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
+                                                   conversionSyntax Is operand.Syntax))
+
+            Dim validLambdaConversionNode = operand.Kind = BoundKind.Lambda OrElse
+                                              operand.Kind = BoundKind.QueryLambda OrElse
+                                              operand.Kind = BoundKind.UnboundLambda
+
+            Return validAddressOfConversionSyntax OrElse validLambdaConversionNode
+        End Function
+
+        ''' <summary>
+        ''' Creates the Lazy IOperation from a delegate creation operand or a bound conversion operand, handling when the conversion
+        ''' is actually a delegate creation.
+        ''' </summary>
+        Private Function CreateConversionOperand(operand As BoundNode, conversionKind As ConversionKind, conversionSyntax As SyntaxNode, targetType As TypeSymbol
+                                                   ) As (MethodSymbol As MethodSymbol, Operation As Lazy(Of IOperation), IsDelegateCreation As Boolean)
+            If (conversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
+                Dim userDefinedConversion As BoundUserDefinedConversion = DirectCast(operand, BoundUserDefinedConversion)
+                Return (userDefinedConversion.Call.Method, New Lazy(Of IOperation)(Function() Create(userDefinedConversion.Operand)), IsDelegateCreation:=False)
+            ElseIf IsDelegateCreation(conversionKind, conversionSyntax, operand, targetType) Then
+                Dim methodSymbol As MethodSymbol = Nothing
+                Dim operandLazy As Lazy(Of IOperation)
+                If operand.Kind = BoundKind.DelegateCreationExpression Then
+                    ' If the child is a BoundDelegateCreationExpression, we don't want to generate a nested IDelegateCreationExpression.
+                    ' So, the operand for the conversion will be the child of the BoundDelegateCreationExpression.
+                    ' We see this in this syntax: Dim x = New Action(AddressOf M2)
+                    ' This should be semantically equivalent to: Dim x = AddressOf M2
+                    ' However, if we didn't fix this up, we would have nested IDelegateCreationExpressions here for the former case.
+                    operandLazy = New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(DirectCast(operand, BoundDelegateCreationExpression)))
+                Else
+                    ' This is either a lambda, or an AddressOf error scenario in which we have a delegate conversion, but it failed to bind correctly.
+                    ' Delegate to standard operation handling for this.
+                    operandLazy = New Lazy(Of IOperation)(Function() Create(operand))
+                End If
+                Return (methodSymbol, operandLazy, IsDelegateCreation:=True)
+            Else
+                Dim methodSymbol As MethodSymbol = Nothing
+                Return (methodSymbol, New Lazy(Of IOperation)(Function() Create(operand)), IsDelegateCreation:=False)
+            End If
+        End Function
 
         Friend Class Helper
             Friend Shared Function DeriveUnaryOperatorKind(operatorKind As VisualBasic.UnaryOperatorKind) As UnaryOperatorKind
