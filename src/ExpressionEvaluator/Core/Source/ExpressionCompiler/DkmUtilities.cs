@@ -323,6 +323,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 this.MetadataContext = metadataContext;
             }
+
+            protected override void OnClose() { }
         }
     }
 }
