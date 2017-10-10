@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // ...but not this cast...
             //
             // Goo((object)null);
-
-            if (cast.WalkUpParentheses().Parent is ArgumentSyntax argument)
+            var parent = cast.WalkUpParentheses().Parent;
+            if (parent is ArgumentSyntax argument)
             {
                 // If there are any arguments to the right, we can assume that this is not a
                 // *single* argument passed to a params parameter.
