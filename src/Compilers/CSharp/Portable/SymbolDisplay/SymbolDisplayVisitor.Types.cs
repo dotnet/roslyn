@@ -571,18 +571,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case TypeKind.Struct:
-                            var structSymbol = (NamedTypeSymbol)symbol;
-
-                            if (structSymbol.IsReadOnly)
+                            if (symbol is NamedTypeSymbol csharpType)
                             {
-                                AddKeyword(SyntaxKind.ReadOnlyKeyword);
-                                AddSpace();
-                            }
+                                if (csharpType.IsReadOnly)
+                                {
+                                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                                    AddSpace();
+                                }
 
-                            if (structSymbol.IsByRefLikeType)
-                            {
-                                AddKeyword(SyntaxKind.RefKeyword);
-                                AddSpace();
+                                if (csharpType.IsByRefLikeType)
+                                {
+                                    AddKeyword(SyntaxKind.RefKeyword);
+                                    AddSpace();
+                                }
                             }
 
                             AddKeyword(SyntaxKind.StructKeyword);

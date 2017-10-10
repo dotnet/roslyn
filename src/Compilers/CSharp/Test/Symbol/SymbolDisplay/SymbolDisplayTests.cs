@@ -6083,5 +6083,25 @@ namespace Nested
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName);
         }
+
+        [Fact]
+        public void TestPassingVBSymbolsToStructSymbolDisplay()
+        {
+            var source = @"
+Structure X
+End Structure";
+
+            var comp = CreateVisualBasicCompilation(source).VerifyDiagnostics();
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+
+            var structure = semanticModel.SyntaxTree.GetRoot().DescendantNodes().Single(n => n.RawKind == (int)VisualBasic.SyntaxKind.StructureStatement);
+            var format = SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            Verify(SymbolDisplay.ToDisplayParts(semanticModel.GetDeclaredSymbol(structure), format),
+                "struct X",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName);
+        }
     }
 }
