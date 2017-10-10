@@ -152,13 +152,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking scape scopes is not valid here.
+        /// Checking escape scopes is not valid here.
         /// </summary>
         internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
 
         /// <summary>
         /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking/assigning scape scopes is not valid here.
+        /// Checking escape scopes is not valid here.
         /// </summary>
         internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
 
