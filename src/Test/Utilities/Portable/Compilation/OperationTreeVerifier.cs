@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IUsingStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Expression, "Expression");
+            Visit(operation.Resources, "Resources");
             Visit(operation.Body, "Body");
         }
 

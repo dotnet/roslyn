@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Declaration introduced or resource held by the using.
         /// </summary>
-        IOperation Expression { get; }
+        IOperation Resources { get; }
     }
 }
 

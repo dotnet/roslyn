@@ -32,7 +32,7 @@ class C : IDisposable
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c = new C()')
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c = new C()')
         Variables: Local_1: C c
@@ -87,7 +87,7 @@ class C : IDisposable
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (c) ... }')
-  Expression: 
+  Resources: 
     ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: C) (Syntax: 'c')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -135,7 +135,7 @@ class C : IDisposable
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c1 = new C()')
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
         Variables: Local_1: C c1
@@ -146,7 +146,7 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
               null
   Body: 
     IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
-      Expression: 
+      Resources: 
         IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c2 = new C()')
           IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2 = new C()')
             Variables: Local_1: C c2
@@ -210,11 +210,11 @@ class C : IDisposable
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (c1) ... }')
-  Expression: 
+  Resources: 
     ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C) (Syntax: 'c1')
   Body: 
     IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (c2) ... }')
-      Expression: 
+      Resources: 
         ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C) (Syntax: 'c2')
       Body: 
         IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -268,7 +268,7 @@ class C : IDisposable
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (var  ... }')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var c1 = ne ... 2 = new C()')
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'c1 = new C()')
         Variables: Local_1: C c1
@@ -363,7 +363,7 @@ IBlockStatement (5 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
           Initializer: 
             null
   IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (c1')
-    Expression: 
+    Resources: 
       ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C, IsInvalid) (Syntax: 'c1')
     Body: 
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
@@ -440,7 +440,7 @@ class C
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (var  ... }')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var c1 = new C()')
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'c1 = new C()')
         Variables: Local_1: C c1
@@ -496,7 +496,7 @@ class C
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (c1) ... }')
-  Expression: 
+  Resources: 
     ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C, IsInvalid) (Syntax: 'c1')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -525,7 +525,7 @@ IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (c1) .
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void IUsingStatement_InvalidEmptyUsingBlock()
+        public void IUsingStatement_InvalidEmptyUsingResources()
         {
             string source = @"
 using System;
@@ -543,7 +543,7 @@ class C
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using () ... }')
-  Expression: 
+  Resources: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: 
@@ -583,7 +583,7 @@ class C : IDisposable
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (GetC ... }')
-  Expression: 
+  Resources: 
     IInvocationExpression (C C.GetC()) (OperationKind.InvocationExpression, Type: C) (Syntax: 'GetC()')
       Instance Receiver: 
         null
@@ -621,7 +621,7 @@ class C : IDisposable
 ";
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (d) ... }')
-  Expression: 
+  Resources: 
     ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -643,6 +643,33 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (d) ... }')
             VerifyOperationTreeAndDiagnosticsForTest<UsingStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IUsingStatement_NullResource()
+        {
+            string source = @"
+using System;
 
+class C
+{
+    public static void M1()
+    {
+        /*<bind>*/using (null)
+        {
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (null ... }')
+  Resources: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<UsingStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

@@ -455,7 +455,7 @@ Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.Operand.get -> Microso
 Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.OperatorKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.IUsingStatement
 Microsoft.CodeAnalysis.Semantics.IUsingStatement.Body.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IUsingStatement.Expression.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IUsingStatement.Resources.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IVariableDeclaration
 Microsoft.CodeAnalysis.Semantics.IVariableDeclaration.Initializer.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IVariableDeclaration.Variables.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>

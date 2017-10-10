@@ -40,8 +40,8 @@ End Module
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
             Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
 
-            Assert.NotNull(op.Expression.Syntax)
-            Assert.Same(node.UsingStatement, op.Expression.Syntax)
+            Assert.NotNull(op.Resources.Syntax)
+            Assert.Same(node.UsingStatement, op.Resources.Syntax)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -80,7 +80,7 @@ BC30201: Expression expected.
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
             Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
 
-            Assert.Equal(OperationKind.InvalidExpression, op.Expression.Kind)
+            Assert.Equal(OperationKind.InvalidExpression, op.Resources.Kind)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -104,7 +104,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Using')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (0 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1 As ... s C = New C')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1 As ... End Using')
@@ -150,7 +150,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Using')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (0 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1 As C = New C')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1 As ... End Using')
@@ -196,7 +196,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Using')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (0 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1 As New C')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1 As ... End Using')
@@ -242,7 +242,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1, c ... End Using')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (0 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1, c2 As New C')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1, c ... End Using')
@@ -289,7 +289,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1'BI ... End Using')
-  Expression: 
+  Resources: 
     ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C) (Syntax: 'c1')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1'BI ... End Using')
@@ -335,7 +335,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'Using c1, c ... End Using')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (0 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Using c1, c2')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Using c1, c ... End Using')
@@ -393,12 +393,12 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1'BI ... End Using')
-  Expression: 
+  Resources: 
     ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C) (Syntax: 'c1')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1'BI ... End Using')
       IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c2 ... End Using')
-        Expression: 
+        Resources: 
           ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: Program.C) (Syntax: 'c2')
         Body: 
           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c2 ... End Using')
@@ -443,7 +443,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 =  ... End Using')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (0 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1 =  ... c3 As New C')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1 =  ... End Using')
@@ -489,7 +489,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'Using c1 =  ... End Using')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (0 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Using c1 = New C, c2')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Using c1 =  ... End Using')
@@ -539,7 +539,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'Using c1 As ... End Using')
-  Expression: 
+  Resources: 
     IVariableDeclarationStatement (0 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Using c1 As New C')
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Using c1 As ... End Using')
@@ -583,7 +583,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'Using'BIND: ... End Using')
-  Expression: 
+  Resources: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: 
@@ -594,6 +594,40 @@ IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'Using'BIND: 
 BC30201: Expression expected.
         Using'BIND:"Using"
              ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UsingBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IUsingStatement_InvalidNothingResources()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Using Nothing'BIND:"Using Nothing"
+        End Using
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'Using Nothi ... End Using')
+  Resources: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsInvalid, IsImplicit) (Syntax: 'Nothing')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'Nothing')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Using Nothi ... End Using')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36010: 'Using' operand of type 'Object' must implement 'System.IDisposable'.
+        Using Nothing'BIND:"Using Nothing"
+              ~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UsingBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)

@@ -5038,7 +5038,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                yield return Resources;
                 yield return Body;
             }
         }
@@ -5046,7 +5046,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Declaration introduced or resource held by the using.
         /// </summary>
-        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
+        public IOperation Resources => Operation.SetParentOperation(ExpressionImpl, this);
 
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.
