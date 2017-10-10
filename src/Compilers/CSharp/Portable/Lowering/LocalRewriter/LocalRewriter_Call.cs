@@ -1356,7 +1356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultValue = new BoundDefaultExpression(syntax, parameterType);
                 }
             }
-            else if (defaultConstantValue.IsNull && parameterType.IsValueType)
+            else if (defaultConstantValue.IsNull && 
+                (parameterType.IsValueType || (parameterType.IsNullableType() && parameterType.IsErrorType())))
             {
                 // We have something like M(int? x = null) or M(S x = default(S)),
                 // so replace the argument with default(int?).

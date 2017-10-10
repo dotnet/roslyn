@@ -592,16 +592,12 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid
               Operand: 
                 IUnaryOperatorExpression (UnaryOperatorKind.Not) (OperationKind.UnaryOperatorExpression, Type: System.Object) (Syntax: '!x.Equals(null)')
                   Operand: 
-                    IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?) (Syntax: 'x.Equals(null)')
-                      Instance Receiver: 
-                        IOperation:  (OperationKind.None) (Syntax: 'x.Equals')
-                          Children(1):
-                              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: MissingType) (Syntax: 'x')
-                      Arguments(1):
-                          IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'null')
-                            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
-                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'x.Equals(null)')
+                      Children(2):
+                          IOperation:  (OperationKind.None) (Syntax: 'x.Equals')
+                            Children(1):
+                                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: MissingType) (Syntax: 'x')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
   NextVariables(0)
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
