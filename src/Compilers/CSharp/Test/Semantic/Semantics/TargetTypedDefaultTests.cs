@@ -2677,7 +2677,9 @@ class C
             Assert.Equal("System.Int32?", model.GetTypeInfo(default4).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(default4).Symbol);
             Assert.True(model.GetConstantValue(default4).HasValue);
-            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(default4).Kind);
+            Conversion conversion = model.GetConversion(default4);
+            Assert.Equal(ConversionKind.ImplicitNullable, conversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, conversion.UnderlyingConversions.Single().Kind);
         }
 
         [Fact]
