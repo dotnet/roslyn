@@ -2637,24 +2637,39 @@ class C
             var text = @"
 class C
 {
-    static void Main() { A(); B(); }
+    static void Main() { A(); B(); D(); }
 
     static void A(int? x = default) => System.Console.Write(x.HasValue);
     static void B(int? x = default(int?)) => System.Console.Write(x.HasValue);
+    static void D(int? x = default(byte?)) => System.Console.Write(x.HasValue);
 }";
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "FalseFalse");
+            CompileAndVerify(comp, expectedOutput: "FalseFalseFalse");
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
-            var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
-            Assert.Equal("System.Int32?", model.GetTypeInfo(def).Type.ToTestDisplayString());
-            Assert.Equal("System.Int32?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(def).Symbol);
-            Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsNullLiteral);
+            var default1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default1).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default1).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(default1).Symbol);
+            Assert.False(model.GetConstantValue(default1).HasValue);
+            Assert.True(model.GetConversion(default1).IsNullLiteral);
+
+            var default2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(0);
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default2).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default2).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(default2).Symbol);
+            Assert.False(model.GetConstantValue(default2).HasValue);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(default2).Kind);
+
+            var default3 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(1);
+            Assert.Equal("System.Byte?", model.GetTypeInfo(default3).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default3).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(default3).Symbol);
+            Assert.False(model.GetConstantValue(default3).HasValue);
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(default3).Kind);
         }
 
         [Fact]
