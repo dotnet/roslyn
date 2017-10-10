@@ -225,9 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenLeft,
                             rewrittenRight,
                             type,
-                            refKind: refKind);
+                            refKind);
                     }
-
 
                 case BoundKind.DiscardExpression:
                     {
