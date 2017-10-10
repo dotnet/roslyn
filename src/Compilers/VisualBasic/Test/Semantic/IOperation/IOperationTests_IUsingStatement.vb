@@ -178,5 +178,47 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Usi
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UsingBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestUsingStatement()
+            Dim source = <![CDATA[
+Imports System
+
+Module Program
+    Class C
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+    Sub Main(args As String())
+        Using c1 As C = New C, c2 As C = New C'BIND:"Using c1 As C = New C, c2 As C = New C"
+            Console.WriteLine(c1)
+        End Using
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1 As ... s C = New C')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
+    Variables: Local_1: c1 As Program.C
+    Initializer: 
+      IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+        Arguments(0)
+        Initializer: 
+          null
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2')
+    Variables: Local_1: c2 As Program.C
+    Initializer: 
+      IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+        Arguments(0)
+        Initializer: 
+          null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UsingStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
