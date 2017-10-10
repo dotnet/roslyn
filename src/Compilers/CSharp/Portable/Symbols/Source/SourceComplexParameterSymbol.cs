@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // The default literal conversion is an exception: (double)default would give the wrong value for M(double? x = default).
 
             if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
-                !(valueBeforeConversion.Kind == BoundKind.DefaultExpression && ((BoundDefaultExpression)valueBeforeConversion).Type == null))
+                !(valueBeforeConversion.Kind == BoundKind.DefaultExpression && valueBeforeConversion.Type == null))
             {
                 if (parameterType.IsNullableType())
                 {

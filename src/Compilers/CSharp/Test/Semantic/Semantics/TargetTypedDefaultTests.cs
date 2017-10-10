@@ -2637,15 +2637,16 @@ class C
             var text = @"
 class C
 {
-    static void Main() { A(); B(); D(); }
+    static void Main() { A(); B(); D(); E(); }
 
-    static void A(int? x = default) => System.Console.Write(x.HasValue);
-    static void B(int? x = default(int?)) => System.Console.Write(x.HasValue);
-    static void D(int? x = default(byte?)) => System.Console.Write(x.HasValue);
+    static void A(int? x = default) => System.Console.Write($""{x.HasValue} "");
+    static void B(int? x = default(int?)) => System.Console.Write($""{x.HasValue} "");
+    static void D(int? x = default(byte?)) => System.Console.Write($""{x.HasValue} "");
+    static void E(int? x = default(byte)) => System.Console.Write($""{x.HasValue}:{x.Value}"");
 }";
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalse");
+            CompileAndVerify(comp, expectedOutput: "False False False True:0");
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -2670,6 +2671,13 @@ class C
             Assert.Null(model.GetSymbolInfo(default3).Symbol);
             Assert.False(model.GetConstantValue(default3).HasValue);
             Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(default3).Kind);
+
+            var default4 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(2);
+            Assert.Equal("System.Byte", model.GetTypeInfo(default4).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default4).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(default4).Symbol);
+            Assert.True(model.GetConstantValue(default4).HasValue);
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(default4).Kind);
         }
 
         [Fact]
