@@ -54,6 +54,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
