@@ -10719,6 +10719,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ref-reassignment.
+        /// </summary>
+        internal static string IDS_FeatureRefReassignment {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRefReassignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ref structs.
         /// </summary>
         internal static string IDS_FeatureRefStructs {

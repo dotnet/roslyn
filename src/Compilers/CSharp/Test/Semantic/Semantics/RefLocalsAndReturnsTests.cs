@@ -13,6 +13,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         [Fact]
+        public void RefReassign71()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    static int _f = 0;
+    void M(ref int x, out int o)
+    {
+        x = ref _f;
+
+        ref int z = ref x;
+        z = ref _f;
+        o = 0;
+        o = ref _f;
+    }
+}", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            CreateStandardCompilation(tree).VerifyDiagnostics(
+                // (7,13): error CS8302: Feature 'ref-reassignment' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         x = ref _f;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref _f").WithArguments("ref-reassignment", "7.2").WithLocation(7, 13),
+                // (10,13): error CS8302: Feature 'ref-reassignment' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         z = ref _f;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref _f").WithArguments("ref-reassignment", "7.2").WithLocation(10, 13),
+                // (12,13): error CS8302: Feature 'ref-reassignment' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         o = ref _f;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref _f").WithArguments("ref-reassignment", "7.2").WithLocation(12, 13));
+        }
+
+        [Fact]
         public void RefReassignSpanLifetime()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
