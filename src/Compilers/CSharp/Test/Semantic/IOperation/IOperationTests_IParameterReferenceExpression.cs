@@ -168,9 +168,8 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'cust.Name')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<Customer, System.String>, IsImplicit) (Syntax: 'cust.Name')
-              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Operand: 
+            IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func<Customer, System.String>, IsImplicit) (Syntax: 'cust.Name')
+              Target: 
                 IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'cust.Name')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'cust.Name')
                     IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'cust.Name')
@@ -289,19 +288,19 @@ class Class
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
-  Children(1):
-      IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => ... }')
-        IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
-            Expression: 
-              IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
-                Instance Receiver: 
-                  IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Action) (Syntax: 'a')
-                Arguments(0)
-          IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ ... }')
-            ReturnedValue: 
-              null
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action( ... })')
+  Target: 
+    IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => ... }')
+      IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
+          Expression: 
+            IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
+              Instance Receiver: 
+                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Action) (Syntax: 'a')
+              Arguments(0)
+        IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ ... }')
+          ReturnedValue: 
+            null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -330,11 +329,11 @@ class Class
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new Delegate(Method2)')
-  Children(1):
-      IOperation:  (OperationKind.None) (Syntax: 'Method2')
-        Children(1):
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'Method2')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Class.Delegate) (Syntax: 'new Delegate(Method2)')
+  Target: 
+    IMethodReferenceExpression: void Class.Method2(System.Int32 x, System.Int32 y) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Method2')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'Method2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

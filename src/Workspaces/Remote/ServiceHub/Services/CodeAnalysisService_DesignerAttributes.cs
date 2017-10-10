@@ -21,18 +21,18 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public Task<DesignerAttributeResult> ScanDesignerAttributesAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async token =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, documentId.DebugName, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, documentId.DebugName, token))
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, token).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var service = document.GetLanguageService<IDesignerAttributeService>();
                     if (service != null)
                     {
                         // todo comment service supported
-                        return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
+                        return await service.ScanDesignerAttributesAsync(document, token).ConfigureAwait(false);
                     }
 
                     return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, notApplicable: true);
