@@ -1220,14 +1220,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Parameter:
                     {
-                        var param = (BoundParameter)node;
-                        // Ref-reassignment does not assign the underlying value
-                        if (refKind == RefKind.None)
+                        var paramExpr = (BoundParameter)node;
+                        var param = paramExpr.ParameterSymbol;
+                        // If we're ref-reassigning an out parameter we're effectively
+                        // leaving the original
+                        if (refKind != RefKind.None &&
+                            param.RefKind == RefKind.Out)
                         {
-                            int slot = MakeSlot(param);
-                            SetSlotState(slot, written);
-                            if (written) NoteWrite(param, value, read);
+                            LeaveParameter(param, node.Syntax, paramExpr.Syntax.Location);
                         }
+
+                        int slot = MakeSlot(paramExpr);
+                        SetSlotState(slot, written);
+                        if (written) NoteWrite(paramExpr, value, read);
                         break;
                     }
 

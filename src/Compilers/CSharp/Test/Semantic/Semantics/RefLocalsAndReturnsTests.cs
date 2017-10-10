@@ -232,12 +232,13 @@ class C
     void M(out int x)
     {
         x = ref y;
+        x = 0;
     }
 }");
             comp.VerifyDiagnostics(
-                // (5,10): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
-                //     void M(out int x)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("x").WithLocation(5, 10));
+                // (7,9): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         x = ref y;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "x").WithArguments("x").WithLocation(7, 9));
         }
 
         [Fact]
