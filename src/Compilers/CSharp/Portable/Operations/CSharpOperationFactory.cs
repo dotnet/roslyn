@@ -331,9 +331,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundLocal.Type;
             Optional<object> constantValue = ConvertToOptional(boundLocal.ConstantValue);
             bool isImplicit = boundLocal.WasCompilerGenerated;
-            if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
+            if (isDeclaration && syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
-                Debug.Assert(isDeclaration);
                 syntax = declarationExpressionSyntax.Designation;
                 Lazy<IOperation> localReferenceExpression = new Lazy<IOperation>(() =>
                     new LocalReferenceExpression(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit));
@@ -352,9 +351,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundFieldAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundFieldAccess.ConstantValue);
             bool isImplicit = boundFieldAccess.WasCompilerGenerated;
-            if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
+            if (isDeclaration && syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
-                Debug.Assert(isDeclaration);
                 syntax = declarationExpressionSyntax.Designation;
                 Lazy<IOperation> fieldReferenceExpression = new Lazy<IOperation>(() =>
                     new LazyFieldReferenceExpression(field, isDeclaration, instance, member, _semanticModel, syntax, type, constantValue, isImplicit));

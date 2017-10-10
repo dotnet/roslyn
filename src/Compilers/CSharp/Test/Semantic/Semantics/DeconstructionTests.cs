@@ -58,6 +58,7 @@ public class LongInteger
     public override string ToString() { return state.ToString(); }
 }";
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructMethodMissing()
         {
@@ -68,22 +69,36 @@ class C
     {
         long x;
         string y;
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (8,18): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(8, 18),
-                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(8, 28),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructWrongParams()
         {
@@ -94,24 +109,40 @@ class C
     {
         long x;
         string y;
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
     }
     public void Deconstruct(out int a) // too few arguments
     {
         a = 1;
     }
-}";
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (8,18): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 18),
-                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
-                );
+}
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1501: No overload for method 'Deconstruct' takes 2 arguments
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 28),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructWrongParams2()
         {
@@ -121,24 +152,40 @@ class C
     static void Main()
     {
         long x, y;
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
     }
     public void Deconstruct(out int a, out int b, out int c) // too many arguments
     {
         a = b = c = 1;
     }
-}";
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("c", "C.Deconstruct(out int, out int, out int)").WithLocation(7, 18),
-                // (7,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 18)
-                );
+}
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x, System.Int64 y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("c", "C.Deconstruct(out int, out int, out int)").WithLocation(7, 28),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssignmentWithLeftHandSideErrors()
         {
@@ -149,28 +196,47 @@ class C
     {
         long x = 1;
         string y = ""hello"";
-        (x.f, y.g) = new C();
+        /*<bind>*/(x.f, y.g) = new C()/*</bind>*/;
     }
     public void Deconstruct() { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (8,12): error CS1061: 'long' does not contain a definition for 'f' and no extension method 'f' accepting a first argument of type 'long' could be found (are you missing a using directive or an assembly reference?)
-                //         (x.f, y.g) = new C();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("long", "f").WithLocation(8, 12),
-                // (8,17): error CS1061: 'string' does not contain a definition for 'g' and no extension method 'g' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         (x.f, y.g) = new C();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "g").WithArguments("string", "g").WithLocation(8, 17),
-                // (8,22): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
-                //         (x.f, y.g) = new C();
-                Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 22),
-                // (8,22): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x.f, y.g) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 22)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x.f, y.g) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (? f, ? g), IsInvalid) (Syntax: '(x.f, y.g)')
+      Elements(2):
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x.f')
+            Children(1):
+                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y.g')
+            Children(1):
+                ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1061: 'long' does not contain a definition for 'f' and no extension method 'f' accepting a first argument of type 'long' could be found (are you missing a using directive or an assembly reference?)
+                //         /*<bind>*/(x.f, y.g) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("long", "f").WithLocation(8, 22),
+                // CS1061: 'string' does not contain a definition for 'g' and no extension method 'g' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         /*<bind>*/(x.f, y.g) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "g").WithArguments("string", "g").WithLocation(8, 27),
+                // CS1501: No overload for method 'Deconstruct' takes 2 arguments
+                //         /*<bind>*/(x.f, y.g) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 32),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x.f, y.g) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 32)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructWithInParam()
         {
@@ -181,22 +247,37 @@ class C
     {
         int x;
         int y;
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
     }
     public void Deconstruct(out int x, int y) { x = 1; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (8,9): error CS1615: Argument 2 may not be passed with the 'out' keyword
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "(x, y) = new C()").WithArguments("2", "out").WithLocation(8, 9),
-                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y), IsInvalid) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1615: Argument 2 may not be passed with the 'out' keyword
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "(x, y) = new C()").WithArguments("2", "out").WithLocation(8, 19),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructWithRefParam()
         {
@@ -207,22 +288,37 @@ class C
     {
         int x;
         int y;
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
     }
     public void Deconstruct(ref int x, out int y) { x = 1; y = 2; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (8,9): error CS1620: Argument 1 must be passed with the 'ref' keyword
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_BadArgRef, "(x, y) = new C()").WithArguments("1", "ref").WithLocation(8, 9),
-                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y), IsInvalid) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgRef, "(x, y) = new C()").WithArguments("1", "ref").WithLocation(8, 19),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructManually()
         {
@@ -236,7 +332,7 @@ struct C
         C c = new C();
 
         c.Deconstruct(out x, out y); // error
-        (x, y) = c;
+        /*<bind>*/(x, y) = c/*</bind>*/;
     }
 
     void Deconstruct(out int a, out string b)
@@ -246,15 +342,26 @@ struct C
     }
 }
 ";
-
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
-            comp.VerifyDiagnostics(
-                // (10,27): error CS1503: Argument 1: cannot convert from 'out long' to 'out int'
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y) = c')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: C) (Syntax: 'c')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1503: Argument 1: cannot convert from 'out long' to 'out int'
                 //         c.Deconstruct(out x, out y); // error
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "out long", "out int").WithLocation(10, 27)
-                );
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructMethodHasOptionalParam()
         {
@@ -266,7 +373,7 @@ class C
         long x;
         string y;
 
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
         System.Console.WriteLine(x + "" "" + y);
     }
 
@@ -277,15 +384,29 @@ class C
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 28)
+            };
 
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void BadDeconstructShadowsBaseDeconstruct()
         {
@@ -301,7 +422,7 @@ class C : D
         long x;
         string y;
 
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
         System.Console.WriteLine(x + "" "" + y);
     }
 
@@ -312,15 +433,29 @@ class C : D
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(13, 28)
+            };
 
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (13,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(13, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructMethodHasParams()
         {
@@ -332,7 +467,7 @@ class C
         long x;
         string y;
 
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
         System.Console.WriteLine(x + "" "" + y);
     }
 
@@ -343,15 +478,29 @@ class C
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 28)
+            };
 
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructMethodHasArglist()
         {
@@ -363,7 +512,7 @@ class C
         long x;
         string y;
 
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
     }
 
     public void Deconstruct(out int a, out string b, __arglist) // not a Deconstruct operator
@@ -373,23 +522,37 @@ class C
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.Deconstruct(out int, out string, __arglist)'
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "C.Deconstruct(out int, out string, __arglist)").WithLocation(9, 28),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 28)
+            };
 
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (9,18): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'C.Deconstruct(out int, out string, __arglist)'
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "C.Deconstruct(out int, out string, __arglist)").WithLocation(9, 18),
-                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructDelegate()
         {
             string source = @"
-public delegate void D1(out int x, out int y);
+delegate void D1(out int x, out int y);
 
 class C
 {
@@ -398,26 +561,50 @@ class C
     static void Main()
     {
         int x, y;
-        (x, y) = new C() { Deconstruct = DeconstructMethod };
+        /*<bind>*/(x, y) = new C() { Deconstruct = DeconstructMethod }/*</bind>*/;
     }
 
     public static void DeconstructMethod(out int a, out int b) { a = 1; b = 2; }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = ne ... uctMethod }')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C() { D ... uctMethod }')
+      Arguments(0)
+      Initializer: 
+        IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C, IsInvalid) (Syntax: '{ Deconstru ... uctMethod }')
+          Initializers(1):
+              ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: D1, IsInvalid) (Syntax: 'Deconstruct ... tructMethod')
+                Left: 
+                  IFieldReferenceExpression: D1 C.Deconstruct (OperationKind.FieldReferenceExpression, Type: D1, IsInvalid) (Syntax: 'Deconstruct')
+                    Instance Receiver: 
+                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid) (Syntax: 'Deconstruct')
+                Right: 
+                  IMethodReferenceExpression: void C.DeconstructMethod(out System.Int32 a, out System.Int32 b) (OperationKind.MethodReferenceExpression, Type: D1, IsInvalid) (Syntax: 'DeconstructMethod')
+                    Instance Receiver: 
+                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'DeconstructMethod')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C() { Deconstruct = DeconstructMethod }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C() { Deconstruct = DeconstructMethod }").WithArguments("C", "2").WithLocation(11, 28)
+            };
 
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (11,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         (x, y) = new C() { Deconstruct = DeconstructMethod };
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C() { Deconstruct = DeconstructMethod }").WithArguments("C", "2").WithLocation(11, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructDelegate2()
         {
             string source = @"
-public delegate void D1(out int x, out int y);
+delegate void D1(out int x, out int y);
 
 class C
 {
@@ -426,7 +613,7 @@ class C
     static void Main()
     {
         int x, y;
-        (x, y) = new C() { Deconstruct = DeconstructMethod };
+        /*<bind>*/(x, y) = new C() { Deconstruct = DeconstructMethod }/*</bind>*/;
     }
 
     public static void DeconstructMethod(out int a, out int b) { a = 1; b = 2; }
@@ -434,26 +621,52 @@ class C
     public void Deconstruct(out int a, out int b) { a = 1; b = 2; }
 }
 ";
-
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
-            comp.VerifyDiagnostics(
-                // (16,17): error CS0102: The type 'C' already contains a definition for 'Deconstruct'
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x, System.Int32 y), IsInvalid) (Syntax: '(x, y) = ne ... uctMethod }')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C() { D ... uctMethod }')
+      Arguments(0)
+      Initializer: 
+        IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C, IsInvalid) (Syntax: '{ Deconstru ... uctMethod }')
+          Initializers(1):
+              ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'Deconstruct ... tructMethod')
+                Left: 
+                  IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Deconstruct')
+                    Children(1):
+                        IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Deconstruct')
+                          Children(1):
+                              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'C')
+                Right: 
+                  IOperation:  (OperationKind.None) (Syntax: 'DeconstructMethod')
+                    Children(1):
+                        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'DeconstructMethod')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0102: The type 'C' already contains a definition for 'Deconstruct'
                 //     public void Deconstruct(out int a, out int b) { a = 1; b = 2; }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Deconstruct").WithArguments("C", "Deconstruct").WithLocation(16, 17),
-                // (11,28): error CS1913: Member 'Deconstruct' cannot be initialized. It is not a field or property.
-                //         (x, y) = new C() { Deconstruct = DeconstructMethod };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "Deconstruct").WithArguments("Deconstruct").WithLocation(11, 28),
-                // (6,15): warning CS0649: Field 'C.Deconstruct' is never assigned to, and will always have its default value null
+                // CS1913: Member 'Deconstruct' cannot be initialized. It is not a field or property.
+                //         /*<bind>*/(x, y) = new C() { Deconstruct = DeconstructMethod }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "Deconstruct").WithArguments("Deconstruct").WithLocation(11, 38),
+                // CS0649: Field 'C.Deconstruct' is never assigned to, and will always have its default value null
                 //     public D1 Deconstruct;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Deconstruct").WithArguments("C.Deconstruct", "null").WithLocation(6, 15)
-                );
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructEvent()
         {
             string source = @"
-public delegate void D1(out int x, out int y);
+delegate void D1(out int x, out int y);
 
 class C
 {
@@ -465,7 +678,7 @@ class C
         int y;
         C c = new C();
         c.Deconstruct += DeconstructMethod;
-        (x, y) = c;
+        /*<bind>*/(x, y) = c/*</bind>*/;
     }
 
     public static void DeconstructMethod(out int a, out int b)
@@ -475,18 +688,29 @@ class C
     }
 }
 ";
-
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (14,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = c;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "c").WithArguments("C", "2").WithLocation(14, 18),
-                // (6,21): warning CS0067: The event 'C.Deconstruct' is never used
-                //     public event D1 Deconstruct;
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = c')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x, System.Int32 y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Right: 
+    ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = c/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "c").WithArguments("C", "2").WithLocation(14, 28),
+                // CS0067: The event 'C.Deconstruct' is never used
+                //     public event D1 Deconstruct;  // not a Deconstruct operator
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Deconstruct").WithArguments("C.Deconstruct").WithLocation(6, 21)
-                );
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionErrors()
         {
@@ -497,7 +721,7 @@ class C
     {
         byte x;
         string y;
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
     }
 
     public void Deconstruct(out int a, out int b)
@@ -506,15 +730,29 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
-            comp.VerifyDiagnostics(
-                // (8,10): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "byte").WithLocation(8, 10),
-                // (8,13): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("int", "string").WithLocation(8, 13)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Byte x, System.String y), IsInvalid) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Byte, IsInvalid) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "byte").WithLocation(8, 20),
+                // CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("int", "string").WithLocation(8, 23)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -542,6 +780,45 @@ class C
             CompileAndVerify(comp, expectedOutput: "System.ValueTuple`2[System.Int32,System.Int32]");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ExpressionType_IOperation()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x, y;
+        var type = (/*<bind>*/(x, y) = new C()/*</bind>*/).GetType();
+        System.Console.Write(type.ToString());
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = b = 1;
+    }
+}
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void LambdaStillNotValidStatement()
         {
@@ -563,6 +840,7 @@ class C
                 );
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void LambdaWithBodyStillNotValidStatement()
         {
@@ -571,19 +849,24 @@ class C
 {
     static void Main()
     {
-        (a, b) => { };
+        /*<bind>*/(a, b) => { }/*</bind>*/;
     }
 }
 ";
+            string expectedOperationTree = @"
+IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(a, b) => { }')
+  IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         /*<bind>*/(a, b) => { }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(6, 19)
+            };
 
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         (a, b) => { };
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(6, 9)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedLambdaExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CastButNotCast()
         {
@@ -593,20 +876,29 @@ class C
 {
     static void Main()
     {
-        ((int, string)).ToString();
+        /*<bind>*/((int, string)).ToString()/*</bind>*/;
     }
 }
 ";
+            string expectedOperationTree = @"
+IInvocationExpression (virtual System.String (System.Int32, System.String).ToString()) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: '((int, stri ... .ToString()')
+  Instance Receiver: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.String), IsInvalid) (Syntax: '(int, string)')
+      Elements(2):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'int')
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'string')
+  Arguments(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term 'int'
+                //         /*<bind>*/((int, string)).ToString()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 21),
+                // CS1525: Invalid expression term 'string'
+                //         /*<bind>*/((int, string)).ToString()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(6, 26)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,11): error CS1525: Invalid expression term 'int'
-                //         ((int, string)).ToString();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 11),
-                // (6,16): error CS1525: Invalid expression term 'string'
-                //         ((int, string)).ToString();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(6, 16)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
@@ -643,6 +935,60 @@ class C
                 );
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
+        public void RefReturningMethod2_IOperation()
+        {
+            string source = @"
+class C
+{
+    static int i;
+
+    static void Main()
+    {
+        /*<bind>*/(M(), M()) = new C()/*</bind>*/;
+        System.Console.Write(i);
+    }
+
+    static ref int M()
+    {
+        System.Console.Write(""M "");
+        return ref i;
+    }
+
+    void Deconstruct(out int i, out int j)
+    {
+        i = 42;
+        j = 43;
+    }
+}
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32, System.Int32)) (Syntax: '(M(), M()) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(M(), M())')
+      Elements(2):
+          IInvocationExpression (ref System.Int32 C.M()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M()')
+            Instance Receiver: 
+              null
+            Arguments(0)
+          IInvocationExpression (ref System.Int32 C.M()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M()')
+            Instance Receiver: 
+              null
+            Arguments(0)
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void UninitializedRight()
         {
@@ -652,7 +998,7 @@ class C
     static void Main()
     {
         int x;
-        (x, x) = x;
+        /*<bind>*/(x, x) = x/*</bind>*/;
     }
 }
 static class D
@@ -660,15 +1006,26 @@ static class D
     public static void Deconstruct(this int input, out int output, out int output2) { output = input; output2 = input; }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x, x) = x')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(x, x)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Right: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0165: Use of unassigned local variable 'x'
+                //         /*<bind>*/(x, x) = x/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(7, 28)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
-            comp.VerifyDiagnostics(
-                // (7,18): error CS0165: Use of unassigned local variable 'x'
-                //         (x, x) = x;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(7, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NullRight()
         {
@@ -678,19 +1035,31 @@ class C
     static void Main()
     {
         int x;
-        (x, x) = null;
+        /*<bind>*/(x, x) = null/*</bind>*/;
     }
 }
-";
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics(
-                // (7,18): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
-                //         (x, x) = null;
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 18)
-                );
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '(x, x) = null')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x, x) = null')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Right: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         /*<bind>*/(x, x) = null/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ErrorRight()
         {
@@ -700,19 +1069,31 @@ class C
     static void Main()
     {
         int x;
-        (x, x) = undeclared;
+        /*<bind>*/(x, x) = undeclared/*</bind>*/;
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '(x, x) = undeclared')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x, x) = undeclared')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Right: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'undeclared')
+      Children(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0103: The name 'undeclared' does not exist in the current context
+                //         /*<bind>*/(x, x) = undeclared/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "undeclared").WithArguments("undeclared").WithLocation(7, 28)
+            };
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics(
-                // (7,18): error CS0103: The name 'undeclared' does not exist in the current context
-                //         (x, x) = undeclared;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "undeclared").WithArguments("undeclared").WithLocation(7, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void VoidRight()
         {
@@ -722,23 +1103,37 @@ class C
     static void Main()
     {
         int x;
-        (x, x) = M();
+        /*<bind>*/(x, x) = M()/*</bind>*/;
     }
     static void M() { }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, x) = M()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(x, x)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Right: 
+    IInvocationExpression (void C.M()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M()')
+      Instance Receiver: 
+        null
+      Arguments(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
+                //         /*<bind>*/(x, x) = M()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M()").WithArguments("void", "Deconstruct").WithLocation(7, 28),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'void', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, x) = M()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M()").WithArguments("void", "2").WithLocation(7, 28)
+            };
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics(
-                // (7,18): error CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
-                //         (x, x) = M();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M()").WithArguments("void", "Deconstruct").WithLocation(7, 18),
-                // (7,18): error CS8129: No Deconstruct instance or extension method was found for type 'void', with 2 out parameters.
-                //         (x, x) = M();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M()").WithArguments("void", "2").WithLocation(7, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssigningTupleWithNoConversion()
         {
@@ -750,18 +1145,36 @@ class C
         byte x;
         string y;
 
-        (x, y) = (1, 2);
+        /*<bind>*/(x, y) = (1, 2)/*</bind>*/;
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
-            comp.VerifyDiagnostics(
-                // (9,22): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "string").WithLocation(9, 22)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Byte x, System.String y), IsInvalid) (Syntax: '(x, y) = (1, 2)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Byte x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Byte) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Byte, System.String), IsInvalid, IsImplicit) (Syntax: '(1, 2)')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(1, 2)')
+          Elements(2):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         /*<bind>*/(x, y) = (1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "string").WithLocation(9, 32)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NotAssignable()
         {
@@ -770,20 +1183,40 @@ class C
 {
     static void Main()
     {
-        (1, P) = (1, 2);
+        /*<bind>*/(1, P) = (1, 2)/*</bind>*/;
     }
     static int P { get { return 1; } }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
-            comp.VerifyDiagnostics(
-                // (6,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         (1, P) = (1, 2);
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "1").WithLocation(6, 10),
-                // (6,13): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
-                //         (1, P) = (1, 2);
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(6, 13)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32, System.Int32 P), IsInvalid) (Syntax: '(1, P) = (1, 2)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32 P), IsInvalid) (Syntax: '(1, P)')
+      Elements(2):
+          IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1')
+            Children(1):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'P')
+            Children(1):
+                IPropertyReferenceExpression: System.Int32 C.P { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'P')
+                  Instance Receiver: 
+                    null
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         /*<bind>*/(1, P) = (1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "1").WithLocation(6, 20),
+                // CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         /*<bind>*/(1, P) = (1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(6, 23)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -822,6 +1255,54 @@ class C
             CompileAndVerify(comp, expectedOutput: "1 2");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TupleWithUseSiteError_IOperation()
+        {
+            string source = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+        }
+    }
+}
+class C
+{
+    static void Main()
+    {
+        int x;
+        int y;
+
+        /*<bind>*/(x, y) = (1, 2)/*</bind>*/;
+        System.Console.WriteLine($""{x} {y}"");
+    }
+}
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y) = (1, 2)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssignUsingAmbiguousDeconstruction()
         {
@@ -836,24 +1317,41 @@ class C : Base
     static void Main()
     {
         int x, y;
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
 
-        System.Console.WriteLine(x + "" "" + y);
+        System.Console.WriteLine(x + """" """" + y);
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1003: Syntax error, ',' expected
+                //         System.Console.WriteLine(x + "" "" + y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, @"""""").WithArguments(",", "").WithLocation(14, 41),
+                // CS0121: The call is ambiguous between the following methods or properties: 'Base.Deconstruct(out int, out int)' and 'Base.Deconstruct(out long, out long)'
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Base.Deconstruct(out int, out int)", "Base.Deconstruct(out long, out long)").WithLocation(12, 28),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(12, 28)
+            };
 
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (12,18): error CS0121: The call is ambiguous between the following methods or properties: 'Base.Deconstruct(out int, out int)' and 'Base.Deconstruct(out long, out long)'
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Base.Deconstruct(out int, out int)", "Base.Deconstruct(out long, out long)").WithLocation(12, 18),
-                // (12,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(12, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructIsDynamicField()
         {
@@ -863,21 +1361,35 @@ class C
     static void Main()
     {
         int x, y;
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
 
     }
     public dynamic Deconstruct = null;
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 28)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
-            comp.VerifyDiagnostics(
-                // (7,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructIsField()
         {
@@ -887,22 +1399,35 @@ class C
     static void Main()
     {
         int x, y;
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
 
     }
     public object Deconstruct = null;
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1955: Non-invocable member 'C.Deconstruct' cannot be used like a method.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new C()").WithArguments("C.Deconstruct").WithLocation(7, 28),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 28)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (7,18): error CS1955: Non-invocable member 'C.Deconstruct' cannot be used like a method.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new C()").WithArguments("C.Deconstruct").WithLocation(7, 18),
-                // (7,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -938,6 +1463,7 @@ class C
                 );
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructUsingDynamicMethod()
         {
@@ -950,19 +1476,31 @@ class C
         string y;
 
         dynamic c = new C();
-        (x, y) = c;
+        /*<bind>*/(x, y) = c/*</bind>*/;
     }
     public void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (10,18): error CS8133: Cannot deconstruct dynamic objects.
-                //         (x, y) = c;
-                Diagnostic(ErrorCode.ERR_CannotDeconstructDynamic, "c").WithLocation(10, 18)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = c')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'c')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8133: Cannot deconstruct dynamic objects.
+                //         /*<bind>*/(x, y) = c/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CannotDeconstructDynamic, "c").WithLocation(10, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructMethodInaccessible()
         {
@@ -974,7 +1512,7 @@ class C
         int x;
         string y;
 
-        (x, y) = new C1();
+        /*<bind>*/(x, y) = new C1()/*</bind>*/;
     }
 }
 class C1
@@ -982,15 +1520,29 @@ class C1
     protected void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (9,18): error CS0122: 'C1.Deconstruct(out int, out string)' is inaccessible due to its protection level
-                //         (x, y) = new C1();
-                Diagnostic(ErrorCode.ERR_BadAccess, "new C1()").WithArguments("C1.Deconstruct(out int, out string)").WithLocation(9, 18),
-                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C1', with 2 out parameters.
-                //         (x, y) = new C1();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 18)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C1()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid) (Syntax: 'new C1()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0122: 'C1.Deconstruct(out int, out string)' is inaccessible due to its protection level
+                //         /*<bind>*/(x, y) = new C1()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadAccess, "new C1()").WithArguments("C1.Deconstruct(out int, out string)").WithLocation(9, 28),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C1', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C1()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1032,6 +1584,7 @@ class C1
                 );
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void StaticDeconstruct()
         {
@@ -1043,20 +1596,34 @@ class C
         int x;
         string y;
 
-        (x, y) = new C();
+        /*<bind>*/(x, y) = new C()/*</bind>*/;
     }
     public static void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (9,18): error CS0176: Member 'C.Deconstruct(out int, out string)' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "new C()").WithArguments("C.Deconstruct(out int, out string)").WithLocation(9, 18),
-                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 18)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0176: Member 'C.Deconstruct(out int, out string)' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "new C()").WithArguments("C.Deconstruct(out int, out string)").WithLocation(9, 28),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1088,6 +1655,50 @@ class C
             comp.VerifyDiagnostics();
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void AssignmentTypeIsValueTuple_IOperation()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x; string y;
+
+        var z1 = ((x, y) = new C()).ToString();
+
+        var z2 = (/*<bind>*/(x, y) = new C()/*</bind>*/);
+        var z3 = (x, y) = new C();
+
+        System.Console.Write($""{z1} {z2.ToString()} {z3.ToString()}"");
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x, System.String y)) (Syntax: '(x, y)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'y')
+  Right: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [Fact]
         public void NestedAssignmentTypeIsValueTuple()
         {
@@ -1112,6 +1723,54 @@ class C
 ";
             var comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void NestedAssignmentTypeIsValueTuple_IOperation()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x1; string x2; int x3;
+
+        var y = /*<bind>*/((x1, x2), x3) = (new C(), 3)/*</bind>*/;
+
+        System.Console.Write($""{y.ToString()}"");
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ((System.Int64 x1, System.String x2), System.Int32 x3)) (Syntax: '((x1, x2),  ... new C(), 3)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: ((System.Int64 x1, System.String x2), System.Int32 x3)) (Syntax: '((x1, x2), x3)')
+      Elements(2):
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 x1, System.String x2)) (Syntax: '(x1, x2)')
+            Elements(2):
+                ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x1')
+                ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x2')
+          ILocalReferenceExpression: x3 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x3')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (C, System.Int32)) (Syntax: '(new C(), 3)')
+      Elements(2):
+          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+            Arguments(0)
+            Initializer: 
+              null
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1146,6 +1805,55 @@ class C
 
             Assert.Equal("(System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y",
                 model.GetDeclaredSymbol(y).ToTestDisplayString());
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void AssignmentReturnsLongValueTuple_IOperation()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x;
+        var /*<bind>*/y = (x, x, x, x, x, x, x, x, x) = new C()/*</bind>*/;
+        System.Console.Write($""{y.ToString()}"");
+    }
+
+    public void Deconstruct(out int x1, out int x2, out int x3, out int x4, out int x5, out int x6, out int x7, out int x8, out int x9)
+    {
+        x1 = x2 = x3 = x4 = x5 = x6 = x7 = x8 = 1;
+        x9 = 9;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'y = (x, x,  ... ) = new C()')
+  Variables: Local_1: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y
+  Initializer: 
+    IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)) (Syntax: '(x, x, x, x ... ) = new C()')
+      Left: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)) (Syntax: '(x, x, x, x ... x, x, x, x)')
+          Elements(9):
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+      Right: 
+        IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+          Arguments(0)
+          Initializer: 
+            null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1199,6 +1907,52 @@ class C
             CompileAndVerify(comp, expectedOutput: "(1, 1) 1 1");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ChainedAssignment_IOperation()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x1, x2;
+        var y = /*<bind>*/(x1, x1) = (x2, x2) = new C()/*</bind>*/;
+        System.Console.Write($""{y.ToString()} {x1} {x2}"");
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = b = 1;
+    }
+}
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int64, System.Int64)) (Syntax: '(x1, x1) =  ... ) = new C()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64, System.Int64)) (Syntax: '(x1, x1)')
+      Elements(2):
+          ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x1')
+          ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x1')
+  Right: 
+    IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int64, System.Int64)) (Syntax: '(x2, x2) = new C()')
+      Left: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64, System.Int64)) (Syntax: '(x2, x2)')
+          Elements(2):
+              ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x2')
+              ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x2')
+      Right: 
+        IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+          Arguments(0)
+          Initializer: 
+            null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NestedTypelessTupleAssignment2()
         {
@@ -1209,25 +1963,49 @@ class C
     {
         int x, y, z; // int cannot be null
 
-        (x, (y, z)) = (null, (null, null));
+        /*<bind>*/(x, (y, z)) = (null, (null, null))/*</bind>*/;
         System.Console.WriteLine(""nothing"" + x + y + z);
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (8,24): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
-                //         (x, (y, z)) = (null, (null, null));
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 24),
-                // (8,31): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
-                //         (x, (y, z)) = (null, (null, null));
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 31),
-                // (8,37): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
-                //         (x, (y, z)) = (null, (null, null));
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 37)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x, (System.Int32 y, System.Int32 z)), IsInvalid) (Syntax: '(x, (y, z)) ... ull, null))')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, (System.Int32 y, System.Int32 z))) (Syntax: '(x, (y, z))')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 y, System.Int32 z)) (Syntax: '(y, z)')
+            Elements(2):
+                ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+                ILocalReferenceExpression: z (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'z')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, (System.Int32, System.Int32)), IsInvalid, IsImplicit) (Syntax: '(null, (null, null))')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: null, IsInvalid) (Syntax: '(null, (null, null))')
+          Elements(2):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+              ITupleExpression (OperationKind.TupleExpression, Type: null, IsInvalid) (Syntax: '(null, null)')
+                Elements(2):
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         /*<bind>*/(x, (y, z)) = (null, (null, null))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 34),
+                // CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         /*<bind>*/(x, (y, z)) = (null, (null, null))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 41),
+                // CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         /*<bind>*/(x, (y, z)) = (null, (null, null))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 47)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TupleWithWrongCardinality()
         {
@@ -1238,7 +2016,7 @@ class C
     {
         int x, y, z;
 
-        (x, y, z) = MakePair();
+        /*<bind>*/(x, y, z) = MakePair()/*</bind>*/;
     }
 
     public static (int, int) MakePair()
@@ -1247,14 +2025,30 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (8,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
-                //         (x, y, z) = MakePair();
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, y, z) = MakePair()").WithArguments("2", "3").WithLocation(8, 9)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, y, z) = MakePair()')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y, System.Int32 z), IsInvalid) (Syntax: '(x, y, z)')
+      Elements(3):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+          ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
+          ILocalReferenceExpression: z (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'z')
+  Right: 
+    IInvocationExpression ((System.Int32, System.Int32) C.MakePair()) (OperationKind.InvocationExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: 'MakePair()')
+      Instance Receiver: 
+        null
+      Arguments(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         /*<bind>*/(x, y, z) = MakePair()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, y, z) = MakePair()").WithArguments("2", "3").WithLocation(8, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NestedTupleWithWrongCardinality()
         {
@@ -1265,19 +2059,49 @@ class C
     {
         int x, y, z, w;
 
-        (x, (y, z, w)) = Pair.Create(42, (43, 44));
+        /*<bind>*/(x, (y, z, w)) = Pair.Create(42, (43, 44))/*</bind>*/;
     }
 }
 " + commonSource;
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (8,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
-                //         (x, (y, z, w)) = Pair.Create(42, (43, 44));
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, (y, z, w)) = Pair.Create(42, (43, 44))").WithArguments("2", "3").WithLocation(8, 9)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(x, (y, z,  ... , (43, 44))')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, (System.Int32 y, System.Int32 z, System.Int32 w)), IsInvalid) (Syntax: '(x, (y, z, w))')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 y, System.Int32 z, System.Int32 w), IsInvalid) (Syntax: '(y, z, w)')
+            Elements(3):
+                ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                ILocalReferenceExpression: z (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'z')
+                ILocalReferenceExpression: w (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'w')
+  Right: 
+    IInvocationExpression (Pair<System.Int32, (System.Int32, System.Int32)> Pair.Create<System.Int32, (System.Int32, System.Int32)>(System.Int32 item1, (System.Int32, System.Int32) item2)) (OperationKind.InvocationExpression, Type: Pair<System.Int32, (System.Int32, System.Int32)>, IsInvalid) (Syntax: 'Pair.Create ... , (43, 44))')
+      Instance Receiver: 
+        null
+      Arguments(2):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: item1) (OperationKind.Argument, IsInvalid) (Syntax: '42')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IArgument (ArgumentKind.Explicit, Matching Parameter: item2) (OperationKind.Argument, IsInvalid) (Syntax: '(43, 44)')
+            ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(43, 44)')
+              Elements(2):
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 43, IsInvalid) (Syntax: '43')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 44, IsInvalid) (Syntax: '44')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         /*<bind>*/(x, (y, z, w)) = Pair.Create(42, (43, 44))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, (y, z, w)) = Pair.Create(42, (43, 44))").WithArguments("2", "3").WithLocation(8, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeconstructionTooFewElements()
         {
@@ -1286,23 +2110,56 @@ class C
 {
     static void Main()
     {
-        for ((var (x, y)) = Pair.Create(1, 2); ;) { }
+        for (/*<bind>*/(var(x, y)) = Pair.Create(1, 2)/*</bind>*/; ;) { }
     }
 }
 " + commonSource;
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,20): error CS0103: The name 'x' does not exist in the current context
-                //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 20),
-                // (6,23): error CS0103: The name 'y' does not exist in the current context
-                //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 23),
-                // (6,15): error CS0103: The name 'var' does not exist in the current context
-                //         for ((var (x, y)) = Pair.Create(1, 2); ;) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 15)
-                );
+            string expectedOperationTree = @"
+ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(var(x, y)) ... reate(1, 2)')
+  Left: 
+    IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'var(x, y)')
+      Instance Receiver: 
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'var')
+          Children(0)
+      Arguments(2):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'x')
+            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
+              Children(0)
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'y')
+            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y')
+              Children(0)
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Right: 
+    IInvocationExpression (Pair<System.Int32, System.Int32> Pair.Create<System.Int32, System.Int32>(System.Int32 item1, System.Int32 item2)) (OperationKind.InvocationExpression, Type: Pair<System.Int32, System.Int32>) (Syntax: 'Pair.Create(1, 2)')
+      Instance Receiver: 
+        null
+      Arguments(2):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: item1) (OperationKind.Argument) (Syntax: '1')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IArgument (ArgumentKind.Explicit, Matching Parameter: item2) (OperationKind.Argument) (Syntax: '2')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0103: The name 'var' does not exist in the current context
+                //         for (/*<bind>*/(var(x, y)) = Pair.Create(1, 2)/*</bind>*/; ;) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 25),
+                // CS0103: The name 'x' does not exist in the current context
+                //         for (/*<bind>*/(var(x, y)) = Pair.Create(1, 2)/*</bind>*/; ;) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 29),
+                // CS0103: The name 'y' does not exist in the current context
+                //         for (/*<bind>*/(var(x, y)) = Pair.Create(1, 2)/*</bind>*/; ;) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 32)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1338,6 +2195,7 @@ class C
                 );
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeclareLocalTwice()
         {
@@ -1346,19 +2204,34 @@ class C
 {
     static void Main()
     {
-        var (x1, x1) = (1, 2);
+        /*<bind>*/var (x1, x1) = (1, 2)/*</bind>*/;
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: 'var (x1, x1) = (1, 2)')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: 'var (x1, x1)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x1, x1)')
+        Elements(2):
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0128: A local variable or function named 'x1' is already defined in this scope
+                //         /*<bind>*/var (x1, x1) = (1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(6, 28)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,18): error CS0128: A local variable named 'x1' is already defined in this scope
-                //         var (x1, x1) = (1, 2);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(6, 18)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeclareLocalTwice2()
         {
@@ -1368,20 +2241,35 @@ class C
     static void Main()
     {
         string x1 = null;
-        var (x1, x2) = (1, 2);
+        /*<bind>*/var (x1, x2) = (1, 2)/*</bind>*/;
         System.Console.WriteLine(x1);
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, 2)')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: 'var (x1, x2)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(x1, x2)')
+        Elements(2):
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0128: A local variable or function named 'x1' is already defined in this scope
+                //         /*<bind>*/var (x1, x2) = (1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(7, 24)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (7,14): error CS0128: A local variable named 'x1' is already defined in this scope
-                //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(7, 14)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void VarMethodMissing()
         {
@@ -1392,19 +2280,35 @@ class C
     {
         int x1 = 1;
         int x2 = 1;
-        var (x1, x2);
+        /*<bind>*/var(x1, x2)/*</bind>*/;
     }
 }
 ";
+            string expectedOperationTree = @"
+IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'var(x1, x2)')
+  Instance Receiver: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'var')
+      Children(0)
+  Arguments(2):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'x1')
+        ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'x2')
+        ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0103: The name 'var' does not exist in the current context
+                //         /*<bind>*/var(x1, x2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 19)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (7,9): error CS0103: The name 'var' does not exist in the current context
-                //         var (x1, x2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 9)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void UseBeforeDeclared()
         {
@@ -1413,20 +2317,40 @@ class C
 {
     static void Main()
     {
-        (int x1, int x2) = M(x1);
+        /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
     }
     static (int, int) M(int a) { return (1, 2); }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(int x1, int x2) = M(x1)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, int x2)')
+      Elements(2):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x2')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+  Right: 
+    IInvocationExpression ((System.Int32, System.Int32) C.M(System.Int32 a)) (OperationKind.InvocationExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: 'M(x1)')
+      Instance Receiver: 
+        null
+      Arguments(1):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, IsInvalid) (Syntax: 'x1')
+            ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0165: Use of unassigned local variable 'x1'
+                //         /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 40)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,30): error CS0165: Use of unassigned local variable 'x1'
-                //         (int x1, int x2) = M(x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 30)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeclareWithVoidType()
         {
@@ -1435,26 +2359,46 @@ class C
 {
     static void Main()
     {
-        (int x1, int x2) = M(x1);
+        /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
     }
     static void M(int a) { }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(int x1, int x2) = M(x1)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, int x2)')
+      Elements(2):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x2')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+  Right: 
+    IInvocationExpression (void C.M(System.Int32 a)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M(x1)')
+      Instance Receiver: 
+        null
+      Arguments(1):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, IsInvalid) (Syntax: 'x1')
+            ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
+                //         /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M(x1)").WithArguments("void", "Deconstruct").WithLocation(6, 38),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'void', with 2 out parameters and a void return type.
+                //         /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M(x1)").WithArguments("void", "2").WithLocation(6, 38),
+                // CS0165: Use of unassigned local variable 'x1'
+                //         /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 40)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,28): error CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
-                //         (int x1, int x2) = M(x1);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M(x1)").WithArguments("void", "Deconstruct").WithLocation(6, 28),
-                // (6,28): error CS8129: No Deconstruct instance or extension method was found for type 'void', with 2 out parameters.
-                //         (int x1, int x2) = M(x1);
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M(x1)").WithArguments("void", "2").WithLocation(6, 28),
-                // (6,30): error CS0165: Use of unassigned local variable 'x1'
-                //         (int x1, int x2) = M(x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 30)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void UseBeforeDeclared2()
         {
@@ -1464,19 +2408,35 @@ class C
     static void Main()
     {
         System.Console.WriteLine(x1);
-        (int x1, int x2) = (1, 2);
+        /*<bind>*/(int x1, int x2) = (1, 2)/*</bind>*/;
     }
 }
 ";
-
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,34): error CS0841: Cannot use local variable 'x1' before it is declared
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, in ... 2) = (1, 2)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, int x2)')
+      Elements(2):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x2')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0841: Cannot use local variable 'x1' before it is declared
                 //         System.Console.WriteLine(x1);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 34)
-                );
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NullAssignmentInDeclaration()
         {
@@ -1485,18 +2445,32 @@ class C
 {
     static void Main()
     {
-        (int x1, int x2) = null;
+        /*<bind>*/(int x1, int x2) = null/*</bind>*/;
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,28): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
-                //         (int x1, int x2) = null;
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 28)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '(int x1, int x2) = null')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(int x1, int x2) = null')
+      Elements(2):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x2')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+  Right: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         /*<bind>*/(int x1, int x2) = null/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 38)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NullAssignmentInVarDeclaration()
         {
@@ -1505,24 +2479,36 @@ class C
 {
     static void Main()
     {
-        var (x1, x2) = null;
+        /*<bind>*/var (x1, x2) = null/*</bind>*/;
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,24): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
-                //         var (x1, x2) = null;
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 24),
-                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
-                //         var (x1, x2) = null;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 14),
-                // (6,18): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
-                //         var (x1, x2) = null;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 18)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 'var (x1, x2) = null')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = null')
+      Elements(2):
+          ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x1')
+          ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x2')
+  Right: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         /*<bind>*/var (x1, x2) = null/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 34),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+                //         /*<bind>*/var (x1, x2) = null/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 24),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         /*<bind>*/var (x1, x2) = null/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TypelessDeclaration()
         {
@@ -1531,21 +2517,36 @@ class C
 {
     static void Main()
     {
-        var (x1, x2) = (1, null);
+        /*<bind>*/var (x1, x2) = (1, null)/*</bind>*/;
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
-                //         var (x1, x2) = (1, null);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 14),
-                // (6,18): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
-                //         var (x1, x2) = (1, null);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 18)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 'var (x1, x2) = (1, null)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, null)')
+      Elements(2):
+          ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x1')
+          ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x2')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: null) (Syntax: '(1, null)')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+                //         /*<bind>*/var (x1, x2) = (1, null)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 24),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         /*<bind>*/var (x1, x2) = (1, null)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TypeMergingWithMultipleAmbiguousVars()
         {
@@ -1554,21 +2555,48 @@ class C
 {
     static void Main()
     {
-        (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
+        /*<bind>*/(string x1, (byte x2, var x3), var x4) = (null, (2, null), null)/*</bind>*/;
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,35): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x3'.
-                //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x3").WithArguments("x3").WithLocation(6, 35),
-                // (6,44): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x4'.
-                //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x4").WithArguments("x4").WithLocation(6, 44)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '(string x1, ... ull), null)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.String x1, (System.Byte x2, var x3), var x4), IsInvalid) (Syntax: '(string x1, ... ull), null)')
+      Elements(3):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.String) (Syntax: 'string x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x1')
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.Byte x2, var x3), IsInvalid) (Syntax: '(byte x2, var x3)')
+            Elements(2):
+                IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Byte) (Syntax: 'byte x2')
+                  ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Byte) (Syntax: 'x2')
+                IDeclarationExpression (OperationKind.DeclarationExpression, Type: var, IsInvalid) (Syntax: 'var x3')
+                  ILocalReferenceExpression: x3 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x3')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: var, IsInvalid) (Syntax: 'var x4')
+            ILocalReferenceExpression: x4 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x4')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: null) (Syntax: '(null, (2, null), null)')
+      Elements(3):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+          ITupleExpression (OperationKind.TupleExpression, Type: null) (Syntax: '(2, null)')
+            Elements(2):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x3'.
+                //         /*<bind>*/(string x1, (byte x2, var x3), var x4) = (null, (2, null), null)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x3").WithArguments("x3").WithLocation(6, 45),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x4'.
+                //         /*<bind>*/(string x1, (byte x2, var x3), var x4) = (null, (2, null), null)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x4").WithArguments("x4").WithLocation(6, 54)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TypeMergingWithTooManyLeftNestings()
         {
@@ -1577,21 +2605,44 @@ class C
 {
     static void Main()
     {
-        ((string x1, byte x2, var x3), int x4) = (null, 4);
+        /*<bind>*/((string x1, byte x2, var x3), int x4) = (null, 4)/*</bind>*/;
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,51): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
-                //         ((string x1, byte x2, var x3), int x4) = (null, 4);
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 51),
-                // (6,35): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x3'.
-                //         ((string x1, byte x2, var x3), int x4) = (null, 4);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x3").WithArguments("x3").WithLocation(6, 35)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '((string x1 ... = (null, 4)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: ((System.String x1, System.Byte x2, var x3), System.Int32 x4), IsInvalid) (Syntax: '((string x1 ... = (null, 4)')
+      Elements(2):
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.String x1, System.Byte x2, var x3), IsInvalid) (Syntax: '(string x1, ... x2, var x3)')
+            Elements(3):
+                IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.String) (Syntax: 'string x1')
+                  ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x1')
+                IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Byte) (Syntax: 'byte x2')
+                  ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Byte) (Syntax: 'x2')
+                IDeclarationExpression (OperationKind.DeclarationExpression, Type: var, IsInvalid) (Syntax: 'var x3')
+                  ILocalReferenceExpression: x3 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x3')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x4')
+            ILocalReferenceExpression: x4 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x4')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: null, IsInvalid) (Syntax: '(null, 4)')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         /*<bind>*/((string x1, byte x2, var x3), int x4) = (null, 4)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 61),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x3'.
+                //         /*<bind>*/((string x1, byte x2, var x3), int x4) = (null, 4)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x3").WithArguments("x3").WithLocation(6, 45)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TypeMergingWithTooManyRightNestings()
         {
@@ -1600,18 +2651,38 @@ class C
 {
     static void Main()
     {
-        (string x1, var x2) = (null, (null, 2));
+        /*<bind>*/(string x1, var x2) = (null, (null, 2))/*</bind>*/;
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,25): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
-                //         (string x1, var x2) = (null, (null, 2));
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 25)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '(string x1, ...  (null, 2))')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.String x1, var x2), IsInvalid) (Syntax: '(string x1, ...  (null, 2))')
+      Elements(2):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.String) (Syntax: 'string x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x1')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: var, IsInvalid) (Syntax: 'var x2')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x2')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: null) (Syntax: '(null, (null, 2))')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+          ITupleExpression (OperationKind.TupleExpression, Type: null) (Syntax: '(null, 2)')
+            Elements(2):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         /*<bind>*/(string x1, var x2) = (null, (null, 2))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 35)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TypeMergingWithTooManyLeftVariables()
         {
@@ -1620,18 +2691,43 @@ class C
 {
     static void Main()
     {
-        (string x1, var x2, int x3) = (null, ""hello"");
+        /*<bind>*/(string x1, var x2, int x3) = (null, ""hello"")/*</bind>*/;
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
-                //         (string x1, var x2, int x3) = (null, "hello");
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var x2, int x3) = (null, ""hello"")").WithArguments("2", "3").WithLocation(6, 9)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(string x1, ... l, ""hello"")')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.String x1, System.String x2, System.Int32 x3), IsInvalid) (Syntax: '(string x1, ... x2, int x3)')
+      Elements(3):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.String, IsInvalid) (Syntax: 'string x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'x1')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.String, IsInvalid) (Syntax: 'var x2')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'x2')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int x3')
+            ILocalReferenceExpression: x3 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x3')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.String, System.String), IsInvalid, IsImplicit) (Syntax: '(null, ""hello"")')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.String, System.String), IsInvalid) (Syntax: '(null, ""hello"")')
+          Elements(2):
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""hello"", IsInvalid) (Syntax: '""hello""')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         /*<bind>*/(string x1, var x2, int x3) = (null, "hello")/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var x2, int x3) = (null, ""hello"")").WithArguments("2", "3").WithLocation(6, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TypeMergingWithTooManyRightElements()
         {
@@ -1640,25 +2736,49 @@ class C
 {
     static void Main()
     {
-        (string x1, var y1) = (null, ""hello"", 3);
+        /*<bind>*/(string x1, var y1) = (null, ""hello"", 3)/*</bind>*/;
         (string x2, var y2) = (null, ""hello"", null);
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,9): error CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
-                //         (string x1, var y1) = (null, "hello", 3);
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var y1) = (null, ""hello"", 3)").WithArguments("3", "2").WithLocation(6, 9),
-                // (7,47): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(string x1, ... ""hello"", 3)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.String x1, System.String y1), IsInvalid) (Syntax: '(string x1, var y1)')
+      Elements(2):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.String, IsInvalid) (Syntax: 'string x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'x1')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.String, IsInvalid) (Syntax: 'var y1')
+            ILocalReferenceExpression: y1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'y1')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.String, System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: '(null, ""hello"", 3)')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.String, System.String, System.Int32), IsInvalid) (Syntax: '(null, ""hello"", 3)')
+          Elements(3):
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""hello"", IsInvalid) (Syntax: '""hello""')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
+                //         /*<bind>*/(string x1, var y1) = (null, "hello", 3)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var y1) = (null, ""hello"", 3)").WithArguments("3", "2").WithLocation(6, 19),
+                // CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (string x2, var y2) = (null, "hello", null);
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 47),
-                // (7,25): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y2'.
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y2'.
                 //         (string x2, var y2) = (null, "hello", null);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y2").WithArguments("y2").WithLocation(7, 25)
-                );
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeclarationVarFormWithActualVarType()
         {
@@ -1667,26 +2787,44 @@ class C
 {
     static void Main()
     {
-        var (x1, x2) = (1, 2);
+        /*<bind>*/var (x1, x2) = (1, 2)/*</bind>*/;
     }
 }
 class var { }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, 2)')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+        Elements(2):
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x1')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x2')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (var, var), IsInvalid, IsImplicit) (Syntax: '(1, 2)')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(1, 2)')
+          Elements(2):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                //         /*<bind>*/var (x1, x2) = (1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, x2)").WithLocation(6, 23),
+                // CS0029: Cannot implicitly convert type 'int' to 'var'
+                //         /*<bind>*/var (x1, x2) = (1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "var").WithLocation(6, 35),
+                // CS0029: Cannot implicitly convert type 'int' to 'var'
+                //         /*<bind>*/var (x1, x2) = (1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "var").WithLocation(6, 38)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,13): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, x2)").WithLocation(6, 13),
-                // (6,25): error CS0029: Cannot implicitly convert type 'int' to 'var'
-                //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "var").WithLocation(6, 25),
-                // (6,28): error CS0029: Cannot implicitly convert type 'int' to 'var'
-                //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "var").WithLocation(6, 28)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeclarationVarFormWithAliasedVarType()
         {
@@ -1696,7 +2834,7 @@ class C
 {
     static void Main()
     {
-        var (x3, x4) = (3, 4);
+        /*<bind>*/var (x3, x4) = (3, 4)/*</bind>*/;
     }
 }
 class D
@@ -1704,21 +2842,39 @@ class D
     public override string ToString() { return ""var""; }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (D x3, D x4), IsInvalid) (Syntax: 'var (x3, x4) = (3, 4)')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (D x3, D x4), IsInvalid) (Syntax: 'var (x3, x4)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (D x3, D x4), IsInvalid) (Syntax: '(x3, x4)')
+        Elements(2):
+            ILocalReferenceExpression: x3 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: D, IsInvalid) (Syntax: 'x3')
+            ILocalReferenceExpression: x4 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: D, IsInvalid) (Syntax: 'x4')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (D, D), IsInvalid, IsImplicit) (Syntax: '(3, 4)')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(3, 4)')
+          Elements(2):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4, IsInvalid) (Syntax: '4')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                //         /*<bind>*/var (x3, x4) = (3, 4)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x3, x4)").WithLocation(7, 23),
+                // CS0029: Cannot implicitly convert type 'int' to 'D'
+                //         /*<bind>*/var (x3, x4) = (3, 4)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "D").WithLocation(7, 35),
+                // CS0029: Cannot implicitly convert type 'int' to 'D'
+                //         /*<bind>*/var (x3, x4) = (3, 4)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "4").WithArguments("int", "D").WithLocation(7, 38)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x3, x4)").WithLocation(7, 13),
-                // (7,25): error CS0029: Cannot implicitly convert type 'int' to 'D'
-                //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "D").WithLocation(7, 25),
-                // (7,28): error CS0029: Cannot implicitly convert type 'int' to 'D'
-                //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "4").WithArguments("int", "D").WithLocation(7, 28)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeclarationWithWrongCardinality()
         {
@@ -1727,25 +2883,45 @@ class C
 {
     static void Main()
     {
-        (var (x1, x2), var x3) = (1, 2, 3);
+        /*<bind>*/(var (x1, x2), var x3) = (1, 2, 3)/*</bind>*/;
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(var (x1, x ... = (1, 2, 3)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: ((var x1, var x2), System.Int32 x3), IsInvalid) (Syntax: '(var (x1, x2), var x3)')
+      Elements(2):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
+            ITupleExpression (OperationKind.TupleExpression, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+              Elements(2):
+                  ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x1')
+                  ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x2')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var x3')
+            ILocalReferenceExpression: x3 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x3')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32, System.Int32), IsInvalid) (Syntax: '(1, 2, 3)')
+      Elements(3):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
+                //         /*<bind>*/(var (x1, x2), var x3) = (1, 2, 3)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3)").WithArguments("3", "2").WithLocation(6, 19),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+                //         /*<bind>*/(var (x1, x2), var x3) = (1, 2, 3)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 25),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         /*<bind>*/(var (x1, x2), var x3) = (1, 2, 3)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 29)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,9): error CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
-                //         (var (x1, x2), var x3) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3)").WithArguments("3", "2").WithLocation(6, 9),
-                // (6,15): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
-                //         (var (x1, x2), var x3) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 15),
-                // (6,19): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
-                //         (var (x1, x2), var x3) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 19)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeclarationWithCircularity1()
         {
@@ -1754,22 +2930,40 @@ class C
 {
     static void Main()
     {
-        var (x1, x2) = (1, x1);
+        /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, x1)')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 x1, var x2)) (Syntax: 'var (x1, x2)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x1, var x2)) (Syntax: '(x1, x2)')
+        Elements(2):
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var) (Syntax: 'x2')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, var), IsInvalid, IsImplicit) (Syntax: '(1, x1)')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, var x1), IsInvalid) (Syntax: '(1, x1)')
+          Elements(2):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0841: Cannot use local variable 'x1' before it is declared
+                //         /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 38),
+                // CS0165: Use of unassigned local variable 'x1'
+                //         /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 38)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,28): error CS0841: Cannot use local variable 'x1' before it is declared
-                //         var (x1, x2) = (1, x1);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 28),
-                // (6,28): error CS0165: Use of unassigned local variable 'x1'
-                //         var (x1, x2) = (1, x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 28)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeclarationWithCircularity2()
         {
@@ -1778,21 +2972,40 @@ class C
 {
     static void Main()
     {
-        var (x1, x2) = (x2, 2);
+        /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,25): error CS0841: Cannot use local variable 'x2' before it is declared
-                //         var (x1, x2) = (x2, 2);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 25),
-                // (6,25): error CS0165: Use of unassigned local variable 'x2'
-                //         var (x1, x2) = (x2, 2);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 25)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (var x1, System.Int32 x2), IsInvalid) (Syntax: 'var (x1, x2) = (x2, 2)')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (var x1, System.Int32 x2)) (Syntax: 'var (x1, x2)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (var x1, System.Int32 x2)) (Syntax: '(x1, x2)')
+        Elements(2):
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var) (Syntax: 'x1')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (var, System.Int32), IsInvalid, IsImplicit) (Syntax: '(x2, 2)')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (var x2, System.Int32), IsInvalid) (Syntax: '(x2, 2)')
+          Elements(2):
+              ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x2')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0841: Cannot use local variable 'x2' before it is declared
+                //         /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 35),
+                // CS0165: Use of unassigned local variable 'x2'
+                //         /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 35)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
         [WorkItem(12283, "https://github.com/dotnet/roslyn/issues/12283")]
         public void RefReturningVarInvocation()
@@ -1805,39 +3018,51 @@ class C
     static void Main()
     {
         int x = 0, y = 0;
-        var(x, y) = 42; // parsed as deconstruction
+        /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
         System.Console.WriteLine(i);
     }
     static ref int var(int a, int b) { return ref i; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-                // (9,13): error CS0128: A local variable named 'x' is already defined in this scope
-                //         var(x, y) = 42; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(9, 13),
-                // (9,16): error CS0128: A local variable named 'y' is already defined in this scope
-                //         var(x, y) = 42; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(9, 16),
-                // (9,21): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
-                //         var(x, y) = 42; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 21),
-                // (9,21): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
-                //         var(x, y) = 42; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 21),
-                // (9,13): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-                //         var(x, y) = 42; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(9, 13),
-                // (9,16): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-                //         var(x, y) = 42; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(9, 16),
-                // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'var (x, y) = 42')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (var x, var y), IsInvalid) (Syntax: 'var (x, y)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (var x, var y), IsInvalid) (Syntax: '(x, y)')
+        Elements(2):
+            ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x')
+            ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'y')
+  Right: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0128: A local variable or function named 'x' is already defined in this scope
+                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(9, 24),
+                // CS0128: A local variable or function named 'y' is already defined in this scope
+                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(9, 27),
+                // CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 32),
+                // CS8129: No suitable Deconstruct instance or extension method was found for type 'int', with 2 out parameters and a void return type.
+                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 32),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(9, 24),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(9, 27),
+                // CS0219: The variable 'x' is assigned but its value is never used
                 //         int x = 0, y = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13),
-                // (8,20): warning CS0219: The variable 'y' is assigned but its value is never used
+                // CS0219: The variable 'y' is assigned but its value is never used
                 //         int x = 0, y = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 20)
-                );
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12468"), CompilerTrait(CompilerFeature.RefLocalsReturns)]
@@ -1957,6 +3182,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DeclarationWithTypeInsideVarForm()
         {
@@ -1965,72 +3191,113 @@ class C
 {
     static void Main()
     {
-        var (int x1, x2) = (1, 2);
-        var (var x3, x4) = (1, 2);
-        var (x5, var (x6, x7)) = (1, (2, 3));
+        var(int x1, x2) = (1, 2);
+        var(var x3, x4) = (1, 2);
+        /*<bind>*/var(x5, var(x6, x7)) = (1, (2, 3))/*</bind>*/;
     }
 }
 ";
-
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                //         var (int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (int x1, x2)").WithLocation(6, 9),
-                // (6,14): error CS1525: Invalid expression term 'int'
-                //         var (int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 14),
-                // (6,18): error CS1003: Syntax error, ',' expected
-                //         var (int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 18),
-                // (7,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                //         var (var x3, x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (var x3, x4)").WithLocation(7, 9),
-                // (7,18): error CS1003: Syntax error, ',' expected
-                //         var (var x3, x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(7, 18),
-                // (8,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                //         var (x5, var (x6, x7)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x5, var (x6, x7))").WithLocation(8, 9),
-                // (6,18): error CS0103: The name 'x1' does not exist in the current context
-                //         var (int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 18),
-                // (6,22): error CS0103: The name 'x2' does not exist in the current context
-                //         var (int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(6, 22),
-                // (6,9): error CS0103: The name 'var' does not exist in the current context
-                //         var (int x1, x2) = (1, 2);
+            string expectedOperationTree = @"
+ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'var(x5, var ... (1, (2, 3))')
+  Left: 
+    IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'var(x5, var(x6, x7))')
+      Instance Receiver: 
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'var')
+          Children(0)
+      Arguments(2):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'x5')
+            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x5')
+              Children(0)
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'var(x6, x7)')
+            IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'var(x6, x7)')
+              Instance Receiver: 
+                IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'var')
+                  Children(0)
+              Arguments(2):
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'x6')
+                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x6')
+                      Children(0)
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'x7')
+                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x7')
+                      Children(0)
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, (System.Int32, System.Int32))) (Syntax: '(1, (2, 3))')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(2, 3)')
+            Elements(2):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term 'int'
+                //         var(int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 13),
+                // CS1003: Syntax error, ',' expected
+                //         var(int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 17),
+                // CS1003: Syntax error, ',' expected
+                //         var(var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(7, 17),
+                // CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var(int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(int x1, x2)").WithLocation(6, 9),
+                // CS0103: The name 'var' does not exist in the current context
+                //         var(int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 9),
-                // (7,14): error CS0103: The name 'var' does not exist in the current context
-                //         var (var x3, x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 14),
-                // (7,18): error CS0103: The name 'x3' does not exist in the current context
-                //         var (var x3, x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(7, 18),
-                // (7,22): error CS0103: The name 'x4' does not exist in the current context
-                //         var (var x3, x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(7, 22),
-                // (7,9): error CS0103: The name 'var' does not exist in the current context
-                //         var (var x3, x4) = (1, 2);
+                // CS0103: The name 'x1' does not exist in the current context
+                //         var(int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 17),
+                // CS0103: The name 'x2' does not exist in the current context
+                //         var(int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(6, 21),
+                // CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var(var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(var x3, x4)").WithLocation(7, 9),
+                // CS0103: The name 'var' does not exist in the current context
+                //         var(var x3, x4) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 9),
-                // (8,14): error CS0103: The name 'x5' does not exist in the current context
-                //         var (x5, var (x6, x7)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(8, 14),
-                // (8,23): error CS0103: The name 'x6' does not exist in the current context
-                //         var (x5, var (x6, x7)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(8, 23),
-                // (8,27): error CS0103: The name 'x7' does not exist in the current context
-                //         var (x5, var (x6, x7)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(8, 27),
-                // (8,18): error CS0103: The name 'var' does not exist in the current context
-                //         var (x5, var (x6, x7)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 18),
-                // (8,9): error CS0103: The name 'var' does not exist in the current context
-                //         var (x5, var (x6, x7)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 9)
-                );
+                // CS0103: The name 'var' does not exist in the current context
+                //         var(var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 13),
+                // CS0103: The name 'x3' does not exist in the current context
+                //         var(var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(7, 17),
+                // CS0103: The name 'x4' does not exist in the current context
+                //         var(var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(7, 21),
+                // CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         /*<bind>*/var(x5, var(x6, x7)) = (1, (2, 3))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x5, var(x6, x7))").WithLocation(8, 19),
+                // CS0103: The name 'var' does not exist in the current context
+                //         /*<bind>*/var(x5, var(x6, x7)) = (1, (2, 3))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 19),
+                // CS0103: The name 'x5' does not exist in the current context
+                //         /*<bind>*/var(x5, var(x6, x7)) = (1, (2, 3))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(8, 23),
+                // CS0103: The name 'var' does not exist in the current context
+                //         /*<bind>*/var(x5, var(x6, x7)) = (1, (2, 3))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 27),
+                // CS0103: The name 'x6' does not exist in the current context
+                //         /*<bind>*/var(x5, var(x6, x7)) = (1, (2, 3))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(8, 31),
+                // CS0103: The name 'x7' does not exist in the current context
+                //         /*<bind>*/var(x5, var(x6, x7)) = (1, (2, 3))/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(8, 35)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ForWithCircularity1()
         {
@@ -2039,22 +3306,40 @@ class C
 {
     static void Main()
     {
-        for (var (x1, x2) = (1, x1); ; ) { }
+        for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, x1)')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 x1, var x2)) (Syntax: 'var (x1, x2)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x1, var x2)) (Syntax: '(x1, x2)')
+        Elements(2):
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var) (Syntax: 'x2')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, var), IsInvalid, IsImplicit) (Syntax: '(1, x1)')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, var x1), IsInvalid) (Syntax: '(1, x1)')
+          Elements(2):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0841: Cannot use local variable 'x1' before it is declared
+                //         for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 43),
+                // CS0165: Use of unassigned local variable 'x1'
+                //         for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 43)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,33): error CS0841: Cannot use local variable 'x1' before it is declared
-                //         for (var (x1, x2) = (1, x1); ; ) { }
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 33),
-                // (6,33): error CS0165: Use of unassigned local variable 'x1'
-                //         for (var (x1, x2) = (1, x1); ; ) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 33)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ForWithCircularity2()
         {
@@ -2063,21 +3348,40 @@ class C
 {
     static void Main()
     {
-        for (var (x1, x2) = (x2, 2); ; ) { }
+        for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,30): error CS0841: Cannot use local variable 'x2' before it is declared
-                //         for (var (x1, x2) = (x2, 2); ; ) { }
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 30),
-                // (6,30): error CS0165: Use of unassigned local variable 'x2'
-                //         for (var (x1, x2) = (x2, 2); ; ) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 30)
-                );
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (var x1, System.Int32 x2), IsInvalid) (Syntax: 'var (x1, x2) = (x2, 2)')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (var x1, System.Int32 x2)) (Syntax: 'var (x1, x2)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (var x1, System.Int32 x2)) (Syntax: '(x1, x2)')
+        Elements(2):
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var) (Syntax: 'x1')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (var, System.Int32), IsInvalid, IsImplicit) (Syntax: '(x2, 2)')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (var x2, System.Int32), IsInvalid) (Syntax: '(x2, 2)')
+          Elements(2):
+              ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x2')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0841: Cannot use local variable 'x2' before it is declared
+                //         for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 40),
+                // CS0165: Use of unassigned local variable 'x2'
+                //         for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 40)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ForEachNameConflict()
         {
@@ -2087,21 +3391,45 @@ class C
     static void Main()
     {
         int x1 = 1;
-        foreach ((int x1, int x2) in M()) { }
+        /*<bind>*/foreach ((int x1, int x2) in M()) { }/*</bind>*/
         System.Console.Write(x1);
     }
     static (int, int)[] M() { return new[] { (1, 2) }; }
 }
 ";
+            string expectedOperationTree = @"
+IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'foreach ((i ... in M()) { }')
+  Locals: Local_1: System.Int32 x1
+    Local_2: System.Int32 x2
+  LoopControlVariable: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(int x1, int x2)')
+      Elements(2):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x2')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+  Collection: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'M()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IInvocationExpression ((System.Int32, System.Int32)[] C.M()) (OperationKind.InvocationExpression, Type: (System.Int32, System.Int32)[]) (Syntax: 'M()')
+          Instance Receiver: 
+            null
+          Arguments(0)
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+  NextVariables(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         /*<bind>*/foreach ((int x1, int x2) in M()) { }/*</bind>*/
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(7, 33)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (7,23): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         foreach ((int x1, int x2) in M())
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(7, 23)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachVariableStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ForEachNameConflict2()
         {
@@ -2110,18 +3438,46 @@ class C
 {
     static void Main()
     {
-        foreach ((int x1, int x2) in M(out int x1)) { }
+        /*<bind>*/foreach ((int x1, int x2) in M(out int x1)) { }/*</bind>*/
     }
     static (int, int)[] M(out int a) { a = 1; return new[] { (1, 2) }; }
 }
 ";
+            string expectedOperationTree = @"
+IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'foreach ((i ... nt x1)) { }')
+  Locals: Local_1: System.Int32 x1
+    Local_2: System.Int32 x2
+  LoopControlVariable: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(int x1, int x2)')
+      Elements(2):
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int x1')
+            ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x2')
+            ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+  Collection: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'M(out int x1)')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IInvocationExpression ((System.Int32, System.Int32)[] C.M(out System.Int32 a)) (OperationKind.InvocationExpression, Type: (System.Int32, System.Int32)[]) (Syntax: 'M(out int x1)')
+          Instance Receiver: 
+            null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'out int x1')
+                IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
+                  ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+  NextVariables(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         /*<bind>*/foreach ((int x1, int x2) in M(out int x1)) { }/*</bind>*/
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(6, 33)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,23): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         foreach ((int x1, int x2) in M(out int x1)) { }
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(6, 23)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachVariableStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -2195,6 +3551,7 @@ class C
                 );
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ForEachNoIEnumerable()
         {
@@ -2203,28 +3560,36 @@ class C
 {
     static void Main()
     {
-        foreach (var (x1, x2) in 1)
+        foreach (/*<bind>*/var (x1, x2)/*</bind>*/ in 1)
         {
             System.Console.WriteLine(x1 + "" "" + x2);
         }
     }
 }
 ";
+            string expectedOperationTree = @"
+IDeclarationExpression (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
+  ITupleExpression (OperationKind.TupleExpression, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+    Elements(2):
+        ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x1')
+        ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: var, IsInvalid) (Syntax: 'x2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1579: foreach statement cannot operate on variables of type 'int' because 'int' does not contain a public definition for 'GetEnumerator'
+                //         foreach (/*<bind>*/var (x1, x2)/*</bind>*/ in 1)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "1").WithArguments("int", "GetEnumerator").WithLocation(6, 55),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+                //         foreach (/*<bind>*/var (x1, x2)/*</bind>*/ in 1)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 33),
+                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         foreach (/*<bind>*/var (x1, x2)/*</bind>*/ in 1)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 37)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,34): error CS1579: foreach statement cannot operate on variables of type 'int' because 'int' does not contain a public definition for 'GetEnumerator'
-                //         foreach (var (x1, x2) in 1)
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "1").WithArguments("int", "GetEnumerator").WithLocation(6, 34),
-                // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
-                //         foreach (var (x1, x2) in 1)
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 23),
-                // (6,27): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
-                //         foreach (var (x1, x2) in 1)
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 27)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ForEachIterationVariablesAreReadonly()
         {
@@ -2233,7 +3598,7 @@ class C
 {
     static void Main()
     {
-        foreach ((int x1, var (x2, x3)) in new[] { (1, (1, 1)) })
+        foreach (/*<bind>*/(int x1, var (x2, x3))/*</bind>*/ in new[] { (1, (1, 1)) })
         {
             x1 = 1;
             x2 = 2;
@@ -2242,19 +3607,30 @@ class C
     }
 }
 ";
-
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (8,13): error CS1656: Cannot assign to 'x1' because it is a 'foreach iteration variable'
+            string expectedOperationTree = @"
+ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x1, (System.Int32 x2, System.Int32 x3))) (Syntax: '(int x1, var (x2, x3))')
+  Elements(2):
+      IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
+        ILocalReferenceExpression: x1 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+      IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 x2, System.Int32 x3)) (Syntax: 'var (x2, x3)')
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x2, System.Int32 x3)) (Syntax: '(x2, x3)')
+          Elements(2):
+              ILocalReferenceExpression: x2 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x2')
+              ILocalReferenceExpression: x3 (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x3')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1656: Cannot assign to 'x1' because it is a 'foreach iteration variable'
                 //             x1 = 1;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x1").WithArguments("x1", "foreach iteration variable").WithLocation(8, 13),
-                // (9,13): error CS1656: Cannot assign to 'x2' because it is a 'foreach iteration variable'
+                // CS1656: Cannot assign to 'x2' because it is a 'foreach iteration variable'
                 //             x2 = 2;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x2").WithArguments("x2", "foreach iteration variable").WithLocation(9, 13),
-                // (10,13): error CS1656: Cannot assign to 'x3' because it is a 'foreach iteration variable'
+                // CS1656: Cannot assign to 'x3' because it is a 'foreach iteration variable'
                 //             x3 = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "x3").WithArguments("x3", "foreach iteration variable").WithLocation(10, 13)
-                );
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -2541,6 +3917,7 @@ class Program
             }
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(14287, "https://github.com/dotnet/roslyn/issues/14287")]
         public void TupleDeconstructionStatementWithTypesCannotBeConst()
         {
@@ -2549,20 +3926,33 @@ class C
 {
     static void Main()
     {
-        const (int x, int y) = (1, 2);
+        /*<bind>*/const (int x, int y) = (1, 2);/*</bind>*/
     }
 }
 ";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const (int  ... ) = (1, 2);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '= (1, 2)')
+    Variables: Local_1: (System.Int32 x, System.Int32 y) 
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')
+        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+            Elements(2):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1001: Identifier expected
+                //         const /*<bind>*/(int x, int y) = (1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(6, 40),
+                // CS0283: The type '(int x, int y)' cannot be declared const
+                //         const /*<bind>*/(int x, int y) = (1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadConstType, "(int x, int y)").WithArguments("(int x, int y)").WithLocation(6, 25)
+            };
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,30): error CS1001: Identifier expected
-                //         const (int x, int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(6, 30),
-                // (6,15): error CS0283: The type '(int x, int y)' cannot be declared const
-                //         const (int x, int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_BadConstType, "(int x, int y)").WithArguments("(int x, int y)").WithLocation(6, 15)
-                );
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(14287, "https://github.com/dotnet/roslyn/issues/14287")]
@@ -4748,6 +6138,96 @@ class C
             Assert.Null(symbols.Symbol);
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DiscardDeclarationExpression_IOperation()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        /*<bind>*/var (_, _) = (0, 0)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32, System.Int32)) (Syntax: 'var (_, _) = (0, 0)')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32, System.Int32)) (Syntax: 'var (_, _)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(_, _)')
+        Elements(2):
+            IOperation:  (OperationKind.None) (Syntax: '_')
+            IOperation:  (OperationKind.None) (Syntax: '_')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(0, 0)')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DiscardDeclarationAssignment_IOperation()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        int x;
+        /*<bind>*/(x, _) = (0, 0)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x, System.Int32)) (Syntax: '(x, _) = (0, 0)')
+  Left: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32)) (Syntax: '(x, _)')
+      Elements(2):
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          IOperation:  (OperationKind.None) (Syntax: '_')
+  Right: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(0, 0)')
+      Elements(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DiscardOutVarDeclaration_IOperation()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        M2(out /*<bind>*/var _/*</bind>*/);
+    }
+
+    void M2(out int x)
+    {
+        x = 0;
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'var _')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

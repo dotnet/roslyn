@@ -454,6 +454,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
+        public sealed override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Target;
+                yield return Value;
+            }
+        }
         protected abstract IOperation TargetImpl { get; }
         protected abstract IOperation ValueImpl { get; }
         /// <summary>
@@ -474,14 +482,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public BaseSimpleAssignmentExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.SimpleAssignmentExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return Target;
-                yield return Value;
-            }
         }
         public override void Accept(OperationVisitor visitor)
         {
@@ -534,14 +534,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public BaseDeconstructionAssignmentExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.DeconstructionAssignmentExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return Target;
-                yield return Value;
-            }
         }
         public override void Accept(OperationVisitor visitor)
         {
@@ -1080,14 +1072,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return Target;
-                yield return Value;
-            }
-        }
 
         public override void Accept(OperationVisitor visitor)
         {
