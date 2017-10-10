@@ -38,6 +38,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim syntaxTree = expression.CreateSyntaxTree()
             diagnostics.AddRange(syntaxTree.GetDiagnostics())
 
+            If diagnostics.HasAnyErrors Then
+                Return Nothing
+            End If
+
             ' Any Diagnostic spans produced in binding will be offset by the length of the "target" expression text.
             ' If we want to support live squiggles in debugger windows, SemanticModel, etc, we'll want to address this.
             Dim targetSyntax = SyntaxHelpers.ParseDebuggerExpressionInternal(SourceText.From(target), consumeFullText:=True)
