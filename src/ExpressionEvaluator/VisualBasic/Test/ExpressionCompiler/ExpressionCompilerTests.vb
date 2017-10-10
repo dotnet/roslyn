@@ -456,11 +456,6 @@ End Class
                     Assert.Null(result)
                     Assert.Equal("error BC30035: Syntax error.", errorMessage)
 
-                    ' 
-                    result = context.CompileAssignment("x", "", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
-                    Assert.Null(result)
-                    Assert.Equal("error BC30035: Syntax error.", errorMessage)
-
                     ' Format specifiers, no expression.
                     result = context.CompileExpression(",f", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
                     Assert.Equal("error BC30201: Expression expected.", errorMessage)
