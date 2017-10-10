@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -397,22 +398,22 @@ of the problem.");
         ///  {
         ///      public void M1()
         ///      {
-        ///          {|S1:int [|abc[|d$$ef|]|] = foo;|}
-        ///          int y = foo;
-        ///          {|S2:int [|def|] = foo;|}
+        ///          {|S1:int [|abc[|d$$ef|]|] = goo;|}
+        ///          int y = goo;
+        ///          {|S2:int [|def|] = goo;|}
         ///          int z = {|S3:123|} + {|S4:456|} + {|S5:789|};
         ///      }
         ///  }
         /// 
         /// The resulting projection buffer (with unnamed span markup preserved) would look like:
-        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = foo; [|MNOint [|def|] = foo;PQR S$$TU|] 456789123
+        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = goo; [|MNOint [|def|] = goo;PQR S$$TU|] 456789123
         /// 
         /// The union of unnamed spans from the surface buffer markup and each of the projected 
         /// spans is sorted as it would have been sorted by MarkupTestFile had it parsed the entire
         /// projection buffer as one file, which it would do in a stack-based manner. In our example,
         /// the order of the unnamed spans would be as follows:
         /// 
-        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = foo; [|MNOint [|def|] = foo;PQR S$$TU|] 456789123
+        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = goo; [|MNOint [|def|] = goo;PQR S$$TU|] 456789123
         ///       -----1       -----2            -------4                    -----6
         ///               ------------3     --------------5         --------------------------------7
         /// </summary>
@@ -486,11 +487,9 @@ of the problem.");
             projectionBufferSpans = new List<object>();
             var projectionBufferSpanStartingPositions = new List<int>();
             mappedCaretLocation = null;
-            string inertText;
-            int? markupCaretLocation;
 
-            MarkupTestFile.GetPositionAndSpans(markup, 
-                out inertText, out markupCaretLocation, out var markupSpans);
+            MarkupTestFile.GetPositionAndSpans(markup,
+                out var inertText, out int? markupCaretLocation, out var markupSpans);
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
@@ -598,9 +597,8 @@ of the problem.");
 
                     foreach (var projectionSpan in projectionBufferSpans)
                     {
-                        var text = projectionSpan as string;
 
-                        if (text != null)
+                        if (projectionSpan is string text)
                         {
                             if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
                             {

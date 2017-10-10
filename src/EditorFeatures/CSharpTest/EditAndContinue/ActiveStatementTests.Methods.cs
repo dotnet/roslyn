@@ -21,10 +21,10 @@ class C
 {
     static void Main(string[] args)
     {
-        <AS:1>Foo(1);</AS:1>
+        <AS:1>Goo(1);</AS:1>
     }
 
-    static void Foo(int a)
+    static void Goo(int a)
     {
         <AS:0>Console.WriteLine(a);</AS:0>
     }
@@ -34,7 +34,7 @@ class C
 {
     static void Main(string[] args)
     {
-        <AS:1>Foo(1);</AS:1>
+        <AS:1>Goo(1);</AS:1>
     }
 }
 ";

@@ -122,7 +122,7 @@ Public Class C
 End Class
 
 Public Class E
-    Public Sub Foo
+    Public Sub Goo
         for each x in new C()
         next
     End Sub

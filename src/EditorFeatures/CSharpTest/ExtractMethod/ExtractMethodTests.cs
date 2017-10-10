@@ -1919,11 +1919,11 @@ class Program
     static void Main()
     {
         int x = 1;
-        [|Foo(ref x);|]
+        [|Goo(ref x);|]
         Console.WriteLine(x);
     }
 
-    static void Foo(ref int x)
+    static void Goo(ref int x)
     {
         x = x + 1;
     }
@@ -1943,11 +1943,11 @@ class Program
 
     private static int NewMethod(int x)
     {
-        Foo(ref x);
+        Goo(ref x);
         return x;
     }
 
-    static void Foo(ref int x)
+    static void Goo(ref int x)
     {
         x = x + 1;
     }
@@ -2036,7 +2036,7 @@ using System.Collections.Generic;
 using System.Linq;
 class Program
 {
-    static void Foo(int GetX)
+    static void Goo(int GetX)
     {
         int x = [|1|];
     }
@@ -2046,7 +2046,7 @@ using System.Collections.Generic;
 using System.Linq;
 class Program
 {
-    static void Foo(int GetX)
+    static void Goo(int GetX)
     {
         int x = GetX1();
     }
@@ -2072,7 +2072,7 @@ class Class
         get { return ""1""; }
         set { name = value; }
     }
-    static void Foo(int i)
+    static void Goo(int i)
     {
         string str = [|Class.Names|];
     }
@@ -2086,7 +2086,7 @@ class Class
         get { return ""1""; }
         set { name = value; }
     }
-    static void Foo(int i)
+    static void Goo(int i)
     {
         string str = GetStr();
     }
@@ -2179,7 +2179,7 @@ class Program
     class D : A<T> { }
     class B { }
 
-    static D.B Foo()
+    static D.B Goo()
     {
         return null;
     }
@@ -2188,7 +2188,7 @@ class Program
     {
         static void Bar()
         {
-            D.B x = [|Foo()|];
+            D.B x = [|Goo()|];
         }
     }
 }";
@@ -2198,7 +2198,7 @@ class Program
     class D : A<T> { }
     class B { }
 
-    static D.B Foo()
+    static D.B Goo()
     {
         return null;
     }
@@ -2212,7 +2212,7 @@ class Program
 
         private static B GetX()
         {
-            return Foo();
+            return Goo();
         }
     }
 }";
@@ -2597,7 +2597,7 @@ class Program
 
     class C<T>
     {
-        static void Foo<T>(T a)
+        static void Goo<T>(T a)
         {
             T t = [|default(T)|];
         }
@@ -2611,7 +2611,7 @@ class Program
 
     class C<T>
     {
-        static void Foo<T>(T a)
+        static void Goo<T>(T a)
         {
             T t = GetT<T>();
         }
@@ -2636,7 +2636,7 @@ class Program
 
     class C<T>
     {
-        static void Foo()
+        static void Goo()
         {
             D.B x = [|new D.B()|];
         }
@@ -6326,7 +6326,7 @@ class Program
 class Program
 {
     delegate R Del<in T, out R>(T arg);
-    public void Foo()
+    public void Goo()
     {
         Del<Exception, ArgumentException> d = (arg) => { return new ArgumentException(); };
         [|d(new ArgumentException());|]
@@ -6337,7 +6337,7 @@ class Program
 class Program
 {
     delegate R Del<in T, out R>(T arg);
-    public void Foo()
+    public void Goo()
     {
         Del<Exception, ArgumentException> d = (arg) => { return new ArgumentException(); };
         NewMethod(d);
@@ -7553,14 +7553,14 @@ class Program
         {
             var code = @"struct S
 {
-    void Foo()
+    void Goo()
     {
         [|this = new S();|]
     }
 }";
             var expected = @"struct S
 {
-    void Foo()
+    void Goo()
     {
         NewMethod();
     }
@@ -7579,7 +7579,7 @@ class Program
         {
             var code = @"class T
 {
-    void Foo()
+    void Goo()
     {
         int x1 = 5;
         long x2 = [|x1|];
@@ -7587,7 +7587,7 @@ class Program
 }";
             var expected = @"class T
 {
-    void Foo()
+    void Goo()
     {
         int x1 = 5;
         long x2 = GetX2(x1);
@@ -7822,8 +7822,8 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task GenericWithErrorType()
         {
-            var code = @"using Foo.Utilities;
-class Foo<T>
+            var code = @"using Goo.Utilities;
+class Goo<T>
 {
 }
 
@@ -7831,23 +7831,23 @@ class Bar
 {
     void gibberish()
     {
-        Foo<[|Integer|]> x = null;
+        Goo<[|Integer|]> x = null;
         x.IsEmpty();
     }
 }
 
-namespace Foo.Utilities
+namespace Goo.Utilities
 {
-    internal static class FooExtensions
+    internal static class GooExtensions
     {
-        public static bool IsEmpty<T>(this Foo<T> source)
+        public static bool IsEmpty<T>(this Goo<T> source)
         {
             return false;
         }
     }
 }";
-            var expected = @"using Foo.Utilities;
-class Foo<T>
+            var expected = @"using Goo.Utilities;
+class Goo<T>
 {
 }
 
@@ -7855,21 +7855,21 @@ class Bar
 {
     void gibberish()
     {
-        Foo<Integer> x = NewMethod();
+        Goo<Integer> x = NewMethod();
         x.IsEmpty();
     }
 
-    private static Foo<Integer> NewMethod()
+    private static Goo<Integer> NewMethod()
     {
         return null;
     }
 }
 
-namespace Foo.Utilities
+namespace Goo.Utilities
 {
-    internal static class FooExtensions
+    internal static class GooExtensions
     {
-        public static bool IsEmpty<T>(this Foo<T> source)
+        public static bool IsEmpty<T>(this Goo<T> source)
         {
             return false;
         }
@@ -7889,7 +7889,7 @@ class C
 {
     int this[int x = 5, int y = 7] { get { return 0; } set { } }
 
-    void Foo()
+    void Goo()
     {
         var y = this[[|y|]: 1];
     }
@@ -7900,7 +7900,7 @@ class C
 {
     int this[int x = 5, int y = 7] { get { return 0; } set { } }
 
-    void Foo()
+    void Goo()
     {
         var y = GetY();
     }
@@ -8008,7 +8008,7 @@ using System.Collections.Generic;
  
 class A
 {
-    static void Foo<T, S>(T x) where T : IList<S>
+    static void Goo<T, S>(T x) where T : IList<S>
     {
         var y = [|x.Count|];
     }
@@ -8018,7 +8018,7 @@ using System.Collections.Generic;
  
 class A
 {
-    static void Foo<T, S>(T x) where T : IList<S>
+    static void Goo<T, S>(T x) where T : IList<S>
     {
         var y = GetY<T, S>(x);
     }
@@ -8505,14 +8505,14 @@ class Program
         {
             var code = @"using System;
 
-struct Foo
+struct Goo
 {
     static Action a = () => { Console.WriteLine(); [|}|];
 }";
 
             var expected = @"using System;
 
-struct Foo
+struct Goo
 {
     static Action a = GetA();
 
@@ -8700,7 +8700,7 @@ using System.Collections.Generic;
  
 class A
 {
-    static void Foo<T, S, U>(T x) where T : IList<S> where S : IList<U>
+    static void Goo<T, S, U>(T x) where T : IList<S> where S : IList<U>
     {
         var y = [|x.Count|];
     }
@@ -8710,7 +8710,7 @@ using System.Collections.Generic;
  
 class A
 {
-    static void Foo<T, S, U>(T x) where T : IList<S> where S : IList<U>
+    static void Goo<T, S, U>(T x) where T : IList<S> where S : IList<U>
     {
         var y = GetY<T, S>(x);
     }
@@ -8739,7 +8739,7 @@ interface I<T> where T : IComparable<T>
 
 class A
 {
-    static void Foo<T, S>(S x) where S : I<T> where T : IComparable<T>
+    static void Goo<T, S>(S x) where S : I<T> where T : IComparable<T>
     {
         var y = [|x.Count|];
     }
@@ -8755,7 +8755,7 @@ interface I<T> where T : IComparable<T>
 
 class A
 {
-    static void Foo<T, S>(S x) where S : I<T> where T : IComparable<T>
+    static void Goo<T, S>(S x) where S : I<T> where T : IComparable<T>
     {
         var y = GetY<T, S>(x);
     }
@@ -8787,7 +8787,7 @@ interface I<T> where T : class
 
 class A
 {
-    static void Foo<T, S>(S x) where S : I<T> where T : class
+    static void Goo<T, S>(S x) where S : I<T> where T : class
     {
         var y = [|x.Count|];
     }
@@ -8803,7 +8803,7 @@ interface I<T> where T : class
 
 class A
 {
-    static void Foo<T, S>(S x) where S : I<T> where T : class
+    static void Goo<T, S>(S x) where S : I<T> where T : class
     {
         var y = GetY<T, S>(x);
     }
@@ -8839,14 +8839,14 @@ interface I2<T1, T2> : I<T1> where T1 : class, IEnumerable<T2> where T2 : struct
 
 class A
 {
-    public virtual void Foo<T, S>(S x) where S : IList<I2<IEnumerable<T>, T>> where T : struct
+    public virtual void Goo<T, S>(S x) where S : IList<I2<IEnumerable<T>, T>> where T : struct
     {
     }
 }
 
 class B : A
 {
-    public override void Foo<T, S>(S x)
+    public override void Goo<T, S>(S x)
     {
         var y = [|x.Count|];
     }
@@ -8867,14 +8867,14 @@ interface I2<T1, T2> : I<T1> where T1 : class, IEnumerable<T2> where T2 : struct
 
 class A
 {
-    public virtual void Foo<T, S>(S x) where S : IList<I2<IEnumerable<T>, T>> where T : struct
+    public virtual void Goo<T, S>(S x) where S : IList<I2<IEnumerable<T>, T>> where T : struct
     {
     }
 }
 
 class B : A
 {
-    public override void Foo<T, S>(S x)
+    public override void Goo<T, S>(S x)
     {
         var y = GetY<T, S>(x);
     }
@@ -8953,7 +8953,7 @@ using System.Collections.Generic;
  
 class Program
 {
-    static void Foo<T>()
+    static void Goo<T>()
     {
         List<T> x = new List<T>();
         Action a = () => Console.WriteLine([|x.Count|]);
@@ -8964,7 +8964,7 @@ using System.Collections.Generic;
  
 class Program
 {
-    static void Foo<T>()
+    static void Goo<T>()
     {
         List<T> x = new List<T>();
         Action a = () => Console.WriteLine(GetCount(x));
@@ -9881,7 +9881,7 @@ class C
  
 class C
 {
-    public async void Foo()
+    public async void Goo()
     {
         [|var q = 1;
         var p = 2;
@@ -10281,11 +10281,11 @@ namespace ClassLibrary9
                     workspace.GetService<IInlineRenameService>(),
                     workspace.GetService<Host.IWaitIndicator>());
                 var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
+                CommandState nextHandler()
                 {
                     delegatedToNext = true;
                     return CommandState.Unavailable;
-                };
+                }
 
                 var state = handler.GetCommandState(new Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler);
                 Assert.True(delegatedToNext);

@@ -330,9 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Accessibility.Private:
                     return SyntaxFacts.GetText(PrivateKeyword);
                 case Accessibility.ProtectedAndInternal:
-                    // TODO: C# doesn't have a representation for this.
-                    // For now, use Reflector's representation.
-                    return SyntaxFacts.GetText(InternalKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
+                    return SyntaxFacts.GetText(PrivateKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
                 case Accessibility.Internal:
                     return SyntaxFacts.GetText(InternalKeyword);
                 case Accessibility.Protected:
@@ -394,11 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case IdentifierName:
                     return syntax.IsMissing;
-
-                // TODO: The native implementation also disallows delegate
-                // creation expressions with the ERR_IllegalStatement error, 
-                // so that needs to go into the semantic analysis somewhere
-                // if we intend to carry it forward.
 
                 default:
                     return false;

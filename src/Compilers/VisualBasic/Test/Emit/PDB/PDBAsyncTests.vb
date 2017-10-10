@@ -128,6 +128,9 @@ End Class
             ' NOTE: No <local> for the return variable "M".
             v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
             <customDebugInfo>
@@ -141,16 +144,16 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" hidden="true"/>
-                <entry offset="0xe" startLine="5" startColumn="5" endLine="5" endColumn="50"/>
-                <entry offset="0xf" startLine="6" startColumn="9" endLine="6" endColumn="28"/>
-                <entry offset="0x1b" hidden="true"/>
-                <entry offset="0x77" startLine="7" startColumn="9" endLine="7" endColumn="17"/>
-                <entry offset="0x7b" hidden="true"/>
-                <entry offset="0x83" hidden="true"/>
-                <entry offset="0xa0" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
-                <entry offset="0xaa" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0xe" startLine="5" startColumn="5" endLine="5" endColumn="50" document="1"/>
+                <entry offset="0xf" startLine="6" startColumn="9" endLine="6" endColumn="28" document="1"/>
+                <entry offset="0x1b" hidden="true" document="1"/>
+                <entry offset="0x77" startLine="7" startColumn="9" endLine="7" endColumn="17" document="1"/>
+                <entry offset="0x7b" hidden="true" document="1"/>
+                <entry offset="0x83" hidden="true" document="1"/>
+                <entry offset="0xa0" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
+                <entry offset="0xaa" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xb8">
                 <namespace name="System" importlevel="file"/>
@@ -207,6 +210,9 @@ End Module
 
             compilation.VerifyPdb("Module1.F",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="F" parameterNames="a">
             <customDebugInfo>
@@ -218,6 +224,9 @@ End Module
 
             compilation.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_F" name="MoveNext">
             <customDebugInfo>
@@ -232,16 +241,16 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" hidden="true"/>
-                <entry offset="0xe" startLine="11" startColumn="5" endLine="11" endColumn="68"/>
-                <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="25"/>
-                <entry offset="0x1e" hidden="true"/>
-                <entry offset="0x7a" startLine="13" startColumn="9" endLine="13" endColumn="17"/>
-                <entry offset="0x7e" hidden="true"/>
-                <entry offset="0x86" hidden="true"/>
-                <entry offset="0xa3" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
-                <entry offset="0xad" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0xe" startLine="11" startColumn="5" endLine="11" endColumn="68" document="1"/>
+                <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="25" document="1"/>
+                <entry offset="0x1e" hidden="true" document="1"/>
+                <entry offset="0x7a" startLine="13" startColumn="9" endLine="13" endColumn="17" document="1"/>
+                <entry offset="0x7e" hidden="true" document="1"/>
+                <entry offset="0x86" hidden="true" document="1"/>
+                <entry offset="0xa3" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
+                <entry offset="0xad" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xbb">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
@@ -256,6 +265,9 @@ End Module
 
             compilation.VerifyPdb("Module1.Test",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Test">
             <customDebugInfo>
@@ -267,6 +279,9 @@ End Module
 
             compilation.VerifyPdb("Module1+VB$StateMachine_2_Test.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_2_Test" name="MoveNext">
             <customDebugInfo>
@@ -287,24 +302,24 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" hidden="true"/>
-                <entry offset="0x5d" startLine="16" startColumn="5" endLine="16" endColumn="34"/>
-                <entry offset="0x5e" startLine="17" startColumn="9" endLine="23" endColumn="34"/>
-                <entry offset="0x70" hidden="true"/>
-                <entry offset="0xf1" hidden="true"/>
-                <entry offset="0x176" hidden="true"/>
-                <entry offset="0x1f0" hidden="true"/>
-                <entry offset="0x269" hidden="true"/>
-                <entry offset="0x2e2" hidden="true"/>
-                <entry offset="0x363" hidden="true"/>
-                <entry offset="0x3e4" hidden="true"/>
-                <entry offset="0x463" hidden="true"/>
-                <entry offset="0x4bf" startLine="24" startColumn="5" endLine="24" endColumn="17"/>
-                <entry offset="0x4c1" hidden="true"/>
-                <entry offset="0x4c9" hidden="true"/>
-                <entry offset="0x4e6" startLine="24" startColumn="5" endLine="24" endColumn="17"/>
-                <entry offset="0x4f0" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0x5d" startLine="16" startColumn="5" endLine="16" endColumn="34" document="1"/>
+                <entry offset="0x5e" startLine="17" startColumn="9" endLine="23" endColumn="34" document="1"/>
+                <entry offset="0x70" hidden="true" document="1"/>
+                <entry offset="0xf1" hidden="true" document="1"/>
+                <entry offset="0x176" hidden="true" document="1"/>
+                <entry offset="0x1f0" hidden="true" document="1"/>
+                <entry offset="0x269" hidden="true" document="1"/>
+                <entry offset="0x2e2" hidden="true" document="1"/>
+                <entry offset="0x363" hidden="true" document="1"/>
+                <entry offset="0x3e4" hidden="true" document="1"/>
+                <entry offset="0x463" hidden="true" document="1"/>
+                <entry offset="0x4bf" startLine="24" startColumn="5" endLine="24" endColumn="17" document="1"/>
+                <entry offset="0x4c1" hidden="true" document="1"/>
+                <entry offset="0x4c9" hidden="true" document="1"/>
+                <entry offset="0x4e6" startLine="24" startColumn="5" endLine="24" endColumn="17" document="1"/>
+                <entry offset="0x4f0" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4fd">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
@@ -327,6 +342,9 @@ End Module
 
             compilation.VerifyPdb("Module1.S",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1" name="S">
             <customDebugInfo>
@@ -338,6 +356,9 @@ End Module
 
             compilation.VerifyPdb("Module1+VB$StateMachine_3_S.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_3_S" name="MoveNext">
             <customDebugInfo>
@@ -350,16 +371,16 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" hidden="true"/>
-                <entry offset="0xe" startLine="26" startColumn="5" endLine="26" endColumn="18"/>
-                <entry offset="0xf" startLine="27" startColumn="9" endLine="27" endColumn="25"/>
-                <entry offset="0x1d" hidden="true"/>
-                <entry offset="0x78" startLine="28" startColumn="5" endLine="28" endColumn="12"/>
-                <entry offset="0x7a" hidden="true"/>
-                <entry offset="0x82" hidden="true"/>
-                <entry offset="0x9f" startLine="28" startColumn="5" endLine="28" endColumn="12"/>
-                <entry offset="0xa9" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0xe" startLine="26" startColumn="5" endLine="26" endColumn="18" document="1"/>
+                <entry offset="0xf" startLine="27" startColumn="9" endLine="27" endColumn="25" document="1"/>
+                <entry offset="0x1d" hidden="true" document="1"/>
+                <entry offset="0x78" startLine="28" startColumn="5" endLine="28" endColumn="12" document="1"/>
+                <entry offset="0x7a" hidden="true" document="1"/>
+                <entry offset="0x82" hidden="true" document="1"/>
+                <entry offset="0x9f" startLine="28" startColumn="5" endLine="28" endColumn="12" document="1"/>
+                <entry offset="0xa9" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xb6">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
@@ -405,6 +426,9 @@ End Class
             ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" and "$VB$ResumableLocal_a$1".
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
             <customDebugInfo>
@@ -421,22 +445,22 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" hidden="true"/>
-                <entry offset="0x11" startLine="5" startColumn="5" endLine="5" endColumn="50"/>
-                <entry offset="0x12" hidden="true"/>
-                <entry offset="0x1d" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x29" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x35" startLine="9" startColumn="13" endLine="9" endColumn="53"/>
-                <entry offset="0x4c" startLine="11" startColumn="9" endLine="11" endColumn="55"/>
-                <entry offset="0x7b" hidden="true"/>
-                <entry offset="0xd9" startLine="12" startColumn="9" endLine="12" endColumn="21"/>
-                <entry offset="0xea" startLine="13" startColumn="9" endLine="13" endColumn="21"/>
-                <entry offset="0xfb" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
-                <entry offset="0xfd" hidden="true"/>
-                <entry offset="0x105" hidden="true"/>
-                <entry offset="0x122" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
-                <entry offset="0x12c" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0x11" startLine="5" startColumn="5" endLine="5" endColumn="50" document="1"/>
+                <entry offset="0x12" hidden="true" document="1"/>
+                <entry offset="0x1d" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x29" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x35" startLine="9" startColumn="13" endLine="9" endColumn="53" document="1"/>
+                <entry offset="0x4c" startLine="11" startColumn="9" endLine="11" endColumn="55" document="1"/>
+                <entry offset="0x7b" hidden="true" document="1"/>
+                <entry offset="0xd9" startLine="12" startColumn="9" endLine="12" endColumn="21" document="1"/>
+                <entry offset="0xea" startLine="13" startColumn="9" endLine="13" endColumn="21" document="1"/>
+                <entry offset="0xfb" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
+                <entry offset="0xfd" hidden="true" document="1"/>
+                <entry offset="0x105" hidden="true" document="1"/>
+                <entry offset="0x122" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
+                <entry offset="0x12c" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x139">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
@@ -449,7 +473,7 @@ End Class
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
         End Sub
 
         <Fact>
@@ -483,6 +507,9 @@ End Class
             ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" but not "$VB$ResumableLocal_a$1".
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
             <customDebugInfo>
@@ -491,20 +518,20 @@ End Class
                 </hoistedLocalScopes>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" hidden="true"/>
-                <entry offset="0xa" hidden="true"/>
-                <entry offset="0x15" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x21" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x2d" startLine="11" startColumn="9" endLine="11" endColumn="55"/>
-                <entry offset="0x5c" hidden="true"/>
-                <entry offset="0xb3" startLine="12" startColumn="9" endLine="12" endColumn="21"/>
-                <entry offset="0xc4" startLine="13" startColumn="9" endLine="13" endColumn="21"/>
-                <entry offset="0xd5" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
-                <entry offset="0xd7" hidden="true"/>
-                <entry offset="0xde" hidden="true"/>
-                <entry offset="0xf9" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
-                <entry offset="0x103" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0xa" hidden="true" document="1"/>
+                <entry offset="0x15" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x21" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x2d" startLine="11" startColumn="9" endLine="11" endColumn="55" document="1"/>
+                <entry offset="0x5c" hidden="true" document="1"/>
+                <entry offset="0xb3" startLine="12" startColumn="9" endLine="12" endColumn="21" document="1"/>
+                <entry offset="0xc4" startLine="13" startColumn="9" endLine="13" endColumn="21" document="1"/>
+                <entry offset="0xd5" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
+                <entry offset="0xd7" hidden="true" document="1"/>
+                <entry offset="0xde" hidden="true" document="1"/>
+                <entry offset="0xf9" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
+                <entry offset="0x103" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10f">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
@@ -516,7 +543,7 @@ End Class
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
         End Sub
 
         <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
@@ -548,6 +575,9 @@ End Class
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$1" and "$VB$ResumableLocal_y$2".
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
             <customDebugInfo>
@@ -564,20 +594,20 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" hidden="true"/>
-                <entry offset="0xe" startLine="5" startColumn="5" endLine="5" endColumn="52"/>
-                <entry offset="0xf" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x16" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x1d" startLine="9" startColumn="9" endLine="9" endColumn="55"/>
-                <entry offset="0x42" hidden="true"/>
-                <entry offset="0xa0" startLine="10" startColumn="9" endLine="10" endColumn="21"/>
-                <entry offset="0xac" startLine="11" startColumn="9" endLine="11" endColumn="21"/>
-                <entry offset="0xb8" startLine="12" startColumn="5" endLine="12" endColumn="17"/>
-                <entry offset="0xba" hidden="true"/>
-                <entry offset="0xc2" hidden="true"/>
-                <entry offset="0xdf" startLine="12" startColumn="5" endLine="12" endColumn="17"/>
-                <entry offset="0xe9" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0xe" startLine="5" startColumn="5" endLine="5" endColumn="52" document="1"/>
+                <entry offset="0xf" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x16" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x1d" startLine="9" startColumn="9" endLine="9" endColumn="55" document="1"/>
+                <entry offset="0x42" hidden="true" document="1"/>
+                <entry offset="0xa0" startLine="10" startColumn="9" endLine="10" endColumn="21" document="1"/>
+                <entry offset="0xac" startLine="11" startColumn="9" endLine="11" endColumn="21" document="1"/>
+                <entry offset="0xb8" startLine="12" startColumn="5" endLine="12" endColumn="17" document="1"/>
+                <entry offset="0xba" hidden="true" document="1"/>
+                <entry offset="0xc2" hidden="true" document="1"/>
+                <entry offset="0xdf" startLine="12" startColumn="5" endLine="12" endColumn="17" document="1"/>
+                <entry offset="0xe9" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xf6">
                 <namespace name="System" importlevel="file"/>
@@ -592,7 +622,7 @@ End Class
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
         End Sub
 
         <Fact>
@@ -624,6 +654,9 @@ End Class
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$0" and "$VB$ResumableLocal_y$1".
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
             <customDebugInfo>
@@ -633,19 +666,19 @@ End Class
                 </hoistedLocalScopes>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" hidden="true"/>
-                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x11" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x18" startLine="9" startColumn="9" endLine="9" endColumn="55"/>
-                <entry offset="0x3d" hidden="true"/>
-                <entry offset="0x91" startLine="10" startColumn="9" endLine="10" endColumn="21"/>
-                <entry offset="0x9d" startLine="11" startColumn="9" endLine="11" endColumn="21"/>
-                <entry offset="0xa9" startLine="12" startColumn="5" endLine="12" endColumn="17"/>
-                <entry offset="0xab" hidden="true"/>
-                <entry offset="0xb2" hidden="true"/>
-                <entry offset="0xcd" startLine="12" startColumn="5" endLine="12" endColumn="17"/>
-                <entry offset="0xd7" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x11" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x18" startLine="9" startColumn="9" endLine="9" endColumn="55" document="1"/>
+                <entry offset="0x3d" hidden="true" document="1"/>
+                <entry offset="0x91" startLine="10" startColumn="9" endLine="10" endColumn="21" document="1"/>
+                <entry offset="0x9d" startLine="11" startColumn="9" endLine="11" endColumn="21" document="1"/>
+                <entry offset="0xa9" startLine="12" startColumn="5" endLine="12" endColumn="17" document="1"/>
+                <entry offset="0xab" hidden="true" document="1"/>
+                <entry offset="0xb2" hidden="true" document="1"/>
+                <entry offset="0xcd" startLine="12" startColumn="5" endLine="12" endColumn="17" document="1"/>
+                <entry offset="0xd7" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xe3">
                 <namespace name="System" importlevel="file"/>
@@ -660,7 +693,7 @@ End Class
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
         End Sub
 
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
@@ -686,6 +719,9 @@ End Class
             ' NOTE: No <local> for the return variable "M".
             c.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
             <customDebugInfo>
@@ -697,13 +733,13 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" startLine="5" startColumn="5" endLine="5" endColumn="50"/>
-                <entry offset="0x8" startLine="6" startColumn="9" endLine="6" endColumn="17"/>
-                <entry offset="0xc" hidden="true"/>
-                <entry offset="0x13" hidden="true"/>
-                <entry offset="0x2f" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
-                <entry offset="0x39" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" startLine="5" startColumn="5" endLine="5" endColumn="50" document="1"/>
+                <entry offset="0x8" startLine="6" startColumn="9" endLine="6" endColumn="17" document="1"/>
+                <entry offset="0xc" hidden="true" document="1"/>
+                <entry offset="0x13" hidden="true" document="1"/>
+                <entry offset="0x2f" startLine="7" startColumn="5" endLine="7" endColumn="17" document="1"/>
+                <entry offset="0x39" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x47">
                 <namespace name="System" importlevel="file"/>
@@ -876,6 +912,9 @@ End Class
             Dim v = CompileAndVerify(compilation)
             v.VerifyPdb("C.M", "
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -987,7 +1026,7 @@ End Class"
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
         End Sub
     End Class
 End Namespace

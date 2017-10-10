@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IAwaitExpression : IOperation
     {
         /// <summary>
-        /// Value to be awaited.
+        /// Awaited expression.
         /// </summary>
-        IOperation AwaitedValue { get; }
+        IOperation Expression { get; }
     }
 }
 

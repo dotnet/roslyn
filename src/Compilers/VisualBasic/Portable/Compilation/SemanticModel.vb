@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
-        Friend MustOverride ReadOnly Property Root As SyntaxNode
+        Friend MustOverride Shadows ReadOnly Property Root As SyntaxNode
 
         ''' <summary>
         ''' Gets symbol information about an expression syntax node. This is the worker
@@ -132,28 +132,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  TypeOf (node) Is OrderingSyntax)
         End Function
 
-        Friend Enum GetOperationOptions
-            Lowest
-            Highest
-            Parent
-        End Enum
-
         Protected Overrides Function GetOperationCore(node As SyntaxNode, cancellationToken As CancellationToken) As IOperation
             Dim vbnode = DirectCast(node, VisualBasicSyntaxNode)
             CheckSyntaxNode(vbnode)
-            Return GetOperationWorker(vbnode, GetOperationOptions.Highest, cancellationToken)
+
+            Return GetOperationWorker(vbnode, cancellationToken)
         End Function
 
-        Friend Overridable Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+        Friend Overridable Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
             Return Nothing
+        End Function
+
+        Friend Overrides Function CloneOperationCore(operation As IOperation) As IOperation
+            Return VisualBasicOperationCloner.Instance.Visit(operation)
         End Function
 
         ''' <summary>
         ''' Returns what symbol(s), if any, the given expression syntax bound to in the program.
-        ''' 
+        '''
         ''' An AliasSymbol will never be returned by this method. What the alias refers to will be
         ''' returned instead. To get information about aliases, call GetAliasInfo.
-        ''' 
+        '''
         ''' If binding the type name C in the expression "new C(...)" the actual constructor bound to
         ''' will be returned (or all constructor if overload resolution failed). This occurs as long as C
         ''' unambiguously binds to a single type that has a constructor. If C ambiguously binds to multiple
@@ -1890,6 +1889,8 @@ _Default:
             Else
                 ' They provided a name.  Find all the arities for that name, and then look all of those up.
                 Dim info = LookupSymbolsInfo.GetInstance()
+                info.FilterName = name
+
                 Me.AddLookupSymbolsInfo(position, info, container, options)
 
                 Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Count)
@@ -2786,7 +2787,7 @@ _Default:
         '''    Event E3(bar As Integer) Implements I1.E   '  "bar" means nothing here. Only type matters.
         '''
         '''    Sub moo()
-        '''        RaiseEvent E3(qwer:=123)  ' qwer binds to parameter on I1.EEventhandler.invoke(foo)
+        '''        RaiseEvent E3(qwer:=123)  ' qwer binds to parameter on I1.EEventhandler.invoke(goo)
         '''    End Sub
         '''End Class
         ''' 
@@ -3058,6 +3059,12 @@ _Default:
         Protected NotOverridable Overrides ReadOnly Property CompilationCore As Compilation
             Get
                 Return Me.Compilation
+            End Get
+        End Property
+
+        Protected NotOverridable Overrides ReadOnly Property RootCore As SyntaxNode
+            Get
+                Return Me.Root
             End Get
         End Property
 

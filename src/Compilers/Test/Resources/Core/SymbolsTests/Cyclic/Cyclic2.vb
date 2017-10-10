@@ -3,7 +3,7 @@
 'vbc /t:library /vbruntime- Cyclic2.vb /r:Cyclic1.dll
 
 Public Class Class2
-Sub Foo
+Sub Goo
 Dim x As New Class1
 End Sub
 End Class

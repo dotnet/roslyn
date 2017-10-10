@@ -213,7 +213,7 @@ class Program
 {
     void Method()
     {
-        [|var|] x = new Foo();
+        [|var|] x = new Goo();
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
         }
@@ -741,8 +741,8 @@ class C
     {
         var customers = new List<Customer>();
         IEnumerable<Customer> expr = from c in customers
-                                     where c.City == ""London""
-                                     select c;
+                   where c.City == ""London""
+                   select c;
     }
 
     private class Customer
@@ -1079,9 +1079,8 @@ class C
         [|var|] s = 5;
     }
 }";
-            await TestDiagnosticSeverityAndCountAsync(source,
+            await TestDiagnosticInfoAsync(source,
                 options: ExplicitTypeEnforcements(),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Info);
         }
@@ -1098,9 +1097,8 @@ class C
         [|var|] n1 = new[] {2, 4, 6, 8};
     }
 }";
-            await TestDiagnosticSeverityAndCountAsync(source,
+            await TestDiagnosticInfoAsync(source,
                 options: ExplicitTypeEnforcements(),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
@@ -1117,9 +1115,8 @@ class C
         [|var|] n1 = new C();
     }
 }";
-            await TestDiagnosticSeverityAndCountAsync(source,
+            await TestDiagnosticInfoAsync(source,
                 options: ExplicitTypeEnforcements(),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Error);
         }

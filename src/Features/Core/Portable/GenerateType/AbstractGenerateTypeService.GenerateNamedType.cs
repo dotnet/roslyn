@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         options.Accessibility,
                         DetermineModifiers(),
                         DetermineReturnType(options),
-                        returnsByRef: false,
+                        RefKind.None,
                         name: options.TypeName,
                         typeParameters: DetermineTypeParameters(options),
                         parameters: DetermineParameters(options));
@@ -242,12 +242,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Empty Constructor for Struct is not allowed
                 if (!(parameters.Count == 0 && options != null && (options.TypeKind == TypeKind.Struct || options.TypeKind == TypeKind.Structure)))
                 {
-                    members.AddRange(factory.CreateFieldDelegatingConstructor(
+                    var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
                         _document.SemanticModel.Compilation,
-                        DetermineName(), null, parameters.ToImmutable(), 
-                        parameterToExistingFieldMap, parameterToNewFieldMap, 
+                        DetermineName(), null, parameters.ToImmutable(),
+                        parameterToExistingFieldMap, parameterToNewFieldMap,
                         addNullChecks: false, preferThrowExpression: false,
-                        cancellationToken: _cancellationToken));
+                        cancellationToken: _cancellationToken);
+                    members.AddRange(fields);
+                    members.Add(constructor);
                 }
 
                 parameters.Free();

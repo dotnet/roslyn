@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -14,11 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConversion(BoundConversion node)
         {
-            var rewrittenType = VisitType(node.Type);
             if (node.ConversionKind == ConversionKind.InterpolatedString)
             {
                 return RewriteInterpolatedStringConversion(node);
             }
+
+            var rewrittenType = VisitType(node.Type);
 
             bool wasInExpressionLambda = _inExpressionLambda;
             _inExpressionLambda = _inExpressionLambda || (node.ConversionKind == ConversionKind.AnonymousFunction && !wasInExpressionLambda && rewrittenType.IsExpressionTree());
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If original conversion has become something else with unknown precision, add an explicit identity cast.
             if (!_inExpressionLambda &&
                 node.ExplicitCastInCode &&
-                IsFloatPointExpressionOfUnknownPrecision(result))
+                IsFloatingPointExpressionOfUnknownPrecision(result))
             {
                 result = MakeConversionNode(
                     node.Syntax,
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static bool IsFloatPointExpressionOfUnknownPrecision(BoundExpression rewrittenNode)
+        private static bool IsFloatingPointExpressionOfUnknownPrecision(BoundExpression rewrittenNode)
         {
             if (rewrittenNode == null)
             {
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Sequence:
                     var sequence = (BoundSequence)rewrittenNode;
-                    return IsFloatPointExpressionOfUnknownPrecision(sequence.Value);
+                    return IsFloatingPointExpressionOfUnknownPrecision(sequence.Value);
 
                 case BoundKind.Conversion:
                     // lowered conversions have definite precision unless they are implicit identity casts
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     
                     // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
                     // If this is not an identity conversion of a float with unknown precision, strip away the identity conversion.
-                    if (!IsFloatPointExpressionOfUnknownPrecision(rewrittenOperand))
+                    if (!IsFloatingPointExpressionOfUnknownPrecision(rewrittenOperand))
                     {
                         return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenOperand);
                     }
@@ -348,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)method != null);
                         var oldSyntax = _factory.Syntax;
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (method.IsStatic && !oldNode.IsExtensionMethod) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt);
+                        var receiver = (method.IsStatic && !oldNode.IsExtensionMethod) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         _factory.Syntax = oldSyntax;
                         return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method, isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
                     }
@@ -650,16 +652,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numElements; i++)
             {
-                var field = srcElementFields[i];
-
-                DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
-                if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
-                {
-                    Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
-                }
-                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty);
+                var fieldAccess = MakeTupleFieldAccessAndReportUseSiteDiagnostics(savedTuple, syntax, srcElementFields[i]);
                 var convertedFieldAccess = MakeConversionNode(syntax, fieldAccess, elementConversions[i], destElementTypes[i], @checked, explicitCastInCode);
-
                 fieldAccessorsBuilder.Add(convertedFieldAccess);
             }
 
@@ -864,7 +858,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: consequence,
                 rewrittenAlternative: alternative,
                 constantValueOpt: null,
-                rewrittenType: type);
+                rewrittenType: type,
+                isRef: false);
 
             return new BoundSequence(
                 syntax: syntax,
@@ -991,7 +986,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 MakeConversionNode(null, syntax, conditional.Consequence, conversion, @checked, explicitCastInCode: false, constantValueOpt: ConstantValue.NotAvailable, rewrittenType: type),
                                 MakeConversionNode(null, syntax, conditional.Alternative, conversion, @checked, explicitCastInCode: false, constantValueOpt: ConstantValue.NotAvailable, rewrittenType: type),
                                 ConstantValue.NotAvailable,
-                                type),
+                                type,
+                                isRef: false),
                             type);
                     }
                 }
@@ -1104,7 +1100,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: consequence,
                 rewrittenAlternative: alternative,
                 constantValueOpt: null,
-                rewrittenType: rewrittenType);
+                rewrittenType: rewrittenType,
+                isRef: false);
 
             // temp = operand
             // temp.HasValue ? new R?(op_Whatever(temp.GetValueOrDefault())) : default(R?)

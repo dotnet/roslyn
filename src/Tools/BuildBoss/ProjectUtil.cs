@@ -17,7 +17,8 @@ namespace BuildBoss
         internal XmlNamespaceManager Manager { get; }
         internal XNamespace Namespace { get; }
 
-        public bool IsNewSdk => Document.XPathSelectElements("//mb:TargetFramework", Manager).FirstOrDefault() != null;
+        public bool IsNewSdk => GetTargetFramework() != null || GetTargetFrameworks() != null;
+
         public bool IsDesktopProject => Document.XPathSelectElements("//mb:TargetFrameworkVersion", Manager).FirstOrDefault() != null;
 
         public bool IsPclProject
@@ -49,9 +50,7 @@ namespace BuildBoss
 
         internal RoslynProjectData GetRoslynProjectData()
         {
-            RoslynProjectData data;
-            string error;
-            if (!TryGetRoslynProjectData(out data, out error))
+            if (!TryGetRoslynProjectData(out var data, out var error))
             {
                 throw new Exception(error);
             }
@@ -120,6 +119,28 @@ namespace BuildBoss
             }
         }
 
+        internal XElement GetTargetFramework() => Document.XPathSelectElements("//mb:TargetFramework", Manager).FirstOrDefault();
+
+        internal XElement GetTargetFrameworks() => Document.XPathSelectElements("//mb:TargetFrameworks", Manager).FirstOrDefault();
+
+        internal IEnumerable<string> GetAllTargetFrameworks()
+        {
+            var targetFramework = GetTargetFramework();
+            if (targetFramework != null)
+            {
+                return new[] { targetFramework.Value.ToString() };
+            }
+
+            var targetFrameworks = GetTargetFrameworks();
+            if (targetFrameworks != null)
+            {
+                var all = targetFrameworks.Value.ToString().Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                return all;
+            }
+
+            throw new InvalidOperationException();
+        }
+
         internal IEnumerable<XElement> GetAllPropertyGroupElements()
         {
             var groups = Document.XPathSelectElements("//mb:PropertyGroup", Manager);
@@ -166,8 +187,7 @@ namespace BuildBoss
                 var refOutputAssembly = r.Element(Namespace.GetName("ReferenceOutputAssembly"));
                 if (refOutputAssembly != null)
                 {
-                    bool isRealReference;
-                    if (bool.TryParse(refOutputAssembly.Value.Trim().ToLower(), out isRealReference) && !isRealReference)
+                    if (bool.TryParse(refOutputAssembly.Value.Trim().ToLower(), out var isRealReference) && !isRealReference)
                     {
                         continue;
                     }

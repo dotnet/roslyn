@@ -23,7 +23,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class C1
     shared Sub MAIN()
-        Dim lists = foo()
+        Dim lists = goo()
         lists.Where(Function(ByVal item)
 lab1:
                         Try
@@ -35,7 +35,7 @@ lab1:
                         Return item.ToString() = String.Empty
                     End Function).ToList()
     End Sub
-    Shared Function foo() As List(Of Integer)
+    Shared Function goo() As List(Of Integer)
         Return Nothing
     End Function
 End Class
@@ -278,7 +278,7 @@ Module M
     Public Sub Main()
         GoTo label1
     End Sub
-    Public Sub foo()
+    Public Sub goo()
 label1:
     End Sub
 End Module

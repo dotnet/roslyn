@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConWithValCon = 456,
         ERR_AmbigUDConv = 457,
         WRN_AlwaysNull = 458,
-        ERR_AddrOnReadOnlyLocal = 459,
+        // ERR_AddrOnReadOnlyLocal = 459, // no longer an error
         ERR_OverrideWithConstraints = 460,
         ERR_AmbigOverride = 462,
         ERR_DecConstError = 463,
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_EqualityOpWithoutEquals = 660,
         WRN_EqualityOpWithoutGetHashCode = 661,
         ERR_OutAttrOnRefParam = 662,
-        ERR_OverloadRefOut = 663,
+        ERR_OverloadRefKind = 663,
         ERR_LiteralDoubleCast = 664,
         WRN_IncorrectBooleanAssg = 665,
         ERR_ProtectedInStruct = 666,
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodInvalidModifier = 750,
         ERR_PartialMethodOnlyInPartialClass = 751,
         ERR_PartialMethodCannotHaveOutParameters = 752,
-        ERR_PartialMethodOnlyMethods = 753,
+        // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
         ERR_PartialMethodNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
         ERR_PartialMethodOnlyOneLatent = 756,
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsBadCoalesce = 845,
         ERR_ArrayInitializerExpected = 846,
         ERR_ArrayInitializerIncorrectLength = 847,
-        ERR_OverloadRefOutCtor = 851,
+        // ERR_OverloadRefOutCtor = 851,                                Replaced By ERR_OverloadRefKind
         ERR_ExpressionTreeContainsNamedArgument = 853,
         ERR_ExpressionTreeContainsOptionalArgument = 854,
         ERR_ExpressionTreeContainsIndexedProperty = 855,
@@ -655,14 +655,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // ERR_EOLExpected = 1099, // EE
         // ERR_NotSupportedinEE = 1100, // EE
         ERR_BadThisParam = 1100,
-        ERR_BadRefWithThis = 1101,
-        ERR_BadOutWithThis = 1102,
+        // ERR_BadRefWithThis = 1101, replaced by ERR_BadParameterModifiers
+        // ERR_BadOutWithThis = 1102, replaced by ERR_BadParameterModifiers
         ERR_BadTypeforThis = 1103,
         ERR_BadParamModThis = 1104,
         ERR_BadExtensionMeth = 1105,
         ERR_BadExtensionAgg = 1106,
         ERR_DupParamMod = 1107,
-        ERR_MultiParamMod = 1108,
+        // ERR_MultiParamMod = 1108, replaced by ERR_BadParameterModifiers
         ERR_ExtensionMethodsDecl = 1109,
         ERR_ExtensionAttrNotFound = 1110,
         //ERR_ExtensionTypeParam = 1111,
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantUseRequiredAttribute = 1608,
         ERR_NoModifiersOnAccessor = 1609,
         // WRN_DeleteAutoResFailed = 1610, // Unused.
-        ERR_ParamsCantBeRefOut = 1611,
+        ERR_ParamsCantBeWithModifier = 1611,
         ERR_ReturnNotLValue = 1612,
         ERR_MissingCoClass = 1613,
         ERR_AmbiguousAttribute = 1614,
@@ -1411,8 +1411,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnReadonlyStatic = 8161,
         ERR_RefReturnReadonly2 = 8162,
         ERR_RefReturnReadonlyStatic2 = 8163,
-        ERR_RefReturnCall = 8164,
-        ERR_RefReturnCall2 = 8165,
+        // ERR_RefReturnCall = 8164,                we use more general ERR_EscapeCall now
+        // ERR_RefReturnCall2 = 8165,               we use more general ERR_EscapeCall2 now
         ERR_RefReturnParameter = 8166,
         ERR_RefReturnParameter2 = 8167,
         ERR_RefReturnLocal = 8168,
@@ -1496,6 +1496,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 7.2
         ERR_FeatureNotAvailableInVersion7_2 = 8320,
         WRN_UnreferencedLocalFunction = 8321,
+        ERR_DynamicLocalFunctionTypeParameter = 8322,
+        ERR_BadNonTrailingNamedArgument = 8323,
+        ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation = 8324,
         #endregion diagnostics introduced for C# 7.2
+
+        #region diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+        ERR_RefConditionalAndAwait = 8325,
+        ERR_RefConditionalNeedsTwoRefs = 8326,
+        ERR_RefConditionalDifferentTypes = 8327,
+        ERR_BadParameterModifiers = 8328,
+
+        ERR_RefReadonlyNotField = 8329,
+        ERR_RefReadonlyNotField2 = 8330,
+        ERR_AssignReadonlyNotField = 8331,
+        ERR_AssignReadonlyNotField2 = 8332,
+        ERR_RefReturnReadonlyNotField = 8333,
+        ERR_RefReturnReadonlyNotField2 = 8334,
+        ERR_ExplicitReservedAttr = 8335,
+        ERR_TypeReserved = 8336,
+        ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
+        ERR_InExtensionMustBeValueType = 8338,
+        ERR_BadParameterModifiersOrder = 8339,
+
+        ERR_FieldsInRoStruct = 8340,
+        ERR_AutoPropsInRoStruct = 8341,
+        ERR_FieldlikeEventsInRoStruct = 8342,
+        ERR_RefStructInterfaceImpl = 8343,
+        ERR_BadSpecialByRefIterator = 8344,
+        ERR_FieldAutoPropCantBeByRefLike = 8345,
+
+        ERR_StackAllocConversionNotPossible = 8346,
+
+        ERR_EscapeCall = 8347,
+        ERR_EscapeCall2 = 8348,
+        ERR_EscapeOther = 8349,
+        ERR_CallArgMixing = 8350,
+        ERR_MismatchedRefEscapeInTernary = 8351,
+        ERR_EscapeLocal = 8352,
+        ERR_EscapeStackAlloc = 8353,
+        ERR_RefReturnThis = 8354,
+        #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
     }
 }

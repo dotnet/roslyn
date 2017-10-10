@@ -3014,21 +3014,21 @@ public class D
         public static int I;
     }
 
-    public static void Foo()
+    public static void Goo()
     {
         Moo.I = 42;
     }
 
     public static void Main()
     {
-        Foo();
+        Goo();
         System.Console.Write(Moo.I);
     }
 }
 ";
             var compilation = CompileAndVerify(source, expectedOutput: "42");
 
-            compilation.VerifyIL("D.Foo",
+            compilation.VerifyIL("D.Goo",
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -3761,7 +3761,7 @@ public class D
             {
             }
 
-            public void Foo(T x, R y, U z)
+            public void Goo(T x, R y, U z)
             {
                 System.Collections.Generic.List<T> lT = new System.Collections.Generic.List<T>();
                 lT.Add(x);
@@ -3790,13 +3790,13 @@ public class D
     public static void Main()
     {
         Outer<object>.Boo<string, int, int> b = new Outer<object>.Boo<string, int,  int>();
-        b.Foo(""hi"", 42,  123);
+        b.Goo(""hi"", 42,  123);
     }
 }
 ";
             var compilation = CompileAndVerify(source, expectedOutput: "hihi4242123123");
 
-            compilation.VerifyIL("D.Outer<K>.Boo<T, R, U>.Foo",
+            compilation.VerifyIL("D.Outer<K>.Boo<T, R, U>.Goo",
 @"
 {
   // Code size      195 (0xc3)
@@ -4024,7 +4024,7 @@ public class D
 {
     public class C1
     {
-        public int Foo(int x, int y)
+        public int Goo(int x, int y)
         {
             System.Console.Write(""["");
             System.Console.Write(x);   
@@ -4051,19 +4051,19 @@ public class D
     {
         C1 c = new C1();
 
-        c.Foo(y: GetInt(2), 
+        c.Goo(y: GetInt(2), 
               x: GetInt(3));
 
         System.Console.Write("" "");
 
-        c.Foo(   GetInt(1), 
-                 c.Foo(y: GetInt(2), 
+        c.Goo(   GetInt(1), 
+                 c.Goo(y: GetInt(2), 
                        x: GetInt(3)));
 
         System.Console.Write("" "");
         
-        c.Foo(y: GetInt(1), 
-              x: c.Foo(y: GetInt(2), 
+        c.Goo(y: GetInt(1), 
+              x: c.Goo(y: GetInt(2), 
                        x: GetInt(3)));
     }
 }
@@ -4089,7 +4089,7 @@ public class D
   IL_000e:  ldc.i4.3
   IL_000f:  call       ""int D.GetInt(int)""
   IL_0014:  ldloc.1
-  IL_0015:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_0015:  callvirt   ""int D.C1.Goo(int, int)""
   IL_001a:  pop
   IL_001b:  ldstr      "" ""
   IL_0020:  call       ""void System.Console.Write(string)""
@@ -4103,8 +4103,8 @@ public class D
   IL_0034:  ldc.i4.3
   IL_0035:  call       ""int D.GetInt(int)""
   IL_003a:  ldloc.1
-  IL_003b:  callvirt   ""int D.C1.Foo(int, int)""
-  IL_0040:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_003b:  callvirt   ""int D.C1.Goo(int, int)""
+  IL_0040:  callvirt   ""int D.C1.Goo(int, int)""
   IL_0045:  pop
   IL_0046:  ldstr      "" ""
   IL_004b:  call       ""void System.Console.Write(string)""
@@ -4119,9 +4119,9 @@ public class D
   IL_0060:  ldc.i4.3
   IL_0061:  call       ""int D.GetInt(int)""
   IL_0066:  ldloc.2
-  IL_0067:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_0067:  callvirt   ""int D.C1.Goo(int, int)""
   IL_006c:  ldloc.1
-  IL_006d:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_006d:  callvirt   ""int D.C1.Goo(int, int)""
   IL_0072:  pop
   IL_0073:  ret
 }
@@ -4136,7 +4136,7 @@ public class D
 {
     public class C1
     {
-        public int Foo(int x, int y)
+        public int Goo(int x, int y)
         {
             System.Console.Write(""["");
             System.Console.Write(x);   
@@ -4163,9 +4163,9 @@ public class D
     {
         C1 c = new C1();
        
-        c.Foo(y: GetInt(1), 
-              x: c.Foo(y: c.Foo(y: GetInt(1), 
-                                x: c.Foo(y: GetInt(2), 
+        c.Goo(y: GetInt(1), 
+              x: c.Goo(y: c.Goo(y: GetInt(1), 
+                                x: c.Goo(y: GetInt(2), 
                                          x: GetInt(3))), 
                        x: GetInt(3)));
     }
@@ -4200,16 +4200,16 @@ public class D
   IL_001d:  ldc.i4.3
   IL_001e:  call       ""int D.GetInt(int)""
   IL_0023:  ldloc.3
-  IL_0024:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_0024:  callvirt   ""int D.C1.Goo(int, int)""
   IL_0029:  ldloc.2
-  IL_002a:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_002a:  callvirt   ""int D.C1.Goo(int, int)""
   IL_002f:  stloc.1
   IL_0030:  ldc.i4.3
   IL_0031:  call       ""int D.GetInt(int)""
   IL_0036:  ldloc.1
-  IL_0037:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_0037:  callvirt   ""int D.C1.Goo(int, int)""
   IL_003c:  ldloc.0
-  IL_003d:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_003d:  callvirt   ""int D.C1.Goo(int, int)""
   IL_0042:  pop
   IL_0043:  ret
 }");
@@ -4514,7 +4514,7 @@ public class D
 
 public class D
 {
-    public class Foo
+    public class Goo
     {
         public int x;
 
@@ -4524,7 +4524,7 @@ public class D
         }
     }
 
-    public struct FooS
+    public struct GooS
     {
         public int x;
 
@@ -4536,12 +4536,12 @@ public class D
 
     public static void Main()
     {
-        Foo f = new Foo();
+        Goo f = new Goo();
         System.Console.Write(f.x);
         f.Bar();
         System.Console.Write(f.x);
 
-        FooS fs = new FooS();
+        GooS fs = new GooS();
         System.Console.Write(fs.x);
         fs.Bar();
         System.Console.Write(fs.x);
@@ -4550,24 +4550,24 @@ public class D
 ";
             var compilation = CompileAndVerify(source, expectedOutput: @"0123401234");
 
-            compilation.VerifyIL("D.Foo.Bar",
+            compilation.VerifyIL("D.Goo.Bar",
 @"{
   // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0   
   IL_0001:  ldc.i4     0x4d2
-  IL_0006:  stfld      ""int D.Foo.x""
+  IL_0006:  stfld      ""int D.Goo.x""
   IL_000b:  ret       
 }
 ");
 
-            compilation.VerifyIL("D.FooS.Bar",
+            compilation.VerifyIL("D.GooS.Bar",
 @"{
   // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0   
   IL_0001:  ldc.i4     0x4d2
-  IL_0006:  stfld      ""int D.FooS.x""
+  IL_0006:  stfld      ""int D.GooS.x""
   IL_000b:  ret       
 }
 ");
@@ -4667,7 +4667,7 @@ aaaaSystem.ApplicationException: hellobyeSystem.ApplicationException: ccccaaaaSy
             string source = @"
 public class D
 {
-    public class Foo
+    public class Goo
     {
         public int x;
 
@@ -4677,7 +4677,7 @@ public class D
         }
     }
 
-    public class FooD : Foo
+    public class GooD : Goo
     {
         public new int x = 5555;
         public void Baz()
@@ -4689,27 +4689,27 @@ public class D
 
     public static void Main()
     {
-        FooD fd = new FooD();
-        System.Console.Write(((Foo)fd).x);
+        GooD fd = new GooD();
+        System.Console.Write(((Goo)fd).x);
         fd.Bar();
-        System.Console.Write(((Foo)fd).x);
+        System.Console.Write(((Goo)fd).x);
         fd.Baz();
-        System.Console.Write(((Foo)fd).x);
+        System.Console.Write(((Goo)fd).x);
     }
 }
 ";
             var compilation = CompileAndVerify(source, expectedOutput: @"012344321");
 
-            compilation.VerifyIL("D.FooD.Baz",
+            compilation.VerifyIL("D.GooD.Baz",
 @"{
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4     0x10e1
-  IL_0006:  stfld      ""int D.Foo.x""
+  IL_0006:  stfld      ""int D.Goo.x""
   IL_000b:  ldarg.0
   IL_000c:  ldc.i4     0x1e61
-  IL_0011:  stfld      ""int D.FooD.x""
+  IL_0011:  stfld      ""int D.GooD.x""
   IL_0016:  ret
 }
 ");
@@ -6174,7 +6174,7 @@ public class D
 {
     public static double x;
 
-    public static void Foo(double x)
+    public static void Goo(double x)
     {
     }
 
@@ -6182,30 +6182,30 @@ public class D
     {
         if (x == 0)  // long branch
         {
-            Foo(1.0);
-            Foo(1.0);
-            Foo(1.0);
-            Foo(1.0);
-            Foo(1.0);
-            Foo(1.0);
-            Foo(1.0);
-            Foo(1.0);
-            Foo(1.0);
-            Foo(1.0);
+            Goo(1.0);
+            Goo(1.0);
+            Goo(1.0);
+            Goo(1.0);
+            Goo(1.0);
+            Goo(1.0);
+            Goo(1.0);
+            Goo(1.0);
+            Goo(1.0);
+            Goo(1.0);
         }
         else
         {
             if (x == 0) // short branch
             {
-                Foo(1.0);
-                Foo(1.0);
-                Foo(1.0);
-                Foo(1.0);
-                Foo(1.0);
-                Foo(1.0);
-                Foo(1.0);
-                Foo(1.0);
-                Foo(1.0);
+                Goo(1.0);
+                Goo(1.0);
+                Goo(1.0);
+                Goo(1.0);
+                Goo(1.0);
+                Goo(1.0);
+                Goo(1.0);
+                Goo(1.0);
+                Goo(1.0);
             }
         }                
 
@@ -6223,47 +6223,47 @@ public class D
   IL_0005:  ldc.r8     0
   IL_000e:  bne.un     IL_00a4
   IL_0013:  ldc.r8     1
-  IL_001c:  call       ""void D.Foo(double)""
+  IL_001c:  call       ""void D.Goo(double)""
   IL_0021:  ldc.r8     1
-  IL_002a:  call       ""void D.Foo(double)""
+  IL_002a:  call       ""void D.Goo(double)""
   IL_002f:  ldc.r8     1
-  IL_0038:  call       ""void D.Foo(double)""
+  IL_0038:  call       ""void D.Goo(double)""
   IL_003d:  ldc.r8     1
-  IL_0046:  call       ""void D.Foo(double)""
+  IL_0046:  call       ""void D.Goo(double)""
   IL_004b:  ldc.r8     1
-  IL_0054:  call       ""void D.Foo(double)""
+  IL_0054:  call       ""void D.Goo(double)""
   IL_0059:  ldc.r8     1
-  IL_0062:  call       ""void D.Foo(double)""
+  IL_0062:  call       ""void D.Goo(double)""
   IL_0067:  ldc.r8     1
-  IL_0070:  call       ""void D.Foo(double)""
+  IL_0070:  call       ""void D.Goo(double)""
   IL_0075:  ldc.r8     1
-  IL_007e:  call       ""void D.Foo(double)""
+  IL_007e:  call       ""void D.Goo(double)""
   IL_0083:  ldc.r8     1
-  IL_008c:  call       ""void D.Foo(double)""
+  IL_008c:  call       ""void D.Goo(double)""
   IL_0091:  ldc.r8     1
-  IL_009a:  call       ""void D.Foo(double)""
+  IL_009a:  call       ""void D.Goo(double)""
   IL_009f:  br         IL_0132
   IL_00a4:  ldsfld     ""double D.x""
   IL_00a9:  ldc.r8     0
   IL_00b2:  bne.un.s   IL_0132
   IL_00b4:  ldc.r8     1
-  IL_00bd:  call       ""void D.Foo(double)""
+  IL_00bd:  call       ""void D.Goo(double)""
   IL_00c2:  ldc.r8     1
-  IL_00cb:  call       ""void D.Foo(double)""
+  IL_00cb:  call       ""void D.Goo(double)""
   IL_00d0:  ldc.r8     1
-  IL_00d9:  call       ""void D.Foo(double)""
+  IL_00d9:  call       ""void D.Goo(double)""
   IL_00de:  ldc.r8     1
-  IL_00e7:  call       ""void D.Foo(double)""
+  IL_00e7:  call       ""void D.Goo(double)""
   IL_00ec:  ldc.r8     1
-  IL_00f5:  call       ""void D.Foo(double)""
+  IL_00f5:  call       ""void D.Goo(double)""
   IL_00fa:  ldc.r8     1
-  IL_0103:  call       ""void D.Foo(double)""
+  IL_0103:  call       ""void D.Goo(double)""
   IL_0108:  ldc.r8     1
-  IL_0111:  call       ""void D.Foo(double)""
+  IL_0111:  call       ""void D.Goo(double)""
   IL_0116:  ldc.r8     1
-  IL_011f:  call       ""void D.Foo(double)""
+  IL_011f:  call       ""void D.Goo(double)""
   IL_0124:  ldc.r8     1
-  IL_012d:  call       ""void D.Foo(double)""
+  IL_012d:  call       ""void D.Goo(double)""
   IL_0132:  ldstr      ""hi""
   IL_0137:  call       ""void System.Console.Write(string)""
   IL_013c:  ret       
@@ -6279,7 +6279,7 @@ public class D
 {
     public static int x;
 
-    public static void Foo(double x)
+    public static void Goo(double x)
     {
     }
 
@@ -6325,7 +6325,7 @@ public class D
                                                                             {
                                                                                 if (x == 0)
                                                                                 {
-                                                                                    Foo(1.0);
+                                                                                    Goo(1.0);
                                                                                 }    
                                                                             }    
                                                                         }    
@@ -6395,7 +6395,7 @@ public class D
   IL_0084:  ldsfld     ""int D.x""
   IL_0089:  brtrue.s   IL_0099
   IL_008b:  ldc.r8     1
-  IL_0094:  call       ""void D.Foo(double)""
+  IL_0094:  call       ""void D.Goo(double)""
   IL_0099:  ldstr      ""hi""
   IL_009e:  call       ""void System.Console.Write(string)""
   IL_00a3:  ret       
@@ -7216,7 +7216,7 @@ class Program
     {
         public static short x; // = 9; NotImpl
 
-        public long Foo(sbyte y)
+        public long Goo(sbyte y)
         {
             while (y < x*x)
             {
@@ -7255,13 +7255,13 @@ class Program
     static void Main()
     {
         Test.x = 9;
-        Console.Write(new Test().Foo(6));
+        Console.Write(new Test().Goo(6));
     }
 }
 ";
             var compilation = CompileAndVerify(source, expectedOutput: @"2");
 
-            compilation.VerifyIL("Program.Test.Foo",
+            compilation.VerifyIL("Program.Test.Goo",
 @"{
   // Code size      118 (0x76)
   .maxstack  3
@@ -7332,12 +7332,12 @@ class Program
 {
     public class C
     {
-        public uint Foo(short p1, ushort p2) { return (ushort) (p1 + p2); }
-        public uint Foo(short p1, string p2) { return (uint) p1; }
-        public uint Foo(short p1, params ushort[] p2) { return (byte) (p2[0] + p2[1]); }
-        public uint Foo(short p1, ref ushort p2) { return p2; }
-        public uint Foo(out short p1, params ushort[] p2) { p1 = (sbyte)127; return (ushort)p1; }
-        public uint Foo(short p1, out string p2) { p2 = ""Abc123""; return (ushort) (p1 * 3); }
+        public uint Goo(short p1, ushort p2) { return (ushort) (p1 + p2); }
+        public uint Goo(short p1, string p2) { return (uint) p1; }
+        public uint Goo(short p1, params ushort[] p2) { return (byte) (p2[0] + p2[1]); }
+        public uint Goo(short p1, ref ushort p2) { return p2; }
+        public uint Goo(out short p1, params ushort[] p2) { p1 = (sbyte)127; return (ushort)p1; }
+        public uint Goo(short p1, out string p2) { p2 = ""Abc123""; return (ushort) (p1 * 3); }
     }
 
     public static uint field1, field2;
@@ -7346,16 +7346,16 @@ class Program
     static void Main()
     {
         C obj = new C();
-        field1 = obj.Foo(-99, 100) + obj.Foo(2, ""QC""); // 1 + 2
-        field2 = obj.Foo(-1, 11, 22); // 33
+        field1 = obj.Goo(-99, 100) + obj.Goo(2, ""QC""); // 1 + 2
+        field2 = obj.Goo(-1, 11, 22); // 33
         Console.WriteLine(String.Format(""F1={0}, F2={1}"", field1, field2));
         field3 = 444;
-        Console.WriteLine(obj.Foo(12345, ref field3)); // 444
+        Console.WriteLine(obj.Goo(12345, ref field3)); // 444
 
         short out1 = 0;
-        uint local = obj.Foo(out out1, 1,2,3,4); // 127
+        uint local = obj.Goo(out out1, 1,2,3,4); // 127
         Console.WriteLine(local);
-        local = obj.Foo(2, out field4);
+        local = obj.Goo(2, out field4);
         Console.WriteLine(local); // 6
         Console.WriteLine(field4);
     }
@@ -7380,11 +7380,11 @@ Abc123
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.s   -99
   IL_0009:  ldc.i4.s   100
-  IL_000b:  callvirt   ""uint Program.C.Foo(short, ushort)""
+  IL_000b:  callvirt   ""uint Program.C.Goo(short, ushort)""
   IL_0010:  ldloc.0
   IL_0011:  ldc.i4.2
   IL_0012:  ldstr      ""QC""
-  IL_0017:  callvirt   ""uint Program.C.Foo(short, string)""
+  IL_0017:  callvirt   ""uint Program.C.Goo(short, string)""
   IL_001c:  add
   IL_001d:  stsfld     ""uint Program.field1""
   IL_0022:  ldloc.0
@@ -7399,7 +7399,7 @@ Abc123
   IL_0030:  ldc.i4.1
   IL_0031:  ldc.i4.s   22
   IL_0033:  stelem.i2
-  IL_0034:  callvirt   ""uint Program.C.Foo(short, params ushort[])""
+  IL_0034:  callvirt   ""uint Program.C.Goo(short, params ushort[])""
   IL_0039:  stsfld     ""uint Program.field2""
   IL_003e:  ldstr      ""F1={0}, F2={1}""
   IL_0043:  ldsfld     ""uint Program.field1""
@@ -7413,7 +7413,7 @@ Abc123
   IL_006b:  ldloc.0
   IL_006c:  ldc.i4     0x3039
   IL_0071:  ldsflda    ""ushort Program.field3""
-  IL_0076:  callvirt   ""uint Program.C.Foo(short, ref ushort)""
+  IL_0076:  callvirt   ""uint Program.C.Goo(short, ref ushort)""
   IL_007b:  call       ""void System.Console.WriteLine(uint)""
   IL_0080:  ldc.i4.0
   IL_0081:  stloc.1
@@ -7424,12 +7424,12 @@ Abc123
   IL_008b:  dup
   IL_008c:  ldtoken    ""long <PrivateImplementationDetails>.E9E8A66A117598333ABACF5B65971C2366E19B6C""
   IL_0091:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0096:  callvirt   ""uint Program.C.Foo(out short, params ushort[])""
+  IL_0096:  callvirt   ""uint Program.C.Goo(out short, params ushort[])""
   IL_009b:  call       ""void System.Console.WriteLine(uint)""
   IL_00a0:  ldloc.0
   IL_00a1:  ldc.i4.2
   IL_00a2:  ldsflda    ""string Program.field4""
-  IL_00a7:  callvirt   ""uint Program.C.Foo(short, out string)""
+  IL_00a7:  callvirt   ""uint Program.C.Goo(short, out string)""
   IL_00ac:  call       ""void System.Console.WriteLine(uint)""
   IL_00b1:  ldsfld     ""string Program.field4""
   IL_00b6:  call       ""void System.Console.WriteLine(string)""
@@ -7542,7 +7542,7 @@ class C
     {
         string field1;
         long field2;
-        public void Foo(string s, ref long n, params long[] ary)
+        public void Goo(string s, ref long n, params long[] ary)
         {
             field1 = s; // field = param
             Console.WriteLine(field1);
@@ -7565,7 +7565,7 @@ class C
         obj.n = 9;
         long[] ary = new long[3];
         ary[0] = ary[1] = ary[2] = 123;
-        valobj.Foo(""Qc"", ref obj.n, ary);
+        valobj.Goo(""Qc"", ref obj.n, ary);
         Console.WriteLine(obj.n); 
         Console.WriteLine(ary[0]);
     }
@@ -7579,7 +7579,7 @@ Qc
 12591
 ");
 
-            compilation.VerifyIL("C.S.Foo",
+            compilation.VerifyIL("C.S.Goo",
 @"{
   // Code size       81 (0x51)
   .maxstack  5
@@ -7675,7 +7675,7 @@ namespace N1
 
     namespace N21
     {
-        public interface IFoo<T>
+        public interface IGoo<T>
         {
             void M(T t, bool b);
         }
@@ -7692,7 +7692,7 @@ namespace N1
             public System.String Field = null;
         }
 
-        public class Foo : IFoo<C>
+        public class Goo : IGoo<C>
         {
             public void M(C p, bool b)
             {
@@ -7724,18 +7724,18 @@ namespace NS
         {
             C c = new C();
             c.Field = ""Hello"";
-            global::N1.N21.IFoo<C> foo = new global::N1.N22.Foo();
-            foo.M(c, global);
+            global::N1.N21.IGoo<C> goo = new global::N1.N22.Goo();
+            goo.M(c, global);
             return 0;
         }
 
         bool M(Bob p, bool b)
         {
-            IFoo<long> foo = null;
+            IGoo<long> goo = null;
             if (p != null)
                 b = true;
 
-            return b == (foo == null);
+            return b == (goo == null);
         }
     }
 }
@@ -7752,10 +7752,10 @@ namespace NS
   IL_0006:  ldloc.0
   IL_0007:  ldstr      ""Hello""
   IL_000c:  stfld      ""string N1.N22.C.Field""
-  IL_0011:  newobj     ""N1.N22.Foo..ctor()""
+  IL_0011:  newobj     ""N1.N22.Goo..ctor()""
   IL_0016:  ldloc.0
   IL_0017:  ldsfld     ""bool NS.Test.global""
-  IL_001c:  callvirt   ""void N1.N21.IFoo<N1.N22.C>.M(N1.N22.C, bool)""
+  IL_001c:  callvirt   ""void N1.N21.IGoo<N1.N22.C>.M(N1.N22.C, bool)""
   IL_0021:  ldc.i4.0
   IL_0022:  ret
 }
@@ -9191,14 +9191,14 @@ class Test
         public decimal x;
     }
 
-    static C1 Foo()
+    static C1 Goo()
     {
         return new C1();
     }
 
     static void Main()
     {
-        Console.Write(Foo().x.CompareTo(decimal.One));
+        Console.Write(Goo().x.CompareTo(decimal.One));
     }
 }
 ";
@@ -9208,7 +9208,7 @@ VerifyIL("Test.Main", @"
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (Test.C1 V_0)
-  IL_0000:  call       ""Test.C1 Test.Foo()""
+  IL_0000:  call       ""Test.C1 Test.Goo()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  ldflda     ""decimal Test.C1.x""
@@ -9290,12 +9290,12 @@ class P
             string source = @"
 namespace NS
 {
-    public interface IFoo
+    public interface IGoo
     {
         void M();
     }
 
-    public struct Foo : IFoo
+    public struct Goo : IGoo
     {
         public void M() 
         {
@@ -9307,10 +9307,10 @@ namespace NS
     {
         static void Main()
         {
-            Foo foo = new Foo();
-            foo.M();
-            IFoo ifoo = foo;
-            ifoo.M();
+            Goo goo = new Goo();
+            goo.M();
+            IGoo igoo = goo;
+            igoo.M();
         }
     }
 }
@@ -9322,14 +9322,14 @@ namespace NS
 {
   // Code size       27 (0x1b)
   .maxstack  1
-  .locals init (NS.Foo V_0) //foo
+  .locals init (NS.Goo V_0) //goo
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""NS.Foo""
+  IL_0002:  initobj    ""NS.Goo""
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""void NS.Foo.M()""
+  IL_000a:  call       ""void NS.Goo.M()""
   IL_000f:  ldloc.0
-  IL_0010:  box        ""NS.Foo""
-  IL_0015:  callvirt   ""void NS.IFoo.M()""
+  IL_0010:  box        ""NS.Goo""
+  IL_0015:  callvirt   ""void NS.IGoo.M()""
   IL_001a:  ret
 }");
         }
@@ -9341,12 +9341,12 @@ namespace NS
             string source = @"
 namespace NS
 {
-    public interface IFoo<T>
+    public interface IGoo<T>
     {
         void M(T t);
     }
 
-    public class Foo : IFoo<int>
+    public class Goo : IGoo<int>
     {
         public void M(int n) 
         {
@@ -9358,8 +9358,8 @@ namespace NS
     {
         static void Main()
         {
-            IFoo<int> foo = new Foo();
-            foo.M(123);
+            IGoo<int> goo = new Goo();
+            goo.M(123);
         }
     }
 }
@@ -9370,9 +9370,9 @@ namespace NS
 @"{
   // Code size       13 (0xd)
   .maxstack  2
-  IL_0000:  newobj     ""NS.Foo..ctor()""
+  IL_0000:  newobj     ""NS.Goo..ctor()""
   IL_0005:  ldc.i4.s   123
-  IL_0007:  callvirt   ""void NS.IFoo<int>.M(int)""
+  IL_0007:  callvirt   ""void NS.IGoo<int>.M(int)""
   IL_000c:  ret
 }
 ");
@@ -10009,15 +10009,15 @@ using System;
 using System.Threading;
 
 delegate T GenDelegate<T>(T p1, out T p2);
-interface IFoo { U Function<U>(U i, out U j); }
-class Foo : IFoo { public U Function<U>(U i, out U j) { j = i; return i; }}
+interface IGoo { U Function<U>(U i, out U j); }
+class Goo : IGoo { public U Function<U>(U i, out U j) { j = i; return i; }}
 
 class Test {
 
 public static int Main() 
 {
 int i, j;
-IFoo inst = new Foo();
+IGoo inst = new Goo();
 GenDelegate<int> MyDelegate = new GenDelegate<int>(inst.Function<int>);
 i = MyDelegate(10, out j);
 if ((i != 10) || (j != 10))
@@ -10146,11 +10146,11 @@ class Program
 {
     static void Main()
     {
-        Foo(Console.WriteLine);
+        Goo(Console.WriteLine);
     }
 
-    static void Foo(Action<string> a) { a(""Hello""); }
-    static void Foo(Action<string, string, string, string, string> a) { }
+    static void Goo(Action<string> a) { a(""Hello""); }
+    static void Goo(Action<string, string, string, string, string> a) { }
 }
 ";
             CompileAndVerify(source, expectedOutput: "Hello");
@@ -10209,20 +10209,20 @@ class Test
             string source = @"
 class Test
 {
-    extern void Foo();
+    extern void Goo();
     static void Main()
     {
-        (new Test()).Foo();
+        (new Test()).Goo();
     }
 }";
             var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             // Both Dev10 and Roslyn currently generate unverifiable code for this case...
-            // Dev10 reports warning CS0626: Method, operator, or accessor 'Test.Foo()' is marked external
+            // Dev10 reports warning CS0626: Method, operator, or accessor 'Test.Goo()' is marked external
             // and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             comp.VerifyDiagnostics(
-                // (4,17): warning CS0626: Method, operator, or accessor 'Test.Foo()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Foo").WithArguments("Test.Foo()"));
+                // (4,17): warning CS0626: Method, operator, or accessor 'Test.Goo()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
             CompileAndVerify(comp, verify: false).VerifyIL("Test.Main",
@@ -10231,7 +10231,7 @@ class Test
   // Code size       11 (0xb)
   .maxstack  1
   IL_0000:  newobj     ""Test..ctor()""
-  IL_0005:  call       ""void Test.Foo()""
+  IL_0005:  call       ""void Test.Goo()""
   IL_000a:  ret
 }
 ");
@@ -10389,12 +10389,12 @@ partial class program
 {
     static void Main(string[] args)
     {
-        foo(name: string.Empty, age: 1, gender: 1 > 2);
+        goo(name: string.Empty, age: 1, gender: 1 > 2);
     }
 }
 partial class program
 {
-    static partial void foo(string name, int age, bool gender);
+    static partial void goo(string name, int age, bool gender);
 }
 ";
             CompileAndVerify(source);
@@ -10611,7 +10611,7 @@ class C
 using System;
 using System.Linq;
 
-class Foo
+class Goo
 {
     static void Main()
     {
@@ -10691,7 +10691,7 @@ class Foo
 using System;
 using System.Linq;
 
-class Foo
+class Goo
 {
     static void Main()
     {
@@ -10771,7 +10771,7 @@ class Foo
 using System;
 using System.Linq;
 
-class Foo
+class Goo
 {
     static void Main()
     {
@@ -10842,7 +10842,7 @@ using System;
 
 class C
 {
-    static int Foo()
+    static int Goo()
     {
         int i = 10;
         return (int)(decimal)(int)i;
@@ -10855,7 +10855,7 @@ class C
 
     static void Main(string[] args)
     {
-        int i = Foo();
+        int i = Goo();
         int j = Bar();
 
         Console.Write(i);
@@ -10863,7 +10863,7 @@ class C
     }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: "101");
-            compilation.VerifyIL("C.Foo",
+            compilation.VerifyIL("C.Goo",
             @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -11440,7 +11440,7 @@ OverflowException
         {
             string source = @"class MyClass
 {
-    void Foo(decimal x = 10) { }
+    void Goo(decimal x = 10) { }
 }
 ";
             CompileAndVerify(source);
@@ -11580,22 +11580,22 @@ public class Test
 
 public class Program
 {
-    public static void Foo(string str2, string str = ""test1"")
+    public static void Goo(string str2, string str = ""test1"")
     {
-        Console.WriteLine(""Foo("" + str2 + "", "" + str + "")"");
+        Console.WriteLine(""Goo("" + str2 + "", "" + str + "")"");
     }
 
-    public static void Foo<T>(T str2, string str = ""test2"")
+    public static void Goo<T>(T str2, string str = ""test2"")
     {
-        Console.WriteLine(""Foo<"" + typeof(T) + "">("" + str2 + "", "" + str + "")"");
+        Console.WriteLine(""Goo<"" + typeof(T) + "">("" + str2 + "", "" + str + "")"");
     }
 
     public static void Main()
     {
-        Foo<string>(""test3"");
+        Goo<string>(""test3"");
     }
 }";
-            CompileAndVerify(source, expectedOutput: "Foo<System.String>(test3, test2)");
+            CompileAndVerify(source, expectedOutput: "Goo<System.String>(test3, test2)");
         }
 
         [WorkItem(542920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542920")]
@@ -11606,7 +11606,7 @@ public class Program
     using System;
     class Test
     {
-        static void Foo(out Exception ex)
+        static void Goo(out Exception ex)
         {
             ex = new Exception(""bye"");
         }
@@ -11616,7 +11616,7 @@ public class Program
             try{
                 throw new Exception(""hi"");
             } catch (Exception ex){
-                Foo(out ex);
+                Goo(out ex);
                 Console.WriteLine(ex.Message);
             }
         }
@@ -11639,7 +11639,7 @@ public class Program
 {
   IL_000b:  stloc.0
   IL_000c:  ldloca.s   V_0
-  IL_000e:  call       ""void Test.Foo(out System.Exception)""
+  IL_000e:  call       ""void Test.Goo(out System.Exception)""
   IL_0013:  ldloc.0
   IL_0014:  callvirt   ""string System.Exception.Message.get""
   IL_0019:  call       ""void System.Console.WriteLine(string)""
@@ -11664,14 +11664,14 @@ public enum E
 
 public class Parent
 {
-    public int Foo(E e = E.e2) { return e == E.e2 ? 0 : 1; }
+    public int Goo(E e = E.e2) { return e == E.e2 ? 0 : 1; }
 }
 
 public class Test
 {
     public static int Main()
     {
-        var ret = new Parent().Foo();
+        var ret = new Parent().Goo();
         Console.WriteLine(ret);
         return ret;
     }
@@ -11685,7 +11685,7 @@ public class Test
   .maxstack  2
   IL_0000:  newobj     ""Parent..ctor()""
   IL_0005:  ldc.i4.3
-  IL_0006:  call       ""int Parent.Foo(E)""
+  IL_0006:  call       ""int Parent.Goo(E)""
   IL_000b:  dup
   IL_000c:  call       ""void System.Console.WriteLine(int)""
   IL_0011:  ret
@@ -11701,14 +11701,14 @@ using System;
 
 public class Parent
 {
-    public int Foo(ConsoleKey e = ConsoleKey.A) { return e == ConsoleKey.A ? 0 : 1; }
+    public int Goo(ConsoleKey e = ConsoleKey.A) { return e == ConsoleKey.A ? 0 : 1; }
 }
 
 public class Test
 {
     public static int Main()
     {
-        var ret = new Parent().Foo();
+        var ret = new Parent().Goo();
         Console.WriteLine(ret);
         return ret;
     }
@@ -11728,12 +11728,12 @@ class A : Attribute { }
 class C
 {
     [return: A]
-    void Foo() { }
+    void Goo() { }
 
     static void Main()
     {
         var obj = new C();
-        var attrs = ((Action)obj.Foo).Method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
+        var attrs = ((Action)obj.Goo).Method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
         Console.Write(attrs.Length);
         for (int i = 0; i < attrs.Length; i++)
             Console.WriteLine(attrs[i]);
@@ -11836,8 +11836,8 @@ partial class C
     static void Main()
     {
         var obj = new C();
-        var foo = ((Action<int>)obj.Gen<int>).Method;
-        var attrs = foo.GetParameters()[0].GetCustomAttributes(false);
+        var goo = ((Action<int>)obj.Gen<int>).Method;
+        var attrs = goo.GetParameters()[0].GetCustomAttributes(false);
         Console.Write(attrs.Length);
         for (int i = 0; i < attrs.Length; i++)
             Console.WriteLine(attrs[i]);
@@ -11856,8 +11856,8 @@ using System;
 
 public class C
 {
-    public int Foo(object i = null, object j = null) { return 0; }
-    public int Foo(int i = 0, params object[] arr) { return 1; }
+    public int Goo(object i = null, object j = null) { return 0; }
+    public int Goo(int i = 0, params object[] arr) { return 1; }
 
     public int Bar(object o = null, int i = 1, params object[] arr) { return 1; }
     public int Bar(string s = ""PickMe"", int i = 1, object o = null) { return 0; }
@@ -11868,7 +11868,7 @@ class Test
     public static void Main()
     {
         var obj = new C();
-        Console.Write(obj.Foo());
+        Console.Write(obj.Goo());
         Console.Write(obj.Bar(i: 3));
     }
 }
@@ -11922,7 +11922,7 @@ using System.Collections.Generic;
 
 public class Parent<T>
 {
-    public int Foo(T t = default(T))
+    public int Goo(T t = default(T))
     {
         if (t == null) return 0;
         return 1;
@@ -11934,7 +11934,7 @@ class Test
     public static void Main()
     {
         var p = new Parent<String>();
-        Console.Write(p.Foo());
+        Console.Write(p.Goo());
     }
 }
 ";
@@ -11973,6 +11973,7 @@ class B<T> : A<T>
         #endregion
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void MutateReadonlyNested()
         {
             string source = @"
@@ -12024,11 +12025,44 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"42");
+            var comp = CompileAndVerify(source, expectedOutput: @"42", verify: false);
 
-            // Dev10
-            compilation.VerifyIL("Program.Main",
-@"{
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (MyManagedStruct V_0,
+                MyManagedStruct.Nested.Nested1 V_1)
+  IL_0000:  newobj     ""cls1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""MyManagedStruct cls1.y""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       ""void MyManagedStruct.mutate(int)""
+  IL_0015:  dup
+  IL_0016:  ldflda     ""MyManagedStruct cls1.y""
+  IL_001b:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_0020:  ldfld      ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldc.i4     0x1c8
+  IL_002d:  call       ""void MyManagedStruct.Nested.Nested1.mutate(int)""
+  IL_0032:  ldflda     ""MyManagedStruct cls1.y""
+  IL_0037:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_003c:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0041:  ldfld      ""int MyManagedStruct.Nested.Nested1.num""
+  IL_0046:  call       ""void System.Console.WriteLine(int)""
+  IL_004b:  ret
+}
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: true, parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main",
+@"
+{
   // Code size       76 (0x4c)
   .maxstack  3
   .locals init (MyManagedStruct V_0)
@@ -12054,6 +12088,120 @@ struct MyManagedStruct
   IL_0046:  call       ""void System.Console.WriteLine(int)""
   IL_004b:  ret
 }
+");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void MutateReadonlyNested1()
+        {
+            string source = @"
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            GetRoRef().ro.ro.ro.ro.ToString();
+            System.Console.Write(GetRoRef().ro.ro.ro.ro.x);
+        }
+
+        private static ref readonly Largest GetRoRef()
+        {
+            return ref (new Largest[1])[0];
+        }
+    }
+
+    struct Largest
+    {
+        public int x;
+        public readonly Large ro;
+    }
+
+    struct Large
+    {
+        public int x;
+        public Medium ro;
+    }
+
+    struct Medium
+    {
+        public int x;
+        public Small ro;
+    }
+
+    struct Small
+    {
+        public int x;
+        public Smallest ro;
+    }
+
+    struct Smallest
+    {
+        public int x;
+
+        public override string ToString()
+        {
+            x = -1;
+            System.Console.Write(x);
+            return null;
+        }
+    }";
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: false);
+
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  1
+  .locals init (Smallest V_0)
+  IL_0000:  call       ""ref readonly Largest Program.GetRoRef()""
+  IL_0005:  ldflda     ""Large Largest.ro""
+  IL_000a:  ldflda     ""Medium Large.ro""
+  IL_000f:  ldflda     ""Small Medium.ro""
+  IL_0014:  ldfld      ""Smallest Small.ro""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  constrained. ""Smallest""
+  IL_0022:  callvirt   ""string object.ToString()""
+  IL_0027:  pop
+  IL_0028:  call       ""ref readonly Largest Program.GetRoRef()""
+  IL_002d:  ldflda     ""Large Largest.ro""
+  IL_0032:  ldflda     ""Medium Large.ro""
+  IL_0037:  ldflda     ""Small Medium.ro""
+  IL_003c:  ldflda     ""Smallest Small.ro""
+  IL_0041:  ldfld      ""int Smallest.x""
+  IL_0046:  call       ""void System.Console.Write(int)""
+  IL_004b:  ret
+}
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"-10", verify: true, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main",
+@"
+	{
+	  // Code size       76 (0x4c)
+	  .maxstack  1
+	  .locals init (Large V_0)
+	  IL_0000:  call       ""ref readonly Largest Program.GetRoRef()""
+	  IL_0005:  ldfld      ""Large Largest.ro""
+	  IL_000a:  stloc.0
+	  IL_000b:  ldloca.s   V_0
+	  IL_000d:  ldflda     ""Medium Large.ro""
+	  IL_0012:  ldflda     ""Small Medium.ro""
+	  IL_0017:  ldflda     ""Smallest Small.ro""
+	  IL_001c:  constrained. ""Smallest""
+	  IL_0022:  callvirt   ""string object.ToString()""
+	  IL_0027:  pop
+	  IL_0028:  call       ""ref readonly Largest Program.GetRoRef()""
+	  IL_002d:  ldfld      ""Large Largest.ro""
+	  IL_0032:  ldfld      ""Medium Large.ro""
+	  IL_0037:  ldfld      ""Small Medium.ro""
+	  IL_003c:  ldfld      ""Smallest Small.ro""
+	  IL_0041:  ldfld      ""int Smallest.x""
+	  IL_0046:  call       ""void System.Console.Write(int)""
+	  IL_004b:  ret
+	}
 ");
         }
 
@@ -12233,13 +12381,13 @@ class C
 {
     static void Main()
     {
-        foreach (var e in from x in new int[2] select Foo(ref x))
+        foreach (var e in from x in new int[2] select Goo(ref x))
         {
             System.Console.Write(e);
         }
     }
 
-    static int Foo(ref int x)
+    static int Goo(ref int x)
     {
         return ++x;
     }
@@ -12248,7 +12396,7 @@ class C
             // NOTE: this is a breaking change - dev10 builds and prints 11.
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
                 // (8,63): error CS1939: Cannot pass the range variable 'x' as an out or ref parameter
-                //         foreach (var e in from x in new int[2] select Foo(ref x))
+                //         foreach (var e in from x in new int[2] select Goo(ref x))
                 Diagnostic(ErrorCode.ERR_QueryOutRefRangeVariable, "x").WithArguments("x"));
         }
 
@@ -13144,13 +13292,13 @@ class Program
         Test(new D());
     }
 
-    static void Test<U>(U u) where U : C, IFoo
+    static void Test<U>(U u) where U : C, IGoo
     {
         Console.WriteLine(u.ToString());
     }
 }
 
-interface IFoo
+interface IGoo
 {
     string ToString();
 }
@@ -13163,27 +13311,27 @@ class C
     }
 }
 
-class D : C, IFoo
+class D : C, IGoo
 {
     public override string ToString()
     {
         return ""D"";
     }
 
-    string IFoo.ToString()
+    string IGoo.ToString()
     {
-        return ""IFoo"";
+        return ""IGoo"";
     }
 }
 ";
 
-            // We will have IFoo.ToString and C.ToString (which is an override of object.ToString)
+            // We will have IGoo.ToString and C.ToString (which is an override of object.ToString)
             // in the candidate set. Does the rule apply to eliminate all interface methods?  NO.  The
             // rule only applies if the candidate set contains a method which originally came from a
             // class type other than object. The method C.ToString is the "slot" for
             // object.ToString, so this counts as coming from object.  M should call the explicit
             // interface implementation.
-            CompileAndVerify(source, expectedOutput: "IFoo");
+            CompileAndVerify(source, expectedOutput: "IGoo");
         }
 
         // Same as above, but C.ToString is "new virtual", rather than "override".
@@ -13201,13 +13349,13 @@ class Program
         Test(new D());
     }
 
-    static void Test<U>(U u) where U : C, IFoo
+    static void Test<U>(U u) where U : C, IGoo
     {
         Console.WriteLine(u.ToString());
     }
 }
 
-interface IFoo
+interface IGoo
 {
     string ToString();
 }
@@ -13220,16 +13368,16 @@ class C
     }
 }
 
-class D : C, IFoo
+class D : C, IGoo
 {
     public override string ToString()
     {
         return ""D"";
     }
 
-    string IFoo.ToString()
+    string IGoo.ToString()
     {
-        return ""IFoo"";
+        return ""IGoo"";
     }
 }
 ";
@@ -13501,7 +13649,7 @@ True");
         public void Repro649805()
         {
             var source = @"
-public class Foo
+public class Goo
 {
     public static void Method(string s)
     {
@@ -13511,10 +13659,10 @@ public class Foo
 }
 public class Test
 {
-    public Foo Foo { get; set; }
+    public Goo Goo { get; set; }
     public static void DoExample(dynamic d)
     {
-        Foo.Method(d.Prop);
+        Goo.Method(d.Prop);
     }
 
     public static int Result = -1;
@@ -13522,7 +13670,7 @@ public class Test
     {
         try
         {
-            DoExample(new Foo() { Prop = ""abc"" });
+            DoExample(new Goo() { Prop = ""abc"" });
         }
         catch (System.Exception)
         {
@@ -13551,7 +13699,7 @@ public class Test
             this.field = v;
         }
 
-        public void Foo()
+        public void Goo()
         {
             System.Console.WriteLine(field.ToString());
         }
@@ -13562,10 +13710,10 @@ public class Test
         static void Main(string[] args)
         {
             S1 s = new S1();
-            (s = s).Foo();
+            (s = s).Goo();
 
             S1 s1 = new S1(42);
-            (s1 = s1).Foo();
+            (s1 = s1).Goo();
         }
     }
 ";
@@ -13585,7 +13733,7 @@ public class Test
   IL_000a:  stloc.0
   IL_000b:  stloc.2
   IL_000c:  ldloca.s   V_2
-  IL_000e:  call       ""void S1.Foo()""
+  IL_000e:  call       ""void S1.Goo()""
   IL_0013:  ldloca.s   V_1
   IL_0015:  ldc.i4.s   42
   IL_0017:  call       ""S1..ctor(int)""
@@ -13594,7 +13742,7 @@ public class Test
   IL_001e:  stloc.1
   IL_001f:  stloc.2
   IL_0020:  ldloca.s   V_2
-  IL_0022:  call       ""void S1.Foo()""
+  IL_0022:  call       ""void S1.Goo()""
   IL_0027:  ret
 }                                                                                                                 
 ");
@@ -13614,7 +13762,7 @@ struct S1
         this.field = v;
     }
 
-    public void Foo()
+    public void Goo()
     {
         System.Console.WriteLine(field.ToString());
     }
@@ -13653,12 +13801,12 @@ class A { }
 class B : A { }
 class Program
 {
-    static void Foo<T>(T[] array) where T : class
+    static void Goo<T>(T[] array) where T : class
     {
         array[0] = null;
     }
 
-    static void Foo1<T>(T[] array) where T : struct
+    static void Goo1<T>(T[] array) where T : struct
     {
         array[0] = default(T);
     }
@@ -13676,7 +13824,7 @@ class Program
     static void Main(string[] args)
     {
         A[] array = new B[5];
-        Foo<A>(array);
+        Goo<A>(array);
         Bar<A>(array);
 
         A[][] array1 = new B[5][];
@@ -13686,7 +13834,7 @@ class Program
 ";
 
             CompileAndVerify(source, expectedOutput: @""
-).VerifyIL("Program.Foo<T>(T[])",
+).VerifyIL("Program.Goo<T>(T[])",
 @"
 {
   // Code size       17 (0x11)
@@ -13700,7 +13848,7 @@ class Program
   IL_000b:  stelem     ""T""
   IL_0010:  ret
 }                                                                                                    
-").VerifyIL("Program.Foo1<T>(T[])",
+").VerifyIL("Program.Goo1<T>(T[])",
 @"
 {
   // Code size       14 (0xe)
@@ -13752,7 +13900,7 @@ class A<T> where T: class
 
 class Program
 {
-    static void Foo<T>(A<T> v) where T : class
+    static void Goo<T>(A<T> v) where T : class
     {
         v.field = null;
         v.field = default(T);
@@ -13768,7 +13916,7 @@ class Program
 ";
 
             CompileAndVerify(source, expectedOutput: @""
-).VerifyIL("Program.Foo<T>(A<T>)",
+).VerifyIL("Program.Goo<T>(A<T>)",
 @"
 {
   // Code size       59 (0x3b)
@@ -13816,25 +13964,25 @@ class Program
 
     static void Test1<T>(T arg) where T : cls1
     {
-        arg.Foo();
+        arg.Goo();
     }
 
     static void Test2<T>(T arg) where T : cls2
     {
-        arg.Foo();
+        arg.Goo();
     }
 }
 
 interface i1
 {
-    void Foo();
+    void Goo();
 }
 
 class cls1 : i1
 {
-    public void Foo()
+    public void Goo()
     {
-        System.Console.Write(""Foo"");
+        System.Console.Write(""Goo"");
     }
     }
 
@@ -13844,7 +13992,7 @@ class cls1 : i1
 
 ";
 
-            CompileAndVerify(source, expectedOutput: @"FooFooFoo").
+            CompileAndVerify(source, expectedOutput: @"GooGooGoo").
                 VerifyIL("Program.Test1<T>(T)",
 @"
 {
@@ -13852,7 +14000,7 @@ class cls1 : i1
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  box        ""T""
-  IL_0006:  callvirt   ""void cls1.Foo()""
+  IL_0006:  callvirt   ""void cls1.Goo()""
   IL_000b:  ret
 }                                                                                                         
 ").
@@ -13863,7 +14011,7 @@ class cls1 : i1
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  box        ""T""
-  IL_0006:  callvirt   ""void cls1.Foo()""
+  IL_0006:  callvirt   ""void cls1.Goo()""
   IL_000b:  ret
 }                                                                                                        
 ");
@@ -14514,7 +14662,7 @@ class Program
 
     class Program
     {
-        static bool foo()
+        static bool goo()
         {
             return true;
         }
@@ -14522,7 +14670,7 @@ class Program
         static void Main(string[] args)
         {
             bool arg;
-            var val = (arg = foo())? arg & arg : false;
+            var val = (arg = goo())? arg & arg : false;
 
             System.Console.WriteLine(val);
         }
@@ -14537,7 +14685,7 @@ class Program
   // Code size       21 (0x15)
   .maxstack  2
   .locals init (bool V_0) //arg
-  IL_0000:  call       ""bool Program.foo()""
+  IL_0000:  call       ""bool Program.goo()""
   IL_0005:  dup
   IL_0006:  stloc.0
   IL_0007:  brtrue.s   IL_000c
@@ -14560,7 +14708,7 @@ class Program
 
     class Program
     {
-        static string foo()
+        static string goo()
         {
             return ""hi"";
         }
@@ -14568,7 +14716,7 @@ class Program
         static void Main(string[] args)
         {
             string str;
-            var val = (str = foo()) ?? str + ""aa"";
+            var val = (str = goo()) ?? str + ""aa"";
 
             System.Console.WriteLine(val);
         }
@@ -14583,7 +14731,7 @@ class Program
   // Code size       28 (0x1c)
   .maxstack  2
   .locals init (string V_0) //str
-  IL_0000:  call       ""string Program.foo()""
+  IL_0000:  call       ""string Program.goo()""
   IL_0005:  dup
   IL_0006:  stloc.0
   IL_0007:  dup
@@ -15317,8 +15465,8 @@ class Program
     static void Main(string[] args)
     {
         // should not optimize
-        System.Console.WriteLine(Foo1() * 0);
-        System.Console.WriteLine(0 * Foo1());
+        System.Console.WriteLine(Goo1() * 0);
+        System.Console.WriteLine(0 * Goo1());
 
         // should optimize
         var local = 123;
@@ -15330,8 +15478,8 @@ class Program
         System.Console.WriteLine(((Func<int>)(()=>local * 0))());
 
         // should not optimize
-        System.Console.WriteLine(Foo2() & false);
-        System.Console.WriteLine(false & Foo2());
+        System.Console.WriteLine(Goo2() & false);
+        System.Console.WriteLine(false & Goo2());
 
         // should optimize
         var local1 = true;
@@ -15341,49 +15489,49 @@ class Program
         System.Console.WriteLine(false & local1);
 
         // should optimize
-        System.Console.WriteLine(Foo2() && false);
-        System.Console.WriteLine(Foo2() && true);
-        System.Console.WriteLine(false && Foo2());
-        System.Console.WriteLine(true && Foo2());
-        System.Console.WriteLine(Foo2() || false);
-        System.Console.WriteLine(Foo2() || true);
-        System.Console.WriteLine(false || Foo2());
-        System.Console.WriteLine(true || Foo2());
+        System.Console.WriteLine(Goo2() && false);
+        System.Console.WriteLine(Goo2() && true);
+        System.Console.WriteLine(false && Goo2());
+        System.Console.WriteLine(true && Goo2());
+        System.Console.WriteLine(Goo2() || false);
+        System.Console.WriteLine(Goo2() || true);
+        System.Console.WriteLine(false || Goo2());
+        System.Console.WriteLine(true || Goo2());
     }
 
-    static int Foo1()
+    static int Goo1()
     {
-        System.Console.Write(""Foo1 "");
+        System.Console.Write(""Goo1 "");
         return 42;
     }
 
-    static bool Foo2()
+    static bool Goo2()
     {
-        System.Console.Write(""Foo2 "");
+        System.Console.Write(""Goo2 "");
         return true;
     }
 }
 ";
             var compilation = CompileAndVerify(source, expectedOutput: @"
-Foo1 0
-Foo1 0
+Goo1 0
+Goo1 0
 0
 
 0
 0
-Foo2 False
-Foo2 False
+Goo2 False
+Goo2 False
 False
 False
 False
 False
-Foo2 False
-Foo2 True
+Goo2 False
+Goo2 True
 False
-Foo2 True
-Foo2 True
-Foo2 True
-Foo2 True
+Goo2 True
+Goo2 True
+Goo2 True
+Goo2 True
 True
 ");
 
@@ -15392,11 +15540,11 @@ True
 {
   // Code size      221 (0xdd)
   .maxstack  2
-  IL_0000:  call       ""int Program.Foo1()""
+  IL_0000:  call       ""int Program.Goo1()""
   IL_0005:  pop
   IL_0006:  ldc.i4.0
   IL_0007:  call       ""void System.Console.WriteLine(int)""
-  IL_000c:  call       ""int Program.Foo1()""
+  IL_000c:  call       ""int Program.Goo1()""
   IL_0011:  pop
   IL_0012:  ldc.i4.0
   IL_0013:  call       ""void System.Console.WriteLine(int)""
@@ -15417,11 +15565,11 @@ True
   IL_0044:  stsfld     ""System.Func<int> Program.<>c.<>9__0_0""
   IL_0049:  callvirt   ""int System.Func<int>.Invoke()""
   IL_004e:  call       ""void System.Console.WriteLine(int)""
-  IL_0053:  call       ""bool Program.Foo2()""
+  IL_0053:  call       ""bool Program.Goo2()""
   IL_0058:  pop
   IL_0059:  ldc.i4.0
   IL_005a:  call       ""void System.Console.WriteLine(bool)""
-  IL_005f:  call       ""bool Program.Foo2()""
+  IL_005f:  call       ""bool Program.Goo2()""
   IL_0064:  pop
   IL_0065:  ldc.i4.0
   IL_0066:  call       ""void System.Console.WriteLine(bool)""
@@ -15434,27 +15582,27 @@ True
   IL_007d:  call       ""void System.Console.WriteLine(bool)""
   IL_0082:  ldc.i4.0
   IL_0083:  call       ""void System.Console.WriteLine(bool)""
-  IL_0088:  call       ""bool Program.Foo2()""
+  IL_0088:  call       ""bool Program.Goo2()""
   IL_008d:  brfalse.s  IL_0092
   IL_008f:  ldc.i4.0
   IL_0090:  br.s       IL_0093
   IL_0092:  ldc.i4.0
   IL_0093:  call       ""void System.Console.WriteLine(bool)""
-  IL_0098:  call       ""bool Program.Foo2()""
+  IL_0098:  call       ""bool Program.Goo2()""
   IL_009d:  call       ""void System.Console.WriteLine(bool)""
   IL_00a2:  ldc.i4.0
   IL_00a3:  call       ""void System.Console.WriteLine(bool)""
-  IL_00a8:  call       ""bool Program.Foo2()""
+  IL_00a8:  call       ""bool Program.Goo2()""
   IL_00ad:  call       ""void System.Console.WriteLine(bool)""
-  IL_00b2:  call       ""bool Program.Foo2()""
+  IL_00b2:  call       ""bool Program.Goo2()""
   IL_00b7:  call       ""void System.Console.WriteLine(bool)""
-  IL_00bc:  call       ""bool Program.Foo2()""
+  IL_00bc:  call       ""bool Program.Goo2()""
   IL_00c1:  brtrue.s   IL_00c6
   IL_00c3:  ldc.i4.1
   IL_00c4:  br.s       IL_00c7
   IL_00c6:  ldc.i4.1
   IL_00c7:  call       ""void System.Console.WriteLine(bool)""
-  IL_00cc:  call       ""bool Program.Foo2()""
+  IL_00cc:  call       ""bool Program.Goo2()""
   IL_00d1:  call       ""void System.Console.WriteLine(bool)""
   IL_00d6:  ldc.i4.1
   IL_00d7:  call       ""void System.Console.WriteLine(bool)""
@@ -15520,5 +15668,180 @@ public class Form1 {
 }");
         }
 
+        [Fact]
+        public void CorrectOverloadOfStackAllocSpanChosen()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    unsafe public static void Main()
+    {
+        bool condition = false;
+
+        var span1 = condition ? stackalloc int[1] : new Span<int>(null, 2);
+        Console.Write(span1.Length);
+
+        var span2 = condition ? new Span<int>(null, 3) : stackalloc int[4];
+        Console.Write(span2.Length);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "24");
+        }
+
+        [Fact]
+        public void StackAllocExpressionIL()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public static void Main()
+    {
+        Span<int> x = stackalloc int[33];
+        Console.Write(x.Length);
+        x = stackalloc int[0];
+        Console.Write(x.Length);
+    }
+}", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "330", verify: false).VerifyIL("Test.Main", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (System.Span<int> V_0, //x
+                int V_1)
+  IL_0000:  ldc.i4.s   33
+  IL_0002:  stloc.1
+  IL_0003:  ldloc.1
+  IL_0004:  conv.u
+  IL_0005:  ldc.i4.4
+  IL_0006:  mul.ovf.un
+  IL_0007:  localloc
+  IL_0009:  ldloc.1
+  IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int System.Span<int>.Length.get""
+  IL_0017:  call       ""void System.Console.Write(int)""
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  initobj    ""System.Span<int>""
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""int System.Span<int>.Length.get""
+  IL_002b:  call       ""void System.Console.Write(int)""
+  IL_0030:  ret
+}");
+        }
+
+        [Fact]
+        public void StackAllocSpanLengthNotEvaluatedTwice()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    private static int length = 0;
+
+    private static int GetLength()
+    {
+        return ++length;
+    }
+
+    public static void Main()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            Span<int> x = stackalloc int[GetLength()];
+            Console.Write(x.Length);
+        }
+    }
+}", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "12345", verify: false).VerifyIL("Test.Main", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (int V_0, //i
+                System.Span<int> V_1, //x
+                int V_2)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  br.s       IL_0027
+  IL_0004:  call       ""int Test.GetLength()""
+  IL_0009:  stloc.2
+  IL_000a:  ldloc.2
+  IL_000b:  conv.u
+  IL_000c:  ldc.i4.4
+  IL_000d:  mul.ovf.un
+  IL_000e:  localloc
+  IL_0010:  ldloc.2
+  IL_0011:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       ""int System.Span<int>.Length.get""
+  IL_001e:  call       ""void System.Console.Write(int)""
+  IL_0023:  ldloc.0
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.0
+  IL_0027:  ldloc.0
+  IL_0028:  ldc.i4.5
+  IL_0029:  blt.s      IL_0004
+  IL_002b:  ret
+}");
+        }
+
+        [Fact]
+        public void ImplicitCastOperatorOnStackAllocIsLoweredCorrectly()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public static void Main()
+    {
+        Test obj1 = stackalloc int[10];
+        Console.Write(""|"");
+        Test obj2 = stackalloc double[10];
+    }
+    
+    public static implicit operator Test(Span<int> value) 
+    {
+        Console.Write(""SpanOpCalled"");
+        return default(Test);
+    }
+    
+    public static implicit operator Test(double* value) 
+    {
+        Console.Write(""PointerOpCalled"");
+        return default(Test);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: false);
+        }
+
+        [Fact]
+        public void ExplicitCastOperatorOnStackAllocIsLoweredCorrectly()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public static void Main()
+    {
+        Test obj1 = (Test)stackalloc int[10];
+    }
+    
+    public static explicit operator Test(Span<int> value) 
+    {
+        Console.Write(""SpanOpCalled"");
+        return default(Test);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: false);
+        }
     }
 }

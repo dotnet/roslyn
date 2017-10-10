@@ -654,7 +654,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 2. Open a Visual Studio Developer Command Prompt
 3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
 4. Delete .vs directory/.suo file
-5. Restart VS from the command prompt you set the environment varaible (devenv)
+5. Restart VS from the command prompt you set the environment variable (devenv)
 6. Open the solution
 7. Check '{0}' and look for the failed tasks (FAILED)</value>
   </data>
@@ -958,5 +958,20 @@ Additional information: {1}</value>
   </data>
   <data name="ChangesNotAllowedWhileCodeIsRunning" xml:space="preserve">
     <value>Changes are not allowed while code is running.</value>
+  </data>
+  <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
+    <value>Prefere local function over anonymous function</value>
+  </data>
+  <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
+    <value>Prefer deconstructed variable declaration</value>
+  </data>
+  <data name="External_reference_found" xml:space="preserve">
+    <value>External reference found</value>
+  </data>
+  <data name="No_references_found_to_0" xml:space="preserve">
+    <value>No references found to '{0}'</value>
+  </data>
+  <data name="Search_found_no_results" xml:space="preserve">
+    <value>Search found no results</value>
   </data>
 </root>

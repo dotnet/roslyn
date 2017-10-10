@@ -25,7 +25,7 @@ using NSA = A;
 
 namespace A
 {
-    class Foo { }
+    class Goo { }
 }
 
 namespace B
@@ -34,14 +34,14 @@ namespace B
     {
         class NSA
         {
-            public NSA(int Foo) { this.Foo = Foo; }
-            int Foo;
+            public NSA(int Goo) { this.Goo = Goo; }
+            int Goo;
         }
 
         static int Main()
         {
-             NSA::Foo foo = new NSA::Foo(); // shouldn't error here
-             if (foo == null) {} 
+             NSA::Goo goo = new NSA::Goo(); // shouldn't error here
+             if (goo == null) {} 
              return 0;
         }
     }
@@ -86,9 +86,9 @@ class Program
     static void Main()
     {
         uint ui = 2;
-        foo(ui + 2);
+        goo(ui + 2);
     }
-    static void foo(uint x)
+    static void goo(uint x)
     {
     }
 }";
@@ -107,11 +107,11 @@ class Program
 {
     static void Main()
     {
-        object x = foo(); 
+        object x = goo(); 
         if (x == null) {}
-        Console.WriteLine(foo());
+        Console.WriteLine(goo());
     }
-    static void foo()
+    static void goo()
     {
     }
 }";
@@ -537,12 +537,12 @@ public class Program
             var text = @"
 interface IA
 {
-    int Foo { get; }
+    int Goo { get; }
 }
 
 interface IB
 {
-    int Foo { get; }
+    int Goo { get; }
 }
 
 interface IC : IA, IB { }
@@ -552,16 +552,16 @@ class C
     static void Main()
     {
         IC x = null;
-        int y = x.Foo;
+        int y = x.Goo;
     }
 }
 ";
             var tree = Parse(text);
             var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(
-                // (19,19): error CS0229: Ambiguity between 'IA.Foo' and 'IB.Foo'
-                //         int y = x.Foo;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "Foo").WithArguments("IA.Foo", "IB.Foo"),
+                // (19,19): error CS0229: Ambiguity between 'IA.Goo' and 'IB.Goo'
+                //         int y = x.Goo;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Goo").WithArguments("IA.Goo", "IB.Goo"),
                 // (18,12): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         IC x = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x")
@@ -653,7 +653,7 @@ class B
 
 class A<T> : B
 {
-    static void Foo()
+    static void Goo()
     {
         T();
     }
@@ -963,7 +963,7 @@ struct Outer
             var text = @"
 using System;
 
-public delegate void Foo ();
+public delegate void Goo ();
 
 class D
 {
@@ -972,7 +972,7 @@ class D
         return new D ();
     }
 
-    public static explicit operator D (Foo d)
+    public static explicit operator D (Goo d)
     {
         return new D ();
     }
@@ -989,9 +989,9 @@ class Program
             var tree = Parse(text);
             var comp = CreateStandardCompilation(tree);
             comp.GetMethodBodyDiagnostics().Verify(
-                // (23,15): error CS0457: Ambiguous user defined conversions 'D.explicit operator D(Foo)' and 'D.implicit operator D(Action)' when converting from 'method group' to 'D'
+                // (23,15): error CS0457: Ambiguous user defined conversions 'D.explicit operator D(Goo)' and 'D.implicit operator D(Action)' when converting from 'method group' to 'D'
                 //          D d = (D) Main;
-                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(D) Main").WithArguments("D.explicit operator D(Foo)", "D.implicit operator D(System.Action)", "method group", "D").WithLocation(23, 15)
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(D) Main").WithArguments("D.explicit operator D(Goo)", "D.implicit operator D(System.Action)", "method group", "D").WithLocation(23, 15)
                 );
         }
     }

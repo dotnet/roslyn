@@ -434,7 +434,7 @@ Imports N1, N2
 
 Module Program
     Sub Main(args As String())
-        A.foo()'BIND:"A"
+        A.goo()'BIND:"A"
     End Sub
 End Module
 
@@ -1395,7 +1395,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Module Program
-    Sub foo(a As Outer.Inner)
+    Sub goo(a As Outer.Inner)
         Dim q As Integer
         q = a.x'BIND:"a"
     End Sub
@@ -1470,8 +1470,8 @@ End Module
 <compilation>
     <file name="a.vb">
 Interface IA(Of T)
-    Overloads Sub Foo(ByVal x As T)
-    Overloads Sub Foo(ByVal x As String)
+    Overloads Sub Goo(ByVal x As T)
+    Overloads Sub Goo(ByVal x As String)
 End Interface
 
 Interface IC(Of T)
@@ -1488,10 +1488,10 @@ Class K
     Implements IC(Of Integer)
     Implements IB
 
-    Public Overloads Sub F(x As String) Implements IB.Bar, IC(Of Integer).Foo 'BIND1:"IB.Bar" 'BIND2:"Foo"
+    Public Overloads Sub F(x As String) Implements IB.Bar, IC(Of Integer).Goo 'BIND1:"IB.Bar" 'BIND2:"Goo"
     End Sub
 
-    Public Overloads Sub F(x As Integer) Implements IA(Of Integer).Foo  'BIND3:"IA(Of Integer).Foo" 
+    Public Overloads Sub F(x As Integer) Implements IA(Of Integer).Goo  'BIND3:"IA(Of Integer).Goo" 
     End Sub
 
     Public Property Q(x As String) As Long Implements IB.R 'BIND4:"IB.R"
@@ -1528,14 +1528,14 @@ End Class
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
 
-            'Foo
+            'Goo
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb", 2)
 
             Assert.Null(semanticInfo.Type)
             Assert.Null(semanticInfo.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub IA(Of System.Int32).Foo(x As System.String)", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub IA(Of System.Int32).Goo(x As System.String)", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
@@ -1543,14 +1543,14 @@ End Class
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
 
-            ' IA(Of Integer).Foo
+            ' IA(Of Integer).Goo
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of QualifiedNameSyntax)(compilation, "a.vb", 3)
 
             Assert.Null(semanticInfo.Type)
             Assert.Null(semanticInfo.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub IA(Of System.Int32).Foo(x As System.Int32)", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub IA(Of System.Int32).Goo(x As System.Int32)", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
@@ -1600,13 +1600,13 @@ Option Strict On
 Imports System
 
 Interface I1
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
 End Interface
 
 Class C1
     Implements I1
 
-    Public Function foo(x As Integer) As String Implements I1.foo'BIND:"I1.foo"
+    Public Function goo(x As Integer) As String Implements I1.goo'BIND:"I1.goo"
         Throw New NotImplementedException()
     End Function
 End Class
@@ -1624,7 +1624,7 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub I1.foo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub I1.goo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Null(semanticSummary.Alias)
@@ -1643,14 +1643,14 @@ Option Strict On
 Imports System
 
 Interface I1
-    Sub foo(x As Integer)
-    Sub foo(x As Integer, y As Integer)
+    Sub goo(x As Integer)
+    Sub goo(x As Integer, y As Integer)
 End Interface
 
 Class C1
     Implements I1
 
-    Public Sub foo(x As Long) Implements I1.foo'BIND:"I1.foo"
+    Public Sub goo(x As Long) Implements I1.goo'BIND:"I1.goo"
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -1668,9 +1668,9 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub I1.foo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub I1.goo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
-            Assert.Equal("Sub I1.foo(x As System.Int32, y As System.Int32)", sortedCandidates(1).ToTestDisplayString())
+            Assert.Equal("Sub I1.goo(x As System.Int32, y As System.Int32)", sortedCandidates(1).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(1).Kind)
 
             Assert.Null(semanticSummary.Alias)
@@ -1689,12 +1689,12 @@ Option Strict On
 Imports System
 
 Interface I1
-    Sub foo(x As Integer)
-    Sub foo(x As Integer, y As Integer)
+    Sub goo(x As Integer)
+    Sub goo(x As Integer, y As Integer)
 End Interface
 
 Class C1
-    Public Sub foo(x As Integer) Implements I1.foo 'BIND:"I1.foo"'BIND:"I1.foo"
+    Public Sub goo(x As Integer) Implements I1.goo 'BIND:"I1.goo"'BIND:"I1.goo"
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -1711,7 +1711,7 @@ End Class
             Assert.Equal(CandidateReason.NotReferencable, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub I1.foo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub I1.goo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Null(semanticSummary.Alias)
@@ -1731,12 +1731,12 @@ Option Strict On
 Imports System
 
 Interface I1
-    Private Sub foo(x As Integer)
+    Private Sub goo(x As Integer)
 End Interface
 
 Class C1
     Implements I1
-    Public Sub foo(x As Integer) Implements I1.foo 'BIND:"I1.foo"'BIND:"I1.foo"
+    Public Sub goo(x As Integer) Implements I1.goo 'BIND:"I1.goo"'BIND:"I1.goo"
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -1753,7 +1753,7 @@ End Class
             Assert.Equal(CandidateReason.Inaccessible, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub I1.foo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub I1.goo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Null(semanticSummary.Alias)
@@ -1777,15 +1777,15 @@ Interface I1
 End Interface
 
 Interface I2
-    Sub foo(x As Integer, z As String)
+    Sub goo(x As Integer, z As String)
 End Interface
 
 Interface I3
-    Sub foo(x As Integer, y As Integer)
+    Sub goo(x As Integer, y As Integer)
 End Interface
 
 Class C1
-    Public Sub foo(x As Integer) Implements I1.foo 'BIND:"I1.foo"'BIND:"I1.foo"
+    Public Sub goo(x As Integer) Implements I1.goo 'BIND:"I1.goo"'BIND:"I1.goo"
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -1802,8 +1802,8 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub I2.foo(x As System.Int32, z As System.String)", sortedCandidates(0).ToTestDisplayString())
-            Assert.Equal("Sub I3.foo(x As System.Int32, y As System.Int32)", sortedCandidates(1).ToTestDisplayString())
+            Assert.Equal("Sub I2.goo(x As System.Int32, z As System.String)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub I3.goo(x As System.Int32, y As System.Int32)", sortedCandidates(1).ToTestDisplayString())
 
             Assert.Null(semanticSummary.Alias)
 
@@ -1869,14 +1869,14 @@ End Class
 <compilation>
     <file name="a.vb">
 Interface IA
-    Overloads Sub Foo(ByVal x As Long)
-    Overloads Sub Foo(ByVal x As String)
+    Overloads Sub Goo(ByVal x As Long)
+    Overloads Sub Goo(ByVal x As String)
 End Interface
 
 Class K
     Implements IA
 
-    Public Overloads Sub F(x As Integer) Implements IA.Foo'BIND:"IA.Foo"
+    Public Overloads Sub F(x As Integer) Implements IA.Goo'BIND:"IA.Goo"
     End Sub
 End Class
 
@@ -1906,16 +1906,16 @@ End Class
 Imports System
 Module Module1
     Sub Main()
-        Foo(Of Integer)'BIND:"Foo(Of Integer)"
+        Goo(Of Integer)'BIND:"Goo(Of Integer)"
     End Sub
 
-    Sub Foo(a As String)
+    Sub Goo(a As String)
     End Sub
 
-    Sub Foo(ByRef a As String, b As String)
+    Sub Goo(ByRef a As String, b As String)
     End Sub
 
-    Sub Foo(Of T)(a As String, b As String)
+    Sub Goo(Of T)(a As String, b As String)
     End Sub
 End Module
     </file>
@@ -1931,12 +1931,12 @@ End Module
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason)
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length)
             Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Module1.Foo(Of System.Int32)(a As System.String, b As System.String)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub Module1.Goo(Of System.Int32)(a As System.String, b As System.String)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Equal(1, semanticInfo.MemberGroup.Length)
             Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Module1.Foo(Of System.Int32)(a As System.String, b As System.String)", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub Module1.Goo(Of System.Int32)(a As System.String, b As System.String)", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
@@ -2350,7 +2350,7 @@ Imports S = System.String
 
 Namespace NS
     Class Test
-        Sub Foo
+        Sub Goo
             Dim x As String
             x = S.Empty'BIND:"S"
         End Sub
@@ -2581,7 +2581,7 @@ End Class
 <compilation>
     <file name="a.vb">
 Class C
-    Public Function foo() As Integer
+    Public Function goo() As Integer
         Static i As Integer = 23
         i = i + 1'BIND:"i"
         Return i
@@ -2734,7 +2734,7 @@ Class C
 End Class
 
 Class V
-    Sub foo
+    Sub goo
         Dim c As C
         c = New C(13)'BIND:"C"
     End Sub
@@ -2768,7 +2768,7 @@ Class C
 End Class
 
 Class V
-    Sub foo
+    Sub goo
         Dim c As C
         c = New C(13)'BIND:"New C(13)"
     End Sub
@@ -2804,7 +2804,7 @@ End Class
 <compilation>
     <file name="a.vb">
 Class X
-    Public ReadOnly Property Foo As Y
+    Public ReadOnly Property Goo As Y
         Get
             Return Nothing
         End Get
@@ -2824,7 +2824,7 @@ Module M1
         Dim a As String
         Dim b As X
         b = New X()
-        a = b.Foo.Item(4)'BIND:"Item"
+        a = b.Goo.Item(4)'BIND:"Item"
     End Sub
 End Module
     </file>
@@ -2853,7 +2853,7 @@ End Module
 <compilation>
     <file name="a.vb">
 Class X
-    Public ReadOnly Property Foo As Y
+    Public ReadOnly Property Goo As Y
         Get
             Return Nothing
         End Get
@@ -2873,7 +2873,7 @@ Module M1
         Dim a As String
         Dim b As X
         b = New X()
-        a = b.Foo.Item(4)'BIND:"b.Foo.Item(4)"
+        a = b.Goo.Item(4)'BIND:"b.Goo.Item(4)"
     End Sub
 End Module
     </file>
@@ -3040,9 +3040,9 @@ End Class
 <compilation>
     <file name="a.vb">
 Class C
-    Public ClassId As Integer = C.foo() 'BIND:"foo"
+    Public ClassId As Integer = C.goo() 'BIND:"goo"
 
-    shared Function foo() as Integer
+    shared Function goo() as Integer
         return 23    
     End Function
 End Class
@@ -3053,7 +3053,7 @@ End Class
 
             Assert.Null(semanticInfo.Type)
             Assert.Equal(1, semanticInfo.MemberGroup.Length)
-            Assert.Equal("Function C.foo() As System.Int32", semanticInfo.MemberGroup(0).ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Assert.Equal("Function C.goo() As System.Int32", semanticInfo.MemberGroup(0).ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Sub
 
         <WorkItem(541243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541243")>
@@ -4121,8 +4121,8 @@ End Class
 Imports System
 
 Class M
-    Public Function Foo() As Integer
-        Foo()'BIND:"Foo"
+    Public Function Goo() As Integer
+        Goo()'BIND:"Goo"
     End Function
 End Class
     ]]></file>
@@ -4134,13 +4134,13 @@ End Class
             Assert.Null(semanticInfo.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Function M.Foo() As System.Int32", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Function M.Goo() As System.Int32", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
             Assert.Equal(1, semanticInfo.MemberGroup.Length)
             Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Function M.Foo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Function M.Goo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
@@ -4153,8 +4153,8 @@ End Class
 Imports System
 
 Class M
-    Public Function Foo() As Integer
-        Foo = 4'BIND:"Foo"
+    Public Function Goo() As Integer
+        Goo = 4'BIND:"Goo"
     End Function
 End Class
 
@@ -4169,7 +4169,7 @@ End Class
             Assert.Equal(TypeKind.Structure, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Foo As System.Int32", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Goo As System.Int32", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Local, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
@@ -4187,7 +4187,7 @@ Imports System
 
 Class M
     Public x As Integer
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Me.x = 5'BIND:"Me"
     End Function
 End Class
@@ -5050,7 +5050,7 @@ End Class
     <file name="a.vb"><![CDATA[
 Class C
     Private Sub M()
-        Dim x As Baz.Foo.String'BIND:"Foo"
+        Dim x As Baz.Goo.String'BIND:"Goo"
     End Sub
 
     Private Function F() As String
@@ -5062,9 +5062,9 @@ End Class
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Equal("Baz.Foo", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal("Baz.Goo", semanticInfo.Type.ToTestDisplayString())
             Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind)
-            Assert.Equal("Baz.Foo", semanticInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal("Baz.Goo", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
@@ -5805,7 +5805,7 @@ Public Class Class1
 End Class
 
 Public Module M1
-    Sub foo()
+    Sub goo()
         Dim x As New Class1
 
         x.f(4, a:="hello")'BIND:"a"
@@ -5852,7 +5852,7 @@ Public Class Class1
 End Class
 
 Public Module M1
-    Sub foo()
+    Sub goo()
         Dim x As New Class1
 
         x.f(4, "hithere", b:="hello")'BIND:"b"
@@ -5907,7 +5907,7 @@ Public Class Class1
 End Class
 
 Public Module M1
-    Sub foo()
+    Sub goo()
         Dim x As New Class1
 
         x.f(4, "hithere", zappa:="hello")'BIND:"zappa"
@@ -5966,7 +5966,7 @@ Public Class Class1
 End Class
 
 Public Module M1
-    Sub foo()
+    Sub goo()
         Dim x As New Class1
 
         Dim y As Integer = x.f(4, c:=12, b:="hi") 'BIND:"c"'BIND:"c"
@@ -6387,7 +6387,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection 'BIND:"For Each element as Custom In myCustomCollection"
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -6459,7 +6459,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection 'BIND:"For Each element as Custom In myCustomCollection"
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -6528,7 +6528,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection 'BIND:"For Each element as Custom In myCustomCollection"
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -6605,7 +6605,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection 'BIND:"For Each element as Custom In myCustomCollection"
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -6893,10 +6893,10 @@ Delegate Sub Del(x As Integer)
 Module Program
     Sub Main(args As String())
         Dim d As Del 
-        d = New Del(AddressOf foo)'BIND:"Del"
+        d = New Del(AddressOf goo)'BIND:"Del"
     End Sub
 
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
     End Sub
 End Module
     ]]></file>
@@ -6930,10 +6930,10 @@ Delegate Sub Del(x As Integer)
 Module Program
     Sub Main(args As String())
         Dim d As Del 
-        d = New Del(AddressOf foo) 'BIND:"New Del(AddressOf foo)"
+        d = New Del(AddressOf goo) 'BIND:"New Del(AddressOf goo)"
     End Sub
 
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
     End Sub
 End Module
     ]]></file>
@@ -6968,10 +6968,10 @@ Delegate Sub Del(x As Integer)
 Module Program
     Sub Main(args As String())
         Dim d As Del
-        d = New Del(AddressOf foo)'BIND:"Del"
+        d = New Del(AddressOf goo)'BIND:"Del"
     End Sub
 
-    Sub foo(y As String, z As String)
+    Sub goo(y As String, z As String)
     End Sub
 End Module
     ]]></file>
@@ -7005,10 +7005,10 @@ Delegate Sub Del(x As Integer)
 Module Program
     Sub Main(args As String())
         Dim d As Del
-        d = New Del(AddressOf foo)'BIND:"New Del(AddressOf foo)"
+        d = New Del(AddressOf goo)'BIND:"New Del(AddressOf goo)"
     End Sub
 
-    Sub foo(y As String, z As String)
+    Sub goo(y As String, z As String)
     End Sub
 End Module
     ]]></file>
@@ -7046,7 +7046,7 @@ Module Program
         d = New Del(Sub(x) Console.WriteLine(x)) 'BIND:"Del"'BIND:"Del"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7083,7 +7083,7 @@ Module Program
         d = New Del(Sub(x) Console.WriteLine(x)) 'BIND:"New Del(Sub(x) Console.WriteLine(x))"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7121,7 +7121,7 @@ Module Program
         d = New Del(Sub(x, y) Console.WriteLine(x)) 'BIND:"Del"'BIND:"Del"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7158,7 +7158,7 @@ Module Program
         d = New Del(Sub(x, y) Console.WriteLine(x)) 'BIND:"New Del(Sub(x, y) Console.WriteLine(x))"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7199,7 +7199,7 @@ Module Program
         o = New X.Y(3)'BIND:"X.Y"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7239,7 +7239,7 @@ Module Program
         o = New X.Y(3)'BIND:"New X.Y(3)"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7283,7 +7283,7 @@ Module Program
         o = New X(3, 4)'BIND:"X"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7323,7 +7323,7 @@ Module Program
         o = New X(3, 4)'BIND:"New X(3, 4)"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7475,7 +7475,7 @@ End Class
 <compilation>
     <file name="a.vb"><![CDATA[
 Class X
-    Sub Foo()
+    Sub Goo()
         For i As Integer = 1 To 10
 
         Next i'BIND:"i"
@@ -7763,7 +7763,7 @@ End Module
         <WorkItem(542596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542596")>
         <Fact()>
         Public Sub BindMethodInvocationWhenUnnamedArgFollowsNamed()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module Module1
@@ -7778,13 +7778,15 @@ Module Module1
 End Module
         </file>
     </compilation>)
-
+            compilation.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
+                 ~
+                                               </errors>)
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of InvocationExpressionSyntax)(compilation, "a.vb")
+            Assert.Equal("Sub Module1.M1(x As System.Int32, y As System.Int32)", semanticInfo.Symbol.ToTestDisplayString())
 
-            Assert.Equal(Nothing, semanticInfo.Symbol)
-
-
-            compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module Module1
@@ -7802,10 +7804,14 @@ Module Module1
 End Module
         </file>
     </compilation>)
-
+            compilation.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
+                 ~
+                                               </errors>)
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of InvocationExpressionSyntax)(compilation, "a.vb")
 
-            Assert.Equal(Nothing, semanticInfo.Symbol)
+            Assert.Equal("Sub Module1.M1(x As System.Int32, y As System.Int32)", semanticInfo.Symbol.ToTestDisplayString())
 
         End Sub
 
@@ -8155,7 +8161,7 @@ Imports System
 Imports IClon = System.ICloneable
 
 Module M
-    Sub Foo()
+    Sub Goo()
         Dim y = New IClon() {}'BIND:"IClon"
     End Sub
 End Module
@@ -8226,17 +8232,17 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Dim v As A = New A()
-        dim r = v.Foo("hello")'BIND:"Foo"
+        dim r = v.Goo("hello")'BIND:"Goo"
     End Sub
 
 
 End Module
 
 Class A
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Return 1
     End Function
-    'Public Function Foo(x as integer, y as Integer) As Integer
+    'Public Function Goo(x as integer, y as Integer) As Integer
     '    Return 1
     'End Function
 End Class
@@ -8249,12 +8255,12 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Function A.Foo() As System.Int32", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Function A.Goo() As System.Int32", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Equal(1, semanticSummary.MemberGroup.Length)
             Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Function A.Foo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Function A.Goo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
         End Sub
 
         <Fact()>
@@ -8505,11 +8511,11 @@ End Module
                 <file name="a.vb"><![CDATA[
 Imports System
 Module Program
-    Sub Foo(x As Integer, Optional y As Double = #1/1/2001#)
+    Sub Goo(x As Integer, Optional y As Double = #1/1/2001#)
 
     End Sub
     Sub Main(args As String())
-        Foo(1)'BIND:"Foo"
+        Goo(1)'BIND:"Goo"
     End Sub
 End Module
 
@@ -8522,7 +8528,7 @@ End Module
             Assert.Null(semanticSummary.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub Program.Foo(x As System.Int32, [y As System.Double])", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub Program.Goo(x As System.Int32, [y As System.Double])", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticSummary.Symbol.Kind)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
 
@@ -8530,7 +8536,7 @@ End Module
 
             Assert.Equal(1, semanticSummary.MemberGroup.Length)
             Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Program.Foo(x As System.Int32, [y As System.Double])", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub Program.Goo(x As System.Int32, [y As System.Double])", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
@@ -8545,10 +8551,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Module Program
-    Sub Foo(Optional i As Integer = 1)
+    Sub Goo(Optional i As Integer = 1)
     End Sub
     Sub Main(args As String())
-        Foo'BIND:"Foo"
+        Goo'BIND:"Goo"
     End Sub
 End Module
 
@@ -8564,7 +8570,7 @@ End Module
             Assert.Equal(TypeKind.Structure, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub Program.Foo([i As System.Int32 = 1])", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub Program.Goo([i As System.Int32 = 1])", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticSummary.Symbol.Kind)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
 
@@ -8624,7 +8630,7 @@ End Module
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
-    Public Function foo() As Integer
+    Public Function goo() As Integer
         Static i As Integer = 23
         i = i + 1
         Return i
@@ -8650,7 +8656,7 @@ End Class
 
 
             Dim containingType = DirectCast(model, SemanticModel).GetEnclosingSymbol(SLDeclaration.SpanStart)
-            Assert.Equal("Function C.foo() As System.Int32", DirectCast(containingType, Symbol).ToTestDisplayString())
+            Assert.Equal("Function C.goo() As System.Int32", DirectCast(containingType, Symbol).ToTestDisplayString())
 
             'GetSymbolInfo
             'GetSpeculativeSymbolInfo()
@@ -8780,7 +8786,7 @@ Module Program
 
     End Sub
 
-public mustinherit class Foo
+public mustinherit class Goo
 public sub new()
 end sub
 end class
@@ -8818,7 +8824,7 @@ Module Program
 
     End Sub
 
-public mustinherit class Foo
+public mustinherit class Goo
 public sub new()
 end sub
 end class
@@ -9660,9 +9666,9 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
-imports FooAttribute = System.ObsoleteAttribute
+imports GooAttribute = System.ObsoleteAttribute
 
-<Foo> 'BIND:"Foo"
+<Goo> 'BIND:"Goo"
 Class C
 End Class
     ]]></file>
@@ -9686,7 +9692,7 @@ End Class
             Assert.[False](semanticInfo.ConstantValue.HasValue)
             Dim aliasInfo = GetAliasInfoForTest(compilation, "a.vb")
             Assert.NotNull(aliasInfo)
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
 
@@ -9697,9 +9703,9 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
-imports FooAttribute = System.ObsoleteAttribute
+imports GooAttribute = System.ObsoleteAttribute
 
-<Foo> 'BIND:"Foo"
+<Goo> 'BIND:"Goo"
 Class C
 End Class
     ]]></file>
@@ -9722,7 +9728,7 @@ End Class
             Assert.[False](semanticInfo.ConstantValue.HasValue)
             Dim aliasInfo = GetAliasInfoForTest(compilation, "a.vb")
             Assert.NotNull(aliasInfo)
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
 
@@ -9733,9 +9739,9 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb"><![CDATA[
-imports FooAttribute = System.ObsoleteAttribute
+imports GooAttribute = System.ObsoleteAttribute
 
-<FooAttribute> 'BIND:"FooAttribute"
+<GooAttribute> 'BIND:"GooAttribute"
 Class C
 End Class
     ]]></file>
@@ -9758,7 +9764,7 @@ End Class
             Assert.[False](semanticInfo.ConstantValue.HasValue)
             Dim aliasInfo = GetAliasInfoForTest(compilation, "a.vb")
             Assert.NotNull(aliasInfo)
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
 
@@ -9768,9 +9774,9 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib(
           <compilation>
               <file name="a.vb"><![CDATA[
-imports FooAttribute = System.ObsoleteAttribute
+imports GooAttribute = System.ObsoleteAttribute
 
-<FooAttribute> 'BIND:"FooAttribute"
+<GooAttribute> 'BIND:"GooAttribute"
 Class C
 End Class
     ]]></file>
@@ -9793,7 +9799,7 @@ End Class
             Assert.[False](semanticInfo.ConstantValue.HasValue)
             Dim aliasInfo = GetAliasInfoForTest(compilation, "a.vb")
             Assert.NotNull(aliasInfo)
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
 
@@ -9973,9 +9979,9 @@ end class
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
-imports FooAttribute = C
+imports GooAttribute = C
 
-<FooAttribute> 'BIND:"FooAttribute"
+<GooAttribute> 'BIND:"GooAttribute"
 Class C
 end class
     ]]></file>
@@ -10007,9 +10013,9 @@ end class
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
-imports FooAttribute = Gen(of Integer)
+imports GooAttribute = Gen(of Integer)
 
-<FooAttribute> 'BIND:"FooAttribute"
+<GooAttribute> 'BIND:"GooAttribute"
 Class Gen(of T)
 end class
     ]]></file>
@@ -10086,15 +10092,15 @@ End Class
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 End Class
 
 Class A(Of T As C)
     Class B
         Dim t As T 
-        Sub Foo()
-            T.Foo()'BIND:"T"
+        Sub Goo()
+            T.Goo()'BIND:"T"
         End Sub
     End Class
 End Class

@@ -55,7 +55,7 @@ public class Vec
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7.0").WithLocation(12, 13),
                 // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(13, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 9),
                 // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 22),
@@ -154,7 +154,7 @@ public class X
     public static void Main()
     {
         Test<string>(1);
-        Test<int>(""foo"");
+        Test<int>(""goo"");
         Test<int>(1);
         Test<int>(1.2);
         Test<double>(1.2);
@@ -177,7 +177,7 @@ public class X
             {
                 var expectedOutput =
 @"expression 1 is not String
-expression foo is not Int32
+expression goo is not Int32
 expression 1 is Int32 1
 expression 1.2 is not Int32
 expression 1.2 is Double 1.2
@@ -553,7 +553,7 @@ public struct X
 {
     public static void Main()
     {
-        var oa = new object[] { 1, 10, 20L, 1.2, ""foo"", true, null, new X(), new Exception(""boo"") };
+        var oa = new object[] { 1, 10, 20L, 1.2, ""goo"", true, null, new X(), new Exception(""boo"") };
         foreach (var o in oa)
         {
             switch (o)
@@ -593,7 +593,7 @@ public struct X
 int 10
 long 20
 double 1.2
-class String foo
+class String goo
 struct Boolean True
 null
 struct X X
@@ -3198,7 +3198,7 @@ public class X
         Console.WriteLine(1L is int.MaxValue); // OK, but false
         Console.WriteLine(1 is int.MaxValue); // false
         Console.WriteLine(int.MaxValue is int.MaxValue); // true
-        Console.WriteLine(""foo"" is System.String); // true
+        Console.WriteLine(""goo"" is System.String); // true
         Console.WriteLine(Int32.MaxValue is Int32.MaxValue); // true
         Console.WriteLine(new int[] {1, 2} is int[] a); // true
         object o = null;
@@ -3220,8 +3220,8 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,27): warning CS0183: The given expression is always of the provided ('string') type
-                //         Console.WriteLine("foo" is System.String); // true
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""foo"" is System.String").WithArguments("string").WithLocation(11, 27)
+                //         Console.WriteLine("goo" is System.String); // true
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""goo"" is System.String").WithArguments("string").WithLocation(11, 27)
                 );
             CompileAndVerify(compilation, expectedOutput:
 @"True
@@ -3871,7 +3871,7 @@ class Program
 {
     public static void Main(string[] args)
     {
-        foreach (var s in new[] { ""0123"", ""foo"" })
+        foreach (var s in new[] { ""0123"", ""goo"" })
         {
             Console.Write(s + "" "");
             try
@@ -3896,7 +3896,7 @@ class Program
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"0123 123
-foo throws");
+goo throws");
         }
 
         [Fact]
@@ -3984,7 +3984,7 @@ class Program
         {
             try
             {
-                var used = (await Foo(i))?.ToString() ?? throw await Bar(i);
+                var used = (await Goo(i))?.ToString() ?? throw await Bar(i);
             }
             catch (Exception ex)
             {
@@ -3992,7 +3992,7 @@ class Program
             }
         }
     }
-    static async Task<object> Foo(int i)
+    static async Task<object> Goo(int i)
     {
         await Task.Yield();
         return (i == 1) ? i : (object)null;
@@ -4268,15 +4268,15 @@ True";
 
 public class C
 {
-    public string[] Foo2(out string x) { x = """"; return null; }
-    public string[] Foo3(bool b) { return null; }
+    public string[] Goo2(out string x) { x = """"; return null; }
+    public string[] Goo3(bool b) { return null; }
 
-    public string[] Foo5(string u) { return null; }
+    public string[] Goo5(string u) { return null; }
     
     public void Test()
     {
-        var t1 = Foo2(out var x1).Concat(Foo5(x1));
-        var t2 = Foo3(t1 is var x2).Concat(Foo5(x2.First()));
+        var t1 = Goo2(out var x1).Concat(Goo5(x1));
+        var t2 = Goo3(t1 is var x2).Concat(Goo5(x2.First()));
     }
 }
 ";
@@ -4675,7 +4675,7 @@ class C
                 // (7,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(null is Missing);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(7, 38),
-                // (8,16): error CS8119: The switch expression must be a value; found <null>.
+                // (8,16): error CS8119: The switch expression must be a value; found '<null>'.
                 //         switch(null)
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(8, 16),
                 // (10,18): error CS0103: The name 'Missing' does not exist in the current context
@@ -4683,7 +4683,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(10, 18),
                 // (11,18): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //             case Missing y:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
 
@@ -4709,7 +4712,7 @@ public class Program46
     private static object M() => null;
 }";
             CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (6,17): error CS8119: The switch expression must be a value; found lambda expression.
+                // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
                 // (10,18): error CS0150: A constant value is expected
@@ -4717,7 +4720,10 @@ public class Program46
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
                 // (11,18): error CS0150: A constant value is expected
                 //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
 
@@ -5608,9 +5614,9 @@ namespace System
 ";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
-                // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
+                // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default:").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(9, 13)
                 );
         }
 
@@ -5942,7 +5948,7 @@ public class Program
         if (null as string is string s1) { }
         const string s = null;
         if (s is string s2) { }
-        if (""foo"" is string s3) { }
+        if (""goo"" is string s3) { }
     }
     void M1(int? i)
     {
@@ -5962,7 +5968,10 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(13, 18),
                 // (14,17): error CS0103: The name 'b' does not exist in the current context
                 //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(14, 17)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(14, 17),
+                // (14,35): warning CS0162: Unreachable code detected
+                //         switch (b) { case long m: break; }
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 35)
                 );
         }
 

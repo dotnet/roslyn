@@ -25,7 +25,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -106,8 +106,8 @@
     <PackageReference Include="System.Reflection.Metadata">
       <Version>$(SystemReflectionMetadataFixedVersion)</Version>
     </PackageReference>
-    <PackageReference Include="VSSDK.ComponentModelHost">
-      <Version>$(VSSDKComponentModelHostVersion)</Version>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <Version>$(MicrosoftVisualStudioComponentModelHostFixedVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

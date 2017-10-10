@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class OperationTreeVerifier : OperationWalker
     {
+        private readonly Compilation _compilation;
         private readonly IOperation _root;
         private readonly StringBuilder _builder;
 
@@ -25,8 +27,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private string _currentIndent;
         private bool _pendingIndent;
 
-        public OperationTreeVerifier(IOperation root, int initialIndent)
+        public OperationTreeVerifier(Compilation compilation, IOperation root, int initialIndent)
         {
+            _compilation = compilation;
             _root = root;
             _builder = new StringBuilder();
 
@@ -34,15 +37,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _pendingIndent = true;
         }
 
-        public static void Verify(IOperation operation, string expectedOperationTree, int initialIndent = 0)
+        public static void Verify(Compilation compilation, IOperation operation, string expectedOperationTree, int initialIndent = 0)
         {
-            var actual = GetOperationTree(operation, initialIndent);
+            var actual = GetOperationTree(compilation, operation, initialIndent);
             Assert.Equal(expectedOperationTree, actual);
         }
 
-        public static string GetOperationTree(IOperation operation, int initialIndent = 0)
+        public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)
         {
-            var walker = new OperationTreeVerifier(operation, initialIndent);
+            var walker = new OperationTreeVerifier(compilation, operation, initialIndent);
             walker.Visit(operation);
             return walker._builder.ToString();
         }
@@ -53,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string actual = actualOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
             expectedOperationTree = Regex.Replace(expectedOperationTree, "([^\r])\n", "$1" + Environment.NewLine);
+
             AssertEx.AreEqual(expectedOperationTree, actual);
         }
 
@@ -80,10 +84,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             // IsInvalid
-            if (operation.IsInvalid)
+            if (operation.HasErrors(_compilation))
             {
                 LogString(", IsInvalid");
             }
+
+            // IsImplicit
+            if (operation.IsImplicit)
+            {
+                LogString(", IsImplicit");
+            }
+
 
             LogString(")");
 
@@ -163,15 +174,43 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        private static string ConstantToString(object constant, bool quoteString = true)
+        {
+            switch (constant)
+            {
+                case null:
+                    return "null";
+                case string s:
+                    if (quoteString)
+                    {
+                        return @"""" + s + @"""";
+                    }
+                    return s;
+                case IFormattable formattable:
+                    return formattable.ToString(null, CultureInfo.InvariantCulture);
+                default:
+                    return constant.ToString();
+            }
+        }
+
         private void LogConstant(object constant, string header = "Constant")
         {
-            var valueStr = constant != null ? constant.ToString() : "null";
-            if (constant is string)
-            {
-                valueStr = @"""" + valueStr + @"""";
-            }
+            string valueStr = ConstantToString(constant);
 
             LogString($"{header}: {valueStr}");
+        }
+
+        private void LogConversion(CommonConversion conversion, string header = "Conversion")
+        {
+            var exists = FormatBoolProperty(nameof(conversion.Exists), conversion.Exists);
+            var isIdentity = FormatBoolProperty(nameof(conversion.IsIdentity), conversion.IsIdentity);
+            var isNumeric = FormatBoolProperty(nameof(conversion.IsNumeric), conversion.IsNumeric);
+            var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
+            var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
+
+            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
+            LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
+            LogString(")");
         }
 
         private void LogSymbol(ISymbol symbol, string header, bool logDisplayString = true)
@@ -185,11 +224,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($"{symbolStr}");
         }
 
-        private void LogType(ITypeSymbol type)
+        private void LogType(ITypeSymbol type, string header = "Type")
         {
             var typeStr = type != null ? type.ToTestDisplayString() : "null";
-            LogString($"Type: {typeStr}");
+            LogString($"{header}: {typeStr}");
         }
+
+        private static string FormatBoolProperty(string propertyName, bool value) => $"{propertyName}: {(value ? "True" : "False")}";
 
         #endregion
 
@@ -199,6 +240,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (operation == null)
             {
+                Indent();
+                LogString("null");
+                LogNewLine();
+                Unindent();
                 return;
             }
 
@@ -213,38 +258,95 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 Unindent();
             }
+            Assert.True(operation.Syntax.Language == operation.Language);
         }
 
         private void Visit(IOperation operation, string header)
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
 
-            if (operation == null)
-            {
-                return;
-            }
-
             Indent();
             LogString($"{header}: ");
+            LogNewLine();
             Visit(operation);
             Unindent();
         }
 
-        private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount)
-            where T : IOperation
+        private void VisitArrayCommon<T>(ImmutableArray<T> list, string header, bool logElementCount, bool logNullForDefault, Action<T> arrayElementVisitor)
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
 
-            if (list.IsDefaultOrEmpty)
+            Indent();
+            if (!list.IsDefaultOrEmpty)
             {
-                return;
+                var elementCount = logElementCount ? $"({list.Count()})" : string.Empty;
+                LogString($"{header}{elementCount}:");
+                LogNewLine();
+                Indent();
+                foreach (var element in list)
+                {
+                    arrayElementVisitor(element);
+                }
+                Unindent();
+            }
+            else
+            {
+                var suffix = logNullForDefault && list.IsDefault ? ": null" : "(0)";
+                LogString($"{header}{suffix}");
+                LogNewLine();
             }
 
-            var elementCount = logElementCount ? $"({list.Length})" : string.Empty;
-            Indent();
-            LogString($"{header}{elementCount}: ");
-            VisitArray(list);
             Unindent();
+        }
+
+        internal void VisitSymbolArrayElement(ISymbol element)
+        {
+            LogSymbol(element, header: "Symbol");
+            LogNewLine();
+        }
+
+        internal void VisitStringArrayElement(string element)
+        {
+            var valueStr = element != null ? element.ToString() : "null";
+            valueStr = @"""" + valueStr + @"""";
+            LogString(valueStr);
+            LogNewLine();
+        }
+
+        internal void VisitRefKindArrayElement(RefKind element)
+        {
+            LogString(element.ToString());
+            LogNewLine();
+        }
+
+        private void VisitChildren(IOperation operation)
+        {
+            var children = operation.Children.WhereNotNull().ToImmutableArray();
+            if (!children.IsEmpty || operation.Kind != OperationKind.None)
+            {
+                VisitArray(children, "Children", logElementCount: true);
+            }
+        }
+
+        private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount, bool logNullForDefault = false)
+            where T : IOperation
+        {
+            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitOperationArrayElement);
+        }
+
+        private void VisitArray(ImmutableArray<ISymbol> list, string header, bool logElementCount, bool logNullForDefault = false)
+        {
+            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitSymbolArrayElement);
+        }
+
+        private void VisitArray(ImmutableArray<string> list, string header, bool logElementCount, bool logNullForDefault = false)
+        {
+            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitStringArrayElement);
+        }
+
+        private void VisitArray(ImmutableArray<RefKind> list, string header, bool logElementCount, bool logNullForDefault = false)
+        {
+            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitRefKindArrayElement);
         }
 
         private void VisitInstanceExpression(IOperation instance)
@@ -257,14 +359,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString("IOperation: ");
             LogCommonPropertiesAndNewLine(operation);
 
-            if (operation is IOperationWithChildren operationWithChildren)
-            {
-                var children = operationWithChildren.Children.WhereNotNull().ToImmutableArray();
-                if (children.Length > 0)
-                {
-                    VisitArray(children, "Children", logElementCount: true);
-                }
-            }
+            VisitChildren(operation);
         }
 
         public override void VisitBlockStatement(IBlockStatement operation)
@@ -328,11 +423,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
+        public override void VisitDoLoopStatement(IDoLoopStatement operation)
         {
-            LogString(nameof(IWhileUntilLoopStatement));
+            LogString(nameof(IDoLoopStatement));
 
-            LogString($" (IsTopTest: {operation.IsTopTest}, IsWhile: {operation.IsWhile})");
+            LogString($" (DoLoopKind: {operation.DoLoopKind})");
+            LogLoopStatementHeader(operation);
+
+            Visit(operation.Condition, "Condition");
+            Visit(operation.IgnoredCondition, "IgnoredCondition");
+            Visit(operation.Body, "Body");
+        }
+
+        public override void VisitWhileLoopStatement(IWhileLoopStatement operation)
+        {
+            LogString(nameof(IWhileLoopStatement));
             LogLoopStatementHeader(operation);
 
             Visit(operation.Condition, "Condition");
@@ -345,10 +450,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogLoopStatementHeader(operation);
 
             Visit(operation.Condition, "Condition");
-            LogLocals(operation.Locals);
             VisitArray(operation.Before, "Before", logElementCount: false);
             VisitArray(operation.AtLoopBottom, "AtLoopBottom", logElementCount: false);
             Visit(operation.Body, "Body");
+        }
+
+        public override void VisitForToLoopStatement(IForToLoopStatement operation)
+        {
+            LogString(nameof(IForToLoopStatement));
+            LogLoopStatementHeader(operation);
+
+            Visit(operation.LoopControlVariable, "LoopControlVariable");
+            Visit(operation.InitialValue, "InitialValue");
+            Visit(operation.LimitValue, "LimitValue");
+            Visit(operation.StepValue, "StepValue");
+            Visit(operation.Body, "Body");
+            VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
         }
 
         private void LogLocals(IEnumerable<ILocalSymbol> locals, string header = "Locals")
@@ -379,22 +496,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var kindStr = $"{nameof(LoopKind)}.{operation.LoopKind}";
             LogString($" ({kindStr})");
             LogCommonPropertiesAndNewLine(operation);
+
+            LogLocals(operation.Locals);
         }
 
         public override void VisitForEachLoopStatement(IForEachLoopStatement operation)
         {
             LogString(nameof(IForEachLoopStatement));
-            LogSymbol(operation.IterationVariable, " (Iteration variable");
-            LogString(")");
-
             LogLoopStatementHeader(operation);
+
+            Visit(operation.LoopControlVariable, "LoopControlVariable");
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
+            VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
         }
 
-        public override void VisitLabelStatement(ILabelStatement operation)
+        public override void VisitLabeledStatement(ILabeledStatement operation)
         {
-            LogString(nameof(ILabelStatement));
+            LogString(nameof(ILabeledStatement));
 
             // TODO: Put a better workaround to skip compiler generated labels.
             if (!operation.Label.IsImplicitlyDeclared)
@@ -404,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitLabelStatement(operation);
+            Visit(operation.Statement, "Statement");
         }
 
         public override void VisitBranchStatement(IBranchStatement operation)
@@ -420,26 +539,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitYieldBreakStatement(IReturnStatement operation)
         {
-            LogString("YieldBreakStatement");
+            LogString(nameof(IReturnStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitYieldBreakStatement(operation);
+            Visit(operation.ReturnedValue, "ReturnedValue");
         }
 
         public override void VisitEmptyStatement(IEmptyStatement operation)
         {
             LogString(nameof(IEmptyStatement));
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitEmptyStatement(operation);
-        }
-
-        public override void VisitThrowStatement(IThrowStatement operation)
-        {
-            LogString(nameof(IThrowStatement));
-            LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitThrowStatement(operation);
         }
 
         public override void VisitReturnStatement(IReturnStatement operation)
@@ -447,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IReturnStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitReturnStatement(operation);
+            Visit(operation.ReturnedValue, "ReturnedValue");
         }
 
         public override void VisitLockStatement(ILockStatement operation)
@@ -455,7 +564,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(ILockStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.LockedObject, "LockedObject");
+            Visit(operation.Expression, "Expression");
             Visit(operation.Body, "Body");
         }
 
@@ -466,15 +575,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Body, "Body");
             VisitArray(operation.Catches, "Catch clauses", logElementCount: true);
-            Visit(operation.FinallyHandler, "Finally");
+            Visit(operation.Finally, "Finally");
         }
 
         public override void VisitCatchClause(ICatchClause operation)
         {
             LogString(nameof(ICatchClause));
-            LogString($" (Exception type: {operation.CaughtType?.ToTestDisplayString()}, Exception local: {operation.ExceptionLocal?.ToTestDisplayString()})");
+            var exceptionTypeStr = operation.ExceptionType != null ? operation.ExceptionType.ToTestDisplayString() : "null";
+            LogString($" (Exception type: {exceptionTypeStr})");
             LogCommonPropertiesAndNewLine(operation);
 
+            LogLocals(operation.Locals);
+            Visit(operation.ExceptionDeclarationOrExpression, "ExceptionDeclarationOrExpression");
             Visit(operation.Filter, "Filter");
             Visit(operation.Handler, "Handler");
         }
@@ -489,7 +601,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
-        public override void VisitFixedStatement(IFixedStatement operation)
+        // https://github.com/dotnet/roslyn/issues/21281
+        internal override void VisitFixedStatement(IFixedStatement operation)
         {
             LogString(nameof(IFixedStatement));
             LogCommonPropertiesAndNewLine(operation);
@@ -503,10 +616,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IExpressionStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitExpressionStatement(operation);
+            Visit(operation.Expression, "Expression");
         }
 
-        public override void VisitWithStatement(IWithStatement operation)
+        internal override void VisitWithStatement(IWithStatement operation)
         {
             LogString(nameof(IWithStatement));
             LogCommonPropertiesAndNewLine(operation);
@@ -519,16 +632,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IStopStatement));
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitStopStatement(operation);
         }
 
         public override void VisitEndStatement(IEndStatement operation)
         {
             LogString(nameof(IEndStatement));
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitEndStatement(operation);
         }
 
         public override void VisitInvocationExpression(IInvocationExpression operation)
@@ -536,9 +645,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInvocationExpression));
 
             var isVirtualStr = operation.IsVirtual ? "virtual " : string.Empty;
-            var isStaticStr = operation.Instance == null ? "static " : string.Empty;
             var spacing = !operation.IsVirtual && operation.Instance != null ? " " : string.Empty;
-            LogString($" ({isVirtualStr}{isStaticStr}{spacing}");
+            LogString($" ({isVirtualStr}{spacing}");
             LogSymbol(operation.TargetMethod, header: string.Empty);
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
@@ -547,9 +655,66 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArguments(operation);
         }
 
-        private void VisitArguments(IHasArgumentsExpression operation)
+        private void VisitArguments(IHasArguments operation)
         {
             VisitArray(operation.ArgumentsInEvaluationOrder, "Arguments", logElementCount: true);
+        }
+
+        private void VisitDynamicArguments(HasDynamicArgumentsExpression operation)
+        {
+            VisitArray(operation.Arguments, "Arguments", logElementCount: true);
+            VisitArray(operation.ArgumentNames, "ArgumentNames", logElementCount: true);
+            VisitArray(operation.ArgumentRefKinds, "ArgumentRefKinds", logElementCount: true, logNullForDefault: true);
+
+            VerifyGetArgumentNamePublicApi(operation, operation.ArgumentNames);
+            VerifyGetArgumentRefKindPublicApi(operation, operation.ArgumentRefKinds);
+        }
+
+        private static void VerifyGetArgumentNamePublicApi(HasDynamicArgumentsExpression operation, ImmutableArray<string> argumentNames)
+        {
+            var length = operation.Arguments.Length;
+            if (argumentNames.IsDefaultOrEmpty)
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    Assert.Null(operation.GetArgumentName(i));
+                }
+            }
+            else
+            {
+                Assert.Equal(length, argumentNames.Length);
+                for (var i = 0; i < length; i++)
+                {
+                    Assert.Equal(argumentNames[i], operation.GetArgumentName(i));
+                }
+            }
+        }
+
+        private static void VerifyGetArgumentRefKindPublicApi(HasDynamicArgumentsExpression operation, ImmutableArray<RefKind> argumentRefKinds)
+        {
+            var length = operation.Arguments.Length;
+            if (argumentRefKinds.IsDefault)
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    Assert.Null(operation.GetArgumentRefKind(i));
+                }
+            }
+            else if (argumentRefKinds.IsEmpty)
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    Assert.Equal(RefKind.None, operation.GetArgumentRefKind(i));
+                }
+            }
+            else
+            {
+                Assert.Equal(length, argumentRefKinds.Length);
+                for (var i = 0; i < length; i++)
+                {
+                    Assert.Equal(argumentRefKinds[i], operation.GetArgumentRefKind(i));
+                }
+            }
         }
 
         public override void VisitArgument(IArgument operation)
@@ -561,16 +726,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value);
-            Visit(operation.InConversion, "InConversion");
-            Visit(operation.OutConversion, "OutConversion");
+
+            Indent();
+            LogConversion(operation.InConversion, "InConversion");
+            LogNewLine();
+            LogConversion(operation.OutConversion, "OutConversion");
+            LogNewLine();
+            Unindent();
         }
 
         public override void VisitOmittedArgumentExpression(IOmittedArgumentExpression operation)
         {
             LogString(nameof(IOmittedArgumentExpression));
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitOmittedArgumentExpression(operation);
         }
 
         public override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
@@ -582,21 +750,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Indices, "Indices", logElementCount: true);
         }
 
-        public override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        internal override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
         {
             LogString(nameof(IPointerIndirectionReferenceExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitPointerIndirectionReferenceExpression(operation);
+            Visit(operation.Pointer, "Pointer");
         }
 
         public override void VisitLocalReferenceExpression(ILocalReferenceExpression operation)
         {
             LogString(nameof(ILocalReferenceExpression));
             LogString($": {operation.Local.Name}");
+            if (operation.IsDeclaration)
+            {
+                LogString($" (IsDeclaration: {operation.IsDeclaration})");
+            }
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitLocalReferenceExpression(operation);
         }
 
         public override void VisitParameterReferenceExpression(IParameterReferenceExpression operation)
@@ -604,28 +774,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IParameterReferenceExpression));
             LogString($": {operation.Parameter.Name}");
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitParameterReferenceExpression(operation);
-        }
-
-        public override void VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
-        {
-            LogString(nameof(ISyntheticLocalReferenceExpression));
-            var kindStr = $"{nameof(SynthesizedLocalKind)}.{operation.SyntheticLocalKind}";
-            LogString($" ({kindStr})");
-            LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitSyntheticLocalReferenceExpression(operation);
         }
 
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
             LogString(nameof(IInstanceReferenceExpression));
-            var kindStr = $"{nameof(InstanceReferenceKind)}.{operation.InstanceReferenceKind}";
-            LogString($" ({kindStr})");
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitInstanceReferenceExpression(operation);
         }
 
         private void VisitMemberReferenceExpressionCommon(IMemberReferenceExpression operation)
@@ -643,19 +797,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IFieldReferenceExpression));
             LogString($": {operation.Field.ToTestDisplayString()}");
+            if (operation.IsDeclaration)
+            {
+                LogString($" (IsDeclaration: {operation.IsDeclaration})");
+            }
 
             VisitMemberReferenceExpressionCommon(operation);
         }
 
-        public override void VisitMethodBindingExpression(IMethodBindingExpression operation)
+        public override void VisitMethodReferenceExpression(IMethodReferenceExpression operation)
         {
-            LogString(nameof(IMethodBindingExpression));
+            LogString(nameof(IMethodReferenceExpression));
             LogString($": {operation.Method.ToTestDisplayString()}");
 
             if (operation.IsVirtual)
             {
                 LogString(" (IsVirtual)");
             }
+
+            Assert.Null(operation.Type);
 
             VisitMemberReferenceExpressionCommon(operation);
         }
@@ -666,6 +826,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($": {operation.Property.ToTestDisplayString()}");
 
             VisitMemberReferenceExpressionCommon(operation);
+
+            if (operation.ArgumentsInEvaluationOrder.Length > 0)
+            {
+                VisitArguments(operation);
+            }
         }
 
         public override void VisitEventReferenceExpression(IEventReferenceExpression operation)
@@ -680,11 +845,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var kindStr = operation.Adds ? "EventAdd" : "EventRemove";
             LogString($"{nameof(IEventAssignmentExpression)} ({kindStr})");
-            LogSymbol(operation.Event, header: " (Event: ");
-            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.EventInstance, header: "Event Instance");
+            Visit(operation.EventReference, header: "Event Reference");
             Visit(operation.HandlerValue, header: "Handler");
         }
 
@@ -693,53 +856,64 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IConditionalAccessExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.ConditionalInstance, header: "Left");
-            Visit(operation.ConditionalValue, header: "Right");
+            Visit(operation.Expression, header: nameof(operation.Expression));
+            Visit(operation.WhenNotNull, header: nameof(operation.WhenNotNull));
         }
 
         public override void VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation)
         {
             LogString(nameof(IConditionalAccessInstanceExpression));
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitConditionalAccessInstanceExpression(operation);
         }
 
-        public override void VisitPlaceholderExpression(IPlaceholderExpression operation)
+        internal override void VisitPlaceholderExpression(IPlaceholderExpression operation)
         {
             LogString(nameof(IPlaceholderExpression));
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitPlaceholderExpression(operation);
-        }
-
-        public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
-        {
-            LogString(nameof(IIndexedPropertyReferenceExpression));
-
-            LogString($": {operation.Property.ToTestDisplayString()}");
-
-            VisitMemberReferenceExpressionCommon(operation);
-            VisitArguments(operation);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
         {
             LogString(nameof(IUnaryOperatorExpression));
 
-            var kindStr = $"{nameof(UnaryOperationKind)}.{operation.UnaryOperationKind}";
+            var kindStr = $"{nameof(UnaryOperatorKind)}.{operation.OperatorKind}";
+            if (operation.IsLifted)
+            {
+                kindStr += ", IsLifted";
+            }
+
+            if (operation.IsChecked)
+            {
+                kindStr += ", Checked";
+            }
+
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitUnaryOperatorExpression(operation);
+            Visit(operation.Operand, "Operand");
         }
 
         public override void VisitBinaryOperatorExpression(IBinaryOperatorExpression operation)
         {
             LogString(nameof(IBinaryOperatorExpression));
 
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
+            if (operation.IsLifted)
+            {
+                kindStr += ", IsLifted";
+            }
+
+            if (operation.IsChecked)
+            {
+                kindStr += ", Checked";
+            }
+
+            if (operation.IsCompareText)
+            {
+                kindStr += ", CompareText";
+            }
+
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
@@ -765,95 +939,103 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IConversionExpression));
 
-            var kindStr = $"{nameof(ConversionKind)}.{operation.ConversionKind}";
-            var isExplicitStr = operation.IsExplicit ? "Explicit" : "Implicit";
-            LogString($" ({kindStr}, {isExplicitStr})");
+            var isExplicitStr = operation.IsExplicitInCode ? "Explicit" : "Implicit";
+            var isTryCast = $"TryCast: {(operation.IsTryCast ? "True" : "False")}";
+            var isChecked = operation.IsChecked ? "Checked" : "Unchecked";
+            LogString($" ({isExplicitStr}, {isTryCast}, {isChecked})");
 
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
+            Indent();
+            LogConversion(operation.Conversion);
+            Unindent();
+            LogNewLine();
 
-            base.VisitConversionExpression(operation);
+            Visit(operation.Operand, "Operand");
         }
 
-        public override void VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
+        public override void VisitConditionalExpression(IConditionalExpression operation)
         {
-            LogString(nameof(IConditionalChoiceExpression));
+            LogString(nameof(IConditionalExpression));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Condition, "Condition");
-            Visit(operation.IfTrueValue, "IfTrue");
-            Visit(operation.IfFalseValue, "IfFalse");
+            Visit(operation.WhenTrue, "WhenTrue");
+            Visit(operation.WhenFalse, "WhenFalse");
         }
 
-        public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        public override void VisitCoalesceExpression(ICoalesceExpression operation)
         {
-            LogString(nameof(INullCoalescingExpression));
+            LogString(nameof(ICoalesceExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.PrimaryOperand, "Left");
-            Visit(operation.SecondaryOperand, "Right");
+            Visit(operation.Expression, "Expression");
+            Visit(operation.WhenNull, "WhenNull");
         }
 
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
         {
             LogString(nameof(IIsTypeExpression));
+            if (operation.IsNotTypeExpression)
+            {
+                LogString(" (IsNotExpression)");
+            }
+
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitIsTypeExpression(operation);
+            Visit(operation.Operand, "Operand");
 
             Indent();
-            LogType(operation.Type);
+            LogType(operation.IsType, "IsType");
+            LogNewLine();
             Unindent();
-        }
-
-        private void LogTypeOperationExpressionCommon(ITypeOperationExpression operation)
-        {
-            LogString(" (");
-            LogType(operation.TypeOperand);
-            LogString(")");
-            LogCommonPropertiesAndNewLine(operation);
         }
 
         public override void VisitSizeOfExpression(ISizeOfExpression operation)
         {
             LogString(nameof(ISizeOfExpression));
-            LogTypeOperationExpressionCommon(operation);
+            LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitSizeOfExpression(operation);
+            Indent();
+            LogType(operation.TypeOperand, "TypeOperand");
+            LogNewLine();
+            Unindent();
         }
 
         public override void VisitTypeOfExpression(ITypeOfExpression operation)
         {
             LogString(nameof(ITypeOfExpression));
-            LogTypeOperationExpressionCommon(operation);
+            LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitTypeOfExpression(operation);
+            Indent();
+            LogType(operation.TypeOperand, "TypeOperand");
+            LogNewLine();
+            Unindent();
         }
 
-        public override void VisitLambdaExpression(ILambdaExpression operation)
+        public override void VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation)
         {
-            LogString(nameof(ILambdaExpression));
+            LogString(nameof(IAnonymousFunctionExpression));
 
-            LogSymbol(operation.Signature, header: " (Signature");
+            LogSymbol(operation.Symbol, header: " (Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitLambdaExpression(operation);
+            base.VisitAnonymousFunctionExpression(operation);
+        }
+
+        public override void VisitDelegateCreationExpression(IDelegateCreationExpression operation)
+        {
+            LogString(nameof(IDelegateCreationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, nameof(operation.Target));
         }
 
         public override void VisitLiteralExpression(ILiteralExpression operation)
         {
             LogString(nameof(ILiteralExpression));
-
-            object value;
-            if (operation.ConstantValue.HasValue && ((value = operation.ConstantValue.Value) == null ? "null" : value.ToString()) == operation.Text)
-            {
-                LogString($" (Text: {operation.Text})");
-            }
-
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitLiteralExpression(operation);
         }
 
         public override void VisitAwaitExpression(IAwaitExpression operation)
@@ -861,7 +1043,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IAwaitExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitAwaitExpression(operation);
+            Visit(operation.Expression, "Expression");
+        }
+
+        public override void VisitNameOfExpression(INameOfExpression operation)
+        {
+            LogString(nameof(INameOfExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Argument);
+        }
+
+        public override void VisitThrowExpression(IThrowExpression operation)
+        {
+            LogString(nameof(IThrowExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression);
         }
 
         public override void VisitAddressOfExpression(IAddressOfExpression operation)
@@ -869,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IAddressOfExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitAddressOfExpression(operation);
+            Visit(operation.Reference, "Reference");
         }
 
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
@@ -879,7 +1077,72 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArguments(operation);
+            Visit(operation.Initializer, "Initializer");
+        }
+
+        public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
+        {
+            LogString(nameof(IAnonymousObjectCreationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
             VisitArray(operation.Initializers, "Initializers", logElementCount: true);
+        }
+
+        public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        {
+            LogString(nameof(IDynamicObjectCreationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+            Visit(operation.Initializer, "Initializer");
+        }
+
+        public override void VisitDynamicInvocationExpression(IDynamicInvocationExpression operation)
+        {
+            LogString(nameof(IDynamicInvocationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+        }
+
+        public override void VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation)
+        {
+            LogString(nameof(IDynamicIndexerAccessExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+        }
+
+        public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
+        {
+            LogString(nameof(IObjectOrCollectionInitializerExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Initializers, "Initializers", logElementCount: true);
+        }
+
+        public override void VisitMemberInitializerExpression(IMemberInitializerExpression operation)
+        {
+            LogString(nameof(IMemberInitializerExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.InitializedMember, "InitializedMember");
+            Visit(operation.Initializer, "Initializer");
+        }
+
+        public override void VisitCollectionElementInitializerExpression(ICollectionElementInitializerExpression operation)
+        {
+            LogString(nameof(ICollectionElementInitializerExpression));
+            if (operation.AddMethod != null)
+            {
+                LogString($" (AddMethod: {operation.AddMethod.ToTestDisplayString()})");
+            }
+            LogString($" (IsDynamic: {operation.IsDynamic})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Arguments, "Arguments", logElementCount: true);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)
@@ -939,7 +1202,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArrayCreationExpression(IArrayCreationExpression operation)
         {
             LogString(nameof(IArrayCreationExpression));
-            LogString($" (Element Type: {operation.ElementType?.ToTestDisplayString()})");
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArray(operation.DimensionSizes, "Dimension Sizes", logElementCount: true);
@@ -955,9 +1217,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.ElementValues, "Element Values", logElementCount: true);
         }
 
-        public override void VisitAssignmentExpression(IAssignmentExpression operation)
+        public override void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
         {
-            LogString(nameof(IAssignmentExpression));
+            LogString(nameof(ISimpleAssignmentExpression));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Target, "Left");
@@ -968,7 +1230,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ICompoundAssignmentExpression));
 
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
+            if (operation.IsLifted)
+            {
+                kindStr += ", IsLifted";
+            }
+
+            if (operation.IsChecked)
+            {
+                kindStr += ", Checked";
+            }
+
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
@@ -977,18 +1249,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Value, "Right");
         }
 
-        public override void VisitIncrementExpression(IIncrementExpression operation)
+        public override void VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation)
         {
-            LogString(nameof(IIncrementExpression));
+            LogString(nameof(IIncrementOrDecrementExpression));
 
-            var unaryKindStr = $"{nameof(UnaryOperandKind)}.{operation.IncrementOperationKind}";
-            var binaryKindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
-            LogString($" ({unaryKindStr}) ({binaryKindStr})");
+            var kindStr = operation.IsPostfix ? "Postfix" : "Prefix";
+            if (operation.IsLifted)
+            {
+                kindStr += ", IsLifted";
+            }
+
+            if (operation.IsChecked)
+            {
+                kindStr += ", Checked";
+            }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Target, "Left");
-            Visit(operation.Value, "Right");
+            Visit(operation.Target, "Target");
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)
@@ -996,40 +1276,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IParenthesizedExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitParenthesizedExpression(operation);
+            Visit(operation.Operand, "Operand");
         }
 
-        public override void VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation)
+        public override void VisitDynamicMemberReferenceExpression(IDynamicMemberReferenceExpression operation)
         {
-            LogString(nameof(ILateBoundMemberReferenceExpression));
-            LogString($" (Member name: {operation.MemberName})");
+            LogString(nameof(IDynamicMemberReferenceExpression));
+            // (Member Name: "quoted name", Containing Type: type)
+            LogString(" (");
+            LogConstant((object)operation.MemberName, "Member Name");
+            LogString(", ");
+            LogType(operation.ContainingType, "Containing Type");
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+
+            VisitArrayCommon(operation.TypeArguments, "Type Arguments", logElementCount: true,logNullForDefault: false, arrayElementVisitor: VisitSymbolArrayElement);
 
             VisitInstanceExpression(operation.Instance);
-        }
-
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            LogString(nameof(IUnboundLambdaExpression));
-            LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitUnboundLambdaExpression(operation);
         }
 
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             LogString(nameof(IDefaultValueExpression));
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitDefaultValueExpression(operation);
         }
 
         public override void VisitTypeParameterObjectCreationExpression(ITypeParameterObjectCreationExpression operation)
         {
             LogString(nameof(ITypeParameterObjectCreationExpression));
             LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitTypeParameterObjectCreationExpression(operation);
         }
 
         public override void VisitInvalidStatement(IInvalidStatement operation)
@@ -1037,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInvalidStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            VisitArray(operation.Children, "Children", logElementCount: true);
+            VisitChildren(operation);
         }
 
         public override void VisitInvalidExpression(IInvalidExpression operation)
@@ -1045,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInvalidExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            VisitArray(operation.Children, "Children", logElementCount: true);
+            VisitChildren(operation);
         }
 
         public override void VisitIfStatement(IIfStatement operation)
@@ -1058,6 +1333,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.IfFalseStatement, "IfFalse");
         }
 
+        public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            LogString(nameof(ILocalFunctionStatement));
+
+            LogSymbol(operation.Symbol, header: " (Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Body);
+        }
+
         private void LogCaseClauseCommon(ICaseClause operation)
         {
             var kindStr = $"{nameof(CaseKind)}.{operation.CaseKind}";
@@ -1068,21 +1354,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSingleValueCaseClause(ISingleValueCaseClause operation)
         {
             LogString(nameof(ISingleValueCaseClause));
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.Equality}";
-            LogString($" (Equality operator kind: {kindStr})");
             LogCaseClauseCommon(operation);
 
-            base.VisitSingleValueCaseClause(operation);
+            Visit(operation.Value, "Value");
         }
 
         public override void VisitRelationalCaseClause(IRelationalCaseClause operation)
         {
             LogString(nameof(IRelationalCaseClause));
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.Relation}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.Relation}";
             LogString($" (Relational operator kind: {kindStr})");
             LogCaseClauseCommon(operation);
 
-            base.VisitRelationalCaseClause(operation);
+            Visit(operation.Value, "Value");
         }
 
         public override void VisitRangeCaseClause(IRangeCaseClause operation)
@@ -1092,6 +1376,99 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.MinimumValue, "Min");
             Visit(operation.MaximumValue, "Max");
+        }
+
+        public override void VisitDefaultCaseClause(IDefaultCaseClause operation)
+        {
+            LogString(nameof(IDefaultCaseClause));
+            LogCaseClauseCommon(operation);
+        }
+
+        public override void VisitTupleExpression(ITupleExpression operation)
+        {
+            LogString(nameof(ITupleExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Elements, "Elements", logElementCount: true);
+        }
+
+        public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
+        {
+            LogString(nameof(IInterpolatedStringExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Parts, "Parts", logElementCount: true);
+        }
+
+        public override void VisitInterpolatedStringText(IInterpolatedStringText operation)
+        {
+            LogString(nameof(IInterpolatedStringText));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Text, "Text");
+        }
+
+        public override void VisitInterpolation(IInterpolation operation)
+        {
+            LogString(nameof(IInterpolation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+            Visit(operation.Alignment, "Alignment");
+            Visit(operation.FormatString, "FormatString");
+        }
+
+        public override void VisitConstantPattern(IConstantPattern operation)
+        {
+            LogString(nameof(IConstantPattern));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Value, "Value");
+        }
+
+        public override void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+            LogString(nameof(IDeclarationPattern));
+            LogSymbol(operation.DeclaredSymbol, " (Declared Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
+        public override void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            LogString(nameof(IIsPatternExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+            Visit(operation.Pattern, "Pattern");
+        }
+
+        public override void VisitPatternCaseClause(IPatternCaseClause operation)
+        {
+            LogString(nameof(IPatternCaseClause));
+            LogSymbol(operation.Label, " (Label Symbol");
+            LogString(")");
+            LogCaseClauseCommon(operation);
+
+            Visit(operation.Pattern, "Pattern");
+            Visit(operation.GuardExpression, "Guard Expression");
+        }
+
+        public override void VisitTranslatedQueryExpression(ITranslatedQueryExpression operation)
+        {
+            LogString(nameof(ITranslatedQueryExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+        }
+
+        public override void VisitRaiseEventStatement(IRaiseEventStatement operation)
+        {
+            LogString(nameof(IRaiseEventStatement));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.EventReference, header: "Event Reference");
+            VisitArguments(operation);
         }
 
         #endregion

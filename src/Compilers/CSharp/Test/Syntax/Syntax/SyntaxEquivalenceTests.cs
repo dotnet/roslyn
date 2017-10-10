@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "";
             var tree1 = SyntaxFactory.ParseSyntaxTree(text);
-            var tree2 = tree1.WithInsertAt(0, "/* foo */");
+            var tree2 = tree1.WithInsertAt(0, "/* goo */");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
             VerifyEquivalent(tree1, tree2, topLevel: false);
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestRenameInner()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Foo() { int z = 0; } } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Goo() { int z = 0; } } }");
             var tree2 = tree1.WithReplaceFirst("z", "y");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestRenameInnerToSameName()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Foo() { int z = 0; } } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Goo() { int z = 0; } } }");
             var tree2 = tree1.WithReplaceFirst("z", "z");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAddingMethod()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { } }");
-            var tree2 = tree1.WithInsertBefore("}", "void Foo() { } ");
+            var tree2 = tree1.WithInsertBefore("}", "void Goo() { } ");
 
             VerifyNotEquivalent(tree1, tree2, topLevel: true);
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAddingLocal()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Foo() { } } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Goo() { } } }");
             var tree2 = tree1.WithInsertBefore("}", "int i; ");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestRemovingLocal()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Foo() { int i; } } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Goo() { int i; } } }");
             var tree2 = tree1.WithRemoveFirst("int i;");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangingConstLocal()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Foo() { const int i = 5; } } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Goo() { const int i = 5; } } }");
             var tree2 = tree1.WithReplaceFirst("5", "6");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangingMethodCall()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Foo() { Console.Write(0); } } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Goo() { Console.Write(0); } } }");
             var tree2 = tree1.WithReplaceFirst("Write", "WriteLine");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangingUsing()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("using System; namespace N { class C { void Foo() { Console.Write(0); } } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("using System; namespace N { class C { void Goo() { Console.Write(0); } } }");
             var tree2 = tree1.WithReplaceFirst("System", "System.Linq");
 
             VerifyNotEquivalent(tree1, tree2, topLevel: true);
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangingBaseType()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { Console.Write(0); } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { Console.Write(0); } }");
             var tree2 = tree1.WithInsertBefore("{", ": B ");
 
             VerifyNotEquivalent(tree1, tree2, topLevel: true);
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangingMethodType()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { Console.Write(0); } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { Console.Write(0); } }");
             var tree2 = tree1.WithReplaceFirst("void", "int");
 
             VerifyNotEquivalent(tree1, tree2, topLevel: true);
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAddComment()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { Console.Write(0); } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { Console.Write(0); } }");
             var tree2 = tree1.WithInsertBefore("class", "// Comment\r\n");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCommentOutCode()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { Console.Write(0); } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { Console.Write(0); } }");
             var tree2 = tree1.WithInsertBefore("class", "// ");
 
             VerifyNotEquivalent(tree1, tree2, topLevel: true);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAddDocComment()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { Console.Write(0); } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { Console.Write(0); } }");
             var tree2 = tree1.WithInsertBefore("class", "/// Comment\r\n");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCommentOutMethodCode()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { Console.Write(0); } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { Console.Write(0); } }");
             var tree2 = tree1.WithReplaceFirst("Console.Write(0);", "/* Console.Write(0); */");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -345,8 +345,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCommentOutMethod()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { } }");
-            var tree2 = tree1.WithReplaceFirst("void Foo() { }", "/* void Foo() { } */");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { } }");
+            var tree2 = tree1.WithReplaceFirst("void Goo() { }", "/* void Goo() { } */");
 
             VerifyNotEquivalent(tree1, tree2, topLevel: true);
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
@@ -355,8 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSurroundMethodWithActivePPRegion()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { } }");
-            var tree2 = tree1.WithReplaceFirst("void Foo() { }", "\r\n#if true\r\n void Foo() { }\r\n#endif\r\n");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { } }");
+            var tree2 = tree1.WithReplaceFirst("void Goo() { }", "\r\n#if true\r\n void Goo() { }\r\n#endif\r\n");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
             VerifyEquivalent(tree1, tree2, topLevel: false);
@@ -365,8 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSurroundMethodWithInactivePPRegion()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { } }");
-            var tree2 = tree1.WithReplaceFirst("void Foo() { }", "\r\n#if false\r\n void Foo() { }\r\n#endif\r\n");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { } }");
+            var tree2 = tree1.WithReplaceFirst("void Goo() { }", "\r\n#if false\r\n void Goo() { }\r\n#endif\r\n");
 
             VerifyNotEquivalent(tree1, tree2, topLevel: true);
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSurroundStatementWithActivePPRegion()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { int i; } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { int i; } }");
             var tree2 = tree1.WithReplaceFirst("int i;", "\r\n#if true\r\n int i;\r\n#endif\r\n");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSurroundStatementWithInactivePPRegion()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { int i; } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { int i; } }");
             var tree2 = tree1.WithReplaceFirst("int i;", "\r\n#if false\r\n int i;\r\n#endif\r\n");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -395,8 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAddLotsOfComments()
         {
-            var text = "class C { void Foo() { int i; } }";
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { int i; } }");
+            var text = "class C { void Goo() { int i; } }";
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { int i; } }");
             var tree2 = SyntaxFactory.ParseSyntaxTree(text.Replace(" ", " /**/ "));
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -406,8 +406,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeWhitespace()
         {
-            var text = "class C { void Foo() { int i; } }";
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Foo() { int i; } }");
+            var text = "class C { void Goo() { int i; } }";
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void Goo() { int i; } }");
             var tree2 = SyntaxFactory.ParseSyntaxTree(text.Replace(" ", "  "));
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUpdateInterpolatedString()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Foo() { Console.Write($\"Hello{123:N1}\"); } } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Goo() { Console.Write($\"Hello{123:N1}\"); } } }");
             var tree2 = tree1.WithReplaceFirst("N1", "N2");
 
             VerifyEquivalent(tree1, tree2, topLevel: true);

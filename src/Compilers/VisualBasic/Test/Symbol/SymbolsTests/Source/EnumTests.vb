@@ -367,7 +367,7 @@ BC30396: 'MustInherit' is not valid on an Enum declaration.
 BC30178: Specifier is duplicated.
     Private Private Enum Figure4
             ~~~~~~~
-BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.
+BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.
     Private Public Enum Figure5
             ~~~~~~
 BC30280: Enum 'Figure5' must contain at least one member.
@@ -398,7 +398,7 @@ BC30396: 'NotInheritable' is not valid on an Enum declaration.
 <compilation name="C">
     <file name="a.vb">
          Enum ColorA
-            Private Sub foo()
+            Private Sub goo()
              End Sub
          End Enum
     </file>
@@ -887,7 +887,7 @@ Enum ABC
     c
 End Enum
 Class c1
-    Public Function Foo(Optional o As ABC = ABC.a Or ABC.b) As Integer
+    Public Function Goo(Optional o As ABC = ABC.a Or ABC.b) As Integer
         Return 0
     End Function
     Public Function Moo(Optional o As Object = ABC.a) As Integer
@@ -941,12 +941,12 @@ End Enum
 <compilation>
     <file name="a.vb">
 Enum E
-    foo:
+    goo:
 End Enum
     </file>
 </compilation>
             CompilationUtils.CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                    Diagnostic(ERRID.ERR_InvInsideEnum, "foo:"))
+                    Diagnostic(ERRID.ERR_InvInsideEnum, "goo:"))
         End Sub
 
 
@@ -1042,10 +1042,10 @@ End Enum
                 ValueWorks10 = New B(Sub() Exit Sub).X
                 ValueWorks11 = New D(Function() 23).X
 
-                ValueDoesntWork1 = foo()                       
+                ValueDoesntWork1 = goo()                       
             End Enum
 
-        Public Function foo() As Integer
+        Public Function goo() As Integer
             Return 23
         End Function
 
@@ -1085,7 +1085,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
                 ValueWorks11 = New D(Function() 23).X
                                ~~~~~~~~~~~~~~~~~~~~~~
 BC30059: Constant expression is required.
-                ValueDoesntWork1 = foo()                       
+                ValueDoesntWork1 = goo()                       
                                    ~~~~~
 </errors>)
         End Sub

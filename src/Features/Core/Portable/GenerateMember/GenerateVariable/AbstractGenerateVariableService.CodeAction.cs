@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         accessibility: DetermineMaximalAccessibility(_state),
                         modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                         type: _state.TypeMemberType,
-                        returnsByRef: _returnsByRef,
+                        refKind: _returnsByRef ? RefKind.Ref : RefKind.None,
                         explicitInterfaceImplementations: default,
                         name: _state.IdentifierToken.ValueText,
                         isIndexer: _state.IsIndexer,
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     // NOTE(cyrusn): We only generate protected in the case of statics.  Consider
                     // the case where we're generating into one of our base types.  i.e.:
                     //
-                    // class B : A { void Foo() { A a; a.Foo(); }
+                    // class B : A { void Goo() { A a; a.Goo(); }
                     //
                     // In this case we can *not* mark the method as protected.  'B' can only
                     // access protected members of 'A' through an instance of 'B' (or a subclass
@@ -176,9 +176,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     //
                     // However, this does not apply if the method will be static.  i.e.
                     // 
-                    // class B : A { void Foo() { A.Foo(); }
+                    // class B : A { void Goo() { A.Goo(); }
                     //
-                    // B can access the protected statics of A, and so we generate 'Foo' as
+                    // B can access the protected statics of A, and so we generate 'Goo' as
                     // protected.
                     return Accessibility.Protected;
                 }

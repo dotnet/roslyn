@@ -25,7 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// but only for code cases where the user has provided an appropriate variable name in
     /// code that can be used).
     /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    //
+    // disabled for preview 1 due to some perf issue. 
+    // we will re-enable it once the issue is addressed.
+    // https://devdiv.visualstudio.com/DevDiv/_workitems?id=504089&_a=edit&triage=true 
+    // [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
@@ -36,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         public override bool OpenFileOnly(Workspace workspace) => false;
 
         public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckId,
+            : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

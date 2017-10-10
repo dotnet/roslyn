@@ -35,14 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
 
         private void Test(string markup, bool isMissing, bool isLine, ParseOptions options = null)
         {
-            int? position;
-            TextSpan? expectedSpan;
-            string source;
-            MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
+            MarkupTestFile.GetPositionAndSpan(
+                markup, out var source, out var position, out TextSpan? expectedSpan);
             var tree = SyntaxFactory.ParseSyntaxTree(source, options);
 
-            TextSpan breakpointSpan;
-            bool hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(tree, position.Value, CancellationToken.None, out breakpointSpan);
+            bool hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(
+                tree, position.Value, CancellationToken.None, out var breakpointSpan);
 
             if (isLine)
             {
@@ -81,8 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             int lastSpanEnd = 0;
             while (position < endPosition)
             {
-                TextSpan span;
-                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span) && span.End > lastSpanEnd)
+                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out var span) && span.End > lastSpanEnd)
                 {
                     position = lastSpanEnd = span.End;
                     yield return span;
@@ -102,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             TestAll(@"
 class C
 {
-    void Foo()
+    void Goo()
     $$[|{|]
         [|int d = 5;|]
         [|int a = 1|], [|b = 2|], [|c = 3|];
@@ -136,7 +133,7 @@ class C
             TestAll(@"
 class C
 {
-    void Foo()
+    void Goo()
     $$[|{|]
         do
         [|{|]
@@ -162,7 +159,7 @@ class C
             TestAll(@"
 class C
 {
-    int Foo()
+    int Goo()
     $$[|{|]
         [|switch(a)|]
         {
@@ -191,10 +188,10 @@ class C
             TestAll(@"
 class C
 {
-    IEnumerable<int> Foo()
+    IEnumerable<int> Goo()
     $$[|{|]
         [|yield return 1;|]
-        [|foreach|] ([|var f|] [|in|] [|Foo()|])
+        [|foreach|] ([|var f|] [|in|] [|Goo()|])
         [|{|]
             [|using (z)|]
             using ([|var q = null|])
@@ -215,7 +212,7 @@ class C
             TestAll(@"
 class C
 {
-    IEnumerable<int> Foo()
+    IEnumerable<int> Goo()
     $$[|{|][|while(t)|][|{|][|}|][|}|]
 }");
         }
@@ -226,7 +223,7 @@ class C
             TestAll(@"
 class C
 {
-    IEnumerable<int> Foo()
+    IEnumerable<int> Goo()
     $$[|{|]
         checked 
         [|{|]
@@ -253,7 +250,7 @@ class C
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
 $$    for ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
     {
@@ -268,7 +265,7 @@ $$    for ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     f$$or ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
     {
@@ -283,7 +280,7 @@ $$    for ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     for ([|i $$= 0|], j = 0; i < 10 && j < 10; i++, j++)
     {
@@ -298,7 +295,7 @@ $$    for ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     for 
 $$    (          
@@ -315,7 +312,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     for (i = 0, [|$$j = 0|]; i < 10 && j < 10; i++, j++)
     {
@@ -336,7 +333,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     for (i = 0, j = 0; [|i < 10 && j < $$10|]; i++, j++)
     {
@@ -351,7 +348,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     for (i = 0, j = 0; i < 10 && j < 10; [|i+$$+|], j++)
     {
@@ -366,7 +363,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     for (i = 0, j = 0; i < 10 && j < 10; i++, [|$$j++|])
     {
@@ -381,9 +378,9 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    foreach (var v in [|Foo().B$$ar()|])
+    foreach (var v in [|Goo().B$$ar()|])
     {
     }
   }
@@ -396,9 +393,9 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    foreach (var (x, y) in [|Foo().B$$ar()|])
+    foreach (var (x, y) in [|Goo().B$$ar()|])
     {
     }
   }
@@ -413,9 +410,9 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    Func<string> f = s => [|F$$oo()|];
+    Func<string> f = s => [|G$$oo()|];
   }
 }");
         }
@@ -426,9 +423,9 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    Func<string> f = (s, i) => [|F$$oo()|];
+    Func<string> f = (s, i) => [|G$$oo()|];
   }
 }");
         }
@@ -439,7 +436,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     Func<int> f = delegate [|$${|] return 1; };
   }
@@ -452,7 +449,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     Func<int> f = delegate { [|$$return 1;|] };
   }
@@ -469,7 +466,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|var q = from x in bl$$ah()
             from y in quux().z()
@@ -484,7 +481,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             from y in [|quux().z$$()|]
@@ -499,7 +496,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             from y in quux().z()
@@ -516,7 +513,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             from y in quux().z()
@@ -533,7 +530,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on [|left().exp$$r()|] equals right().expr()
@@ -548,7 +545,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals [|righ$$t().expr()|]
@@ -563,7 +560,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
@@ -579,7 +576,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
@@ -595,7 +592,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             whe$$re [|expr().expr()|]
@@ -610,7 +607,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
@@ -626,11 +623,11 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
-            orderby foo, [|expr().$$expr()|]
+            orderby goo, [|expr().$$expr()|]
             select y;
   }
 }");
@@ -642,7 +639,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
@@ -658,11 +655,11 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
-            orderby foo, [|expr().$$expr()|] ascending
+            orderby goo, [|expr().$$expr()|] ascending
             select y;
   }
 }");
@@ -674,7 +671,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
@@ -690,11 +687,11 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
-            orderby foo, [|expr().$$expr()|] descending
+            orderby goo, [|expr().$$expr()|] descending
             select y;
   }
 }");
@@ -718,11 +715,11 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
-            orderby foo, expr().expr() descending
+            orderby goo, expr().expr() descending
             select [|y.$$blah()|];
   }
 }");
@@ -750,12 +747,12 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
-            orderby foo, expr().expr() descending
-            group [|bar()$$.foo()|] by blah().zap()
+            orderby goo, expr().expr() descending
+            group [|bar()$$.goo()|] by blah().zap()
             select y.blah();
   }
 }");
@@ -767,12 +764,12 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
-            orderby foo, expr().expr() descending
-            group [|bar().foo()|] b$$y blah().zap()
+            orderby goo, expr().expr() descending
+            group [|bar().goo()|] b$$y blah().zap()
             select y.blah();
   }
 }");
@@ -784,12 +781,12 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q = from x in blah()
             join a in alpha on left().expr() equals right.expr()
-            orderby foo, expr().expr() descending
-            group bar().foo() by [|blah()$$.zap()|]
+            orderby goo, expr().expr() descending
+            group bar().goo() by [|blah()$$.zap()|]
             select y.blah();
   }
 }");
@@ -801,15 +798,15 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|var q =
     $$   from x in blah()
         from y in zap()
         let m = quux()
         join a in alpha on left().expr() equals right.expr()
-        orderby foo, expr().expr() descending
-        group bar().foo() by blah().zap() into g
+        orderby goo, expr().expr() descending
+        group bar().goo() by blah().zap() into g
         select y.blah();|]
   }
 }");
@@ -821,15 +818,15 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q =
         from x in blah()
     $$   from y in [|zap()|]
         let m = quux()
         join a in alpha on left().expr() equals right.expr()
-        orderby foo, expr().expr() descending
-        group bar().foo() by blah().zap() into g
+        orderby goo, expr().expr() descending
+        group bar().goo() by blah().zap() into g
         select y.blah();
   }
 }");
@@ -841,15 +838,15 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q =
         from x in blah()
         from y in zap()
     $$   let m = [|quux()|]
         join a in alpha on left().expr() equals right.expr()
-        orderby foo, expr().expr() descending
-        group bar().foo() by blah().zap() into g
+        orderby goo, expr().expr() descending
+        group bar().goo() by blah().zap() into g
         select y.blah();
   }
 }");
@@ -861,15 +858,15 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q =
         from x in blah()
         from y in zap()
         let m = quux()
     $$   join a in alpha on [|left().expr()|] equals right.expr()
-        orderby foo, expr().expr() descending
-        group bar().foo() by blah().zap() into g
+        orderby goo, expr().expr() descending
+        group bar().goo() by blah().zap() into g
         select y.blah();
   }
 }");
@@ -881,15 +878,15 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q =
         from x in blah()
         from y in zap()
         let m = quux()
         join a in alpha on left().expr() equals right.expr()
-    $$   orderby [|foo|], expr().expr() descending
-        group bar().foo() by blah().zap() into g
+    $$   orderby [|goo|], expr().expr() descending
+        group bar().goo() by blah().zap() into g
         select y.blah();
   }
 }");
@@ -901,15 +898,15 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q =
         from x in blah()
         from y in zap()
         let m = quux()
         join a in alpha on left().expr() equals right.expr()
-        orderby foo, expr().expr() descending
-    $$   group [|bar().foo()|] by blah().zap() into g
+        orderby goo, expr().expr() descending
+    $$   group [|bar().goo()|] by blah().zap() into g
         select y.blah();
   }");
         }
@@ -920,15 +917,15 @@ $$    (
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     var q =
         from x in blah()
         from y in zap()
         let m = quux()
         join a in alpha on left().expr() equals right.expr()
-        orderby foo, expr().expr() descending
-        group bar().foo() by blah().zap() into g
+        orderby goo, expr().expr() descending
+        group bar().goo() by blah().zap() into g
     $$   select [|y.blah()|];
   }");
         }
@@ -939,7 +936,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  IEnumerable<int> Foo() => from x in new[] { 1 } select [|$$x|];
+  IEnumerable<int> Goo() => from x in new[] { 1 } select [|$$x|];
 }
 ");
         }
@@ -950,7 +947,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  IEnumerable<int> Foo() => [|from x in new[] { 1 } where x > 0 select $$x|];
+  IEnumerable<int> Goo() => [|from x in new[] { 1 } where x > 0 select $$x|];
 }
 ");
         }
@@ -961,7 +958,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  IEnumerable<int> Foo() => [|from x in new[] { 1 } select x into y orderby y select $$y|];
+  IEnumerable<int> Goo() => [|from x in new[] { 1 } select x into y orderby y select $$y|];
 }
 ");
         }
@@ -972,7 +969,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  IEnumerable<int> Foo() => from x in new[] { 1 } group x by [|$$x|];
+  IEnumerable<int> Goo() => from x in new[] { 1 } group x by [|$$x|];
 }
 ");
         }
@@ -983,7 +980,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  IEnumerable<int> Foo() => [|from x in new[] { 1 } group $$x by x|];
+  IEnumerable<int> Goo() => [|from x in new[] { 1 } group $$x by x|];
 }
 ");
         }
@@ -994,7 +991,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  IEnumerable<int> Foo() => [|from x in new[] { 1 } group $$x by x + 1 into y group y by y.Key + 2|];
+  IEnumerable<int> Goo() => [|from x in new[] { 1 } group $$x by x + 1 into y group y by y.Key + 2|];
 }
 ");
         }
@@ -1005,7 +1002,7 @@ $$    (
             TestSpan(
 @"class C
 {
-  IEnumerable<int> Foo() => [|from x in new[] { 1 } group x by x + 1 into y group $$y by y.Key + 2|];
+  IEnumerable<int> Goo() => [|from x in new[] { 1 } group x by x + 1 into y group $$y by y.Key + 2|];
 }
 ");
         }
@@ -1058,7 +1055,7 @@ $$    (
             TestSpan(
 @"class C
 {
-    [Foo]
+    [Goo]
     [|private int $$i = 0;|]
 }");
         }
@@ -1086,19 +1083,19 @@ $$    [|private int i = 3;|]
         [Fact]
         public void ConstVariableDeclarator0()
         {
-            TestMissing("class C { void Foo() { const int a = $$1; } }");
+            TestMissing("class C { void Goo() { const int a = $$1; } }");
         }
 
         [Fact]
         public void ConstVariableDeclarator1()
         {
-            TestMissing("class C { void Foo() { const $$int a = 1; } }");
+            TestMissing("class C { void Goo() { const $$int a = 1; } }");
         }
 
         [Fact]
         public void ConstVariableDeclarator2()
         {
-            TestMissing("class C { void Foo() { $$const int a = 1; } }");
+            TestMissing("class C { void Goo() { $$const int a = 1; } }");
         }
 
         [Fact]
@@ -1123,7 +1120,7 @@ $$    [|private int i = 3;|]
         [WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         public void VariableDeclarator0()
         {
-            TestMissing("class C { void Foo() { int$$ } }");
+            TestMissing("class C { void Goo() { int$$ } }");
         }
 
         [Fact]
@@ -1132,7 +1129,7 @@ $$    [|private int i = 3;|]
             TestMissing(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int $$i;
   }
@@ -1145,7 +1142,7 @@ $$    [|private int i = 3;|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|int $$i = 0;|]
   }
@@ -1158,7 +1155,7 @@ $$    [|private int i = 3;|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
   $$  [|int i = 0;|]
   }
@@ -1171,7 +1168,7 @@ $$    [|private int i = 3;|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|$$int i = 0;|]
   }
@@ -1184,33 +1181,33 @@ $$    [|private int i = 3;|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int i = 0, [|$$j = 3|];
   }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
+        [Fact]
         public void VariableDeclarator3b()
         {
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|int i = 0|], $$j;
   }
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
+        [Fact]
         public void VariableDeclarator3c()
         {
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int $$i, [|j = 0|];
   }
@@ -1223,7 +1220,7 @@ $$    [|private int i = 3;|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int i = 0, [|j = $$1|];
   }
@@ -1292,7 +1289,7 @@ $$  [|private int i = 0|], j = 1;
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
 $$    [|int i = 0|], j = 1, k = 2;
   }
@@ -1305,7 +1302,7 @@ $$    [|int i = 0|], j = 1, k = 2;
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|int i = 0|]$$, j = 1, k = 2;
   }
@@ -1318,7 +1315,7 @@ $$    [|int i = 0|], j = 1, k = 2;
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int i = 0, [|j = 1|]$$, k = 2;
   }
@@ -1331,7 +1328,7 @@ $$    [|int i = 0|], j = 1, k = 2;
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int i = 0, j = 1,$$ [|k = 2|];
   }
@@ -1344,7 +1341,7 @@ $$    [|int i = 0|], j = 1, k = 2;
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int i = 0, j = 1, [|k = 2|]$$;
   }
@@ -1357,7 +1354,7 @@ $$    [|int i = 0|], j = 1, k = 2;
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|int i = 0|], j = 1, k = 2;$$
   }
@@ -1370,7 +1367,7 @@ $$    [|int i = 0|], j = 1, k = 2;
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int i = 1, j, $$k, [|l = 2|];
   }
@@ -1383,7 +1380,7 @@ $$    [|int i = 0|], j = 1, k = 2;
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int i$$, j, k, [|l = 2|];
   }
@@ -1396,7 +1393,7 @@ $$    [|int i = 0|], j = 1, k = 2;
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|int i = 2|], j, k, l$$;
   }
@@ -1409,7 +1406,7 @@ $$    [|int i = 0|], j = 1, k = 2;
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int i, j, [|k = 1|], m, l = 2;$$
   }
@@ -1499,19 +1496,19 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         [Fact]
         public void EventAccessorAdd()
         {
-            TestSpan("class C { eve$$nt Action Foo { add [|{|] } remove { } } }");
+            TestSpan("class C { eve$$nt Action Goo { add [|{|] } remove { } } }");
         }
 
         [Fact]
         public void EventAccessorAdd2()
         {
-            TestSpan("class C { event Action Foo { ad$$d [|{|] } remove { } } }");
+            TestSpan("class C { event Action Goo { ad$$d [|{|] } remove { } } }");
         }
 
         [Fact]
         public void EventAccessorRemove()
         {
-            TestSpan("class C { event Action Foo { add { } $$remove [|{|] } } }");
+            TestSpan("class C { event Action Goo { add { } $$remove [|{|] } } }");
         }
 
         [Fact]
@@ -1520,7 +1517,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     if (bar)
     {
@@ -1538,13 +1535,13 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     if (bar)
     {
     }
     el$$se
-      [|Foo();|]
+      [|Goo();|]
   }
 }");
         }
@@ -1555,13 +1552,13 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     if (bar)
     {
     }
     el$$se [|if (baz)|]
-      Foo();
+      Goo();
   }
 }");
         }
@@ -1572,7 +1569,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
@@ -1590,7 +1587,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
@@ -1608,7 +1605,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
@@ -1626,7 +1623,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
@@ -1644,7 +1641,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
@@ -1662,7 +1659,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
@@ -1680,7 +1677,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
@@ -1698,12 +1695,12 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
     }
-    catch(Exception e) [|if$$ (e.Message != null)|]
+    catch(Exception e) [|when$$ (e.Message != null)|]
     {
     }
   }
@@ -1716,12 +1713,12 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
     }
-    catch(Exception e) [|if (e.Message != null)|]      $$
+    catch(Exception e) [|when (e.Message != null)|]      $$
     {
     }
   }
@@ -1734,7 +1731,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
@@ -1752,7 +1749,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
     {
@@ -1773,9 +1770,9 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    switch (foo)
+    switch (goo)
     {
         case $$1:
             [|{|]
@@ -1791,12 +1788,12 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    switch (foo)
+    switch (goo)
     {
         cas$$e 1:
-            [|foo();|]
+            [|goo();|]
     }
   }
 }");
@@ -1808,12 +1805,12 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    switch (foo)
+    switch (goo)
     {
         cas$$e 1:
-            [|foo();|]
+            [|goo();|]
             bar();
     }
   }
@@ -1832,13 +1829,13 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    switch (foo)
+    switch (goo)
     {
         cas$$e 1:
         case 2:
-            [|foo();|]
+            [|goo();|]
 
         case 3:
         default:
@@ -1854,13 +1851,13 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    switch (foo)
+    switch (goo)
     {
         case 1:
         cas$$e 2:
-            [|foo();|]
+            [|goo();|]
 
         case 3:
         default:
@@ -1876,13 +1873,13 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    switch (foo)
+    switch (goo)
     {
         case 1:
         case 2:
-            foo();
+            goo();
 
         cas$$e 3:
         default:
@@ -1898,13 +1895,13 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    switch (foo)
+    switch (goo)
     {
         case 1:
         case 2:
-            foo();
+            goo();
 
         case 3:
         default:$$
@@ -1920,7 +1917,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   [|$${|]
     
   }
@@ -1933,7 +1930,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   $$ [|{|]
     
   }
@@ -1946,7 +1943,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   [|{$$|]
     
   }
@@ -1959,7 +1956,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   [|{|] $$
     
   }
@@ -1972,7 +1969,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   { 
   $$[|}|]
 }");
@@ -1984,7 +1981,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   { 
   $$ [|}|]
 }");
@@ -1996,7 +1993,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   { 
   [|}|]$$
 }");
@@ -2008,7 +2005,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   { 
   [|}|] $$
 }");
@@ -2020,7 +2017,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestMissing(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     i$$nt i;
   }
@@ -2033,7 +2030,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|i$$nt i = 0|], j = 1;
   }
@@ -2046,9 +2043,9 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    fo$$o:
+    go$$o:
         [|bar();|]
   }
 }");
@@ -2060,7 +2057,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|w$$hile (expr)|]
     {
@@ -2075,7 +2072,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|while (ex$$pr)|]
     {
@@ -2090,7 +2087,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     while (expr)
   $$ [|{|]
@@ -2105,7 +2102,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     d$$o
     [|{|]
@@ -2121,7 +2118,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     do
   $$ [|{|]
@@ -2137,7 +2134,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     do
     {
@@ -2153,7 +2150,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     do
     {
@@ -2169,7 +2166,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     do
     {
@@ -2185,7 +2182,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     f$$or ([|int i = 0|], j = 1; i < 10 && j < 10; i++, j++)
     {
@@ -2200,7 +2197,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     f$$or ([|int i = 0|]; i < 10 && j < 10; i++, j++)
     {
@@ -2215,7 +2212,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     f$$or (; [|i < 10 && j < 10|]; i++, j++)
     {
@@ -2230,7 +2227,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     f$$or (; ; [|i++|], j++)
     {
@@ -2245,7 +2242,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     f$$or (; ; [|i++|])
     {
@@ -2260,7 +2257,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     f$$or (; ; )
     [|{|]
@@ -2275,7 +2272,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
 $$    [|foreach|] (var v in expr().blah())
     {
@@ -2290,7 +2287,7 @@ $$    [|foreach|] (var v in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|fo$$reach|] (var v in expr().blah())
     {
@@ -2305,7 +2302,7 @@ $$    [|foreach|] (var v in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|foreach|]    $$    
 (var v in expr().blah())
@@ -2321,7 +2318,7 @@ $$    [|foreach|] (var v in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|foreach|]        
 $$         (var v in expr().blah())
@@ -2337,7 +2334,7 @@ $$         (var v in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|foreach|] $$(var v in expr().blah())
     {
@@ -2352,7 +2349,7 @@ $$         (var v in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (   $$   
 [|var v|] in expr().blah())
@@ -2368,7 +2365,7 @@ $$         (var v in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach ([|v$$ar v|] in expr().blah())
     {
@@ -2383,7 +2380,7 @@ $$         (var v in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach ([|var v$$v|] in expr().blah())
     {
@@ -2398,7 +2395,7 @@ $$         (var v in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var v [|i$$n|] expr().blah())
     {
@@ -2413,7 +2410,7 @@ $$         (var v in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var v 
 $$         [|in|] expr().blah())
@@ -2429,7 +2426,7 @@ $$         [|in|] expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var v 
          [|in|] $$
@@ -2446,7 +2443,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var v in [|expr($$).blah()|])
     {
@@ -2461,7 +2458,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var v in [|expr().blah()|]   
      $$    )
@@ -2477,7 +2474,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var v in 
    $$ [|expr().blah()|]   
@@ -2494,7 +2491,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|foreach|](var v in expr().blah())    $$ 
     {
@@ -2509,7 +2506,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var v in expr().blah())
   $$ [|{|]
@@ -2524,7 +2521,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
 $$    [|foreach|] (var (x, y) in expr().blah())
     {
@@ -2539,7 +2536,7 @@ $$    [|foreach|] (var (x, y) in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|fo$$reach|] (var (x, y) in expr().blah())
     {
@@ -2554,7 +2551,7 @@ $$    [|foreach|] (var (x, y) in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|foreach|]    $$    
 (var (x, y) in expr().blah())
@@ -2570,7 +2567,7 @@ $$    [|foreach|] (var (x, y) in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|foreach|]        
 $$         (var (x, y) in expr().blah())
@@ -2586,7 +2583,7 @@ $$         (var (x, y) in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|foreach|] $$(var (x, y) in expr().blah())
     {
@@ -2601,7 +2598,7 @@ $$         (var (x, y) in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (   $$   
 [|var (x, y)|] in expr().blah())
@@ -2617,7 +2614,7 @@ $$         (var (x, y) in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach ([|v$$ar (x, y)|] in expr().blah())
     {
@@ -2632,7 +2629,7 @@ $$         (var (x, y) in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach ([|var (v$$v, y)|] in expr().blah())
     {
@@ -2647,7 +2644,7 @@ $$         (var (x, y) in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var (x, y) [|i$$n|] expr().blah())
     {
@@ -2662,7 +2659,7 @@ $$         (var (x, y) in expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var (x, y) 
 $$         [|in|] expr().blah())
@@ -2678,7 +2675,7 @@ $$         [|in|] expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var (x, y) 
          [|in|] $$
@@ -2695,7 +2692,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var (x, y) in [|expr($$).blah()|])
     {
@@ -2710,7 +2707,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var (x, y) in [|expr().blah()|]   
      $$    )
@@ -2726,7 +2723,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var (x, y) in 
    $$ [|expr().blah()|]   
@@ -2743,7 +2740,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|foreach|](var (x, y) in expr().blah())    $$ 
     {
@@ -2758,7 +2755,7 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     foreach (var (x, y) in expr().blah())
   $$ [|{|]
@@ -2773,9 +2770,9 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    us$$ing ([|var v = foo()|])
+    us$$ing ([|var v = goo()|])
     {
     }
   }
@@ -2788,9 +2785,9 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    us$$ing ([|var v = foo()|], x = bar())
+    us$$ing ([|var v = goo()|], x = bar())
     {
     }
   }
@@ -2803,9 +2800,9 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    using ([|v$$ar v = foo()|])
+    using ([|v$$ar v = goo()|])
     {
     }
   }
@@ -2818,9 +2815,9 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    using ([|var v$$v = foo()|])
+    using ([|var v$$v = goo()|])
     {
     }
   }
@@ -2833,9 +2830,9 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    using ([|var vv = foo()|])     $$
+    using ([|var vv = goo()|])     $$
     {
     }
   }
@@ -2848,9 +2845,9 @@ expr().blah())
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-$$    using ([|var vv = foo()|])     
+$$    using ([|var vv = goo()|])     
     {
     }
   }
@@ -2863,9 +2860,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    using ([|var vv = fo$$o()|])
+    using ([|var vv = go$$o()|])
     {
     }
   }
@@ -2878,9 +2875,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|usi$$ng (foo().bar())|]
+    [|usi$$ng (goo().bar())|]
     {
     }
   }
@@ -2893,9 +2890,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|using (foo$$().bar())|]
+    [|using (goo$$().bar())|]
     {
     }
   }
@@ -2908,7 +2905,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     fi$$xed ([|int* i = &j|])
     {
@@ -2923,7 +2920,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     fi$$xed ([|int* i = &j|], k = &m)
     {
@@ -2938,7 +2935,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     fixed ([|i$$nt* i = &j|])
     {
@@ -2953,7 +2950,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     fixed ([|int* $$i = &j|])
     {
@@ -2968,7 +2965,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     fixed ([|int* i $$= &j|])
     {
@@ -2983,7 +2980,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     fixed ([|int* i = &$$j|])
     {
@@ -2998,7 +2995,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     che$$cked
     [|{|]
@@ -3013,7 +3010,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     unche$$cked
     [|{|]
@@ -3028,7 +3025,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     uns$$afe
     [|{|]
@@ -3043,7 +3040,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|lo$$ck (expr)|]
     {
@@ -3058,7 +3055,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|lock (ex$$pr)|]
     {
@@ -3073,9 +3070,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|i$$f (foo().bar())|]
+    [|i$$f (goo().bar())|]
     {
     }
   }
@@ -3088,9 +3085,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|if (fo$$o().bar())|]
+    [|if (go$$o().bar())|]
     {
     }
   }
@@ -3103,9 +3100,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    if (foo().bar())
+    if (goo().bar())
    $$ [|{|]
     }
   }
@@ -3118,12 +3115,12 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|swi$$tch (expr)|]
     {
         default:
-            foo();
+            goo();
     }
   }
 }");
@@ -3135,12 +3132,12 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|switch (ex$$pr)|]
     {
         default:
-            foo();
+            goo();
     }
   }
 }");
@@ -3152,12 +3149,12 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|switch (expr)|]
   $$ {
         default:
-            foo();
+            goo();
     }
   }
 }");
@@ -3169,12 +3166,12 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|switch (expr)|]
     {
         default:
-            foo();
+            goo();
   $$ }
   }
 }");
@@ -3186,7 +3183,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     t$$ry
     [|{|]
@@ -3204,7 +3201,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     try
   $$ [|{|]
@@ -3222,9 +3219,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|g$$oto foo;|]
+    [|g$$oto goo;|]
   }
 }");
         }
@@ -3235,9 +3232,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|goto fo$$o;|]
+    [|goto go$$o;|]
   }
 }");
         }
@@ -3248,7 +3245,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     switch (expr)
     {
@@ -3265,7 +3262,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     switch (expr)
     {
@@ -3282,7 +3279,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     switch (expr)
     {
@@ -3299,7 +3296,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     switch (expr)
     {
@@ -3316,7 +3313,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     switch (expr)
     {
@@ -3333,7 +3330,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     while (true)
     {
@@ -3349,7 +3346,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     while (true)
     {
@@ -3365,7 +3362,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|retu$$rn;|]
   }
@@ -3378,7 +3375,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|retu$$rn expr();|]
   }
@@ -3391,7 +3388,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|return expr$$().bar();|]
   }
@@ -3404,9 +3401,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|yi$$eld return foo().bar();|]
+    [|yi$$eld return goo().bar();|]
   }
 }");
         }
@@ -3417,9 +3414,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|yield re$$turn foo().bar();|]
+    [|yield re$$turn goo().bar();|]
   }
 }");
         }
@@ -3430,9 +3427,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|yield return foo()$$.bar();|]
+    [|yield return goo()$$.bar();|]
   }
 }");
         }
@@ -3443,7 +3440,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|yi$$eld break;|]
   }
@@ -3456,7 +3453,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|yield brea$$k;|]
   }
@@ -3469,7 +3466,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|th$$row;|]
   }
@@ -3482,9 +3479,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|thr$$ow new Foo();|]
+    [|thr$$ow new Goo();|]
   }
 }");
         }
@@ -3495,9 +3492,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|throw ne$$w Foo();|]
+    [|throw ne$$w Goo();|]
   }
 }");
         }
@@ -3508,9 +3505,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|throw new Fo$$o();|]
+    [|throw new Go$$o();|]
   }
 }");
         }
@@ -3521,9 +3518,9 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
-    [|foo().$$bar();|]
+    [|goo().$$bar();|]
   }
 }");
         }
@@ -3534,7 +3531,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|$$;|]
   }
@@ -3547,7 +3544,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     while (true)
     {
@@ -3563,7 +3560,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  int Foo
+  int Goo
   {
     g$$et
     [|{|]
@@ -3578,7 +3575,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  int Foo
+  int Goo
   {
     [|g$$et;|]
   }
@@ -3591,7 +3588,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  int Foo
+  int Goo
   {
     get
     {
@@ -3610,7 +3607,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  int Foo
+  int Goo
   {
     [|s$$et;|]
   }
@@ -3623,7 +3620,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  int F$$oo
+  int G$$oo
   {
     get
     [|{|]
@@ -3642,7 +3639,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-  int F$$oo
+  int G$$oo
   {
     [|get;|]
     set {} 
@@ -3814,7 +3811,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-    v$$oid Foo()
+    v$$oid Goo()
     [|{|]
     }
 }");
@@ -3826,7 +3823,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-    void F$$oo()
+    void G$$oo()
     [|{|]
     }
 }");
@@ -3838,7 +3835,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-    void Foo(in$$t i)
+    void Goo(in$$t i)
     [|{|]
     }
 }");
@@ -3850,7 +3847,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-    void Foo(int $$i)
+    void Goo(int $$i)
     [|{|]
     }
 }");
@@ -3862,7 +3859,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-    void Foo(int i = f$$oo)
+    void Goo(int i = g$$oo)
     [|{|]
     }
 }");
@@ -3874,7 +3871,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-    v$$oid Foo() => [|123|];
+    v$$oid Goo() => [|123|];
 }");
         }
 
@@ -3884,7 +3881,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-    void Foo() =>$$ [|123|];
+    void Goo() =>$$ [|123|];
 }");
         }
 
@@ -3894,7 +3891,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-    void Foo() => [|123|]; $$
+    void Goo() => [|123|]; $$
 }");
         }
 
@@ -3904,7 +3901,7 @@ $$    using ([|var vv = foo()|])
             TestSpan(
 @"class C
 {
-    void Foo() => [|12$$3|]; 
+    void Goo() => [|12$$3|]; 
 }");
         }
 
@@ -3914,7 +3911,7 @@ $$    using ([|var vv = foo()|])
             TestMissing(
 @"class C
 {
-    void Foo($$);
+    void Goo($$);
 }");
         }
 
@@ -4153,7 +4150,7 @@ $$    using ([|var vv = foo()|])
 @"class C
 {
 $$ [method: Obsolete]
-  void Foo()
+  void Goo()
   [|{|]
   }
 }");
@@ -4167,7 +4164,7 @@ $$ [method: Obsolete]
 @"
 
 #if blahblah
-$$fooby
+$$gooby
 #endif");
         }
 
@@ -4179,7 +4176,7 @@ $$fooby
 @"
 clas C
 {
-    void Foo()
+    void Goo()
     {
 $$        int
     }
@@ -4258,7 +4255,7 @@ $$        int
 {
   string s;
   bool b;
-  void Foo()
+  void Goo()
   {
     switch (s)
     {
@@ -4277,7 +4274,7 @@ $$      case string s [|when b|]:
 {
   string s;
   bool b;
-  void Foo()
+  void Goo()
   {
     switch (s)
     {
@@ -4296,7 +4293,7 @@ $$      case string s [|when b|]:
 {
   string s;
   bool b;
-  void Foo()
+  void Goo()
   {
     switch (s)
     {
@@ -4315,7 +4312,7 @@ $$      case string s [|when b|]:
 {
   string s;
   bool b;
-  void Foo()
+  void Goo()
   {
     switch (s)
     {
@@ -4335,7 +4332,7 @@ $$      case string s:
 {
   string s;
   bool b;
-  void Foo()
+  void Goo()
   {
     switch (s)
     {
@@ -4355,7 +4352,7 @@ $$      case string s:
 {
   string s;
   bool b;
-  void Foo()
+  void Goo()
   {
     switch (s)
     {
@@ -4373,7 +4370,7 @@ $$      case string s:
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
 $$    [|var (x, y) = (1, 2);|]
   }
@@ -4386,7 +4383,7 @@ $$    [|var (x, y) = (1, 2);|]
             TestSpan(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|var (x, y) = $$(1, 2);|]
   }
@@ -4439,7 +4436,7 @@ $$    [|var (x, y) = (1, 2);|]
             TestSpan(
 @"class C
 {
-$$    public event Action Foo { add => [|123|]; remove => 456; }
+$$    public event Action Goo { add => [|123|]; remove => 456; }
 }");
         }
 
@@ -4449,7 +4446,7 @@ $$    public event Action Foo { add => [|123|]; remove => 456; }
             TestSpan(
 @"class C
 {
-    public event Action Foo { add => [|123|];$$ remove => 456; }
+    public event Action Goo { add => [|123|];$$ remove => 456; }
 }");
         }
 
@@ -4459,7 +4456,7 @@ $$    public event Action Foo { add => [|123|]; remove => 456; }
             TestSpan(
 @"class C
 {
-    public event Action Foo { add => 123; $$remove => [|456|]; }
+    public event Action Goo { add => 123; $$remove => [|456|]; }
 }");
         }
 
@@ -4469,7 +4466,7 @@ $$    public event Action Foo { add => [|123|]; remove => 456; }
             TestSpan(
 @"class C
 {
-    public event Action Foo { add => 123; remove => [|456|]; }$$
+    public event Action Goo { add => 123; remove => [|456|]; }$$
 }");
         }
 
@@ -4657,6 +4654,19 @@ $$        int Local(object[] a) => [|a.Length|];
     {
         int Local(object[] a) => [|a.Length|];$$
     }
+}");
+        }
+
+        [Fact, WorkItem(98990, "https://developercommunity.visualstudio.com/content/problem/98990/cant-set-breakpoint.html")]
+        public void IncompleteExpressionStatement()
+        {
+            TestSpan(
+@"class C
+{
+  void Goo()
+  {
+    [|$$aaa|]
+  }
 }");
         }
     }

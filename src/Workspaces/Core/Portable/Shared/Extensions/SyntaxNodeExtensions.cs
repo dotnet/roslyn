@@ -47,7 +47,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TNode GetAncestor<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            return node?.GetAncestors<TNode>().FirstOrDefault();
+            var current = node.Parent;
+            while (current != null)
+            {
+                if (current is TNode tNode)
+                {
+                    return tNode;
+                }
+
+                current = current.GetParent();
+            }
+
+            return null;
         }
 
         public static TNode GetAncestorOrThis<TNode>(this SyntaxNode node)
@@ -532,8 +543,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (trivia.HasStructure)
                 {
-                    var skippedTokensTrivia = trivia.GetStructure() as ISkippedTokensTriviaSyntax;
-                    if (skippedTokensTrivia != null)
+                    if (trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
                     {
                         foreach (var token in skippedTokensTrivia.Tokens)
                         {
@@ -563,8 +573,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (trivia.HasStructure)
                 {
-                    var skippedTokensTrivia = trivia.GetStructure() as ISkippedTokensTriviaSyntax;
-                    if (skippedTokensTrivia != null)
+                    if (trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
                     {
                         foreach (var token in skippedTokensTrivia.Tokens)
                         {

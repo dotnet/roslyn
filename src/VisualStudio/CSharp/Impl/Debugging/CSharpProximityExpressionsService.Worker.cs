@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             {
                 var block = GetImmediatelyContainingBlock();
 
-                // if we're the start of a "catch(Foo e)" clause, then add "e".
+                // if we're the start of a "catch(Goo e)" clause, then add "e".
                 if (block != null && block.IsParentKind(SyntaxKind.CatchClause))
                 {
                     var catchClause = (CatchClauseSyntax)block.Parent;
@@ -171,8 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 
                 StatementSyntax previousStatement;
 
-                var block = _parentStatement as BlockSyntax;
-                if (block != null &&
+                if (_parentStatement is BlockSyntax block &&
                     block.CloseBraceToken == _token)
                 {
                     // If we're at the last brace of a block, use the last

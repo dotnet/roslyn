@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
-                IsValidRefDeclarationOrAssignmentContext(syntaxTree, position, context, cancellationToken) ||
+                IsValidRefExpressionContext(syntaxTree, position, context, cancellationToken) ||
                 context.IsDelegateReturnTypeContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, RefGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     cancellationToken: cancellationToken);
         }
 
-        private static bool IsValidRefDeclarationOrAssignmentContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidRefExpressionContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // {
             //     ref var x ...
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // 
-            //  ref Foo(int x, ...
+            //  ref Goo(int x, ...
             // 
             if (context.IsGlobalStatementContext)
             {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 case SyntaxKind.ReturnKeyword:
                     return true;
 
-                    // {
+                // {
                 //     () => ref ...
                 // 
                 case SyntaxKind.EqualsGreaterThanToken:
@@ -125,6 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 // 
                 case SyntaxKind.EqualsToken:
                     return token.Parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
+
+                // {
+                //     var x = true ?
+                //     var x = true ? ref y :
+                case SyntaxKind.QuestionToken:
+                case SyntaxKind.ColonToken:
+                    return token.Parent?.Kind() == SyntaxKind.ConditionalExpression;
             }
 
             return false;

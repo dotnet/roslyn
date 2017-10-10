@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Globalization
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
@@ -74,7 +75,7 @@ End Namespace
             Dim code =
 <Code>
 Class A
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -82,8 +83,8 @@ End Class
 Class B
     Inherits A
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Overridable Sub Bar()
@@ -94,8 +95,8 @@ End Class
 Class C
     Inherits B
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Public Overrides Sub Bar()
@@ -112,7 +113,7 @@ End Class
                 list = list.GetMemberList(0)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "ToString() As String",
                     "Equals(Object) As Boolean",
                     "Equals(Object, Object) As Boolean",
@@ -130,7 +131,7 @@ End Class
             Dim code =
 <Code>
 Class A
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -138,8 +139,8 @@ End Class
 Class B
     Inherits A
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Overridable Sub Bar()
@@ -150,8 +151,8 @@ End Class
 Class C
     Inherits B
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Public Overrides Sub Bar()
@@ -168,7 +169,7 @@ End Class
                 list = list.GetMemberList(1)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "Bar()",
                     "ToString() As String",
                     "Equals(Object) As Boolean",
@@ -187,7 +188,7 @@ End Class
             Dim code =
 <Code>
 Class A
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -195,8 +196,8 @@ End Class
 Class B
     Inherits A
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Overridable Sub Bar()
@@ -207,8 +208,8 @@ End Class
 Class C
     Inherits B
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Public Overrides Sub Bar()
@@ -225,7 +226,7 @@ End Class
                 list = list.GetMemberList(2)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "Bar()",
                     "ToString() As String",
                     "Equals(Object) As Boolean",
@@ -754,7 +755,7 @@ End Namespace
 </Code>
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code)),
-                    testCulture As New CultureContext("en-US")
+                    testCulture As New CultureContext(New CultureInfo("en-US", useUserOverride:=False))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetNamespaceList(0)

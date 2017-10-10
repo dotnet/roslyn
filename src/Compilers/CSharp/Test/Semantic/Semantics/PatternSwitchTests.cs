@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             case var n:
                 break;
-            case ""foo"": ; // error: subsumed by previous case
+            case ""goo"": ; // error: subsumed by previous case
             case null: ; // error: subsumed by previous case
         }
     }
@@ -130,8 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case "foo": ; // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, @"case ""foo"":").WithLocation(10, 13),
+                //             case "goo": ; // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, @"case ""goo"":").WithLocation(10, 13),
                 // (11,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case null: ; // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case null:").WithLocation(11, 13)
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             case bool n:
                 break;
-            case ""foo"": // wrong type
+            case ""goo"": // wrong type
                 break; // unreachable
         }
     }
@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(10, 18),
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(10, 18),
                 // (11,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
@@ -363,9 +363,12 @@ public class X : List<string>
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS8121: An expression of type string cannot be handled by a pattern of type int.
+                // (8,18): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //             case int i: // error: type mismatch.
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(8, 18),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17)
                 );
         }
 
@@ -552,7 +555,7 @@ null";
             case bool b: // error: subsumed
                 break; // unreachable
             default: //ok
-                break; // always considered reachable
+                break; // unreachable because a single case handles all input
         }
     }
 }";
@@ -563,7 +566,10 @@ null";
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(10, 18),
                 // (11,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable because a single case handles all input
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
                 );
         }
 
@@ -707,7 +713,7 @@ null";
 {
     public static void Main(string[] args)
     {
-        switch (""foo"")
+        switch (""goo"")
         {
             case null when true:
                 break;
@@ -767,28 +773,28 @@ null";
             case true:
             case false:
                 break;
-            case ""foo"": // wrong type
+            case ""goo"": // wrong type
                 break;
         }
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (11,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18),
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18),
                 // (12,17): warning CS0162: Unreachable code detected
                 //                 break;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
         }
 
@@ -2957,10 +2963,10 @@ class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (9,18): error CS8207: It is not legal to use the type 'dynamic' in a pattern.
+                // (9,18): error CS8330: It is not legal to use the type 'dynamic' in a pattern.
                 //             case dynamic x: // error 1
                 Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic"),
-                // (12,18): error CS8207: It is not legal to use the type 'dynamic' in a pattern.
+                // (12,18): error CS8330: It is not legal to use the type 'dynamic' in a pattern.
                 //         if (d is dynamic y) {} // error 2
                 Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic").WithLocation(12, 18)
                 );
@@ -3057,13 +3063,13 @@ class Program
             case System.IComparable c:
                 break;
             case 2: // error: subsumed
-                break; // unreachable
+                break; // unreachable (1)
             case int n: // error: subsumed
-                break; // unreachable
+                break; // unreachable (2)
             case var i: // error: subsumed
-                break; // unreachable
+                break; // unreachable (3)
             default:
-                break; // ok; default case is always considered reachable
+                break; // unreachable, because `var i` would catch all
         }
     }
 }
@@ -3080,14 +3086,17 @@ class Program
                 //             case var i: // error: subsumed
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var i").WithLocation(16, 18),
                 // (13,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
+                //                 break; // unreachable (1)
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17),
                 // (15,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
+                //                 break; // unreachable (2)
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 17),
                 // (17,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17)
+                //                 break; // unreachable (3)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17),
+                // (19,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable, because `var i` would catch all
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(19, 17)
                 );
         }
 
@@ -3107,7 +3116,7 @@ class Program
             case System.ValueTuple<int, int> x: // error: subsumed
                 break; // unreachable
             default:
-                break; // ok; default case is always considered reachable
+                break; // unreachable because a single case handles all input
         }
     }
 }
@@ -3120,8 +3129,11 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
                 // (11,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
-                );
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable because a single case handles all input
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
+               );
         }
 
         [Fact]
@@ -3264,6 +3276,114 @@ static class Ex
             var type = model.GetTypeInfo(node);
             Assert.Equal(SpecialType.System_Boolean, type.Type.SpecialType);
             Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
+        }
+
+        [Fact, WorkItem(20210, "https://github.com/dotnet/roslyn/issues/20210")]
+        public void SwitchOnNull_20210()
+        {
+            var source =
+@"class Sample
+{
+    void M()
+    {
+        switch (default(object))
+        {
+          case bool _:
+          case true:     // error: subsumed (1 of 12)
+          case false:    // error: subsumed (2 of 12)
+            break; // unreachable (1)
+        }
+
+        switch (new object())
+        {
+          case bool _:
+          case true:     // error: subsumed (3 of 12)
+          case false:    // error: subsumed (4 of 12)
+            break;
+        }
+
+        switch ((object)null)
+        {
+          case bool _:
+          case true:     // error: subsumed (5 of 12)
+          case false:    // error: subsumed (6 of 12)
+            break; // unreachable (2)
+        }
+
+        switch ((bool?)null)
+        {
+          case bool _:
+          case true:     // error: subsumed (7 of 12)
+          case false:    // error: subsumed (8 of 12)
+            break; // unreachable (3)
+        }
+
+        switch (default(bool?))
+        {
+          case bool _:
+          case true:     // error: subsumed (9 of 12)
+          case false:    // error: subsumed (10 of 12)
+            break; // unreachable (4)
+            // warning on the previous line missing due to https://github.com/dotnet/roslyn/issues/22125
+        }
+
+        switch (default(bool))
+        {
+          case bool _:
+          case true:     // error: subsumed (11 of 12)
+          case false:    // error: subsumed (12 of 12)
+            break;
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (8,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (1 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(8, 11),
+                // (9,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (2 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(9, 11),
+                // (16,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (3 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(16, 11),
+                // (17,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (4 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(17, 11),
+                // (24,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (5 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(24, 11),
+                // (25,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (6 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(25, 11),
+                // (32,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (7 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(32, 11),
+                // (33,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (8 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(33, 11),
+                // (40,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (9 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(40, 11),
+                // (41,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (10 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(41, 11),
+                // (49,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (11 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(49, 11),
+                // (50,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (12 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(50, 11),
+                // (10,13): warning CS0162: Unreachable code detected
+                //             break; // unreachable (1)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 13),
+                // (26,13): warning CS0162: Unreachable code detected
+                //             break; // unreachable (2)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(26, 13),
+                // (34,13): warning CS0162: Unreachable code detected
+                //             break; // unreachable (3)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(34, 13)
+                );
         }
     }
 }

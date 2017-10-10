@@ -491,7 +491,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
         }
 
-        public void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
+        private void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
         {
             AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(aref => $"{reader.GetString(aref.Name)}, {aref.Version}"));
         }

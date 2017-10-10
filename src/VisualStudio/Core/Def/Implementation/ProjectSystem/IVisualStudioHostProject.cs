@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         IVsHierarchy Hierarchy { get; }
         Guid Guid { get; }
 
-        Workspace Workspace { get; }
+        Microsoft.CodeAnalysis.Workspace Workspace { get; }
 
         /// <summary>
         /// The public display name of the project. This name is not unique and may be shared

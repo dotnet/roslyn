@@ -475,10 +475,9 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,58): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                // (4,58): error CS8328:  The parameter modifier 'params' cannot be used with 'out' 
                 //     public void Deconstruct(out int a, out string b, out params int[] c)
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "params").WithLocation(4, 58)
-                );
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "out").WithLocation(4, 58));
         }
 
         [Fact]
@@ -718,13 +717,13 @@ class C
     static void Main()
     {
         int y;
-        (Foo()[Bar()], y) = new C();
+        (Goo()[Bar()], y) = new C();
         System.Console.WriteLine($""Final array values[2] {array.values[2]}"");
     }
 
-    static SomeArray Foo()
+    static SomeArray Goo()
     {
-        System.Console.WriteLine($""Foo"");
+        System.Console.WriteLine($""Goo"");
         array = new SomeArray();
         return array;
     }
@@ -753,7 +752,7 @@ class SomeArray
 }
 ";
             var expected =
-@"Foo
+@"Goo
 Bar
 Deconstruct
 indexSet (with value 101)
@@ -4392,9 +4391,6 @@ class C
 ";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (3,2): error CS1520: Method must have a return type
-                // {
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "").WithLocation(3, 2),
                 // (4,11): error CS1001: Identifier expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(4, 11),
@@ -4419,15 +4415,18 @@ class C
                 // (4,19): error CS1519: Invalid token '1' in class, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(4, 19),
+                // (4,5): error CS1520: Method must have a return type
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "var").WithLocation(4, 5),
+                // (4,5): error CS0501: 'C.C(x, y)' must declare a body because it is not marked abstract, extern, or partial
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "var").WithArguments("C.C(x, y)").WithLocation(4, 5),
                 // (4,10): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(4, 10),
                 // (4,13): error CS0246: The type or namespace name 'y' could not be found (are you missing a using directive or an assembly reference?)
                 //     var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y").WithArguments("y").WithLocation(4, 13),
-                // (4,5): error CS0501: 'C.var(x, y)' must declare a body because it is not marked abstract, extern, or partial
-                //     var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "var").WithArguments("C.var(x, y)").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y").WithArguments("y").WithLocation(4, 13)
                 );
 
             var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
@@ -6701,11 +6700,11 @@ class C
 
     static (int, (string, long)) M()
     {
-        return (5, (""Foo"", 34983490));
+        return (5, (""Goo"", 34983490));
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "5 (Foo, 34983490)", additionalRefs: s_valueTupleRefs);
+            var comp = CompileAndVerify(source, expectedOutput: "5 (Goo, 34983490)", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -7701,6 +7700,198 @@ class C
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "once");
+        }
+
+        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [Fact]
+        public void InferredName()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        int x = 0, y = 1;
+        var t = (x, y);
+        var (a, b) = t;
+    }
+}";
+            // C# 7.0
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+            // C# 7.1
+            comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [Fact]
+        public void InferredName_ConditionalOperator()
+        {
+            var source =
+@"class C
+{
+    static void M(int a, int b, bool c)
+    {
+        (var x, var y) = c ? (a, default(object)) : (b, null);
+        (x, y) = c ? (a, default(string)) : (b, default(object));
+    }
+}";
+            // C# 7.0
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+            // C# 7.1
+            comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [Fact]
+        public void InferredName_ImplicitArray()
+        {
+            var source =
+@"class C
+{
+    static void M(int x)
+    {
+        int y;
+        object z;
+        (y, z) = (new [] { (x, default(object)), (2, 3) })[0];
+    }
+}";
+            // C# 7.0
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+            // C# 7.1
+            comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [Fact]
+        public void InferredName_Lambda()
+        {
+            var source =
+@"class C
+{
+    static T F<T>(System.Func<object, bool, T> f)
+    {
+        return f(null, false);
+    }
+    static void M()
+    {
+        var (x, y) = F((a, b) =>
+        {
+            if (b) return (default(object), a);
+            return (null, null);
+        });
+    }
+}";
+            // C# 7.0
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+            // C# 7.1
+            comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [Fact]
+        public void InferredName_ConditionalOperator_LongTuple()
+        {
+            var source =
+@"class C
+{
+    static void M(object a, object b, bool c)
+    {
+        var (_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) = c ?
+            (1, 2, 3, 4, 5, 6, 7, a, b, 10) :
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    }
+}";
+            // C# 7.0
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+            // C# 7.1
+            comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [Fact]
+        public void InferredName_ConditionalOperator_UseSite()
+        {
+            var source =
+@"class C
+{
+    static void M(int a, int b, bool c)
+    {
+        var (x, y) = c ? ((object)1, a) : (b, 2);
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        private T2 Item2;
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            Item1 = item1;
+            Item2 = item2;
+        }
+    }
+}";
+            // C# 7.0
+            var comp = CreateStandardCompilation(
+                source,
+                assemblyName: "39f5d0e8-2935-4207-a74d-517a8e55af08",
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics(
+                // (5,22): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly '39f5d0e8-2935-4207-a74d-517a8e55af08, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var (x, y) = c ? ((object)1, a) : (b, 2);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "c ? ((object)1, a) : (b, 2)").WithArguments("Item2", "System.ValueTuple<T1, T2>", "39f5d0e8-2935-4207-a74d-517a8e55af08, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 22));
+            // C# 7.1
+            comp = CreateStandardCompilation(
+                source,
+                assemblyName: "39f5d0e8-2935-4207-a74d-517a8e55af08",
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics(
+                // (5,22): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly '39f5d0e8-2935-4207-a74d-517a8e55af08, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var (x, y) = c ? ((object)1, a) : (b, 2);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "c ? ((object)1, a) : (b, 2)").WithArguments("Item2", "System.ValueTuple<T1, T2>", "39f5d0e8-2935-4207-a74d-517a8e55af08, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 22));
         }
     }
 }

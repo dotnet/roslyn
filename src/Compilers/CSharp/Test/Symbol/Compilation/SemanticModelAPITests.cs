@@ -239,7 +239,7 @@ class A : A {}
 @"
 partial class A 
 { 
-    void foo() { int x = y; }
+    void goo() { int x = y; }
 }
 
 class C : B {}
@@ -578,7 +578,7 @@ namespace N {
             var text = @"
 public class A 
 {
-	int foo	{	void foo() {}	} // Error
+	int goo	{	void goo() {}	} // Error
 	static int Main() {	return 1;    }
 }
 ";
@@ -660,8 +660,8 @@ using System;
 
 class Test
 {
-    public delegate void DFoo(byte i = 1);
-    protected internal void MFoo(sbyte j = 2) { }
+    public delegate void DGoo(byte i = 1);
+    protected internal void MGoo(sbyte j = 2) { }
 }
 ";
             var tree = Parse(text);
@@ -688,7 +688,7 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo(ulong x);
+    static partial void Goo(ulong x);
 }
 ";
 
@@ -697,7 +697,7 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo(ulong x)  {    }
+    static partial void Goo(ulong x)  {    }
     static int Main()  {    return 1;    }
 }
 ";
@@ -729,7 +729,7 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo<T>(T x);
+    static partial void Goo<T>(T x);
 }
 ";
 
@@ -738,7 +738,7 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo<T>(T x)  {    }
+    static partial void Goo<T>(T x)  {    }
     static int Main()  {    return 1;    }
 }
 ";
@@ -877,9 +877,9 @@ enum E { a, b, c }
 struct S
 {
     public static E sField;
-    public interface IFoo {  }
-    public IFoo GetFoo { get; set; }
-    public IFoo GetFoo2() { return null; }
+    public interface IGoo {  }
+    public IGoo GetGoo { get; set; }
+    public IGoo GetGoo2() { return null; }
 }
 
 class AnonTypeTest
@@ -888,11 +888,11 @@ class AnonTypeTest
     {
         add
         {
-            var anonType = new { a1 = new { S.sField, ifoo = new { new S().GetFoo } } };
+            var anonType = new { a1 = new { S.sField, igoo = new { new S().GetGoo } } };
         }
         remove 
         {
-            var anonType = new { a1 = new { a2 = new { a2 = S.sField, a3 = new { a3 = new S().GetFoo2() } } } };
+            var anonType = new { a1 = new { a2 = new { a2 = S.sField, a3 = new { a3 = new S().GetGoo2() } } } };
         }
     }
 }
@@ -908,7 +908,7 @@ class AnonTypeTest
                           select apsym.Name;
 
             var results = string.Join(", ", symList);
-            Assert.Equal("a1, a1, a2, a2, a3, a3, GetFoo, ifoo, sField", results);
+            Assert.Equal("a1, a1, a2, a2, a3, a3, GetGoo, igoo, sField", results);
         }
 
         [Fact(), WorkItem(542861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542861"), WorkItem(529673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529673")]
@@ -2037,7 +2037,7 @@ class C
 {
     C P
     {
-        foo
+        goo
         {
             return null;
         }
@@ -3246,7 +3246,7 @@ class C
         [Fact]
         public void BindSpeculativeAttributeWithExpressionVariable_1()
         {
-            new ObsoleteAttribute("foo");
+            new ObsoleteAttribute("goo");
 
             var source =
 @"using System;
@@ -3267,7 +3267,7 @@ class C { }";
         [Fact]
         public void BindSpeculativeAttributeWithExpressionVariable_2()
         {
-            new ObsoleteAttribute("foo");
+            new ObsoleteAttribute("goo");
 
             var source =
 @"using System;
@@ -3804,6 +3804,68 @@ using System.Dynamic;
             int spanStart = source.IndexOf("dynamic a = 5;");
             var dynamicType = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
             Assert.Equal(TypeKind.Dynamic, dynamicType.Type.TypeKind);
+        }
+
+        [Fact]
+        public void IsAccessible()
+        {
+            var source =
+@"using System;
+class A
+{
+    public int X;
+    protected int Y;
+    private protected int Z;
+}
+class B : A
+{
+    void Goo()
+    {
+        // in B.Goo
+    }
+    // in B class level
+    int field;
+}
+class C
+{
+    void Goo()
+    {
+        // in C.Goo
+    }
+}
+namespace N
+{
+    // in N
+}";
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+
+            var tree = compilation.SyntaxTrees[0];
+            var text = tree.GetText().ToString();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            int positionInB = text.IndexOf("in B class level");
+            int positionInBGoo = text.IndexOf("in B.Goo");
+            int positionInCGoo = text.IndexOf("in C.Goo");
+            int positionInN = text.IndexOf("in N");
+
+            var globalNs = compilation.GlobalNamespace;
+            var classA = (NamedTypeSymbol)globalNs.GetMembers("A").Single();
+            var fieldX = (FieldSymbol)classA.GetMembers("X").Single();
+            var fieldY = (FieldSymbol)classA.GetMembers("Y").Single();
+            var fieldZ = (FieldSymbol)classA.GetMembers("Z").Single();
+
+            Assert.True(semanticModel.IsAccessible(positionInN, fieldX));
+            Assert.False(semanticModel.IsAccessible(positionInN, fieldY));
+            Assert.False(semanticModel.IsAccessible(positionInN, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldX));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldY));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldX));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldY));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInCGoo, fieldX));
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldY));
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldZ));
         }
 
         #region "regression helper"

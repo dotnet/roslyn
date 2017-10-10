@@ -1,11 +1,15 @@
-﻿Imports Microsoft.CodeAnalysis.Semantics
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         <WorkItem(19819, "https://github.com/dotnet/roslyn/issues/19819")>
         Public Sub UsingDeclarationSyntaxNotNull()
@@ -40,6 +44,7 @@ End Module
             Assert.Same(node.UsingStatement, op.Declaration.Syntax)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         <WorkItem(19887, "https://github.com/dotnet/roslyn/issues/19887")>
         Public Sub UsingDeclarationIncompleteUsingNullDeclaration()
@@ -78,6 +83,7 @@ BC30201: Expression expected.
             Assert.Null(op.Declaration)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         <WorkItem(19887, "https://github.com/dotnet/roslyn/issues/19887")>
         Public Sub UsingDeclarationExistingVariableNullDeclaration()
@@ -110,6 +116,53 @@ End Module
             Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
 
             Assert.Null(op.Declaration)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestUsingBlock()
+            Dim source = <![CDATA[
+Imports System
+
+Module Program
+    Class C
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+    Sub Main(args As String())
+        Using c1 As C = New C, c2 As C = New C'BIND:"Using c1 As C = New C, c2 As C = New C"
+            Console.WriteLine(c1)
+        End Using
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Using')
+  Declaration: 
+    IVariableDeclarationStatement (0 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1 As ... s C = New C')
+  Value: 
+    null
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1 As ... End Using')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(c1)')
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'c1')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C) (Syntax: 'c1')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UsingBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
 End Namespace

@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                         methodDeclaration.SemicolonToken, createReturnStatementForExpression, out var block))
                 {
                     return methodDeclaration.WithExpressionBody(null)
-                                            .WithSemicolonToken(default(SyntaxToken))
+                                            .WithSemicolonToken(default)
                                             .WithBody(block)
                                             .WithAdditionalAnnotations(Formatter.Annotation);
                 }

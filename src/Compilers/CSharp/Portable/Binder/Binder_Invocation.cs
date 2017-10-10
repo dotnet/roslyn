@@ -256,6 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause)
         {
+            CheckNamedArgumentsForDynamicInvocation(arguments, diagnostics);
+
             bool hasErrors = false;
             if (expression.Kind == BoundKind.MethodGroup)
             {
@@ -331,6 +333,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 applicableMethods,
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
+        }
+
+        private void CheckNamedArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        {
+            if (arguments.Names.Count == 0)
+            {
+                return;
+            }
+
+            if (!Compilation.LanguageVersion.AllowNonTrailingNamedArguments())
+            {
+                return;
+            }
+
+            bool seenName = false;
+            for (int i = 0; i < arguments.Names.Count; i++)
+            {
+                if (arguments.Names[i] != null)
+                {
+                    seenName = true;
+                }
+                else if (seenName)
+                {
+                    Error(diagnostics, ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, arguments.Arguments[i].Syntax);
+                    return;
+                }
+            }
         }
 
         private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
@@ -579,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (HasApplicableConditionalMethod(resolution.OverloadResolutionResult))
                             {
-                                // warning CS1974: The dynamically dispatched call to method 'Foo' may fail at runtime
+                                // warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime
                                 // because one or more applicable overloads are conditional methods
                                 Error(diagnostics, ErrorCode.WRN_DynamicDispatchToConditionalMethod, syntax, methodGroup.Name);
                             }
@@ -627,15 +656,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode queryClause,
             MethodGroupResolution resolution)
         {
-            // Invocations of local functions with dynamic arguments
-            // don't need to be dispatched as dynamic invocations
-            // since they cannot be overloaded.  Instead, we'll just
-            // emit a standard call with dynamic implicit conversions
-            // for any dynamic arguments. The one exception is params
-            // arguments which cannot be targeted by dynamic arguments
-            // because there is an ambiguity between an array target
-            // and the params element target. See
-            // https://github.com/dotnet/roslyn/issues/10708
+            // Invocations of local functions with dynamic arguments don't need
+            // to be dispatched as dynamic invocations since they cannot be
+            // overloaded. Instead, we'll just emit a standard call with
+            // dynamic implicit conversions for any dynamic arguments. There
+            // are two exceptions: "params", and unconstructed generics. While
+            // implementing those cases with dynamic invocations is possible,
+            // we have decided the implementation complexity is not worth it.
+            // Refer to the comments below for the exact semantics.
 
             Debug.Assert(resolution.IsLocalFunctionInvocation);
             Debug.Assert(resolution.OverloadResolutionResult.Succeeded);
@@ -650,9 +678,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodResult = validResult.Result;
 
             // We're only in trouble if a dynamic argument is passed to the
-            // params parameter and is ambiguous at compile time between
-            // normal and expanded form i.e., there is exactly one dynamic
-            // argument to a params parameter
+            // params parameter and is ambiguous at compile time between normal
+            // and expanded form i.e., there is exactly one dynamic argument to
+            // a params parameter
+            // See https://github.com/dotnet/roslyn/issues/10708
             if (OverloadResolution.IsValidParams(localFunction) &&
                 methodResult.Kind == MemberResolutionKind.ApplicableInNormalForm)
             {
@@ -680,6 +709,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             queryClause);
                     }
                 }
+            }
+
+            // If we call an unconstructed generic local function with a
+            // dynamic argument in a place where it influences the type
+            // parameters, we need to dynamically dispatch the call (as the
+            // function must be constructed at runtime). We cannot do that, so
+            // disallow that. However, doing a specific analysis of each
+            // argument and its corresponding parameter to check if it's
+            // generic (and allow dynamic in non-generic parameters) may break
+            // overload resolution in the future, if we ever allow overloaded
+            // local functions. So, just disallow any mixing of dynamic and
+            // inferred generics. (Explicit generic arguments are fine)
+            // See https://github.com/dotnet/roslyn/issues/21317
+            if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && localFunction.IsGenericMethod)
+            {
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
+                    syntax, localFunction.Name);
+                return BindDynamicInvocation(
+                    syntax,
+                    boundMethodGroup,
+                    resolution.AnalyzedArguments,
+                    resolution.OverloadResolutionResult.GetAllApplicableMembers(),
+                    diagnostics,
+                    queryClause);
             }
 
             return BindInvocationExpressionContinued(
@@ -901,32 +955,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
-            // Skip building up a new array if the first argument doesn't have to be modified.
             ImmutableArray<BoundExpression> args;
-            if (invokedAsExtensionMethod && !ReferenceEquals(receiver, methodGroup.Receiver))
+            if (invokedAsExtensionMethod)
             {
-                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
+                BoundExpression receiverArgument;
+                ParameterSymbol receiverParameter = method.Parameters.First();
 
-                // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate
-                // conversion here.
-                Debug.Assert(method.ParameterCount > 0);
-                Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
-                builder.Add(convertedReceiver);
-
-                bool first = true;
-                foreach (BoundExpression arg in analyzedArguments.Arguments)
+                if ((object)receiver != methodGroup.Receiver)
                 {
-                    if (first)
-                    {
-                        // Skip the first argument (the receiver), since we added our own.
-                        first = false;
-                    }
-                    else
-                    {
-                        builder.Add(arg);
-                    }
+                    // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
+                    Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
+                    receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), receiverParameter.Type, diagnostics);
                 }
+                else
+                {
+                    receiverArgument = analyzedArguments.Argument(0);
+                }
+
+                if (receiverParameter.RefKind == RefKind.Ref)
+                {
+                    // If this was a ref extension method, receiverArgument must be checked for L-value constraints.
+                    // This helper method will also replace it with a BoundBadExpression if it was invalid.
+                    receiverArgument = CheckValue(receiverArgument, BindValueKind.RefOrOut, diagnostics);
+
+                    CheckFeatureAvailability(receiverArgument.Syntax, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                }
+                else if (receiverParameter.RefKind == RefKind.In)
+                {
+                    CheckFeatureAvailability(receiverArgument.Syntax, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                }
+
+                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance(analyzedArguments.Arguments.Count);
+                builder.Add(receiverArgument);
+                builder.AddRange(analyzedArguments.Arguments.Skip(1));
                 args = builder.ToImmutableAndFree();
             }
             else
@@ -980,6 +1041,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
+
+            gotError |= !CheckInvocationArgMixing(
+                node,
+                method,
+                receiver,
+                method.Parameters,
+                args,
+                argRefKinds,
+                argsToParams,
+                this.LocalScopeDepth,
+                diagnostics);
 
             if ((object)delegateTypeOpt != null)
             {

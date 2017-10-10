@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // The document
                 var markupCode = submissionElement.NormalizedValue();
-                MarkupTestFile.GetPositionAndSpans(markupCode, 
+                MarkupTestFile.GetPositionAndSpans(markupCode,
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
                 var languageServices = workspace.Services.GetLanguageServices(languageName);
@@ -462,6 +462,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var rootNamespace = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication).RootNamespace;
             var globalImports = new List<GlobalImport>();
             var reportDiagnostic = ReportDiagnostic.Default;
+            var cryptoKeyFile = default(string);
+            var strongNameProvider = default(StrongNameProvider);
+            var delaySign = default(bool?);
 
             if (compilationOptionsElement != null)
             {
@@ -477,6 +480,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 if (reportDiagnosticAttribute != null)
                 {
                     reportDiagnostic = (ReportDiagnostic)Enum.Parse(typeof(ReportDiagnostic), (string)reportDiagnosticAttribute);
+                }
+
+                var cryptoKeyFileAttribute = compilationOptionsElement.Attribute(CryptoKeyFileAttributeName);
+                if (cryptoKeyFileAttribute != null)
+                {
+                    cryptoKeyFile = (string)cryptoKeyFileAttribute;
+                }
+
+                var strongNameProviderAttribute = compilationOptionsElement.Attribute(StrongNameProviderAttributeName);
+                if (strongNameProviderAttribute != null)
+                {
+                    var type = Type.GetType((string)strongNameProviderAttribute);
+                    // DesktopStrongNameProvider and SigningTestHelpers.VirtualizedStrongNameProvider do
+                    // not have a default constructor but constructors with optional parameters.
+                    // Activator.CreateInstance does not work with this.
+                    if (type == typeof(DesktopStrongNameProvider))
+                    {
+                        strongNameProvider = new DesktopStrongNameProvider();
+                    }
+                    else if (type == typeof(SigningTestHelpers.VirtualizedStrongNameProvider))
+                    {
+                        strongNameProvider = new SigningTestHelpers.VirtualizedStrongNameProvider();
+                    }
+                    else
+                    {
+                        strongNameProvider = (StrongNameProvider)Activator.CreateInstance(type);
+                    }
+                }
+
+                var delaySignAttribute = compilationOptionsElement.Attribute(DelaySignAttributeName);
+                if (delaySignAttribute != null)
+                {
+                    delaySign = (bool)delaySignAttribute;
                 }
 
                 var outputTypeAttribute = compilationOptionsElement.Attribute(OutputTypeAttributeName);
@@ -512,14 +548,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                    .WithSourceReferenceResolver(SourceFileResolver.Default)
                                                    .WithXmlReferenceResolver(XmlFileResolver.Default)
                                                    .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, null)))
-                                                   .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
+                                                   .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                                                   .WithCryptoKeyFile(cryptoKeyFile)
+                                                   .WithStrongNameProvider(strongNameProvider)
+                                                   .WithDelaySign(delaySign);
 
             if (language == LanguageNames.VisualBasic)
             {
                 // VB needs Compilation.ParseOptions set (we do the same at the VS layer)
                 compilationOptions = ((VisualBasicCompilationOptions)compilationOptions).WithRootNamespace(rootNamespace)
                                                                                         .WithGlobalImports(globalImports)
-                                                                                        .WithParseOptions((VisualBasicParseOptions)parseOptions ?? 
+                                                                                        .WithParseOptions((VisualBasicParseOptions)parseOptions ??
                                                                                             VisualBasicParseOptions.Default);
             }
 
@@ -618,8 +657,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             // For linked files, use the same ITextBuffer for all linked documents
-            ITextBuffer textBuffer;
-            if (!filePathToTextBufferMap.TryGetValue(filePath, out textBuffer))
+            if (!filePathToTextBufferMap.TryGetValue(filePath, out var textBuffer))
             {
                 textBuffer = EditorFactory.CreateBuffer(contentType.TypeName, exportProvider, code);
                 filePathToTextBufferMap.Add(filePath, textBuffer);

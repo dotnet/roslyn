@@ -22,14 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub ShadowInvariants()
             TestHiddenProperty(Function(old, value) old.WithOutputKind(value), Function(opt) opt.OutputKind, OutputKind.DynamicallyLinkedLibrary)
-            TestHiddenProperty(Function(old, value) old.WithModuleName(value), Function(opt) opt.ModuleName, "foo.dll")
-            TestHiddenProperty(Function(old, value) old.WithMainTypeName(value), Function(opt) opt.MainTypeName, "Foo.Bar")
+            TestHiddenProperty(Function(old, value) old.WithModuleName(value), Function(opt) opt.ModuleName, "goo.dll")
+            TestHiddenProperty(Function(old, value) old.WithMainTypeName(value), Function(opt) opt.MainTypeName, "Goo.Bar")
             TestHiddenProperty(Function(old, value) old.WithScriptClassName(value), Function(opt) opt.ScriptClassName, "<Script>")
 
             TestHiddenProperty(Function(old, value) old.WithOptimizationLevel(value), Function(opt) opt.OptimizationLevel, OptimizationLevel.Release)
             TestHiddenProperty(Function(old, value) old.WithOverflowChecks(value), Function(opt) opt.CheckOverflow, False)
-            TestHiddenProperty(Function(old, value) old.WithCryptoKeyContainer(value), Function(opt) opt.CryptoKeyContainer, "foo")
-            TestHiddenProperty(Function(old, value) old.WithCryptoKeyFile(value), Function(opt) opt.CryptoKeyFile, "foo")
+            TestHiddenProperty(Function(old, value) old.WithCryptoKeyContainer(value), Function(opt) opt.CryptoKeyContainer, "goo")
+            TestHiddenProperty(Function(old, value) old.WithCryptoKeyFile(value), Function(opt) opt.CryptoKeyFile, "goo")
             TestHiddenProperty(Function(old, value) old.WithCryptoPublicKey(value), Function(opt) opt.CryptoPublicKey, ImmutableArray.CreateRange(Of Byte)({1, 2, 3, 4}))
             TestHiddenProperty(Function(old, value) old.WithDelaySign(value), Function(opt) opt.DelaySign, True)
             TestHiddenProperty(Function(old, value) old.WithPlatform(value), Function(opt) opt.Platform, Platform.X64)
@@ -84,12 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub Invariants()
             TestProperty(Function(old, value) old.WithOutputKind(value), Function(opt) opt.OutputKind, OutputKind.DynamicallyLinkedLibrary)
-            TestProperty(Function(old, value) old.WithModuleName(value), Function(opt) opt.ModuleName, "foo.dll")
-            TestProperty(Function(old, value) old.WithMainTypeName(value), Function(opt) opt.MainTypeName, "Foo.Bar")
+            TestProperty(Function(old, value) old.WithModuleName(value), Function(opt) opt.ModuleName, "goo.dll")
+            TestProperty(Function(old, value) old.WithMainTypeName(value), Function(opt) opt.MainTypeName, "Goo.Bar")
             TestProperty(Function(old, value) old.WithScriptClassName(value), Function(opt) opt.ScriptClassName, "<Script>")
 
             TestProperty(Function(old, value) old.WithGlobalImports(value), Function(opt) opt.GlobalImports,
-                ImmutableArray.Create(GlobalImport.Parse("Foo.Bar"), GlobalImport.Parse("Baz")))
+                ImmutableArray.Create(GlobalImport.Parse("Goo.Bar"), GlobalImport.Parse("Baz")))
 
             TestProperty(Function(old, value) old.WithRootNamespace(value), Function(opt) opt.RootNamespace, "A.B.C")
             TestProperty(Function(old, value) old.WithOptionStrict(value), Function(opt) opt.OptionStrict, OptionStrict.On)
@@ -103,8 +103,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithEmbedVbCoreRuntime(value), Function(opt) opt.EmbedVbCoreRuntime, True)
             TestProperty(Function(old, value) old.WithOptimizationLevel(value), Function(opt) opt.OptimizationLevel, OptimizationLevel.Release)
             TestProperty(Function(old, value) old.WithOverflowChecks(value), Function(opt) opt.CheckOverflow, False)
-            TestProperty(Function(old, value) old.WithCryptoKeyContainer(value), Function(opt) opt.CryptoKeyContainer, "foo")
-            TestProperty(Function(old, value) old.WithCryptoKeyFile(value), Function(opt) opt.CryptoKeyFile, "foo")
+            TestProperty(Function(old, value) old.WithCryptoKeyContainer(value), Function(opt) opt.CryptoKeyContainer, "goo")
+            TestProperty(Function(old, value) old.WithCryptoKeyFile(value), Function(opt) opt.CryptoKeyFile, "goo")
             TestProperty(Function(old, value) old.WithCryptoPublicKey(value), Function(opt) opt.CryptoPublicKey, ImmutableArray.CreateRange(Of Byte)({1, 2, 3, 4}))
             TestProperty(Function(old, value) old.WithDelaySign(value), Function(opt) opt.DelaySign, True)
             TestProperty(Function(old, value) old.WithPlatform(value), Function(opt) opt.Platform, Platform.X64)
@@ -132,9 +132,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
 </expected>)
 
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("blah" & ChrW(0) & "foo").Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("blah" & ChrW(0) & "goo").Errors,
 <expected>
-BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'ScriptClassName'
+BC2014: the value '<%= "blah" & ChrW(0) & "goo" %>' is invalid for option 'ScriptClassName'
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("").Errors,
@@ -143,9 +143,9 @@ BC2014: the value '' is invalid for option 'ScriptClassName'
 </expected>)
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName(Nothing).Errors.IsEmpty)
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("blah" & ChrW(0) & "foo").Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("blah" & ChrW(0) & "goo").Errors,
 <expected>
-BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'MainTypeName'
+BC2014: the value '<%= "blah" & ChrW(0) & "goo" %>' is invalid for option 'MainTypeName'
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithMainTypeName("").Errors,
@@ -154,15 +154,15 @@ BC2014: the value '' is invalid for option 'MainTypeName'
 </expected>)
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace(Nothing).Errors.IsEmpty)
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("blah" & ChrW(0) & "foo").Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("blah" & ChrW(0) & "goo").Errors,
 <expected>
-BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'RootNamespace'
+BC2014: the value '<%= "blah" & ChrW(0) & "goo" %>' is invalid for option 'RootNamespace'
 </expected>)
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("").Errors.IsEmpty)
 
-            Assert.Equal(0, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("Foo.Bar")).WithGlobalImports(DirectCast(Nothing, IEnumerable(Of GlobalImport))).GlobalImports.Count)
-            Assert.Equal(0, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("Foo.Bar")).WithGlobalImports(DirectCast(Nothing, GlobalImport())).GlobalImports.Count)
+            Assert.Equal(0, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("Goo.Bar")).WithGlobalImports(DirectCast(Nothing, IEnumerable(Of GlobalImport))).GlobalImports.Count)
+            Assert.Equal(0, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithGlobalImports(GlobalImport.Parse("Goo.Bar")).WithGlobalImports(DirectCast(Nothing, GlobalImport())).GlobalImports.Count)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOutputKind(CType(Int32.MaxValue, OutputKind)).Errors,
 <expected>
@@ -199,7 +199,7 @@ BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'Platform'
 BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'Platform'
 </expected>)
 
-            Assert.Equal(Nothing, TestOptions.ReleaseDll.WithModuleName("foo").WithModuleName(Nothing).ModuleName)
+            Assert.Equal(Nothing, TestOptions.ReleaseDll.WithModuleName("goo").WithModuleName(Nothing).ModuleName)
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("").Errors,
 <expected>
 BC37206: Invalid module name: Name cannot be empty.
@@ -236,9 +236,9 @@ BC37206: Invalid module name: Name contains invalid characters.
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:=Nothing)
             Assert.Equal("Script", options.ScriptClassName)
 
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:="blah" & ChrW(0) & "foo").Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:="blah" & ChrW(0) & "goo").Errors,
 <expected>
-BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'ScriptClassName'
+BC2014: the value '<%= "blah" & ChrW(0) & "goo" %>' is invalid for option 'ScriptClassName'
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, scriptClassName:="").Errors,
@@ -249,9 +249,9 @@ BC2014: the value '' is invalid for option 'ScriptClassName'
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=Nothing).Errors.IsEmpty)
 
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=("blah" & ChrW(0) & "foo")).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=("blah" & ChrW(0) & "goo")).Errors,
 <expected>
-BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'MainTypeName'
+BC2014: the value '<%= "blah" & ChrW(0) & "goo" %>' is invalid for option 'MainTypeName'
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:="").Errors,
@@ -262,9 +262,9 @@ BC2014: the value '' is invalid for option 'MainTypeName'
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=Nothing).Errors.IsEmpty)
 
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=("blah" & ChrW(0) & "foo")).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=("blah" & ChrW(0) & "goo")).Errors,
 <expected>
-BC2014: the value '<%= "blah" & ChrW(0) & "foo" %>' is invalid for option 'RootNamespace'
+BC2014: the value '<%= "blah" & ChrW(0) & "goo" %>' is invalid for option 'RootNamespace'
 </expected>)
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:="").Errors.IsEmpty)
@@ -330,16 +330,16 @@ BC2014: the value '<%= rootNs %>' is invalid for option 'RootNamespace'
         <Fact>
         Public Sub TestRootNamespace()
             CheckRootNamespaceIsGood("", {})
-            CheckRootNamespaceIsGood("Foo", {"Foo"})
-            CheckRootNamespaceIsGood("Foo.Bar", {"Foo", "Bar"})
-            CheckRootNamespaceIsGood("Foo.Bar.q9", {"Foo", "Bar", "q9"})
+            CheckRootNamespaceIsGood("Goo", {"Goo"})
+            CheckRootNamespaceIsGood("Goo.Bar", {"Goo", "Bar"})
+            CheckRootNamespaceIsGood("Goo.Bar.q9", {"Goo", "Bar", "q9"})
 
             CheckRootNamespaceIsBad(Nothing)
             CheckRootNamespaceIsBad(" ")
             CheckRootNamespaceIsBad(".")
-            CheckRootNamespaceIsBad("Foo.")
-            CheckRootNamespaceIsBad("Foo. Bar")
-            CheckRootNamespaceIsBad(".Foo")
+            CheckRootNamespaceIsBad("Goo.")
+            CheckRootNamespaceIsBad("Goo. Bar")
+            CheckRootNamespaceIsBad(".Goo")
             CheckRootNamespaceIsBad("X.7Y")
             CheckRootNamespaceIsBad("#")
             CheckRootNamespaceIsBad("A.$B")
@@ -379,9 +379,9 @@ BC2014: the value '<%= rootNs %>' is invalid for option 'RootNamespace'
             CheckImportsAreGood({"A.B", "G.F(Of G)", "Q", "A = G.X"})
 
             CheckImportsAreBad({"A.B.435",
-                               "Global.Foo"},
+                               "Global.Goo"},
                                 {"Error in project-level import 'A.B.435' at '.435' : End of statement expected.",
-                                "Error in project-level import 'Global.Foo' at 'Global' : 'Global' not allowed in this context; identifier expected."})
+                                "Error in project-level import 'Global.Goo' at 'Global' : 'Global' not allowed in this context; identifier expected."})
         End Sub
 
         <Fact>
@@ -408,7 +408,7 @@ Module Program
         Const z As Long = 0
     End Sub
 
-    Function foo()
+    Function goo()
     End Function
 End Module
                     </file>
@@ -421,7 +421,7 @@ End Module
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z"),
-                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo"))
+                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo"))
 
             ' Suppress All
             ' vbc a.vb /nowarn
@@ -437,7 +437,7 @@ End Module
             comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z"),
-                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo"))
+                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo"))
 
             ' Suppress 42024, 42099
             ' vbc a.vb /nowarn:42024,42099
@@ -446,7 +446,7 @@ End Module
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42099), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
             comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
-            comp.VerifyDiagnostics(Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo"))
+            comp.VerifyDiagnostics(Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo"))
 
             ' Treat All as Errors
             ' vbc a.vb /warnaserror
@@ -456,7 +456,7 @@ End Module
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
-                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
+                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo").WithWarningAsError(True))
 
             ' Treat 42105 as Error
             ' vbc a.vb /warnaserror:42105
@@ -468,7 +468,7 @@ End Module
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z"),
-                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
+                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo").WithWarningAsError(True))
 
             ' Treat 42105 and 42099 as Errors
             ' vbc a.vb /warnaserror:42105,42099
@@ -481,7 +481,7 @@ End Module
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
-                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
+                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo").WithWarningAsError(True))
 
             ' Treat All as Errors but Suppress 42024
             ' vbc a.vb /warnaserror /nowarn:42024
@@ -491,7 +491,7 @@ End Module
             comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
-                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
+                Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo").WithWarningAsError(True))
 
             ' Suppress All with treating 42024 as an error, which will be ignored
             ' vbc a.vb /warnaserror:42024 /nowarn or

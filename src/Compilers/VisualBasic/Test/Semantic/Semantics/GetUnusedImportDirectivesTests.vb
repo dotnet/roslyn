@@ -42,8 +42,8 @@ Imports System.IO
 Imports System
 
 Public Class Blah
-    Sub Foo()
-        Foo() ' Comment
+    Sub Goo()
+        Goo() ' Comment
     End Sub
 End Class
     </file>
@@ -75,7 +75,7 @@ Imports System.Runtime.CompilerServices
 Namespace NamespaceContainingInternalsOnly
     Friend Module Extensions
         <Extension>
-        Sub Foo(x As Integer)
+        Sub Goo(x As Integer)
         End Sub
     End Module
 End Namespace
@@ -97,7 +97,7 @@ Imports NamespaceContainingInternalsOnly
 
 Public Class C
     Shared Sub F(x As Integer)
-        x.Foo()
+        x.Goo()
     End Sub
 End Class
     </file>
@@ -313,6 +313,58 @@ BC50001: Unused import statement.
 Imports System
 ~~~~~~~~~~~~~~
                 </errors>, suppressInfos:=False)
+        End Sub
+
+        <Fact, WorkItem(18348, "https://github.com/dotnet/roslyn/issues/18348")>
+        Public Sub IncorrectUnusedUsingWhenAttributeOnParameter_01()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+Partial Class Program
+    Private Sub M(<Out> <InAttribute> ByRef x As Integer)
+    End Sub
+End Class
+]]></file>
+    <file name="b.vb"><![CDATA[
+Partial Class Program
+    Partial Private Sub M(ByRef x As Integer)
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim diagnostics = model.GetDiagnostics()
+            AssertTheseDiagnostics(diagnostics, <errors></errors>)
+        End Sub
+
+        <Fact, WorkItem(18348, "https://github.com/dotnet/roslyn/issues/18348")>
+        Public Sub IncorrectUnusedUsingWhenAttributeOnParameter_02()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+Partial Class Program
+    Partial Private Sub M(<Out> <InAttribute> ByRef x As Integer)
+    End Sub
+End Class
+]]></file>
+    <file name="b.vb"><![CDATA[
+Partial Class Program
+    Private Sub M(ByRef x As Integer)
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim diagnostics = model.GetDiagnostics()
+            AssertTheseDiagnostics(diagnostics, <errors></errors>)
         End Sub
     End Class
 End Namespace

@@ -340,6 +340,54 @@ class Program
 }           ", "Directions.South", semanticChanges: false);
         }
 
+        [Fact, WorkItem(19987, "https://github.com/dotnet/roslyn/issues/19987")]
+        public void SpeculationAnalyzerSwitchCaseWithRedundantCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] arts)
+    {
+        var x = 1f;
+        switch (x)
+        {
+            case [|(float) 1|]:
+                System.Console.WriteLine(""one"");
+                break;
+
+            default:
+                System.Console.WriteLine(""not one"");
+                break;
+        }
+    }
+}
+            ", "1", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(19987, "https://github.com/dotnet/roslyn/issues/19987")]
+        public void SpeculationAnalyzerSwitchCaseWithRequiredCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] arts)
+    {
+        object x = 1f;
+        switch (x)
+        {
+            case [|(float) 1|]: // without the case, object x does not match int 1
+                System.Console.WriteLine(""one"");
+                break;
+
+            default:
+                System.Console.WriteLine(""not one"");
+                break;
+        }
+    }
+}
+            ", "1", semanticChanges: true);
+        }
+
         protected override SyntaxTree Parse(string text)
         {
             return SyntaxFactory.ParseSyntaxTree(text);
@@ -362,7 +410,7 @@ class Program
         protected override bool CompilationSucceeded(Compilation compilation, Stream temporaryStream)
         {
             var langCompilation = compilation;
-            Func<Diagnostic, bool> isProblem = d => d.Severity >= DiagnosticSeverity.Warning;
+            bool isProblem(Diagnostic d) => d.Severity >= DiagnosticSeverity.Warning;
             return !langCompilation.GetDiagnostics().Any(isProblem) &&
                 !langCompilation.Emit(temporaryStream).Diagnostics.Any(isProblem);
         }

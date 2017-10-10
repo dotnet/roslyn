@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -57,9 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Verify(FormatResult("new Decimal()", CreateDkmClrValue(new Decimal())), EvalResult("new Decimal()", "0", "decimal", "new Decimal()", editableValue: "0M"));
             // System.DateTime
             // Set currentCulture to en-US for the test to pass in all locales
-            using (new CultureContext("en-US"))
+            using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
-                Verify(FormatResult("new DateTime()", CreateDkmClrValue(new DateTime())), EvalResult("new DateTime()", "{1/1/0001 12:00:00 AM}", "System.DateTime", "new DateTime()", DkmEvaluationResultFlags.Expandable));
+                // Skipped due to https://github.com/dotnet/roslyn/issues/21944
+                //Verify(FormatResult("new DateTime()", CreateDkmClrValue(new DateTime())), EvalResult("new DateTime()", "{1/1/0001 12:00:00 AM}", "System.DateTime", "new DateTime()", DkmEvaluationResultFlags.Expandable));
             }
 
             // System.String
@@ -2214,7 +2216,7 @@ class D : C
             var assemblyB = ReflectionUtilities.Load(bytesB);
 
             DkmClrRuntimeInstance runtime = null;
-            GetModuleDelegate getModule = (r, a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
+            DkmClrModuleInstance getModule(DkmClrRuntimeInstance r, System.Reflection.Assembly a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assemblyA, assemblyB), getModule: getModule);
             using (runtime.Load())
             {
@@ -2266,7 +2268,7 @@ class D : C
     }
 }";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
+            VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue getMemberValue(VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue v, string m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
             using (runtime.Load())
             {

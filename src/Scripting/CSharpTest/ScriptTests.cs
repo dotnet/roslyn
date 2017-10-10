@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Text;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using KeyValuePair = Roslyn.Utilities.KeyValuePair;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -944,7 +945,8 @@ i", options);
             catch (Exception ex)
             {
                 // line information is only available when PDBs have been emitted
-                var stackTrace = new StackTrace(ex, needFileInfo: true);
+                var needFileInfo = true;
+                var stackTrace = new StackTrace(ex, needFileInfo);
                 var firstFrame = stackTrace.GetFrames()[0];
                 Assert.Equal(filename, firstFrame.GetFileName());
                 Assert.Equal(line, firstFrame.GetFileLineNumber());

@@ -16,6 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal static class Extensions
     {
         public static ImmutableArray<TResult> ToImmutableArray<TSource, TResult>(this IList<TSource> list, Func<TSource, TResult> selector)
@@ -175,8 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static DocumentId GetDocumentId<T>(T item)
         {
             // item must be either one of diagnostic data and todo item
-            var diagnostic = item as DiagnosticData;
-            if (diagnostic != null)
+            if (item is DiagnosticData diagnostic)
             {
                 return diagnostic.DocumentId;
             }
@@ -190,8 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static ProjectId GetProjectId<T>(T item)
         {
             // item must be either one of diagnostic data and todo item
-            var diagnostic = item as DiagnosticData;
-            if (diagnostic != null)
+            if (item is DiagnosticData diagnostic)
             {
                 return diagnostic.ProjectId;
             }
@@ -205,8 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static Workspace GetWorkspace<T>(T item)
         {
             // item must be either one of diagnostic data and todo item
-            var diagnostic = item as DiagnosticData;
-            if (diagnostic != null)
+            if (item is DiagnosticData diagnostic)
             {
                 return diagnostic.Workspace;
             }

@@ -97,23 +97,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = SyntaxFactory.IndexerDeclaration(
                     attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
                     modifiers: GenerateModifiers(property, destination, options),
-                    type: GeneratePropertyType(property),
+                    type: property.GenerateTypeSyntax(),
                     explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                     parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, explicitInterfaceSpecifier != null, options),
                     accessorList: GenerateAccessorList(property, destination, workspace, options, parseOptions));
             declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(property, declaration));
         }
-
-        private static TypeSyntax GeneratePropertyType(IPropertySymbol property)
-        {
-            return property.ReturnsByRef
-                            ? property.Type.GenerateRefTypeSyntax()
-                            : property.Type.GenerateTypeSyntax();
-        }
-
+        
         private static MemberDeclarationSyntax GeneratePropertyDeclaration(
            IPropertySymbol property, CodeGenerationDestination destination,
            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
@@ -131,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
                 modifiers: GenerateModifiers(property, destination, options),
-                type: GeneratePropertyType(property),
+                type: property.GenerateTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: property.Name.ToIdentifierToken(),
                 accessorList: accessorList,
@@ -141,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             propertyDeclaration = UseExpressionBodyIfDesired(
                 workspace, propertyDeclaration, parseOptions);
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(property, propertyDeclaration));
         }
 

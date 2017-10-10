@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.ElseIfStatement
                     ' ElseIf without a preceding If.
-                    Debug.Assert(node.ContainsDiagnostics)
+                    Debug.Assert(IsSemanticModelBinder OrElse node.ContainsDiagnostics)
                     Dim condition = BindBooleanExpression(DirectCast(node, ElseIfStatementSyntax).Condition, diagnostics)
                     Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(condition), hasErrors:=True)
 
@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '     where only the ones that can appear in a method body have been selected).
                     '
                     '   We simply need to ignore this, the error is already created by the parser.
-                    Debug.Assert(node.ContainsDiagnostics OrElse
+                    Debug.Assert(IsSemanticModelBinder OrElse node.ContainsDiagnostics OrElse
                                  (node.IsMissing AndAlso
                                   (node.Parent.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
                                    node.Parent.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' not handling here and then throwing ExceptionUtilities.UnexpectedValue in the else case, but
             ' there are just too many statement SyntaxKinds in VB (e.g. declarations, statements corresponding
             ' to blocks handled above, etc).
-            Debug.Assert(node.ContainsDiagnostics)
+            Debug.Assert(IsSemanticModelBinder OrElse node.ContainsDiagnostics)
             Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
         End Function
 
@@ -1154,8 +1154,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(valueExpression Is Nothing)
 
                             If Not skipAsNewInitializer Then
-                                Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, objectCreationExpressionSyntax)
+                                DisallowNewOnTupleType(asNew.Type, diagnostics)
 
+                                Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, ObjectCreationExpressionSyntax)
                                 Dim asNewVariablePlaceholder As New BoundWithLValueExpressionPlaceholder(asClauseOpt, symbol.Type)
                                 asNewVariablePlaceholder.SetWasCompilerGenerated()
 
@@ -2343,7 +2344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          <Out()> ByRef eventSymbol As EventSymbol) As BoundExpression
 
             ' event must be a simple name that could be qualified and perhaps parenthesized
-            ' Examples:  foo , (foo) , (bar.foo) , baz.moo(of T).goo
+            ' Examples:  goo , (goo) , (bar.goo) , baz.moo(of T).goo
             Dim notParenthesizedSyntax = node
             While notParenthesizedSyntax.Kind = SyntaxKind.ParenthesizedExpression
                 notParenthesizedSyntax = DirectCast(notParenthesizedSyntax, ParenthesizedExpressionSyntax).Expression
@@ -3032,7 +3033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If Not TypeOf currentBinder Is ForOrForEachBlockBinder Then
                             ' this happens for broken code, e.g.
                             ' for each a in arr1
-                            '   if foo() then
+                            '   if goo() then
                             '     for each b in arr2
                             '     next b, a
                             '   end if

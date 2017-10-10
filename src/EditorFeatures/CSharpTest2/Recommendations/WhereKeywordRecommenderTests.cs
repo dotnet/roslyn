@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -123,14 +123,14 @@ $$");
         public async Task TestNotAfterClassBaseList()
         {
             await VerifyAbsenceAsync(
-@"class C : IFoo $$");
+@"class C : IGoo $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterGenericClassBaseList()
         {
             await VerifyKeywordAsync(
-@"class C<T> : IFoo $$");
+@"class C<T> : IGoo $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -256,7 +256,7 @@ $$");
         public async Task TestNotAfterWhereTypeConstraint()
         {
             await VerifyAbsenceAsync(
-@"public class Foo<T> : System.Object where $$
+@"public class Goo<T> : System.Object where $$
 {
 }");
         }
@@ -265,7 +265,7 @@ $$");
         public async Task TestNotAfterWhereWhere()
         {
             await VerifyAbsenceAsync(
-@"public class Foo<T> : System.Object where where $$
+@"public class Goo<T> : System.Object where where $$
 {
 }");
         }
@@ -274,7 +274,7 @@ $$");
         public async Task TestNotAfterWhereWhereWhere()
         {
             await VerifyAbsenceAsync(
-@"public class Foo<T> : System.Object where where where $$
+@"public class Goo<T> : System.Object where where where $$
 {
 }");
         }
@@ -284,7 +284,7 @@ $$");
         public async Task TestNoWhereAfterDot()
         {
             await VerifyAbsenceAsync(
-@"public class Foo<where> : System.$$
+@"public class Goo<where> : System.$$
 {
 }");
         }

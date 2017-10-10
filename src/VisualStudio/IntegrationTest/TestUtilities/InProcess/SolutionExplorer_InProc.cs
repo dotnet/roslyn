@@ -546,7 +546,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             using (var solutionEvents = new UpdateSolutionEvents(buildManager))
             {
                 semaphore.Wait();
-                UpdateSolutionEvents.UpdateSolutionDoneEvent @event = (bool succeeded, bool modified, bool canceled) => semaphore.Release();
+                void @event(bool succeeded, bool modified, bool canceled) => semaphore.Release();
                 solutionEvents.OnUpdateSolutionDone += @event;
                 try
                 {
@@ -808,10 +808,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return Path.Combine(projectPath, relativeFilePath);
         }
 
-        public void ReloadProject(string projectName)
+        public void ReloadProject(string projectRelativePath)
         {
             var solutionPath = Path.GetDirectoryName(_solution.FullName);
-            var projectPath = Path.Combine(solutionPath, projectName);
+            var projectPath = Path.Combine(solutionPath, projectRelativePath);
             _solution.AddFromFile(projectPath);
         }
 
@@ -829,7 +829,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void UnloadProject(string projectName)
         {
-            var project = _solution.Projects.Item(projectName);
+            var projects = _solution.Projects;
+            EnvDTE.Project project = null;
+            for (int i = 1; i <= projects.Count; i++)
+            {
+                project = projects.Item(i);
+                if (string.Compare(project.Name, projectName, StringComparison.Ordinal) == 0)
+                {
+                    break;
+                }
+            }
+
             _solution.Remove(project);
         }
 
