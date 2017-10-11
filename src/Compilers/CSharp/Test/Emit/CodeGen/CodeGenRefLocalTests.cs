@@ -13,6 +13,466 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenRefLocalTests : CompilingTestBase
     {
         [Fact]
+        public void RefReassignParamByVal()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        int x = 0;
+        ref int rx = ref x;
+        int y = 5;
+        Console.WriteLine(rx);
+        M(rx = ref y);
+        Console.WriteLine(rx);
+    }
+
+    static void M(int p)
+    {
+        Console.WriteLine(p);
+        p++;
+        Console.WriteLine(p);
+    }
+}", expectedOutput: @"0
+5
+6
+5
+");
+        }
+
+        [Fact]
+        public void RefReassignParamIn()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        int x = 0;
+        ref int rx = ref x;
+        int y = 5;
+        Console.WriteLine(rx);
+        M(rx = ref y);
+        Console.WriteLine(rx);
+    }
+    static void M(in int p)
+    {
+        Console.WriteLine(p);
+    }
+}", expectedOutput: @"0
+5
+5");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (int V_0, //x
+                int V_1) //y
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.5
+  IL_0005:  stloc.1
+  IL_0006:  ldind.i4
+  IL_0007:  call       ""void System.Console.WriteLine(int)""
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  dup
+  IL_000f:  call       ""void C.M(in int)""
+  IL_0014:  ldind.i4
+  IL_0015:  call       ""void System.Console.WriteLine(int)""
+  IL_001a:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReassignParamInConversion()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        int x = 0;
+        ref int rx = ref x;
+        int y = 5;
+        Console.WriteLine(rx);
+        M(rx = ref y);
+        Console.WriteLine(rx);
+    }
+    static void M(in long p)
+    {
+        Console.WriteLine(p);
+    }
+}", expectedOutput: @"0
+5
+5");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (int V_0, //x
+                int V_1, //y
+                long V_2)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.5
+  IL_0005:  stloc.1
+  IL_0006:  ldind.i4
+  IL_0007:  call       ""void System.Console.WriteLine(int)""
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  dup
+  IL_000f:  ldind.i4
+  IL_0010:  conv.i8
+  IL_0011:  stloc.2
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  call       ""void C.M(in long)""
+  IL_0019:  ldind.i4
+  IL_001a:  call       ""void System.Console.WriteLine(int)""
+  IL_001f:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReassignField()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+struct S
+{
+    public int X;
+    public S(int x) => X = x;
+}
+class C
+{
+    static void Main()
+    {
+        S s1 = new S(0);
+        S s2 = new S(5);
+        ref S rs = ref s1;
+        Console.WriteLine(rs.X);
+        rs.X++;
+        Console.WriteLine(rs.X);
+        Console.WriteLine((rs = ref s2).X++);
+        rs.X++;
+        Console.WriteLine(rs.X);
+        Console.WriteLine(s1.X);
+        Console.WriteLine(s2.X);
+    }
+}", expectedOutput: @"0
+1
+5
+7
+1
+7");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      115 (0x73)
+  .maxstack  4
+  .locals init (S V_0, //s1
+                S V_1, //s2
+                int V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""S..ctor(int)""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.5
+  IL_000b:  call       ""S..ctor(int)""
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  dup
+  IL_0013:  ldfld      ""int S.X""
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  dup
+  IL_001e:  ldflda     ""int S.X""
+  IL_0023:  dup
+  IL_0024:  ldind.i4
+  IL_0025:  ldc.i4.1
+  IL_0026:  add
+  IL_0027:  stind.i4
+  IL_0028:  ldfld      ""int S.X""
+  IL_002d:  call       ""void System.Console.WriteLine(int)""
+  IL_0032:  ldloca.s   V_1
+  IL_0034:  dup
+  IL_0035:  ldflda     ""int S.X""
+  IL_003a:  dup
+  IL_003b:  ldind.i4
+  IL_003c:  stloc.2
+  IL_003d:  ldloc.2
+  IL_003e:  ldc.i4.1
+  IL_003f:  add
+  IL_0040:  stind.i4
+  IL_0041:  ldloc.2
+  IL_0042:  call       ""void System.Console.WriteLine(int)""
+  IL_0047:  dup
+  IL_0048:  ldflda     ""int S.X""
+  IL_004d:  dup
+  IL_004e:  ldind.i4
+  IL_004f:  ldc.i4.1
+  IL_0050:  add
+  IL_0051:  stind.i4
+  IL_0052:  ldfld      ""int S.X""
+  IL_0057:  call       ""void System.Console.WriteLine(int)""
+  IL_005c:  ldloc.0
+  IL_005d:  ldfld      ""int S.X""
+  IL_0062:  call       ""void System.Console.WriteLine(int)""
+  IL_0067:  ldloc.1
+  IL_0068:  ldfld      ""int S.X""
+  IL_006d:  call       ""void System.Console.WriteLine(int)""
+  IL_0072:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReassignFieldReadonly()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+struct S
+{
+    public readonly int X;
+    public S(int x) => X = x;
+}
+class C
+{
+    static void Main()
+    {
+        S s1 = new S(0);
+        S s2 = new S(5);
+        ref S rs = ref s1;
+        Console.WriteLine(rs.X);
+        rs = new S(rs.X + 1);
+        Console.WriteLine(rs.X);
+        Console.WriteLine((rs = ref s2).X);
+        rs = new S(rs.X + 1);
+        Console.WriteLine(rs.X);
+        Console.WriteLine(s1.X);
+        Console.WriteLine(s2.X);
+    }
+}", expectedOutput: @"0
+1
+5
+6
+1
+6");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      127 (0x7f)
+  .maxstack  3
+  .locals init (S V_0, //s1
+                S V_1, //s2
+                S& V_2) //rs
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""S..ctor(int)""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.5
+  IL_000b:  call       ""S..ctor(int)""
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  stloc.2
+  IL_0013:  ldloc.2
+  IL_0014:  ldfld      ""int S.X""
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  ldloc.2
+  IL_001f:  ldloc.2
+  IL_0020:  ldfld      ""int S.X""
+  IL_0025:  ldc.i4.1
+  IL_0026:  add
+  IL_0027:  newobj     ""S..ctor(int)""
+  IL_002c:  stobj      ""S""
+  IL_0031:  ldloc.2
+  IL_0032:  ldfld      ""int S.X""
+  IL_0037:  call       ""void System.Console.WriteLine(int)""
+  IL_003c:  ldloca.s   V_1
+  IL_003e:  dup
+  IL_003f:  stloc.2
+  IL_0040:  ldfld      ""int S.X""
+  IL_0045:  call       ""void System.Console.WriteLine(int)""
+  IL_004a:  ldloc.2
+  IL_004b:  ldloc.2
+  IL_004c:  ldfld      ""int S.X""
+  IL_0051:  ldc.i4.1
+  IL_0052:  add
+  IL_0053:  newobj     ""S..ctor(int)""
+  IL_0058:  stobj      ""S""
+  IL_005d:  ldloc.2
+  IL_005e:  ldfld      ""int S.X""
+  IL_0063:  call       ""void System.Console.WriteLine(int)""
+  IL_0068:  ldloc.0
+  IL_0069:  ldfld      ""int S.X""
+  IL_006e:  call       ""void System.Console.WriteLine(int)""
+  IL_0073:  ldloc.1
+  IL_0074:  ldfld      ""int S.X""
+  IL_0079:  call       ""void System.Console.WriteLine(int)""
+  IL_007e:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReassignFieldRefReadonly()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+struct S
+{
+    public int X;
+    public S(int x) => X = x;
+}
+class C
+{
+    static void Main()
+    {
+        S s1 = new S(0);
+        S s2 = new S(5);
+        ref readonly S rs = ref s1;
+        Console.WriteLine(rs.X);
+        Console.WriteLine((rs = ref s2).X);
+        Console.WriteLine(rs.X);
+    }
+}", expectedOutput: @"0
+5
+5");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (S V_0, //s1
+                S V_1, //s2
+                S& V_2) //rs
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""S..ctor(int)""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.5
+  IL_000b:  call       ""S..ctor(int)""
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  stloc.2
+  IL_0013:  ldloc.2
+  IL_0014:  ldfld      ""int S.X""
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  ldloca.s   V_1
+  IL_0020:  dup
+  IL_0021:  stloc.2
+  IL_0022:  ldfld      ""int S.X""
+  IL_0027:  call       ""void System.Console.WriteLine(int)""
+  IL_002c:  ldloc.2
+  IL_002d:  ldfld      ""int S.X""
+  IL_0032:  call       ""void System.Console.WriteLine(int)""
+  IL_0037:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReadonlyStackSchedule()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+struct S
+{
+    public int X;
+    public S(int x) => X = x;
+    public void AddOne() => X++;
+}
+class C
+{
+    static void Main()
+    {
+        S s1 = new S(5);
+        ref readonly S rs = ref s1;
+        rs.AddOne();
+        Console.WriteLine(s1.X);
+    }
+}", expectedOutput: "5");
+        }
+
+        [Fact]
+        public void RefReassignCall()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+struct S
+{
+    public int X;
+    public S(int x) => X = x;
+    public void AddOne() => X++;
+}
+class C
+{
+    static void Main()
+    {
+        S s1 = new S(0);
+        S s2 = new S(5);
+        ref S rs = ref s1;
+        (rs = ref s2).AddOne();
+        Console.WriteLine(rs.X);
+        Console.WriteLine(s1.X);
+        Console.WriteLine(s2.X);
+
+        ref readonly S rs2 = ref s1;
+        (rs2 = ref s2).AddOne();
+        Console.WriteLine(rs.X);
+        Console.WriteLine(s1.X);
+        Console.WriteLine(s2.X);
+    }
+}"
+, expectedOutput: @"6
+0
+6
+6
+0
+6"
+);
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      110 (0x6e)
+  .maxstack  3
+  .locals init (S V_0, //s1
+                S V_1, //s2
+                S& V_2, //rs2
+                S V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""S..ctor(int)""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.5
+  IL_000b:  call       ""S..ctor(int)""
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  dup
+  IL_0013:  call       ""void S.AddOne()""
+  IL_0018:  dup
+  IL_0019:  ldfld      ""int S.X""
+  IL_001e:  call       ""void System.Console.WriteLine(int)""
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""int S.X""
+  IL_0029:  call       ""void System.Console.WriteLine(int)""
+  IL_002e:  ldloc.1
+  IL_002f:  ldfld      ""int S.X""
+  IL_0034:  call       ""void System.Console.WriteLine(int)""
+  IL_0039:  ldloca.s   V_0
+  IL_003b:  stloc.2
+  IL_003c:  ldloca.s   V_1
+  IL_003e:  dup
+  IL_003f:  stloc.2
+  IL_0040:  ldobj      ""S""
+  IL_0045:  stloc.3
+  IL_0046:  ldloca.s   V_3
+  IL_0048:  call       ""void S.AddOne()""
+  IL_004d:  ldfld      ""int S.X""
+  IL_0052:  call       ""void System.Console.WriteLine(int)""
+  IL_0057:  ldloc.0
+  IL_0058:  ldfld      ""int S.X""
+  IL_005d:  call       ""void System.Console.WriteLine(int)""
+  IL_0062:  ldloc.1
+  IL_0063:  ldfld      ""int S.X""
+  IL_0068:  call       ""void System.Console.WriteLine(int)""
+  IL_006d:  ret
+}");
+        }
+
+        [Fact]
         public void RefReassignTernary()
         {
             var comp = CompileAndVerify(@"
@@ -39,6 +499,58 @@ class C
 4
 4
 3");
+        }
+
+        [Fact]
+        public void RefReassignTernaryParam()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        int x = 1, y = 2;
+        ref int rx = ref x;
+        M(ref (rx = ref (x == 0 ? ref x : ref y)));
+        Console.WriteLine(rx);
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+
+    static void M(ref int p)
+    {
+        Console.WriteLine(p++);
+    }
+}", expectedOutput: @"2
+3
+1
+3");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (int V_0, //x
+                int V_1) //y
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.2
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  brfalse.s  IL_000b
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  br.s       IL_000d
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  dup
+  IL_000e:  call       ""void C.M(ref int)""
+  IL_0013:  ldind.i4
+  IL_0014:  call       ""void System.Console.WriteLine(int)""
+  IL_0019:  ldloc.0
+  IL_001a:  call       ""void System.Console.WriteLine(int)""
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""void System.Console.WriteLine(int)""
+  IL_0025:  ret
+}");
         }
 
         [Fact]

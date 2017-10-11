@@ -5244,7 +5244,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConditionalInInterpolation" xml:space="preserve">
     <value>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</value>
   </data>
-</root>
   <data name="ERR_RefLocalOrParamExpected" xml:space="preserve">
     <value>The left-hand side of a ref assignment must be a ref local or parameter.</value>
   </data>

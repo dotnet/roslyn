@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, DiagnosticBag diagnostics)
         {
             // Only ref-assigns produce LValues
-            if (assignment.RefKind != RefKind.None)
+            if (assignment.IsRef)
             {
                 if (RequiresRefAssignableVariable(valueKind))
                 {
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (RequiresAssignableVariable(valueKind))
                 {
-                    return assignment.RefKind != RefKind.RefReadOnly;
+                    return assignment.Left.GetRefKind() != RefKind.RefReadOnly;
                 }
             }
 

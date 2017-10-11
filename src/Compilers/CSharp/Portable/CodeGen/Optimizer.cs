@@ -945,6 +945,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 LocalSymbol localSymbol = assignmentLocal.LocalSymbol;
 
+                // If the LHS is a readonly ref and the result is used later we cannot stack
+                // schedule since we may be converting a writeable value on the RHS to a readonly
+                // one on the LHS.
+                if (localSymbol.RefKind == RefKind.RefReadOnly &&
+                    (_context == ExprContext.Address || _context == ExprContext.Value))
+                {
+                    ShouldNotSchedule(localSymbol);
+                }
+
                 // Special Case: If the RHS is a pointer conversion, then the assignment functions as
                 // a conversion (because the RHS will actually be typed as a native u/int in IL), so
                 // we should not optimize away the local (i.e. schedule it on the stack).
@@ -970,9 +979,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var lhs = node.Left;
 
-            Debug.Assert(!node.IsRef || lhs is BoundLocal local &&
-                         local.LocalSymbol.RefKind != RefKind.None,
-                                "only ref locals can be a target of a ref assignment");
+            Debug.Assert(!node.IsRef || 
+              (lhs is BoundLocal local && local.LocalSymbol.RefKind != RefKind.None) ||
+              (lhs is BoundParameter param && param.ParameterSymbol.RefKind != RefKind.None),
+                                "only ref symbols can be a target of a ref assignment");
             
             switch (lhs.Kind)
             {
