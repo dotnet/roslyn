@@ -231,9 +231,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return Nothing
         End Function
 
-        Private Function GetVariableDeclarationStatementVariables(statement As BoundDimStatement) As ImmutableArray(Of IVariableDeclaration)
+        Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclaration)
             Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
-            For Each base In statement.LocalDeclarations
+            For Each base In declarations
                 If base.Kind = BoundKind.LocalDeclaration Then
                     Dim declaration = DirectCast(base, BoundLocalDeclaration)
                     builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), _semanticModel, declaration.Syntax))
@@ -248,9 +248,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationStatement
-            Dim declaration = resourceList.Select(Function(n) Create(n)).OfType(Of IVariableDeclaration).ToImmutableArray()
             Return New VariableDeclarationStatement(
-                            declaration,
+                            GetVariableDeclarationStatementVariables(resourceList),
                             _semanticModel,
                             syntax,
                             type:=Nothing,
