@@ -233,6 +233,14 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
+        /// <summary>
+        /// Gets an <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
+        /// </summary>
+        /// <remarks>
+        /// Database connections have a large amount of overhead, and should be returned to the pool when they are no
+        /// longer in use. In particular, make sure to avoid letting a connection lease cross an <see langword="await"/>
+        /// boundary, as it will prevent code in the asynchronous operation from using the existing connection.
+        /// </remarks>
         private PooledConnection GetPooledConnection()
             => new PooledConnection(this, GetConnection());
 
