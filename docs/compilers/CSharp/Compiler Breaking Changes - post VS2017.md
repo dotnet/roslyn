@@ -69,3 +69,5 @@ static Func<int> M(__arglist)
 const object o = null;
 if (o is object res) { // warning CS0184: The given expression is never of the provided ('object') type
 ```
+
+- https://github.com/dotnet/roslyn/issues/22578 In C# 7.1, the compiler would compute the wrong default value for an optional parameter of nullable type declared with the default literal. For instance, `void M(int? x = default)` would use `0` for the default parameter value, instead of `null`. In C# 7.2 (Visual Studio 2017 version 15.5), the proper default parameter value (`null`) is computed in such cases.

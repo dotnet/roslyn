@@ -2233,7 +2233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.PropertyAccess:
                     case BoundKind.IndexerAccess:
-                        hadError = !CheckValueKind(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
+                        var requiredValueKind = origRefKind == RefKind.In ? BindValueKind.ReadonlyRef : BindValueKind.RefOrOut;
+                        hadError = !CheckValueKind(argumentSyntax, arg, requiredValueKind, false, diagnostics);
                         return;
                 }
             }
@@ -2483,7 +2484,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindArgumentExpression(DiagnosticBag diagnostics, ExpressionSyntax argumentExpression, RefKind refKind, bool allowArglist)
         {
-            BindValueKind valueKind = refKind == RefKind.None ? BindValueKind.RValue : BindValueKind.RefOrOut;
+            BindValueKind valueKind = 
+                refKind == RefKind.None ? 
+                        BindValueKind.RValue :
+                        refKind == RefKind.In ?
+                            BindValueKind.ReadonlyRef:
+                            BindValueKind.RefOrOut;
 
             BoundExpression argument;
             if (allowArglist)
@@ -3553,11 +3559,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Conversion conversion;
                     BoundMethodGroup methodGroup = (BoundMethodGroup)argument;
-                    if (!MethodGroupConversionDoesNotExistOrHasErrors(methodGroup, type, node.Location, diagnostics, out conversion))
-                    {
-                        methodGroup = FixMethodGroupWithTypeOrValue(methodGroup, conversion, diagnostics);
-                        return new BoundDelegateCreationExpression(node, methodGroup, conversion.Method, conversion.IsExtensionMethod, type);
-                    }
+                    hasErrors = MethodGroupConversionDoesNotExistOrHasErrors(methodGroup, type, node.Location, diagnostics, out conversion);
+                    methodGroup = FixMethodGroupWithTypeOrValue(methodGroup, conversion, diagnostics);
+                    return new BoundDelegateCreationExpression(node, methodGroup, conversion.Method, conversion.IsExtensionMethod, type, hasErrors);
                 }
 
                 else if ((object)argument.Type == null)

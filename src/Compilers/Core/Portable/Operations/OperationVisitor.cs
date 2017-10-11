@@ -187,8 +187,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22006
-        internal virtual void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
+        public virtual void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -297,6 +296,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual void VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitDelegateCreationExpression(IDelegateCreationExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -482,6 +486,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual void VisitTranslatedQueryExpression(ITranslatedQueryExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+        
+        public virtual void VisitRaiseEventStatement(IRaiseEventStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -678,8 +687,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22006
-        internal virtual TResult VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, TArgument argument)
+        public virtual TResult VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -788,6 +796,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDelegateCreationExpression(IDelegateCreationExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -975,6 +988,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         public virtual TResult VisitTranslatedQueryExpression(ITranslatedQueryExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
+        }
+        
+        public virtual TResult VisitRaiseEventStatement(IRaiseEventStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument); 
         }
     }
 }

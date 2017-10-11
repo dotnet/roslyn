@@ -5593,6 +5593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       {
         case SyntaxKind.RefKeyword:
         case SyntaxKind.OutKeyword:
+        case SyntaxKind.InKeyword:
         case SyntaxKind.None:
           break;
         default:

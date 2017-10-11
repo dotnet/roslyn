@@ -12,15 +12,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
             ' Pass 2 walks over the lowered tree and replaces duplicate bound nodes in the tree with their clones - this is a requirement for the Operation tree.
             ' Note that the rewriter also rewrites all the query lambdas inside the body of this query lambda.
 
-            Try
-                Dim pass1Rewriter As New QueryLambdaRewriterPass1
-                Dim rewrittenLambda As BoundLambda = DirectCast(pass1Rewriter.VisitQueryLambda(node), BoundLambda)
+            Dim pass1Rewriter As New QueryLambdaRewriterPass1
+            Dim rewrittenLambda As BoundLambda = DirectCast(pass1Rewriter.VisitQueryLambda(node), BoundLambda)
 
-                Dim pass2Rewriter As New QueryLambdaRewriterPass2
-                Return pass2Rewriter.VisitLambda(rewrittenLambda)
-            Catch ex As CancelledByStackGuardException
-                Return node
-            End Try
+            Dim pass2Rewriter As New QueryLambdaRewriterPass2
+            Return pass2Rewriter.VisitLambda(rewrittenLambda)
         End Function
 
         Private NotInheritable Class QueryLambdaRewriterPass1
@@ -30,6 +26,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Public Sub New()
                 _rangeVariableMap = Nothing
             End Sub
+
+            Protected Overrides Function ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException() As Boolean
+                ' We can reach this code path from a public API (SemanticModel.GetOperation),
+                ' hence we prefer to throw the CLR InsufficientExecutionStackException instead of our internal CancelledByStackGuardException
+                Return False
+            End Function
 
             Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
                 LocalRewriter.PopulateRangeVariableMapForQueryLambdaRewrite(node, _rangeVariableMap, inExpressionLambda:=True)
@@ -67,6 +69,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private NotInheritable Class QueryLambdaRewriterPass2
             Inherits BoundTreeRewriterWithStackGuard
             Private ReadOnly _uniqueNodes As New HashSet(Of BoundParameter)
+
+            Protected Overrides Function ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException() As Boolean
+                ' We can reach this code path from a public API (SemanticModel.GetOperation),
+                ' hence we prefer to throw the CLR InsufficientExecutionStackException instead of our internal CancelledByStackGuardException
+                Return False
+            End Function
 
             Public Overrides Function VisitParameter(node As BoundParameter) As BoundNode
                 If node.ParameterSymbol?.ContainingSymbol.IsQueryLambdaMethod AndAlso Not _uniqueNodes.Add(node) Then

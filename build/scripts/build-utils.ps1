@@ -179,8 +179,8 @@ function Ensure-SdkInPathAndData() {
 
     ${env:PATH} = "$cliDir;${env:PATH}"
     $sdkPath = Join-Path $cliDir "sdk\$sdkVersion"
-    Write-Host $dotnetExe
-    Write-Host $sdkPath
+    Write-Output $dotnetExe
+    Write-Output $sdkPath
     return
 }
 
