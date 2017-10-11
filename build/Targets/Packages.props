@@ -232,7 +232,6 @@
     <xunitassertVersion>2.2.0</xunitassertVersion>
     <xunitextensibilityexecution>2.2.0</xunitextensibilityexecution>
     <xunitrunnerconsoleVersion>2.2.0</xunitrunnerconsoleVersion>
-    <xunitrunnervisualstudioVersion>2.2.0</xunitrunnervisualstudioVersion>
     <xunitrunnerwpfVersion>1.0.41</xunitrunnerwpfVersion>
   </PropertyGroup>
 

@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var pattern = BindPattern(node.Pattern, expressionType, hasErrors, diagnostics);
+            if (!hasErrors && pattern is BoundDeclarationPattern p && !p.IsVar && expression.ConstantValue == ConstantValue.Null)
+            {
+                diagnostics.Add(ErrorCode.WRN_IsAlwaysFalse, node.Location, p.DeclaredType.Type);
+            }
+
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
         }
