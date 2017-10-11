@@ -1833,7 +1833,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Type defines operator == or operator != but does not override Object.GetHashCode()</value>
   </data>
   <data name="ERR_OutAttrOnRefParam" xml:space="preserve">
-    <value>Cannot specify Out attribute on a ref parameter without also specifying In attribute.</value>
+    <value>Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.</value>
   </data>
   <data name="ERR_OverloadRefKind" xml:space="preserve">
     <value>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</value>

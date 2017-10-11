@@ -2045,7 +2045,7 @@ class C
 {
     public static void M([Out]ref int p) { }
 }").VerifyDiagnostics(
-                // (5,39): error CS0662: Cannot specify Out attribute on a ref parameter without also specifying In attribute.
+                // (5,39): error CS0662: Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.
                 //     public static void M([Out]ref int p) { }
                 Diagnostic(ErrorCode.ERR_OutAttrOnRefParam, "p").WithLocation(5, 39));
         }

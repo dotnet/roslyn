@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case RefKind.Ref:
                         if (data.HasOutAttribute && !data.HasInAttribute)
                         {
-                            // error CS0662: Cannot specify Out attribute on a ref parameter without also specifying In attribute.
+                            // error CS0662: Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.
                             diagnostics.Add(ErrorCode.ERR_OutAttrOnRefParam, this.Locations[0]);
                         }
                         break;
