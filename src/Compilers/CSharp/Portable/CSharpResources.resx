@@ -2196,9 +2196,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_RecursivelyTypedVariable" xml:space="preserve">
     <value>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</value>
   </data>
-  <data name="ERR_ExplicitLayoutAndAutoImplementedProperty" xml:space="preserve">
-    <value>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</value>
-  </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
     <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
   </data>

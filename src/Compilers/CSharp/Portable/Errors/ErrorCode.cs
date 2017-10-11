@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingArgument = 839,
         //ERR_AutoPropertiesMustHaveBothAccessors = 840,
         ERR_VariableUsedBeforeDeclaration = 841,
-        ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
+        //ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
         ERR_UnassignedThisAutoProperty = 843,
         ERR_VariableUsedBeforeDeclarationAndHidesField = 844,
         ERR_ExpressionTreeContainsBadCoalesce = 845,

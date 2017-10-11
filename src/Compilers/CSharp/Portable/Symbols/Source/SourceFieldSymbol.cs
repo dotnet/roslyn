@@ -8,13 +8,11 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -166,8 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract Location ErrorLocation { get; }
-
         /// <summary>
         /// Gets the syntax list of custom attributes applied on the symbol.
         /// </summary>
@@ -314,17 +310,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
+            DecodeWellKnownFieldAttribute(this, ref arguments, attribute);
+        }
+
+        internal static void DecodeWellKnownFieldAttribute(
+            FieldSymbol field, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, CSharpAttributeData attribute)
+        {
+            if (attribute.IsTargetAttribute(field, AttributeDescription.SpecialNameAttribute))
             {
                 arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonSerializedAttribute))
+            else if (attribute.IsTargetAttribute(field, AttributeDescription.NonSerializedAttribute))
             {
                 arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>().HasNonSerializedAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.FieldOffsetAttribute))
+            else if (attribute.IsTargetAttribute(field, AttributeDescription.FieldOffsetAttribute))
             {
-                if (this.IsStatic || this.IsConst)
+                if (field.IsStatic || field.IsConst)
                 {
                     // CS0637: The FieldOffset attribute is not allowed on static or const fields
                     arguments.Diagnostics.Add(ErrorCode.ERR_StructOffsetOnBadField, arguments.AttributeSyntaxOpt.Name.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
@@ -345,39 +347,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>().SetFieldOffset(offset);
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
+            else if (attribute.IsTargetAttribute(field, AttributeDescription.MarshalAsAttribute))
             {
                 MarshalAsAttributeDecoder<CommonFieldWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Field, MessageProvider.Instance);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.FixedBufferAttribute))
+            else if (attribute.IsTargetAttribute(field, AttributeDescription.FixedBufferAttribute))
             {
                 // error CS1716: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.
                 arguments.Diagnostics.Add(ErrorCode.ERR_DoNotUseFixedBufferAttr, arguments.AttributeSyntaxOpt.Name.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+            else if (attribute.IsTargetAttribute(field, AttributeDescription.DynamicAttribute))
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            else if (attribute.IsTargetAttribute(field, AttributeDescription.IsReadOnlyAttribute))
             {
                 // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            else if (attribute.IsTargetAttribute(field, AttributeDescription.IsByRefLikeAttribute))
             {
                 // IsByRefLikeAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DateTimeConstantAttribute))
+            else if (attribute.IsTargetAttribute(field, AttributeDescription.DateTimeConstantAttribute))
             {
-                VerifyConstantValueMatches(attribute.DecodeDateTimeConstantValue(), ref arguments);
+                VerifyConstantValueMatches(field, attribute.DecodeDateTimeConstantValue(), ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DecimalConstantAttribute))
+            else if (attribute.IsTargetAttribute(field, AttributeDescription.DecimalConstantAttribute))
             {
-                VerifyConstantValueMatches(attribute.DecodeDecimalConstantValue(), ref arguments);
+                VerifyConstantValueMatches(field, attribute.DecodeDecimalConstantValue(), ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+            else if (attribute.IsTargetAttribute(field, AttributeDescription.TupleElementNamesAttribute))
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
@@ -388,18 +390,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (DateTimeConstantAttribute or DecimalConstantAttribute).
         /// If not, report ERR_FieldHasMultipleDistinctConstantValues.
         /// </summary>
-        private void VerifyConstantValueMatches(ConstantValue attrValue, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        private static void VerifyConstantValueMatches(FieldSymbol field, ConstantValue attrValue, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             if (!attrValue.IsBad)
             {
                 var data = arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>();
                 ConstantValue constValue;
 
-                if (this.IsConst)
+                if (field.IsConst)
                 {
-                    if (this.Type.SpecialType == SpecialType.System_Decimal)
+                    if (field.Type.SpecialType == SpecialType.System_Decimal)
                     {
-                        constValue = this.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
+                        constValue = field.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
 
                         if ((object)constValue != null && !constValue.IsBad && constValue != attrValue)
                         {
@@ -437,37 +439,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
-            Debug.Assert(!boundAttributes.IsDefault);
-            Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
-            Debug.Assert(boundAttributes.Length == allAttributeSyntaxNodes.Length);
             Debug.Assert(_lazyCustomAttributesBag != null);
             Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
+
+            PostDecodeWellKnownFieldAttributes(this, boundAttributes, allAttributeSyntaxNodes, diagnostics, decodedData);
+
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+        }
+
+        internal static void PostDecodeWellKnownFieldAttributes(FieldSymbol field, ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, WellKnownAttributeData decodedData)
+        {
+            Debug.Assert(!boundAttributes.IsDefault);
+            Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
+            Debug.Assert(boundAttributes.Length == allAttributeSyntaxNodes.Length);
 
             var data = (CommonFieldWellKnownAttributeData)decodedData;
             int? fieldOffset = data != null ? data.Offset : null;
 
             if (fieldOffset.HasValue)
             {
-                if (this.ContainingType.Layout.Kind != LayoutKind.Explicit)
+                if (field.ContainingType.Layout.Kind != LayoutKind.Explicit)
                 {
                     Debug.Assert(boundAttributes.Any());
 
                     // error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
-                    int i = boundAttributes.IndexOfAttribute(this, AttributeDescription.FieldOffsetAttribute);
+                    int i = boundAttributes.IndexOfAttribute(field, AttributeDescription.FieldOffsetAttribute);
                     diagnostics.Add(ErrorCode.ERR_StructOffsetOnBadStruct, allAttributeSyntaxNodes[i].Name.Location);
                 }
             }
-            else if (!this.IsStatic && !this.IsConst)
+            else if (!field.IsStatic && !field.IsConst)
             {
-                if (this.ContainingType.Layout.Kind == LayoutKind.Explicit)
+                if (field.ContainingType.Layout.Kind == LayoutKind.Explicit)
                 {
                     // error CS0625: '<field>': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
-                    diagnostics.Add(ErrorCode.ERR_MissingStructOffset, this.ErrorLocation, this);
+                    diagnostics.Add(ErrorCode.ERR_MissingStructOffset, field.ErrorLocation, field);
                 }
             }
-
-            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

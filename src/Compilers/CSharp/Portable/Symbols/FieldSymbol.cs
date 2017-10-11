@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal virtual Location ErrorLocation => throw ExceptionUtilities.Unreachable;
+
         internal abstract TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
         /// <summary>
