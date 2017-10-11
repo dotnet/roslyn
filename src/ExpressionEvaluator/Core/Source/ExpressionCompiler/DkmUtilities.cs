@@ -323,6 +323,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 this.MetadataContext = metadataContext;
             }
+
+            // This override is needed to prevent the Concord dispatcher from unloading components 
+            // under the EE when code from an EE component is currently running.
+            // See https://github.com/dotnet/roslyn/issues/22617.
+            protected override void OnClose() { }
         }
     }
 }
