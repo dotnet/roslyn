@@ -1244,7 +1244,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationStatement
-            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclaration)) = New Lazy(Of ImmutableArray(Of IVariableDeclaration))(Function() GetVariableDeclarationStatementVariables(boundDimStatement))
+            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclaration)) = New Lazy(Of ImmutableArray(Of IVariableDeclaration))(Function() GetVariableDeclarationStatementVariables(boundDimStatement.LocalDeclarations))
             Dim syntax As SyntaxNode = boundDimStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
