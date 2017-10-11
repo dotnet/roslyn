@@ -41,6 +41,10 @@ then
     export HOME="$(cd ~ && pwd)"
 fi
 
+# Ensure that we have our own package cache to prevent clobbering from other builds on the same machine.
+export NUGET_PACKAGES="${HOME}/.nuget/roslyn-packages"
+export DisableImplicitNuGetFallbackFolder=true
+
 # LTTNG is the logging infrastructure used by coreclr.  Need this variable set 
 # so it doesn't output warnings to the console.
 export LTTNG_HOME="$HOME"
