@@ -4434,7 +4434,7 @@ class Child: Parent, IM
                 Assert.False(childMethod.IsMetadataVirtual());
                 Assert.Empty(childMethod.Parameters.Single().RefCustomModifiers);
 
-                // Modreq on Interafce
+                // Modreq on Interface
                 var interfaceMethod = module.ContainingAssembly.GetTypeByMetadataName("IM").GetMethod("M");
                 Assert.True(interfaceMethod.IsMetadataVirtual());
                 AssertSingleInAttributeRequiredModifier(interfaceMethod.Parameters.Single().RefCustomModifiers);
@@ -4443,7 +4443,10 @@ class Child: Parent, IM
                 var proxyMethod = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("IM.M");
                 Assert.True(proxyMethod.IsMetadataVirtual());
                 AssertSingleInAttributeRequiredModifier(proxyMethod.Parameters.Single().RefCustomModifiers);
-            });
+            }).VerifyDiagnostics(
+                // (12,17): warning CS0108: 'Child.M(in int)' hides inherited member 'Parent.M(in int)'. Use the new keyword if hiding was intended.
+                //     public void M(in int x) { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("Child.M(in int)", "Parent.M(in int)").WithLocation(12, 17));
         }
 
         [Fact]
@@ -4472,7 +4475,7 @@ class Child: Parent, IM
                 // No method on Child
                 Assert.DoesNotContain("M", module.ContainingAssembly.GetTypeByMetadataName("Child").MemberNames);
 
-                // Modreq on Interafce
+                // Modreq on Interface
                 var interfaceMethod = module.ContainingAssembly.GetTypeByMetadataName("IM").GetMethod("M");
                 Assert.True(interfaceMethod.IsMetadataVirtual());
                 AssertSingleInAttributeRequiredModifier(interfaceMethod.Parameters.Single().RefCustomModifiers);
@@ -4481,7 +4484,7 @@ class Child: Parent, IM
                 var proxyMethod = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("IM.M");
                 Assert.True(proxyMethod.IsMetadataVirtual());
                 AssertSingleInAttributeRequiredModifier(proxyMethod.Parameters.Single().RefCustomModifiers);
-            });
+            }).VerifyDiagnostics();
         }
 
         private void AssertSingleInAttributeRequiredModifier(ImmutableArray<CustomModifier> modifiers)
