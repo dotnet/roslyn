@@ -819,7 +819,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundEventAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundEventAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundEventAccess.WasCompilerGenerated
-            Return New LazyEventReferenceExpression([event], instance, [event], _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyEventReferenceExpression([event], instance, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundFieldAccessOperation(boundFieldAccess As BoundFieldAccess) As IFieldReferenceExpression
@@ -1410,7 +1410,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim eventReference As Lazy(Of IEventReferenceExpression) = New Lazy(Of IEventReferenceExpression)(Function() As IEventReferenceExpression
                                                                                                                   Return New LazyEventReferenceExpression(eventSymbol,
                                                                                                                                                           eventReferenceInstance,
-                                                                                                                                                          eventSymbol,
                                                                                                                                                           _semanticModel,
                                                                                                                                                           eventReferenceSyntax,
                                                                                                                                                           eventReferenceType,

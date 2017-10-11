@@ -1395,15 +1395,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseEventReferenceExpression : MemberReferenceExpression, IEventReferenceExpression
     {
-        public BaseEventReferenceExpression(IEventSymbol @event, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(member, OperationKind.EventReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseEventReferenceExpression(IEventSymbol @event, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(@event, OperationKind.EventReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Event = @event;
         }
         /// <summary>
         /// Referenced event.
         /// </summary>
-        public IEventSymbol Event { get; }
+        public IEventSymbol Event => (IEventSymbol)Member;
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -1427,8 +1427,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class EventReferenceExpression : BaseEventReferenceExpression, IEventReferenceExpression
     {
-        public EventReferenceExpression(IEventSymbol @event, IOperation instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(@event, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public EventReferenceExpression(IEventSymbol @event, IOperation instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(@event, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InstanceImpl = instance;
         }
@@ -1442,8 +1442,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyEventReferenceExpression(IEventSymbol @event, Lazy<IOperation> instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(@event, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyEventReferenceExpression(IEventSymbol @event, Lazy<IOperation> instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(@event, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }

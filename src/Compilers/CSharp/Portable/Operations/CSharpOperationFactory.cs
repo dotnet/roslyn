@@ -383,12 +383,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             IEventSymbol @event = boundEventAccess.EventSymbol;
             Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAccess.EventSymbol.IsStatic ? null : boundEventAccess.ReceiverOpt));
-            ISymbol member = boundEventAccess.EventSymbol;
             SyntaxNode syntax = boundEventAccess.Syntax;
             ITypeSymbol type = boundEventAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundEventAccess.ConstantValue);
             bool isImplicit = boundEventAccess.WasCompilerGenerated;
-            return new LazyEventReferenceExpression(@event, instance, member, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyEventReferenceExpression(@event, instance,  _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IEventAssignmentExpression CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
@@ -562,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return new LazyFieldReferenceExpression(field, isDeclaration, instance, field, _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)boundObjectInitializerMember.MemberSymbol;
-                    return new LazyEventReferenceExpression(eventSymbol, instance, eventSymbol, _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new LazyEventReferenceExpression(eventSymbol, instance, _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Property:
                     var property = (PropertySymbol)boundObjectInitializerMember.MemberSymbol;
                     Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder;

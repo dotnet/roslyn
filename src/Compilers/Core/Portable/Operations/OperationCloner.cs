@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitEventReferenceExpression(IEventReferenceExpression operation, object argument)
         {
-            return new EventReferenceExpression(operation.Event, Visit(operation.Instance), operation.Member, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new EventReferenceExpression(operation.Event, Visit(operation.Instance), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitEventAssignmentExpression(IEventAssignmentExpression operation, object argument)
