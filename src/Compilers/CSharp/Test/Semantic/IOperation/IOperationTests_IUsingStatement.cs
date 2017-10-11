@@ -560,7 +560,7 @@ IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using () ...
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void IUsingStatement_UsingWithNoReference()
+        public void IUsingStatement_UsingWithoutSavedReference()
         {
             string source = @"
 using System;
@@ -670,6 +670,117 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (null ... }')
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<UsingStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IUsingStatement_UsingStatementSyntax_Declaration()
+        {
+            string source = @"
+using System;
+
+class C : IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    public static void M1()
+    {
+        using (/*<bind>*/var c = new C()/*</bind>*/)
+        {
+            Console.WriteLine(c.ToString());
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c = new C()')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c = new C()')
+    Variables: Local_1: C c
+    Initializer: 
+      IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+        Arguments(0)
+        Initializer: 
+          null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IUsingStatement_UsingStatementSyntax_StatementSyntax()
+        {
+            string source = @"
+using System;
+
+class C : IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    public static void M1()
+    {
+        using (var c = new C())
+        /*<bind>*/{
+            Console.WriteLine(c.ToString());
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... oString());')
+    Expression: 
+      IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ToString())')
+        Instance Receiver: 
+          null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'c.ToString()')
+              IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'c.ToString()')
+                Instance Receiver: 
+                  ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: C) (Syntax: 'c')
+                Arguments(0)
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IUsingStatement_UsingStatementSyntax_ExpressionSyntax()
+        {
+            string source = @"
+using System;
+
+class C : IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    public static void M1()
+    {
+        var c = new C();
+        using (/*<bind>*/c/*</bind>*/)
+        {
+            Console.WriteLine(c.ToString());
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: C) (Syntax: 'c')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

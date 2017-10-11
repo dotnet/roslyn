@@ -709,5 +709,225 @@ BC36010: 'Using' operand of type 'Object' must implement 'System.IDisposable'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UsingBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IUsingStatement_UsingWithoutSavedReference()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Using GetC()'BIND:"Using GetC()"
+        End Using
+    End Sub
+
+    Function GetC() As C
+        Return New C
+    End Function
+
+    Class C
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using GetC( ... End Using')
+  Resources: 
+    IInvocationExpression (Function Program.GetC() As Program.C) (OperationKind.InvocationExpression, Type: Program.C) (Syntax: 'GetC()')
+      Instance Receiver: 
+        null
+      Arguments(0)
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Using GetC( ... End Using')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UsingBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IUsingStatement_UsingBlockSyntax_UsingStatementSyntax_WithDeclarationResource()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Using c1 = New C, c2 = New C'BIND:"Using c1 = New C, c2 = New C"
+        End Using
+    End Sub
+
+    Class C
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1 =  ...  c2 = New C')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
+    Variables: Local_1: c1 As Program.C
+    Initializer: 
+      IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+        Arguments(0)
+        Initializer: 
+          null
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2')
+    Variables: Local_1: c2 As Program.C
+    Initializer: 
+      IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+        Arguments(0)
+        Initializer: 
+          null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UsingStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IUsingStatement_UsingBlockSyntax_UsingStatementSyntax_WithExpressionResource()
+            Dim source = <compilation>
+                             <file Name="a.vb">
+                                 <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Dim c1 As New C
+        Using c1'BIND:"Using c1"
+            Console.WriteLine()
+        End Using
+    End Sub
+
+    Class C
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+End Module]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            CompilationUtils.AssertNoDiagnostics(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single().UsingStatement
+
+            Assert.Null(comp.GetSemanticModel(node.SyntaxTree).GetOperation(node))
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22362")>
+        Public Sub IUsingStatement_UsingStatementSyntax_VariablesSyntax()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Using c1 = New C, c2 = New C'BIND:"c1 = New C"
+        End Using
+    End Sub
+
+    Class C
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+End Module]]>.Value
+
+            ' This should be returning a variable declaration, but the associated variable declarator operation has a
+            ' ModifiedIdentifierSyntax as the associated syntax node. Fixing is tracked by
+            ' https://github.com/dotnet/roslyn/issues/22362
+            Dim expectedOperationTree = <![CDATA[
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IUsingStatement_UsingStatementSyntax_Expression()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Dim c1 As New C
+        Using c1'BIND:"c1"
+            Console.WriteLine()
+        End Using
+    End Sub
+
+    Class C
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C) (Syntax: 'c1')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IUsingStatement_UsingBlockSyntax_StatementsSyntax()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Using c1 = New C, c2 = New C
+            Console.WriteLine()'BIND:"Console.WriteLine()"
+        End Using
+    End Sub
+
+    Class C
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+  Expression: 
+    IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+      Instance Receiver: 
+        null
+      Arguments(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
