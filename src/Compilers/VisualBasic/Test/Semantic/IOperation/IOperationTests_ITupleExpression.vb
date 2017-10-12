@@ -47,7 +47,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (I ... r) = (1, 2)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't As (Integ ... r) = (1, 2)')
     Variables: Local_1: t As (System.Int32, System.Int32)
     Initializer: 
       ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
@@ -105,7 +105,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (U ... r) = (1, 2)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't As (UInte ... r) = (1, 2)')
     Variables: Local_1: t As (System.UInt32, System.UInt32)
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32), IsImplicit) (Syntax: '(1, 2)')
@@ -172,7 +172,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (U ... 1, Nothing)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't As (UInte ... 1, Nothing)')
     Variables: Local_1: t As (System.UInt32, System.String)
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String), IsImplicit) (Syntax: '(1, Nothing)')
@@ -235,7 +235,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t = (A:=1, B:=2)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (A:=1, B:=2)')
     Variables: Local_1: t As (A As System.Int32, B As System.Int32)
     Initializer: 
       ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int32, B As System.Int32)) (Syntax: '(A:=1, B:=2)')
@@ -289,7 +289,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (A ... r) = (1, 2)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't As (A As  ... r) = (1, 2)')
     Variables: Local_1: t As (A As System.Int32, B As System.Int32)
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int32, B As System.Int32), IsImplicit) (Syntax: '(1, 2)')
@@ -352,7 +352,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (A ... B:=Nothing)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't As (A As  ... B:=Nothing)')
     Variables: Local_1: t As (A As System.Int16, B As System.String)
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String), IsImplicit) (Syntax: '(A:=1, B:=Nothing)')
@@ -460,7 +460,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (A ... w C(0), c1)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't As (A As  ... w C(0), c1)')
     Variables: Local_1: t As (A As System.Int16, B As System.String)
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String), IsImplicit) (Syntax: '(New C(0), c1)')
@@ -557,7 +557,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As C  ... 0, Nothing)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't As C = (0, Nothing)')
     Variables: Local_1: t As C
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(x As (System.Int32, System.String)) As C) (OperationKind.ConversionExpression, Type: C, IsImplicit) (Syntax: '(0, Nothing)')
@@ -641,7 +641,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim t As (I ... tring) = c1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't As (Integ ... tring) = c1')
     Variables: Local_1: t As (System.Int32, System.String)
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As (System.Int32, System.String)) (OperationKind.ConversionExpression, Type: (System.Int32, System.String), IsImplicit) (Syntax: 'c1')
@@ -742,7 +742,7 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim t As (S ... w C(0), c1)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 't As (Short ... w C(0), c1)')
     Variables: Local_1: t As (System.Int16, System.String)
     Initializer: 
       ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), IsInvalid) (Syntax: '(New C(0), c1)')

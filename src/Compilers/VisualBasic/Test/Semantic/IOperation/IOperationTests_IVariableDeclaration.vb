@@ -22,7 +22,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 As Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 As Integer')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       null
@@ -49,15 +49,15 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (3 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 As I ...  As Boolean')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 As Integer')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 As Integer')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
       null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1 As Boolean')
     Variables: Local_1: b1 As System.Boolean
     Initializer: 
       null
@@ -125,13 +125,10 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1, i2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1, i2')
+  IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1, i2')
     Variables: Local_1: i1 As System.Object
-    Initializer: 
-      null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
-    Variables: Local_1: i2 As System.Object
+      Local_2: i2 As System.Object
     Initializer: 
       null
 ]]>.Value
@@ -164,7 +161,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1 As Integer,')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 As Integer')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       null
@@ -201,13 +198,10 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1,')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1,')
+  IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1,')
     Variables: Local_1: i1 As System.Object
-    Initializer: 
-      null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
-    Variables: Local_1:  As System.Object
+      Local_2:  As System.Object
     Initializer: 
       null
 ]]>.Value
@@ -237,7 +231,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i2 = i1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = i1')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
       ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
@@ -261,11 +255,11 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i2 = i1, i3 = i1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = i1')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
       ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3 = i1')
     Variables: Local_1: i3 As System.Int32
     Initializer: 
       ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
@@ -292,7 +286,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 = ReturnInt()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = ReturnInt()')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
@@ -322,14 +316,14 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 = Re ... ReturnInt()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = ReturnInt()')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
         Instance Receiver: 
           null
         Arguments(0)
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = ReturnInt()')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
       IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
@@ -357,7 +351,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim p1 As New C')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 As New C')
     Variables: Local_1: p1 As Program.C
     Initializer: 
       IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
@@ -411,7 +405,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1 As New')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 As New')
     Variables: Local_1: i1 As ?
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'New')
@@ -476,7 +470,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         Arguments(0)
         Initializer: 
           null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1 As Boolean = False')
     Variables: Local_1: b1 As System.Boolean
     Initializer: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
@@ -499,7 +493,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim b1 As B ... New Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1 As Boolean')
     Variables: Local_1: b1 As System.Boolean
     Initializer: 
       null
@@ -534,7 +528,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1(2) As Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1(2)')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1(2) As Integer')
     Variables: Local_1: i1 As System.Int32()
     Initializer: 
       IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'i1(2)')
@@ -564,13 +558,10 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1(), i2 As Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1()')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1(), i2 As Integer')
+  IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1(), i2 As Integer')
     Variables: Local_1: i1 As System.Int32()
-    Initializer: 
-      null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
-    Variables: Local_1: i2 As System.Int32
+      Local_2: i2 As System.Int32
     Initializer: 
       null
 ]]>.Value
@@ -599,7 +590,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1(2) As New Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1(2)')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1(2) As New Integer')
     Variables: Local_1: i1 As System.Int32()
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
@@ -646,7 +637,7 @@ End Module]]>.Value
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Using')
   Declaration: 
     IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1 As New C')
-      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
+      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 As New C')
         Variables: Local_1: c1 As Program.C
         Initializer: 
           IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
@@ -724,7 +715,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const i1 As Integer = 1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 As Integer = 1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -755,11 +746,11 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const i1 = 1, i2 = 2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = 2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -789,7 +780,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 As New Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 As New Integer')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
@@ -861,7 +852,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const i1 = 1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -888,11 +879,11 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 = 1, i2 = ')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2 = ')
     Variables: Local_1: i2 As System.Object
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
@@ -924,7 +915,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const i2 = i1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = i1')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
       ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
@@ -952,11 +943,11 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const i2 = i1, i3 = i1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = i1')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
       ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3 = i1')
     Variables: Local_1: i3 As System.Int32
     Initializer: 
       ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
@@ -990,7 +981,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 = Int1()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = Int1()')
     Variables: Local_1: i1 As System.Object
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
@@ -1026,7 +1017,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 =  ... i2 = Int1()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = Int1()')
     Variables: Local_1: i1 As System.Object
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
@@ -1035,7 +1026,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
               Instance Receiver: 
                 null
               Arguments(0)
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2 = Int1()')
     Variables: Local_1: i2 As System.Object
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
@@ -1070,7 +1061,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 As New')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 As New')
     Variables: Local_1: i1 As ?
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'i1')
@@ -1139,7 +1130,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 = 1,')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1185,7 +1176,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 As Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 As Integer')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       null
@@ -1215,13 +1206,10 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1, i2 As Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1, i2 As Integer')
+  IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1, i2 As Integer')
     Variables: Local_1: i1 As System.Int32
-    Initializer: 
-      null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
-    Variables: Local_1: i2 As System.Int32
+      Local_2: i2 As System.Int32
     Initializer: 
       null
 ]]>.Value
@@ -1254,7 +1242,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 As New Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 As New Integer')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
@@ -1323,7 +1311,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         Arguments(0)
         Initializer: 
           null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1 As Boolean = False')
     Variables: Local_1: b1 As System.Boolean
     Initializer: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
@@ -1346,7 +1334,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = 1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '1')
@@ -1372,14 +1360,14 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = 1, i2 = 2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = 2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '2')
@@ -1406,7 +1394,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i2 = i1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = i1')
     Variables: Local_1: i2 As System.Object
     Initializer: 
       ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
@@ -1430,11 +1418,11 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i2 = i1, i3 = i1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = i1')
     Variables: Local_1: i2 As System.Object
     Initializer: 
       ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3 = i1')
     Variables: Local_1: i3 As System.Object
     Initializer: 
       ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
@@ -1461,7 +1449,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = Int1()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = Int1()')
     Variables: Local_1: i1 As System.Object
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
@@ -1494,7 +1482,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = ... i2 = Int1()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = Int1()')
     Variables: Local_1: i1 As System.Object
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
@@ -1504,7 +1492,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             Instance Receiver: 
               null
             Arguments(0)
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = Int1()')
     Variables: Local_1: i2 As System.Object
     Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
@@ -1533,7 +1521,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Static i1 As')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 As')
     Variables: Local_1: i1 As ?
     Initializer: 
       null
@@ -1566,13 +1554,10 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Static i1, i2 As')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Static i1, i2 As')
+  IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1, i2 As')
     Variables: Local_1: i1 As ?
-    Initializer: 
-      null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
-    Variables: Local_1: i2 As ?
+      Local_2: i2 As ?
     Initializer: 
       null
 ]]>.Value
@@ -1608,7 +1593,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Static i1 =')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 =')
     Variables: Local_1: i1 As System.Object
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
@@ -1640,12 +1625,12 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Static i1 =, i2 =')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 =')
     Variables: Local_1: i1 As System.Object
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2 =')
     Variables: Local_1: i2 As System.Object
     Initializer: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
@@ -1679,13 +1664,10 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Static i1,')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Static i1,')
+  IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1,')
     Variables: Local_1: i1 As System.Object
-    Initializer: 
-      null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
-    Variables: Local_1:  As System.Object
+      Local_2:  As System.Object
     Initializer: 
       null
 ]]>.Value

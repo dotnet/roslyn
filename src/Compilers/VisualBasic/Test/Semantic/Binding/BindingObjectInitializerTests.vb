@@ -806,7 +806,7 @@ End Module]]>.Value
 IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As C3
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'x As New C3 ... .X = "goo"}')
       Variables: Local_1: x As C3
       Initializer: 
         IObjectCreationExpression (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')

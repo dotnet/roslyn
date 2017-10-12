@@ -22,13 +22,10 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x, 1 As Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x, 1 As Integer')
+  IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'x, 1 As Integer')
     Variables: Local_1: x As System.Int32
-    Initializer: 
-      null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
-    Variables: Local_1:  As System.Int32
+      Local_2:  As System.Int32
     Initializer: 
       null
 ]]>.Value

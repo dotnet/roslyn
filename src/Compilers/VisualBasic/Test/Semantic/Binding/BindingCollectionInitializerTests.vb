@@ -389,7 +389,7 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
     Local_3: c As C2
     Local_4: d As C2
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ne ... .a = "goo"}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a As New C2 ... .a = "goo"}')
       Variables: Local_1: a As C2
       Initializer: 
         IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() Wi ... .a = "goo"}')
@@ -405,7 +405,7 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
                     Right: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim b As Ne ... lo World!"}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b As New C2 ... lo World!"}')
       Variables: Local_1: b As C2
       Initializer: 
         IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() Fr ... lo World!"}')
@@ -417,7 +417,7 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
                     Arguments(1):
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim c As C2 ... lo World!"}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'c As C2 = N ... lo World!"}')
       Variables: Local_1: c As C2
       Initializer: 
         IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Fr ... lo World!"}')
@@ -429,7 +429,7 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
                     Arguments(1):
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim d As C2 ... .a = "goo"}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'd')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'd As C2 = N ... .a = "goo"}')
       Variables: Local_1: d As C2
       Initializer: 
         IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')

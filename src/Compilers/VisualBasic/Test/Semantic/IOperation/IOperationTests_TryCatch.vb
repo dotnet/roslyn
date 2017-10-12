@@ -695,7 +695,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
     IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Try'BIND:"T ... End Try')
       Locals: Local_1: i As System.Int32
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i As Integer = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i As Integer = 0')
           Variables: Local_1: i As System.Int32
           Initializer: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -741,7 +741,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
           IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Catch ex As ... Integer = 0')
             Locals: Local_1: i As System.Int32
             IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i As Integer = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
+              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i As Integer = 0')
                 Variables: Local_1: i As System.Int32
                 Initializer: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -777,7 +777,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
     IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Finally ... Integer = 0')
       Locals: Local_1: i As System.Int32
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i As Integer = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i As Integer = 0')
           Variables: Local_1: i As System.Int32
           Initializer: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
