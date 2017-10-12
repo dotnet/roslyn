@@ -610,6 +610,138 @@ BC30053: Arrays cannot be declared with 'New'.
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        Public Sub ArrayRangeDeclaration()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim a(0 To 4) As Integer'BIND:"a(0 To 4) As Integer"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a(0 To 4) As Integer')
+  Variables: Local_1: a As System.Int32()
+  Initializer: 
+    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 4)')
+      Dimension Sizes(1):
+          IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: '0 To 4')
+            Left: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 4')
+      Initializer: 
+        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        Public Sub ArrayDeclarationCollectionInitializer()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim s As String() = {"Hello", "World"}'BIND:"s As String() = {"Hello", "World"}"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's As String ... ", "World"}')
+  Variables: Local_1: s As System.String()
+  Initializer: 
+    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String()) (Syntax: '{"Hello", "World"}')
+      Dimension Sizes(1):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{"Hello", "World"}')
+      Initializer: 
+        IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: '{"Hello", "World"}')
+          Element Values(2):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "World") (Syntax: '"World"')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        Public Sub PercentTypeSpecifierWithNullableAndInitializer()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim d%? = 42'BIND:"d%? = 42"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'd%? = 42')
+  Variables: Local_1: d As System.Nullable(Of System.Int32)
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '42')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 42) (Syntax: '42')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        Public Sub MultipleIdentifiersWithSingleInitializer_Invalid()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim d, x%? = 42'BIND:"d, x%? = 42"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'd, x%? = 42')
+  Variables: Local_1: d As System.Object
+    Local_2: x As System.Nullable(Of System.Int32)
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '42')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30209: Option Strict On requires all variable declarations to have an 'As' clause.
+        Dim d, x%? = 42'BIND:"d, x%? = 42"
+            ~
+BC42024: Unused local variable: 'd'.
+        Dim d, x%? = 42'BIND:"d, x%? = 42"
+            ~
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+        Dim d, x%? = 42'BIND:"d, x%? = 42"
+            ~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
 #End Region
 
 #Region "Using Statements"
