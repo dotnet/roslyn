@@ -627,6 +627,138 @@ class Test
             await VerifyItemExistsAsync(markup, "test");
         }
 
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementDefinition1()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        (System.Array array, System.Action $$ 
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementDefinition2()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        (array, action $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementDefinition3()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        (System.Array $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementDefinition4()
+        {
+            var markup = @"
+class Test
+{
+    (System.Array $$) Test() => default;
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementDefinition5()
+        {
+            var markup = @"
+class Test
+{
+    (System.Array array, System.Action $$) Test() => default;
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementDefinition6()
+        {
+            var markup = @"
+class Test
+{
+    (System.Array $$
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementDefinition7()
+        {
+            var markup = @"
+class Test
+{
+    void M((System.Array $$
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact(Skip = "Not yet supported"), Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementTypeInference()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        (var accessViolationException, var $$) = (new AccessViolationException(), new Action(() => { }));
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact(Skip = "Not yet supported"), Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementInGenericTypeArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        System.Func<(System.Action $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void DisabledByOption()
         {

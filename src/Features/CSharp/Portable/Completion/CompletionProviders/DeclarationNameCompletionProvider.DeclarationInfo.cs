@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(token.SpanStart, 0), cancellationToken).ConfigureAwait(false);
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
 
-                if (IsParameterDeclaration(token, semanticModel, position, cancellationToken, out var result)
+                if (IsTupleElementDeclaration(token, semanticModel, position, cancellationToken, out var result)
+                    || IsParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsTypeParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsIncompleteMemberDeclaration(token, semanticModel, position, cancellationToken, out result)
@@ -56,12 +57,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     || IsMethodDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsPropertyDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsPossibleOutVariableDeclaration(token, semanticModel, position, typeInferenceService, cancellationToken, out result)
+                    || IsTupleExpressionDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsPossibleVariableOrLocalMethodDeclaration(token, semanticModel, position, cancellationToken, out result))
                 {
                     return result;
                 }
 
                 return default;
+            }
+
+            private static bool IsTupleElementDeclaration(SyntaxToken token, SemanticModel semanticModel, int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
+            {
+                result = IsLastTokenOfType<TupleElementSyntax>(token, semanticModel, tupleElement => tupleElement.Type, _ => default(SyntaxTokenList), _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
+                return result.Type != null;
+            }
+
+            private static bool IsTupleExpressionDeclaration(SyntaxToken token, SemanticModel semanticModel, int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
+            {
+                if (token.GetAncestor<TupleExpressionSyntax>() != null)
+                {
+                    result = IsLastTokenOfType<ArgumentSyntax>(token, semanticModel, argument => argument.Expression, _ => default(SyntaxTokenList), _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
+                    return result.Type != null;
+                }
+                result = default;
+                return false;
             }
 
             private static bool IsPossibleOutVariableDeclaration(SyntaxToken token, SemanticModel semanticModel, int position,
