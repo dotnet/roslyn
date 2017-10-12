@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class WatsonExtensions
     {
+        // NFW API let caller to customize watson report to make them better bucketed by
+        // putting custom string in reserved slots. normally those 2 slots will be empty.
+        private const int Reserved1 = 8;
+        private const int Reserved2 = 7;
+
         /// <summary>
         /// This sets extra watson bucket parameters to make bucketting better
         /// in non fatal watson report
@@ -18,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             switch (exception)
             {
                 case RemoteInvocationException remote:
-                    fault.SetBucketParameter(8, remote.GetParameterString());
+                    fault.SetBucketParameter(Reserved1, remote.GetParameterString());
                     return;
                 case AggregateException aggregate:
                     if (aggregate.InnerException == null)
@@ -27,15 +32,16 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                     }
                     else if (aggregate.InnerExceptions.Count == 1)
                     {
-                        fault.SetBucketParameter(8, aggregate.GetParameterString());
+                        fault.SetBucketParameter(Reserved1, aggregate.GetParameterString());
                         return;
                     }
                     else
                     {
                         var flatten = aggregate.Flatten();
 
-                        fault.SetBucketParameter(7, flatten.CalculateHash());
-                        fault.SetBucketParameter(8, flatten.InnerException.GetParameterString());
+                        fault.SetBucketParameter(Reserved1, flatten.InnerException.GetParameterString());
+                        fault.SetBucketParameter(Reserved2, flatten.CalculateHash());
+
                         return;
                     }
                 default:
@@ -44,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         return;
                     }
 
-                    fault.SetBucketParameter(8, exception.InnerException.GetParameterString());
+                    fault.SetBucketParameter(Reserved1, exception.InnerException.GetParameterString());
                     return;
             }
         }
