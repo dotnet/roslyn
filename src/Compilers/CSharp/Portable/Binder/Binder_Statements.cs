@@ -2680,14 +2680,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Cannot convert async {0} to intended delegate type. An async {0} may return void, Task or Task<T>, none of which are convertible to '{1}'.
                     Error(diagnostics, ErrorCode.ERR_CantConvAsyncAnonFuncReturns,
-                        syntax,
+                        syntax.GetLocationForDiagnostics(),
                         lambda.MessageID.Localize(), lambda.ReturnType);
                 }
                 else
                 {
                     // Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
                     Error(diagnostics, ErrorCode.ERR_CantConvAnonMethReturns,
-                        syntax,
+                        syntax.GetLocationForDiagnostics(),
                         lambda.MessageID.Localize());
                 }
             }

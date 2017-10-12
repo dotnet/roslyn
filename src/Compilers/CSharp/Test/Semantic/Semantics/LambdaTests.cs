@@ -2474,6 +2474,61 @@ class Test1<T>
                 );
         }
 
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void LambdaSquigglesArea()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Action<bool>> x = x1 => x2 =>
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,58): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         System.Func<bool, System.Action<bool>> x = x1 => x2 =>
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "x2 =>").WithArguments("lambda expression").WithLocation(6, 58)
+                );
+        }
+
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void LambdaSquigglesAreaInAsync()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,93): error CS4010: Cannot convert async lambda expression to delegate type 'Task<Action<bool>>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Task<Action<bool>>'.
+                //         System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "x2 =>").WithArguments("lambda expression", "System.Threading.Tasks.Task<System.Action<bool>>").WithLocation(6, 93),
+                // (6,90): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 90)
+                );
+        }
+
         [Fact]
         public void ThrowExpression_Lambda()
         {
