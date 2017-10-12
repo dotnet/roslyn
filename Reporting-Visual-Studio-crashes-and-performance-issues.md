@@ -1,4 +1,4 @@
-This document outlines the best practices for reporting Visual Studio crashes and performance issues (poor responsiveness, hangs, etc.). For a general overview of how to report problems in Visual Studio, see "[How to Report a Problem with Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)". This document adds additional guidance for gathering heap dumps / traces.
+For a general overview of how to report problems in Visual Studio, see "[How to Report a Problem with Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)". This document adds additional guidance and best practices for reporting crashes and performance issues by gathering heap dumps / performance traces.
 
 # Crashes
 
