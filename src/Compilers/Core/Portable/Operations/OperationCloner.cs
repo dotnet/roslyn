@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitFieldReferenceExpression(IFieldReferenceExpression operation, object argument)
         {
-            return new FieldReferenceExpression(operation.Field, operation.IsDeclaration, Visit(operation.Instance), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new FieldReferenceExpression(operation.Field, operation.IsDeclaration, Visit(operation.Instance), operation.Member, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitMethodReferenceExpression(IMethodReferenceExpression operation, object argument)
@@ -227,12 +227,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitPropertyReferenceExpression(IPropertyReferenceExpression operation, object argument)
         {
-            return new PropertyReferenceExpression(operation.Property, Visit(operation.Instance), VisitArray(operation.ArgumentsInEvaluationOrder), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new PropertyReferenceExpression(operation.Property, Visit(operation.Instance), operation.Member, VisitArray(operation.ArgumentsInEvaluationOrder), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitEventReferenceExpression(IEventReferenceExpression operation, object argument)
         {
-            return new EventReferenceExpression(operation.Event, Visit(operation.Instance), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new EventReferenceExpression(operation.Event, Visit(operation.Instance), operation.Member, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitEventAssignmentExpression(IEventAssignmentExpression operation, object argument)
