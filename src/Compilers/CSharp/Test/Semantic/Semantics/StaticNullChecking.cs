@@ -5821,9 +5821,12 @@ class C
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (12,18): warning CS8602: Possible dereference of a null reference.
-                 //         var z1 = u1[0];
-                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1").WithLocation(12, 18)
+                // (11,14): warning CS8600: Cannot convert null to non-nullable reference.
+                //         u1 = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 14),
+                // (18,14): warning CS8600: Cannot convert null to non-nullable reference.
+                //         u1 = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(18, 14)
                 );
         }
 
@@ -5953,9 +5956,9 @@ class C
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (18,18): warning CS8602: Possible dereference of a null reference.
-                 //         var z2 = u2.Length;
-                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2").WithLocation(18, 18)
+                // (17,14): warning CS8600: Cannot convert null to non-nullable reference.
+                //         u2 = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 14)
                 );
         }
 
@@ -16193,6 +16196,9 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (9,17): warning CS8601: Possible null reference assignment.
+                //             x = t;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(9, 17),
                 // (14,15): warning CS8604: Possible null reference argument for parameter 's' in 'void C.G(string s)'.
                 //             G(y); // warning
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("s", "void C.G(string s)").WithLocation(14, 15));

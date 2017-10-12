@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In debug build we hoist all locals and parameters:
                 foreach (var v in allVariables)
                 {
-                    var symbol = v.Symbol;
+                    var symbol = v.Identifier.Symbol;
                     if ((object)symbol != null && HoistInDebugBuild(symbol))
                     {
                         variablesToHoist.Add(symbol);
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0; i < nextVariableSlot; i++)
             {
-                var symbol = variableBySlot[i].Symbol;
+                var symbol = variableBySlot[i].Identifier.Symbol;
 
                 if ((object)symbol != null)
                 {

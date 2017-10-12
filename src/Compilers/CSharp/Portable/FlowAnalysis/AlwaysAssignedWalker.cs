@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var v = base.variableBySlot[i];
+                    var v = base.variableBySlot[i].Identifier;
                     if (v.Exists && !(v.Symbol is FieldSymbol))
                     {
                         result.Add(v.Symbol);

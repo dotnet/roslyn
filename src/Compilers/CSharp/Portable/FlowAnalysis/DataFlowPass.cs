@@ -91,12 +91,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly HashSet<PrefixUnaryExpressionSyntax> _unassignedVariableAddressOfSyntaxes;
 
+        protected struct VariableIdentifierAndNullability
+        {
+            internal readonly VariableIdentifier Identifier;
+            internal readonly bool? IsNullable;
+
+            internal VariableIdentifierAndNullability(VariableIdentifier identifier, bool? isNullable)
+            {
+                Identifier = identifier;
+                IsNullable = isNullable;
+            }
+        }
+
         /// <summary>
         /// A mapping from the local variable slot to the symbol for the local variable itself.  This
         /// is used in the implementation of region analysis (support for extract method) to compute
         /// the set of variables "always assigned" in a region of code.
         /// </summary>
-        protected VariableIdentifier[] variableBySlot = new VariableIdentifier[1];
+        protected VariableIdentifierAndNullability[] variableBySlot = new VariableIdentifierAndNullability[1];
 
         /// <summary>
         /// Variable slots are allocated to local variables sequentially and never reused.  This is
@@ -767,8 +779,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Since analysis may proceed in multiple passes, it is possible the slot is already assigned.
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
-                TypeSymbol variableType = VariableType(symbol);
-                if (_emptyStructTypeCache.IsEmptyStructType(variableType))
+                var variableType = VariableType(symbol);
+                if (_emptyStructTypeCache.IsEmptyStructType(variableType?.TypeSymbol))
                 {
                     return -1;
                 }
@@ -780,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Array.Resize(ref this.variableBySlot, slot * 2);
                 }
 
-                variableBySlot[slot] = identifier;
+                variableBySlot[slot] = new VariableIdentifierAndNullability(identifier, variableType.IsNullable);
             }
 
             NormalizeAssigned(ref this.State);
@@ -848,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             state.Assigned.EnsureCapacity(nextVariableSlot);
             for (int i = oldNext; i < nextVariableSlot; i++)
             {
-                var id = variableBySlot[i];
+                var id = variableBySlot[i].Identifier;
                 state.Assigned[i] = (id.ContainingSlot > 0) && state.Assigned[id.ContainingSlot];
             }
         }
@@ -1185,11 +1197,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected Symbol GetNonFieldSymbol(int slot)
         {
-            VariableIdentifier variableId = variableBySlot[slot];
+            VariableIdentifier variableId = variableBySlot[slot].Identifier;
             while (variableId.ContainingSlot > 0)
             {
                 Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || (_performStaticNullChecks && variableId.Symbol.Kind == SymbolKind.Property));
-                variableId = variableBySlot[variableId.ContainingSlot];
+                variableId = variableBySlot[variableId.ContainingSlot].Identifier;
             }
             return variableId.Symbol;
         }
@@ -1275,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (written)
                         {
                             NoteWrite(symbol, value, read);
-                            TrackNullableStateForAssignment(node, symbol, slot, value, valueIsNotNull);
+                            TrackNullableStateForAssignment(node, symbol, slot, value, valueIsNotNull, inferNullability: local.DeclaredType.InferredType);
                         }
 
                         break;
@@ -1456,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void TrackNullableStateForAssignment(BoundNode node, Symbol assignmentTarget, int slot, BoundExpression value, bool? valueIsNotNull)
+        private void TrackNullableStateForAssignment(BoundNode node, Symbol assignmentTarget, int slot, BoundExpression value, bool? valueIsNotNull, bool inferNullability = false)
         {
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
@@ -1468,9 +1480,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (targetType.IsReferenceType)
                 {
+                    bool? targetIsNullable;
+                    if (slot > 0)
+                    {
+                        var identifierAndNullability = variableBySlot[slot];
+                        if (inferNullability)
+                        {
+                            identifierAndNullability = new VariableIdentifierAndNullability(identifierAndNullability.Identifier, !valueIsNotNull);
+                            variableBySlot[slot] = identifierAndNullability;
+                        }
+                        targetIsNullable = identifierAndNullability.IsNullable;
+                    }
+                    else
+                    {
+                        targetIsNullable = targetType.IsNullable;
+                    }
+
                     bool isByRefTarget = IsByRefTarget(slot);
 
-                    if (targetType.IsNullable == false)
+                    if (targetIsNullable == false)
                     {
                         if (valueIsNotNull == false && (value == null || !CheckNullAsNonNullableReference(value)))
                         {
@@ -1484,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.State[slot] = isByRefTarget ?
                             // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                             // regardless of what value is being assigned. 
-                            (targetType.IsNullable == true) ? (bool?)false : null :
+                            (targetIsNullable == true) ? (bool?)false : null :
                             valueIsNotNull;
                     }
 
@@ -1638,8 +1666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(containingSlot != -1);
             Debug.Assert(!state.IsAssigned(containingSlot));
-            VariableIdentifier variable = variableBySlot[containingSlot];
-            NamedTypeSymbol structType = VariableType(variable.Symbol) as NamedTypeSymbol;
+            VariableIdentifier variable = variableBySlot[containingSlot].Identifier;
+            NamedTypeSymbol structType = (NamedTypeSymbol)VariableType(variable.Symbol).TypeSymbol;
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
                 if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;
@@ -1650,22 +1678,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static TypeSymbol VariableType(Symbol s)
+        private static TypeSymbolWithAnnotations VariableType(Symbol s)
         {
             switch (s.Kind)
             {
                 case SymbolKind.Local:
-                    return ((LocalSymbol)s).Type.TypeSymbol;
+                    return ((LocalSymbol)s).Type;
                 case SymbolKind.Field:
-                    return ((FieldSymbol)s).Type.TypeSymbol;
+                    return ((FieldSymbol)s).Type;
                 case SymbolKind.Parameter:
-                    return ((ParameterSymbol)s).Type.TypeSymbol;
+                    return ((ParameterSymbol)s).Type;
                 case SymbolKind.Method:
                     Debug.Assert(((MethodSymbol)s).MethodKind == MethodKind.LocalFunction);
                     return null;
                 case SymbolKind.Property:
                     Debug.Assert(s.ContainingType.IsAnonymousType);
-                    return ((PropertySymbol)s).Type.TypeSymbol;
+                    return ((PropertySymbol)s).Type;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(s.Kind);
             }
@@ -1687,8 +1715,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SetSlotAssigned(int slot, ref LocalState state)
         {
             if (slot < 0) return;
-            VariableIdentifier id = variableBySlot[slot];
-            TypeSymbol type = VariableType(id.Symbol);
+            VariableIdentifier id = variableBySlot[slot].Identifier;
+            TypeSymbol type = VariableType(id.Symbol)?.TypeSymbol;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (slot >= state.Assigned.Capacity) NormalizeAssigned(ref state);
             if (state.IsAssigned(slot)) return; // was already fully assigned.
@@ -1711,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slot = id.ContainingSlot;
                 if (state.IsAssigned(slot) || !FieldsAllSet(slot, state)) break;
                 state.Assign(slot);
-                id = variableBySlot[slot];
+                id = variableBySlot[slot].Identifier;
             }
         }
 
@@ -1723,8 +1751,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SetSlotUnassigned(int slot, ref LocalState state)
         {
             if (slot < 0) return;
-            VariableIdentifier id = variableBySlot[slot];
-            TypeSymbol type = VariableType(id.Symbol);
+            VariableIdentifier id = variableBySlot[slot].Identifier;
+            TypeSymbol type = VariableType(id.Symbol)?.TypeSymbol;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (!state.IsAssigned(slot)) return; // was already unassigned
             state.Unassign(slot);
@@ -1745,7 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 slot = id.ContainingSlot;
                 state.Unassign(slot);
-                id = variableBySlot[slot];
+                id = variableBySlot[slot].Identifier;
             }
         }
 
@@ -4459,7 +4487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void AppendBitName(int bit, StringBuilder builder)
         {
-            VariableIdentifier id = variableBySlot[bit];
+            VariableIdentifier id = variableBySlot[bit].Identifier;
             if (id.ContainingSlot > 0)
             {
                 AppendBitName(id.ContainingSlot, builder);

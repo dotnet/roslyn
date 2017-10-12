@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (reads[slot])
                 {
-                    var symbol = variableBySlot[slot].Symbol;
+                    var symbol = variableBySlot[slot].Identifier.Symbol;
                     CheckIfAssignedDuringLocalFunctionReplay(symbol, syntax, slot);
                 }
             }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             while (true)
             {
-                var varInfo = variableBySlot[slot];
+                var varInfo = variableBySlot[slot].Identifier;
                 if (varInfo.ContainingSlot == 0)
                 {
                     return slot;
@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If this slot is a struct with individually assignable
             // fields we need to record each field assignment separately,
             // since some fields may be assigned when this read is replayed
-            VariableIdentifier id = variableBySlot[slot];
-            var type = VariableType(id.Symbol);
+            VariableIdentifier id = variableBySlot[slot].Identifier;
+            var type = VariableType(id.Symbol)?.TypeSymbol;
 
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Find the root slot, since that would be the only
             // slot, if any, that is captured in a local function
-            var rootVarInfo = variableBySlot[RootSlot(slot)];
+            var rootVarInfo = variableBySlot[RootSlot(slot)].Identifier;
 
             var rootSymbol = rootVarInfo.Symbol;
 
