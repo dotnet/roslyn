@@ -709,6 +709,7 @@ BC36010: 'Using' operand of type 'Object' must implement 'System.IDisposable'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UsingBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IUsingStatement_UsingWithoutSavedReference()

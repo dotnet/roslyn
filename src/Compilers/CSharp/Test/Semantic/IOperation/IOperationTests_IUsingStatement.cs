@@ -64,6 +64,68 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void IUsingStatement_MultipleNewVariable()
+        {
+            string source = @"
+using System;
+
+class C : IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    public static void M1()
+    {
+        
+        /*<bind>*/using (C c1 = new C(), c2 = new C())
+        {
+            Console.WriteLine(c1.ToString());
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (C c1 ... }')
+  Resources: 
+    IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C c1 = new  ... 2 = new C()')
+      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
+        Variables: Local_1: C c1
+        Initializer: 
+          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+            Arguments(0)
+            Initializer: 
+              null
+      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2 = new C()')
+        Variables: Local_1: C c2
+        Initializer: 
+          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+            Arguments(0)
+            Initializer: 
+              null
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... oString());')
+        Expression: 
+          IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ToString())')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'c1.ToString()')
+                  IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'c1.ToString()')
+                    Instance Receiver: 
+                      ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C) (Syntax: 'c1')
+                    Arguments(0)
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<UsingStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void IUsingStatement_SimpleUsingStatementExistingResource()
         {
             string source = @"
@@ -781,6 +843,43 @@ ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: C) (
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IUsingStatement_UsingStatementSyntax_VariableDeclaratorSyntax()
+        {
+            string source = @"
+using System;
+
+class C : IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    public static void M1()
+    {
+        
+        using (C /*<bind>*/c1 = new C()/*</bind>*/, c2 = new C())
+        {
+            Console.WriteLine(c1.ToString());
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
+  Variables: Local_1: C c1
+  Initializer: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: 
+        null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }
