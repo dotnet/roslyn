@@ -5112,7 +5112,7 @@ ref struct Test
 </Workspace>";
 
             // There should be no [deprecated] attribute displayed.
-            await VerifyWithReferenceWorkerAsync(xmlString, MainDescription($"struct TestRef"));
+            await VerifyWithReferenceWorkerAsync(xmlString, MainDescription($"ref struct TestRef"));
         }
     }
 }
