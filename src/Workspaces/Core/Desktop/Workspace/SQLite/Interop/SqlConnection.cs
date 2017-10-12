@@ -146,6 +146,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             catch (SqlException ex) when (ex.Result == Result.FULL ||
                                           ex.Result == Result.IOERR ||
                                           ex.Result == Result.BUSY ||
+                                          ex.Result == Result.LOCKED ||
                                           ex.Result == Result.NOMEM)
             {
                 // See documentation here: https://sqlite.org/lang_transaction.html
@@ -156,6 +157,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
                 // SQLITE_FULL: database or disk full
                 // SQLITE_IOERR: disk I/ O error
                 // SQLITE_BUSY: database in use by another process
+                // SQLITE_LOCKED: database in use by another connection in the same process
                 // SQLITE_NOMEM: out or memory
 
                 // It is recommended that applications respond to the errors listed above by

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 return true;
             }
-            catch (SqlException e) when (e.Result == Result.BUSY)
+            catch (SqlException e) when (e.Result == Result.BUSY || e.Result == Result.LOCKED)
             {
                 // Couldn't get access to sql database to fetch the string table.  
                 // Try again later.
