@@ -1,14 +1,12 @@
-This document outlines the best practices for reporting Visual Studio crashes and performance issues (poor responsiveness, hangs, etc.).
+This document outlines the best practices for reporting Visual Studio crashes and performance issues (poor responsiveness, hangs, etc.). For a general overview of how to report problems in Visual Studio, see "[How to Report a Problem with Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)". This document adds additional guidance for gathering heap dumps / traces.
 
 # Crashes
 
-If you have a set of steps that reproduces the crash reliably, then first check to see if someone else has filed an issue for that scenario. You can search for existing issues on the [Developer Community site](https://developercommunity.visualstudio.com/).
-
-If you can't find an existing issue but have reliable repro steps, then you can file a new issue describing those repro steps. Be sure to include:
+If you have a set of steps that reproduces the crash reliably, follow the steps in "[How to Report a Problem with Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)" and be sure to include:
 - The language of the open projects (C#, C++, etc.)
 - The kind of project (Console Application, ASP.NET, etc.)
 
-If you're not sure what's causing your crashes or they seem random, then you can capture dumps locally each time Visual Studio crashes and attach those to feedback items. To save dumps locally when Visual Studio crashes, set the following registry entries:
+If you're not sure what's causing your crashes or they seem random, then you can capture dumps locally each time Visual Studio crashes and attach those to separate feedback items. To save dumps locally when Visual Studio crashes, set the following registry entries:
 
 ```
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\devenv.exe]
