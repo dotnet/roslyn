@@ -1626,222 +1626,6 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
-        /// <summary>
-        /// This method is documenting the fact that there is no conversion expression here.
-        /// </summary>
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Implicit_ReferenceMethodToDelegateConversion_NoConversion()
-        {
-            string source = @"
-class Program
-{
-    delegate void DType();
-    void Main()
-    {
-        DType /*<bind>*/d1 = M1/*</bind>*/;
-    }
-    void M1()
-    { }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'd1 = M1')
-  Variables: Local_1: Program.DType d1
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= M1')
-      IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpression, Type: Program.DType) (Syntax: 'M1')
-        Instance Receiver: 
-          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Implicit_ReferenceMethodToDelegateConversion_InvalidIdentifier()
-        {
-            string source = @"
-class Program
-{
-    delegate void DType();
-    void Main()
-    {
-        DType /*<bind>*/d1 = M1/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'd1 = M1')
-  Variables: Local_1: Program.DType d1
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= M1')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid, IsImplicit) (Syntax: 'M1')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M1')
-            Children(0)
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0103: The name 'M1' does not exist in the current context
-                //         DType /*<bind>*/d1 = M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(7, 30)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion()
-        {
-            // TODO: There should be an IDelegateCreationExpression (or something like it) here, wrapping the IConversionExpression.
-            // See https://github.com/dotnet/roslyn/issues/20095.
-            string source = @"
-class Program
-{
-    delegate void DType();
-    void Main()
-    {
-        DType /*<bind>*/d1 = () => { }/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'd1 = () => { }')
-  Variables: Local_1: Program.DType d1
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= () => { }')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsImplicit) (Syntax: '() => { }')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
-            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
-                ReturnedValue: 
-                  null
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion_InvalidMismatchedTypes()
-        {
-            string source = @"
-class Program
-{
-    delegate void DType();
-    void Main()
-    {
-        DType /*<bind>*/d1 = (string s) => { }/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'd1 = (string s) => { }')
-  Variables: Local_1: Program.DType d1
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (string s) => { }')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid, IsImplicit) (Syntax: '(string s) => { }')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(string s) => { }')
-            IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Program.DType' does not take 1 arguments
-                //         DType /*<bind>*/d1 = (string s) => { }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(string s) => { }").WithArguments("Program.DType", "1").WithLocation(7, 30)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
-            Func<int, float> f = (int num) => num;
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion_InvalidSyntax()
-        {
-            string source = @"
-class Program
-{
-    delegate void DType();
-    void Main()
-    {
-        DType /*<bind>*/d1 = () =>/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'd1 = () =>/*</bind>*/')
-  Variables: Local_1: Program.DType d1
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= () =>/*</bind>*/')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid, IsImplicit) (Syntax: '() =>/*</bind>*/')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() =>/*</bind>*/')
-            IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '')
-              IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '')
-                Expression: 
-                  IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-                    Children(0)
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '')
-                ReturnedValue: 
-                  null
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1525: Invalid expression term ';'
-                //         DType /*<bind>*/d1 = () =>/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 46)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
-        }
-
-        /// <summary>
-        /// This is documenting the fact that there are currently not conversion expressions in this tree. Once
-        /// https://github.com/dotnet/roslyn/issues/18839 is addressed, there should be.
-        /// </summary>
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConstructor_NoConversion()
-        {
-            string source = @"
-using System;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        Action a = /*<bind>*/new Action(() => { })/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new Action(() => { })')
-  Children(1):
-      IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-          IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
-            ReturnedValue: 
-              null
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var a = new Action(() => { });
-
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ConversionExpression_Implicit_ReferenceTransitiveConversion()
@@ -3160,112 +2944,6 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void ConversionExpression_Implicit_DelegateExpressionWithoutParamsToDelegateConversion()
-        {
-            string source = @"
-using System;
-
-class S1
-{
-    void M1()
-    {
-        Action /*<bind>*/a = delegate { }/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = delegate { }')
-  Variables: Local_1: System.Action a
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= delegate { }')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsImplicit) (Syntax: 'delegate { }')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'delegate { }')
-            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
-                ReturnedValue: 
-                  null
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Implicit_DelegateExpressionWithParamsToDelegateConversion()
-        {
-            string source = @"
-using System;
-
-class S1
-{
-    void M1()
-    {
-        Action<int> /*<bind>*/a = delegate(int i) { }/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = delegate(int i) { }')
-  Variables: Local_1: System.Action<System.Int32> a
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= delegate(int i) { }')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsImplicit) (Syntax: 'delegate(int i) { }')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'delegate(int i) { }')
-            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
-                ReturnedValue: 
-                  null
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Implicit_DelegateExpressionWithParamsToDelegateConversion_InvalidMismatchedTypes()
-        {
-            string source = @"
-using System;
-
-class S1
-{
-    void M1()
-    {
-        Action<int> /*<bind>*/a = delegate() { }/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = delegate() { }')
-  Variables: Local_1: System.Action<System.Int32> a
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= delegate() { }')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'delegate() { }')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate() { }')
-            IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action<int>' does not take 0 arguments
-                //         Action<int> /*<bind>*/a = delegate() { }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "delegate() { }").WithArguments("System.Action<int>", "0").WithLocation(8, 35)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
         public void ConversionExpression_Implicit_PointerFromNullConversion()
         {
             string source = @"
@@ -3617,6 +3295,72 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 // CS0219: The variable 'o' is assigned but its value is never used
                 //                 /*<bind>*/object o = null/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(10, 34)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Implicit_DelegateTypeConversion()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action<object> objectAction = str => { };
+        /*<bind>*/Action<string> stringAction = objectAction;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action<stri ... jectAction;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'stringActio ... bjectAction')
+    Variables: Local_1: System.Action<System.String> stringAction
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= objectAction')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.String>, IsImplicit) (Syntax: 'objectAction')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action<System.Object>) (Syntax: 'objectAction')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Implicit_DelegateTypeConversion_InvalidConversion()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action<object> objectAction = str => { };
+        /*<bind>*/Action<int> intAction = objectAction;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action<int> ... jectAction;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'intAction = objectAction')
+    Variables: Local_1: System.Action<System.Int32> intAction
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= objectAction')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'objectAction')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action<System.Object>, IsInvalid) (Syntax: 'objectAction')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'System.Action<object>' to 'System.Action<int>'
+                //         /*<bind>*/Action<int> intAction = objectAction;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "objectAction").WithArguments("System.Action<object>", "System.Action<int>").WithLocation(8, 43)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -5201,432 +4945,6 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void ConversionExpression_Explicit_DelegateFromLambdaExplicitCastConversion()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action /*<bind>*/a = (Action)(() => { })/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = (Action)(() => { })')
-  Variables: Local_1: System.Action a
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (Action)(() => { })')
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: '(Action)(() => { })')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
-            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
-                ReturnedValue: 
-                  null
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateFromLambdaExplicitCastConversion_InvalidIncorrectReturnType()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action /*<bind>*/a = (Action)(() => 1)/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = (Action)(() => 1)')
-  Variables: Local_1: System.Action a
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (Action)(() => 1)')
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)(() => 1)')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => 1')
-            IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '1')
-              IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '1')
-                Expression: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '1')
-                ReturnedValue: 
-                  null
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         Action /*<bind>*/a = (Action)(() => 1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(8, 45)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateFromLambdaExplicitCastConversion_InvalidParameters()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action /*<bind>*/a = (Action)((string s) => { })/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = (Action ...  s) => { })')
-  Variables: Local_1: System.Action a
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (Action)( ...  s) => { })')
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)((s ...  s) => { })')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(string s) => { }')
-            IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
-                //         Action /*<bind>*/a = (Action)((string s) => { })/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(string s) => { }").WithArguments("System.Action", "1").WithLocation(8, 39)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateCreationFromLambdaExplicitCastConversion()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action a = /*<bind>*/new Action((Action)(() => { }))/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new Action( ... () => { }))')
-  Children(1):
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: '(Action)(() => { })')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
-            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
-                ReturnedValue: 
-                  null
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateCreationFromLambdaExplicitCastConversion_InvalidReturnType()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action a = /*<bind>*/new Action((Action)(() => 1))/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action( ... )(() => 1))')
-  Children(1):
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)(() => 1)')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => 1')
-            IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '1')
-              IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '1')
-                Expression: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '1')
-                ReturnedValue: 
-                  null
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         Action a = /*<bind>*/new Action((Action)(() => 1))/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(8, 56)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateCreationFromLambdaExplicitCastConversion_InvalidMismatchedParameters()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action a = /*<bind>*/new Action((Action)((string s) => { }))/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action( ... s) => { }))')
-  Children(1):
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)((s ...  s) => { })')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(string s) => { }')
-            IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
-                //         Action a = /*<bind>*/new Action((Action)((string s) => { }))/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(string s) => { }").WithArguments("System.Action", "1").WithLocation(8, 50)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateFromMethodReferenceExplicitCastConversion()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action /*<bind>*/a = (Action)M2/*</bind>*/;
-    }
-
-    void M2() { }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = (Action)M2')
-  Variables: Local_1: System.Action a
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (Action)M2')
-      IMethodReferenceExpression: void C1.M2() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: '(Action)M2')
-        Instance Receiver: 
-          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'M2')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateFromMethodReferenceExplicitCastConversion_InvalidMismatchedParameter()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action /*<bind>*/a = (Action)M2/*</bind>*/;
-    }
-
-    void M2(int i) { }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = (Action)M2')
-  Variables: Local_1: System.Action a
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (Action)M2')
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
-            Children(1):
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'M2')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0030: Cannot convert type 'method' to 'Action'
-                //         Action /*<bind>*/a = (Action)M2/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action)M2").WithArguments("method", "System.Action").WithLocation(8, 30)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateFromMethodReferenceExplicitCastConversion_InvalidReturnType()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action /*<bind>*/a = (Action)M2/*</bind>*/;
-    }
-
-    int M2() { }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = (Action)M2')
-  Variables: Local_1: System.Action a
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (Action)M2')
-      IMethodReferenceExpression: System.Int32 C1.M2() (OperationKind.MethodReferenceExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
-        Instance Receiver: 
-          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'M2')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0407: 'int C1.M2()' has the wrong return type
-                //         Action /*<bind>*/a = (Action)M2/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadRetType, "(Action)M2").WithArguments("C1.M2()", "int").WithLocation(8, 30),
-                // CS0161: 'C1.M2()': not all code paths return a value
-                //     int M2() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "M2").WithArguments("C1.M2()").WithLocation(11, 9)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateCreationFromMethodReferenceExplicitCastConversion()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action /*<bind>*/a = new Action((Action)M2)/*</bind>*/;
-    }
-
-    void M2() { }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = new Act ... (Action)M2)')
-  Variables: Local_1: System.Action a
-  Initializer: 
-    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new Action((Action)M2)')
-      IOperation:  (OperationKind.None) (Syntax: 'new Action((Action)M2)')
-        Children(1):
-            IMethodReferenceExpression: void C1.M2() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: '(Action)M2')
-              Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'M2')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateCreationFromMethodBindingConversion_InvalidMismatchedParameters()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action a = /*<bind>*/new Action((Action)M2)/*</bind>*/;
-    }
-
-    void M2(int i) { }
-}
-";
-            string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M2)')
-  Children(1):
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
-            Children(1):
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'M2')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0030: Cannot convert type 'method' to 'Action'
-                //         Action a = /*<bind>*/new Action((Action)M2)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action)M2").WithArguments("method", "System.Action").WithLocation(8, 41)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConversionExpression_Explicit_DelegateCreationFromMethodBindingConversion_InvalidReturnType()
-        {
-            string source = @"
-using System;
-
-class C1
-{
-    void M1()
-    {
-        Action a = /*<bind>*/new Action((Action)M2)/*</bind>*/;
-    }
-
-    int M2() { }
-}
-";
-            string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M2)')
-  Children(1):
-      IMethodReferenceExpression: System.Int32 C1.M2() (OperationKind.MethodReferenceExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
-        Instance Receiver: 
-          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'M2')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0407: 'int C1.M2()' has the wrong return type
-                //         Action a = /*<bind>*/new Action((Action)M2)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadRetType, "(Action)M2").WithArguments("C1.M2()", "int").WithLocation(8, 41),
-                // CS0161: 'C1.M2()': not all code paths return a value
-                //     int M2() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "M2").WithArguments("C1.M2()").WithLocation(11, 9)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
         public void ConversionExpression_Explicit_ReturnConversion()
         {
             string source = @"
@@ -5757,6 +5075,61 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Explicit_DelegateTypeConversion()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action<object> objectAction = str => { };
+        Action<string> stringAction = /*<bind>*/(Action<string>)objectAction/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.String>) (Syntax: '(Action<str ... bjectAction')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action<System.Object>) (Syntax: 'objectAction')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Explicit_DelegateTypeConversion_InvalidConversion()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action<object> objectAction = str => { };
+        Action<int> intAction = /*<bind>*/(Action<int>)objectAction/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: '(Action<int ... bjectAction')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action<System.Object>, IsInvalid) (Syntax: 'objectAction')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0030: Cannot convert type 'System.Action<object>' to 'System.Action<int>'
+                //         Action<int> intAction = /*<bind>*/(Action<int>)objectAction/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action<int>)objectAction").WithArguments("System.Action<object>", "System.Action<int>").WithLocation(8, 43)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
         #endregion
 
@@ -5769,21 +5142,33 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             public static SyntaxNode ReturnStatementSelector(SyntaxNode syntaxNode) => ((ReturnStatementSyntax)syntaxNode).Expression;
 
-            public static IConversionExpression IVariableDeclarationStatementSelector(IOperation operation) =>
-                IVariableDeclarationSelector(((IVariableDeclarationStatement)operation).Declarations.Single());
+            public static IOperation IVariableDeclarationStatementSelector(IOperation operation) =>
+                ((IVariableDeclarationStatement)operation).Declarations.Single().Initializer;
 
-            public static IConversionExpression IVariableDeclarationSelector(IOperation operation) =>
-                (IConversionExpression)((IVariableDeclaration)operation).Initializer.Value;
+            public static IOperation IVariableDeclarationSelector(IOperation operation) =>
+                ((IVariableDeclaration)operation).Initializer.Value;
 
-            public static IConversionExpression IReturnDeclarationStatementSelector(IOperation operation) =>
-                (IConversionExpression)((IReturnStatement)operation).ReturnedValue;
+            public static IOperation IReturnDeclarationStatementSelector(IOperation operation) =>
+                ((IReturnStatement)operation).ReturnedValue;
 
-            public static IOperation NestedConversionChildSelector(IConversionExpression conversion) =>
-                ((IConversionExpression)conversion.Operand).Operand;
+            public static IOperation NestedConversionChildSelector(IOperation operation) =>
+                ConversionOrDelegateChildSelector(ConversionOrDelegateChildSelector(operation));
+
+            private static IOperation ConversionOrDelegateChildSelector(IOperation operation)
+            {
+                if (operation.Kind == OperationKind.ConversionExpression)
+                {
+                    return ((IConversionExpression)operation).Operand;
+                }
+                else
+                {
+                    return ((IDelegateCreationExpression)operation).Target;
+                }
+            }
 
             public Func<IOperation, IConversionExpression> OperationSelector { get; set; }
 
-            public Func<IConversionExpression, IOperation> ConversionChildSelector { get; set; } = (conversion) => conversion.Operand;
+            public Func<IOperation, IOperation> ConversionChildSelector { get; set; } = ConversionOrDelegateChildSelector;
 
             public Func<SyntaxNode, SyntaxNode> SyntaxSelector { get; set; }
 
@@ -5832,7 +5217,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 }
             }
 
-            private IConversionExpression GetAndInvokeOperationSelector(IOperation operation)
+            private IOperation GetAndInvokeOperationSelector(IOperation operation)
             {
                 if (OperationSelector != null)
                 {

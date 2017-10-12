@@ -88,6 +88,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundDirectCastOperation(DirectCast(boundNode, BoundDirectCast))
                 Case BoundKind.Conversion
                     Return CreateBoundConversionOperation(DirectCast(boundNode, BoundConversion))
+                Case BoundKind.DelegateCreationExpression
+                    Return CreateBoundDelegateCreationExpressionOperation(DirectCast(boundNode, BoundDelegateCreationExpression))
                 Case BoundKind.TernaryConditionalExpression
                     Return CreateBoundTernaryConditionalExpressionOperation(DirectCast(boundNode, BoundTernaryConditionalExpression))
                 Case BoundKind.TypeOf
@@ -517,29 +519,49 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IConversionExpression
-            Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTryCast.Operand))
+        Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IOperation
             Dim syntax As SyntaxNode = boundTryCast.Syntax
+            Dim type As ITypeSymbol = boundTryCast.Type
+            Dim isImplicit As Boolean = boundTryCast.WasCompilerGenerated
+
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
+            Dim conversionInformation = CreateConversionOperand(boundTryCast.Operand, boundTryCast.ConversionKind, boundTryCast.Syntax, boundTryCast.Type)
+            Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
+            Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
+
+            If isDelegateCreation Then
+                ' If this is a conversion from a lambda to a delegate type, or this is an AddressOf delegate creation
+                ' as determined above, we return a DelegateCreationExpression, instead of returning a conversion expression
+                Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
+            End If
+
             Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundTryCast.ConversionKind, Nothing))
             Dim isExplicitCastInCode As Boolean = True
             Dim isTryCast As Boolean = True
             Dim isChecked As Boolean = False
-            Dim type As ITypeSymbol = boundTryCast.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundTryCast.WasCompilerGenerated
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicitCastInCode, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IConversionExpression
-            Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDirectCast.Operand))
+        Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IOperation
             Dim syntax As SyntaxNode = boundDirectCast.Syntax
+            Dim type As ITypeSymbol = boundDirectCast.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundDirectCast.WasCompilerGenerated
+
+            Dim conversionInformation = CreateConversionOperand(boundDirectCast.Operand, boundDirectCast.ConversionKind, boundDirectCast.Syntax, boundDirectCast.Type)
+            Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
+            Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
+
+            If isDelegateCreation Then
+                ' If this is a conversion from a lambda to a delegate type, or this is an AddressOf delegate creation
+                ' as determined above, we return a DelegateCreationExpression, instead of returning a conversion expression
+                Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
+            End If
+
             Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundDirectCast.ConversionKind, Nothing))
             Dim isExplicit As Boolean = True
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
-            Dim type As ITypeSymbol = boundDirectCast.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundDirectCast.WasCompilerGenerated
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -559,26 +581,55 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return Create(boundConversion.Operand)
             End If
 
-            Dim operand As Lazy(Of IOperation)
-            Dim methodSymbol As MethodSymbol
+            Dim type As ITypeSymbol = boundConversion.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated OrElse Not boundConversion.ExplicitCastInCode
 
-            If (boundConversion.ConversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
-                Dim userDefinedConversion As BoundUserDefinedConversion = DirectCast(boundConversion.Operand, BoundUserDefinedConversion)
-                methodSymbol = userDefinedConversion.Call.Method
-                operand = New Lazy(Of IOperation)(Function() Create(userDefinedConversion.Operand))
-            Else
-                methodSymbol = Nothing
-                operand = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
+            Dim conversionInformation = CreateConversionOperand(boundConversion.Operand, boundConversion.ConversionKind, boundConversion.Syntax, boundConversion.Type)
+            Dim methodSymbol As MethodSymbol = conversionInformation.MethodSymbol
+            Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
+            Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
+
+            If isDelegateCreation Then
+                ' If this is a conversion from a lambda to a delegate type, or this is an AddressOf delegate creation
+                ' as determined above, we return a DelegateCreationExpression, instead of returning a conversion expression
+                Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
 
-            Dim conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundConversion.ConversionKind, methodSymbol))
+            Dim conversion = New Conversion(New KeyValuePair(Of VisualBasic.ConversionKind, MethodSymbol)(boundConversion.ConversionKind, methodSymbol))
             Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
-            Dim type As ITypeSymbol = boundConversion.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundDelegateCreationExpressionOperation(boundDelegateCreationExpression As BoundDelegateCreationExpression) As IDelegateCreationExpression
+            Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
+            Dim type As ITypeSymbol = boundDelegateCreationExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
+
+            ' The operand for this is going to be using the same syntax node as this, and since that node can be Explicit, this node cannot be.
+            Dim isImplicit As Boolean = True
+
+            Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreationExpression))
+
+            Return New LazyDelegateCreationExpression(target, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreationExpression As BoundDelegateCreationExpression) As IMethodReferenceExpression
+            Dim method As IMethodSymbol = boundDelegateCreationExpression.Method
+            Dim isVirtual As Boolean = method IsNot Nothing AndAlso
+                                               (method.IsAbstract OrElse method.IsOverride OrElse method.IsVirtual) AndAlso
+                                               Not boundDelegateCreationExpression.SuppressVirtualCalls
+            Dim instance As Lazy(Of IOperation) =
+                        New Lazy(Of IOperation)(Function() Create(If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt)))
+            ' The compiler creates a BoundDelegateCreationExpression node for the AddressOf expression, and that's the node we want to use for the operand
+            ' of the IDelegateCreationExpression parent
+            Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
+            Dim type As ITypeSymbol = Nothing
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated
+            Return New LazyMethodReferenceExpression(method, isVirtual, instance, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalExpression
@@ -734,7 +785,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundPropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundPropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundPropertyAccess.WasCompilerGenerated
-            Return New LazyPropertyReferenceExpression([property], instance, [property], argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyPropertyReferenceExpression([property], instance, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundWithLValueExpressionPlaceholder(boundWithLValueExpressionPlaceholder As BoundWithLValueExpressionPlaceholder) As IInstanceReferenceExpression
@@ -768,7 +819,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundEventAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundEventAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundEventAccess.WasCompilerGenerated
-            Return New LazyEventReferenceExpression([event], instance, [event], _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyEventReferenceExpression([event], instance, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundFieldAccessOperation(boundFieldAccess As BoundFieldAccess) As IFieldReferenceExpression
@@ -783,12 +834,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     End If
                 End Function)
 
-            Dim member As ISymbol = boundFieldAccess.FieldSymbol
             Dim syntax As SyntaxNode = boundFieldAccess.Syntax
             Dim type As ITypeSymbol = boundFieldAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundFieldAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundFieldAccess.WasCompilerGenerated
-            Return New LazyFieldReferenceExpression(field, isDeclaration, instance, member, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyFieldReferenceExpression(field, isDeclaration, instance, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundConditionalAccessOperation(boundConditionalAccess As BoundConditionalAccess) As IConditionalAccessExpression
@@ -1193,7 +1243,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationStatement
-            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclaration)) = New Lazy(Of ImmutableArray(Of IVariableDeclaration))(Function() GetVariableDeclarationStatementVariables(boundDimStatement))
+            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclaration)) = New Lazy(Of ImmutableArray(Of IVariableDeclaration))(Function() GetVariableDeclarationStatementVariables(boundDimStatement.LocalDeclarations))
             Dim syntax As SyntaxNode = boundDimStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1317,13 +1367,61 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyExpressionStatement(expression, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundRaiseEventStatementOperation(boundRaiseEventStatement As BoundRaiseEventStatement) As IExpressionStatement
-            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundRaiseEventStatement.EventInvocation))
+        Private Function CreateBoundRaiseEventStatementOperation(boundRaiseEventStatement As BoundRaiseEventStatement) As IOperation
             Dim syntax As SyntaxNode = boundRaiseEventStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundRaiseEventStatement.WasCompilerGenerated
-            Return New LazyExpressionStatement(expression, _semanticModel, syntax, type, constantValue, isImplicit)
+
+            Dim eventInvocation = TryCast(boundRaiseEventStatement.EventInvocation, BoundCall)
+
+            ' Return an invalid statement for invalid raise event statement
+            If eventInvocation Is Nothing OrElse eventInvocation.ReceiverOpt Is Nothing Then
+                Debug.Assert(boundRaiseEventStatement.HasErrors)
+                Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() ImmutableArray.Create(Of IOperation)(Create(boundRaiseEventStatement.EventInvocation)))
+                Return New LazyInvalidStatement(children, _semanticModel, syntax, type, constantValue, isImplicit)
+            End If
+
+            Dim receiver = eventInvocation.ReceiverOpt
+            Dim eventSymbol = boundRaiseEventStatement.EventSymbol
+            Dim eventReferenceSyntax = receiver.Syntax
+            Dim eventReferenceType As ITypeSymbol = eventSymbol.Type
+            Dim eventReferenceConstantValue As [Optional](Of Object) = ConvertToOptional(receiver.ConstantValueOpt)
+            ' EventReference in a raise event statement is never implicit. However, the way it is implemented, we don't get
+            ' a "BoundEventAccess" for either field backed event or custom event, and the bound nodes we get are marked as 
+            ' generated by compiler. As a result, we have to explicitly set IsImplicit to false.
+            Dim eventReferenceIsImplicit As Boolean = False
+
+            Dim boundInstance As BoundNode
+            If receiver.Kind = BoundKind.FieldAccess Then
+                ' For raising a field backed event, we will only get a field access node in bound tree.
+                Dim eventFieldAccess = DirectCast(receiver, BoundFieldAccess)
+                Debug.Assert(eventFieldAccess.FieldSymbol.AssociatedSymbol = eventSymbol)
+
+                boundInstance = eventFieldAccess.ReceiverOpt
+            Else
+                ' This is for a custom event
+                boundInstance = receiver
+            End If
+
+            Dim eventReferenceInstance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() If(eventSymbol.IsShared, Nothing, Create(boundInstance)))
+
+            Dim eventReference As Lazy(Of IEventReferenceExpression) = New Lazy(Of IEventReferenceExpression)(Function() As IEventReferenceExpression
+                                                                                                                  Return New LazyEventReferenceExpression(eventSymbol,
+                                                                                                                                                          eventReferenceInstance,
+                                                                                                                                                          _semanticModel,
+                                                                                                                                                          eventReferenceSyntax,
+                                                                                                                                                          eventReferenceType,
+                                                                                                                                                          eventReferenceConstantValue,
+                                                                                                                                                          eventReferenceIsImplicit)
+                                                                                                              End Function)
+
+            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(
+                Function()
+                    Return DeriveArguments(eventInvocation.Arguments, eventInvocation.Method.Parameters)
+                End Function)
+
+            Return New LazyRaiseEventStatement(eventReference, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundAddHandlerStatementOperation(boundAddHandlerStatement As BoundAddHandlerStatement) As IExpressionStatement
@@ -1415,7 +1513,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAnonymousTypePropertyAccess.WasCompilerGenerated
-            Return New LazyPropertyReferenceExpression([property], instance, [property], argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyPropertyReferenceExpression([property], instance, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundQueryExpressionOperation(boundQueryExpression As BoundQueryExpression) As IOperation

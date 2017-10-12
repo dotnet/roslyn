@@ -51,7 +51,7 @@ function Get-ObjDir([string]$rootDir) {
 # directory.
 function Get-FilesToProcess([string]$rootDir) {
     $objDir = Get-ObjDir $rootDir
-    foreach ($item in Get-ChildItem -re -in *.dll,*.exe $objDir) {
+    foreach ($item in Get-ChildItem -re -in *.dll,*.exe,*.pdb $objDir) {
         $fileFullName = $item.FullName 
         $fileName = Split-Path -leaf $fileFullName
 

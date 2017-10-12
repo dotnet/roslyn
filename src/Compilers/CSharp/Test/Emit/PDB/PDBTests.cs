@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     <file id=""3"" name=""Bar.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum3 + @""" />
     <file id=""4"" name=""Baz.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum4 + @""" />
   </files>
-</symbols>", options: PdbToXmlOptions.ExcludeMethods);
+</symbols>", options: PdbValidationOptions.ExcludeMethods);
         }
 
         [Fact, WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
@@ -284,7 +284,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
 
             var release = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(@"
@@ -316,7 +316,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
         }
 
         [Fact, WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
@@ -354,7 +354,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
 
             var release = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
@@ -374,7 +374,7 @@ public class C
       </sequencePoints>
     </method>
   </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
         }
 
         [Fact]
@@ -433,7 +433,7 @@ public class C
   </files>
   <entryPoint declaringType=""C"" methodName=""F"" />
   <methods/>
-</symbols>", debugEntryPoint: f, options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints | PdbToXmlOptions.ExcludeCustomDebugInformation);
+</symbols>", debugEntryPoint: f, options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeCustomDebugInformation);
 
             var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
             int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
@@ -456,7 +456,7 @@ public class C
   </files>
   <entryPoint declaringType=""C"" methodName=""F"" />
   <methods/>
-</symbols>", debugEntryPoint: f, options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints | PdbToXmlOptions.ExcludeCustomDebugInformation);
+</symbols>", debugEntryPoint: f, options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeCustomDebugInformation);
 
             var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
             int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
@@ -6504,8 +6504,10 @@ class C
       </customDebugInfo>
     </method>
   </methods>
-</symbols>");
-
+</symbols>",
+            // When converting from Portable to Windows the PDB writer doesn't create an entry for the Main method 
+            // and thus there is no entry point record either.
+            options: PdbValidationOptions.SkipConversionValidation); 
         }
 
         [Fact]

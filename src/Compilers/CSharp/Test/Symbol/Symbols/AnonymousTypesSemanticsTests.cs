@@ -398,9 +398,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
             Instance Receiver: 
               null
         Right: 
-          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: D1) (Syntax: '(D1)(() => false)')
-            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: 
+          IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: D1) (Syntax: '(D1)(() => false)')
+            Target: 
               IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => false')
                 IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'false')
                   IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'false')
