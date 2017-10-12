@@ -57,17 +57,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             if (boundLocalDeclaration.InitializerOpt != null)
             {
                 IOperation initializerValue = Create(boundLocalDeclaration.InitializerOpt);
-                SyntaxNode initializerSyntax;
-                bool isImplicit;
+                SyntaxNode initializerSyntax = null;
+                bool isImplicit = false;
                 if (syntax is VariableDeclaratorSyntax variableDeclarator)
                 {
                     initializerSyntax = variableDeclarator.Initializer;
-                    isImplicit = false;
                 }
                 else
                 {
                     Debug.Fail($"Unexpected syntax kind: {syntax.Kind()}");
+                }
 
+                if (initializerSyntax == null)
+                {
                     // There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
                     initializerSyntax = initializerValue.Syntax;
                     isImplicit = true;
