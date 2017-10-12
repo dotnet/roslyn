@@ -2494,6 +2494,211 @@ class Program
         }
 
         [Fact]
+        public void TestMiscOperators()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref S global)
+    {
+        S local1 = stackalloc int[10];
+        global = local1++; // error 1
+
+        Span<int> local2 = stackalloc int[10];
+        global = local2; // error 2
+
+        Console.Write(global == local2);
+
+        global += local1;
+        local1 += global;
+    }
+    public static void Main()
+    {
+    }
+}
+public ref struct S
+{
+    public static implicit operator S(Span<int> s) => throw null;
+    public static S operator ++(S s) => throw null;
+    public static bool operator ==(S s1, Span<int> s2) => throw null;
+    public static bool operator !=(S s1, Span<int> s2) => throw null;
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+    public static S operator +(S s1, S s2) => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (9,18): error CS8352: Cannot use local 'local1' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local1++; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local1++").WithArguments("local1").WithLocation(9, 18),
+                // (12,18): error CS8352: Cannot use local 'local2' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local2; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local2").WithArguments("local2").WithLocation(12, 18)
+            );
+        }
+
+        [Fact]
+        public void TestMiscInOperators()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref S global)
+    {
+        S local1 = stackalloc int[10];
+        global = local1++; // error 1
+
+        Span<int> local2 = stackalloc int[10];
+        global = local2; // error 2
+    }
+    public static void Main()
+    {
+    }
+}
+public ref struct S
+{
+    public static implicit operator S(in Span<int> s) => throw null;
+    public static S operator ++(in S s) => throw null;
+    public static bool operator ==(in S s1, in Span<int> s2) => throw null;
+    public static bool operator !=(in S s1, in Span<int> s2) => throw null;
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+    public static S operator +(in S s1, in S s2) => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (9,18): error CS8352: Cannot use local 'local1' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local1++; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local1++").WithArguments("local1").WithLocation(9, 18),
+                // (12,18): error CS8352: Cannot use local 'local2' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local2; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local2").WithArguments("local2").WithLocation(12, 18)
+            );
+        }
+
+        [Fact]
+        public void TestMiscInOperators2()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref S global)
+    {
+        S local1 = stackalloc int[10];
+        local1++;
+
+        Console.Write(global == local1);
+
+        global += local1;
+        local1 += global;
+    }
+    public static void Main()
+    {
+    }
+}
+public ref struct S
+{
+    public static implicit operator S(in Span<int> s) => throw null;
+    public static S operator ++(in S s) => throw null;
+    public static bool operator ==(in S s1, in S s2) => throw null;
+    public static bool operator !=(in S s1, in S s2) => throw null;
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+    public static S operator +(in S s1, in S s2) => throw null;
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(text);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, verify: false).VerifyIL("C.M", @"
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (S V_0, //local1
+                int V_1,
+                System.Span<int> V_2,
+                S V_3)
+  IL_0000:  ldc.i4.s   10
+  IL_0002:  stloc.1
+  IL_0003:  ldloc.1
+  IL_0004:  conv.u
+  IL_0005:  ldc.i4.4
+  IL_0006:  mul.ovf.un
+  IL_0007:  localloc
+  IL_0009:  ldloc.1
+  IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_000f:  stloc.2
+  IL_0010:  ldloca.s   V_2
+  IL_0012:  call       ""S S.op_Implicit(in System.Span<int>)""
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  stloc.3
+  IL_001a:  ldloca.s   V_3
+  IL_001c:  call       ""S S.op_Increment(in S)""
+  IL_0021:  stloc.0
+  IL_0022:  ldarg.1
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  call       ""bool S.op_Equality(in S, in S)""
+  IL_002a:  call       ""void System.Console.Write(bool)""
+  IL_002f:  ldarg.1
+  IL_0030:  ldarg.1
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  call       ""S S.op_Addition(in S, in S)""
+  IL_0038:  stobj      ""S""
+  IL_003d:  ldloca.s   V_0
+  IL_003f:  ldarg.1
+  IL_0040:  call       ""S S.op_Addition(in S, in S)""
+  IL_0045:  stloc.0
+  IL_0046:  ret
+}");
+        }
+
+        [Fact]
+        public void TestRefReturningOperatorsCannotParse()
+        {
+            var text = @"
+public ref struct S
+{
+    public static ref S operator ++(in S s) => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (4,25): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
+                //     public static ref S operator ++(in S s) => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(4, 25),
+                // (4,25): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
+                //     public static ref S operator ++(in S s) => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(4, 25),
+                // (4,37): error CS1031: Type expected
+                //     public static ref S operator ++(in S s) => throw null;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "in").WithLocation(4, 37),
+                // (4,37): error CS8124: Tuple must contain at least two elements.
+                //     public static ref S operator ++(in S s) => throw null;
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "in").WithLocation(4, 37),
+                // (4,37): error CS1026: ) expected
+                //     public static ref S operator ++(in S s) => throw null;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "in").WithLocation(4, 37),
+                // (4,37): error CS1519: Invalid token 'in' in class, struct, or interface member declaration
+                //     public static ref S operator ++(in S s) => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "in").WithArguments("in").WithLocation(4, 37),
+                // (4,43): error CS1003: Syntax error, ',' expected
+                //     public static ref S operator ++(in S s) => throw null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(4, 43),
+                // (4,42): error CS0523: Struct member 'S.s' of type 'S' causes a cycle in the struct layout
+                //     public static ref S operator ++(in S s) => throw null;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "s").WithArguments("S.s", "S").WithLocation(4, 42),
+                // (4,42): warning CS0169: The field 'S.s' is never used
+                //     public static ref S operator ++(in S s) => throw null;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "s").WithArguments("S.s").WithLocation(4, 42)
+            );
+        }
+
+        [Fact]
         public void DeconstructionAssignmentToGlobal()
         {
             var text = @"
