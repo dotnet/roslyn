@@ -525,9 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // - for lambdas the root is a LambdaExpression.
                 // - for query lambdas the root is the query clause containing the lambda (e.g. where).
 
-                var oldLambda = GetLambda(oldBody);
-                var newLambda = GetLambda(newBody);
-                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(oldLambda, newLambda, knownMatches);
+                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
             }
 
             if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))

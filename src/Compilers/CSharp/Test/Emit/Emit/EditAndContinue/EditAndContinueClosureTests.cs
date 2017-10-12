@@ -389,6 +389,67 @@ class C
         }
 
         [Fact]
+        public void MethodWithLocalFunctionExpressionBodyToBlockBodyAndBack()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C 
+{ 
+    int F() 
+    {
+        return local();
+        <N:0>int local() <N:1>=> 2</N:1>;</N:0>
+    }
+}");
+
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{ 
+    int F() 
+    {
+        return local();
+        <N:0><N:1>int local() 
+        { 
+            return 1; 
+        }
+</N:1>
+         </N:0>
+    }
+}");
+            var source2 = source0;
+
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<F>g__local|0_0}");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<F>g__local|0_0}");
+        }
+
+        [Fact]
         public void MethodWithClosure1()
         {
             var source0 = MarkedSource(@"
