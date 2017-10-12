@@ -1321,7 +1321,7 @@ class C : Base
         int x, y;
         /*<bind>*/(x, y) = new C()/*</bind>*/;
 
-        System.Console.WriteLine(x + """" """" + y);
+        System.Console.WriteLine(x + "" "" + y);
     }
 }
 ";
@@ -1339,9 +1339,6 @@ IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpre
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1003: Syntax error, ',' expected
-                //         System.Console.WriteLine(x + "" "" + y);
-                Diagnostic(ErrorCode.ERR_SyntaxError, @"""""").WithArguments(",", "").WithLocation(14, 41),
                 // CS0121: The call is ambiguous between the following methods or properties: 'Base.Deconstruct(out int, out int)' and 'Base.Deconstruct(out long, out long)'
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Base.Deconstruct(out int, out int)", "Base.Deconstruct(out long, out long)").WithLocation(12, 28),
