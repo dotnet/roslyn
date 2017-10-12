@@ -785,7 +785,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundPropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundPropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundPropertyAccess.WasCompilerGenerated
-            Return New LazyPropertyReferenceExpression([property], instance, [property], argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyPropertyReferenceExpression([property], instance, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundWithLValueExpressionPlaceholder(boundWithLValueExpressionPlaceholder As BoundWithLValueExpressionPlaceholder) As IInstanceReferenceExpression
@@ -834,12 +834,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     End If
                 End Function)
 
-            Dim member As ISymbol = boundFieldAccess.FieldSymbol
             Dim syntax As SyntaxNode = boundFieldAccess.Syntax
             Dim type As ITypeSymbol = boundFieldAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundFieldAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundFieldAccess.WasCompilerGenerated
-            Return New LazyFieldReferenceExpression(field, isDeclaration, instance, member, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyFieldReferenceExpression(field, isDeclaration, instance, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundConditionalAccessOperation(boundConditionalAccess As BoundConditionalAccess) As IConditionalAccessExpression
@@ -1514,7 +1513,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAnonymousTypePropertyAccess.WasCompilerGenerated
-            Return New LazyPropertyReferenceExpression([property], instance, [property], argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyPropertyReferenceExpression([property], instance, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundQueryExpressionOperation(boundQueryExpression As BoundQueryExpression) As IOperation
