@@ -9842,6 +9842,112 @@ class Program
         }
 
         [Fact]
+        public void GenericInferenceOnInTuples()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    public static void Method<T>(in (T arg1, T arg2) p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        int x = 1;
+        byte y = 2;
+
+        Method((null, (string)null));
+        Method((default, x));
+        Method((new Object(), new Exception()));
+        Method((new Object(), x));
+
+        Method((x, x));     // valid, same type
+        Method((y, x));     // valid, byval x sets lower bound, byte converts to int
+    }
+}
+";
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: @"
+System.String
+System.Int32
+System.Object
+System.Object
+System.Int32
+System.Int32
+");
+        }
+
+        [Fact]
+        public void GenericInferenceOnInErrTuples()
+        {
+            var code = @"
+class Program
+{
+    public static void Method<T>(in (T arg1, T arg2) p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        int x = 1;
+        byte y = 2;
+        var rl = default(RefLike);
+
+        Method((null, null));
+        Method((null, 1));
+        Method((new object(), default(RefLike)));
+           
+        Method((rl, rl));
+        Method(in (rl, rl));
+           
+        Method(in (y, x));  
+    }
+
+    ref struct RefLike{}
+}
+";
+
+            CreateStandardCompilation(code, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }).VerifyDiagnostics(
+                // (15,9): error CS0411: The type arguments for method 'Program.Method<T>(in (T arg1, T arg2))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((null, null));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(15, 9),
+                // (16,16): error CS1503: Argument 1: cannot convert from '(<null>, int)' to 'in (int arg1, int arg2)'
+                //         Method((null, 1));
+                Diagnostic(ErrorCode.ERR_BadArgType, "(null, 1)").WithArguments("1", "(<null>, int)", "in (int arg1, int arg2)").WithLocation(16, 16),
+                // (17,31): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((new object(), default(RefLike)));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(RefLike)").WithArguments("Program.RefLike").WithLocation(17, 31),
+                // (17,9): error CS0411: The type arguments for method 'Program.Method<T>(in (T arg1, T arg2))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((new object(), default(RefLike)));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(17, 9),
+                // (19,17): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 17),
+                // (19,21): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 21),
+                // (19,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Method").WithArguments("Program.RefLike").WithLocation(19, 9),
+                // (20,20): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method(in (rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 20),
+                // (20,24): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method(in (rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 24),
+                // (20,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         Method(in (rl, rl));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(rl, rl)").WithLocation(20, 19),
+                // (22,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         Method(in (y, x));  
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(y, x)").WithLocation(22, 19));
+        }
+
+        [Fact]
         public void GenericInferenceLambdaVariance()
         {
             var code = @"
