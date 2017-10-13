@@ -52,11 +52,16 @@
     <ProjectReference Include="..\..\InteractiveServices\VisualStudioInteractiveServices.csproj" />
     <ProjectReference Include="..\TestUtilities\VisualStudioIntegrationTestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Test\Perf\Utilities\Perf.Utilities.csproj">
+      <Project>{59ad474e-2a35-4e8a-a74d-e33479977fbf}</Project>
+      <Name>Perf.Utilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
@@ -65,6 +70,14 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Performance\CSharpGoldilocksInput-MultipliedDelay.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Performance\TypingDelayAnalyzer.exe" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -47,7 +47,6 @@ if ($ShouldArchive) {
         catch
         {
             echo "Copying CPC data failed"
-            $ExitCode = 1
         }
     }
     if (Test-Path C:\PerfLogs)
@@ -60,7 +59,6 @@ if ($ShouldArchive) {
         catch
         {
             echo "Copying PerfLogs failed"
-            $ExitCode = 1
         }
     }
 

@@ -75,7 +75,10 @@ namespace Roslyn.Test.Performance.Utilities
         public static void UploadBenchviewReport(string submissionName)
         {
             var consumptionXml = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml");
-            UploadBenchviewReport(consumptionXml, submissionName);
+            if (File.Exists(consumptionXml))
+            {
+                UploadBenchviewReport(consumptionXml, submissionName);
+            }
         }
 
         public static void UploadBenchviewReport(string filepath, string submissionName)

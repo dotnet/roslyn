@@ -4,13 +4,17 @@
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
+    <ProjectGuid>{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}</ProjectGuid>
+    <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Test.Performance.Tests</RootNamespace>
     <AssemblyName>Roslyn.Test.Performance.Tests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Nonshipping>true</Nonshipping>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
+    <ProjectGuid>{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -18,20 +22,55 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="**\*.*" Exclude="$(MSBuildThisFile)">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Remove="csharp\typing\CSharpTyping2.cs" />
+    <Content Remove="csharp\csharp_compiler.csx" />
+    <Content Remove="csharp\typing\CSharpTyping2.cs" />
+    <Content Remove="csharp\typing\TypingDelayAnalyzer.exe" />
+    <Content Remove="helloworld\hello_world.csx" />
+    <None Include="csharp\typing\CSharpGoldilocksInput-MultipliedDelay.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="csharp\typing\TypingDelayAnalyzer.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="UIAutomationClient" />
+    <Reference Include="UIAutomationTypes" />
+    <PackageReference Include="EnvDTE">
+      <Version>$(EnvDTEVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="EnvDTE80">
+      <Version>$(EnvDTE80Version)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit">
+      <Version>$(xunitVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.console">
+      <Version>$(xunitrunnerconsoleVersion)</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" />
+    <ProjectReference Include="..\..\..\VisualStudio\IntegrationTest\IntegrationTests\VisualStudioIntegrationTests.csproj">
+      <Project>{e5a55c16-a5b9-4874-9043-a5266dc02f58}</Project>
+      <Name>VisualStudioIntegrationTests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\VisualStudio\IntegrationTest\TestUtilities\VisualStudioIntegrationTestUtilities.csproj">
+      <Project>{3BED15FD-D608-4573-B432-1569C1026F6D}</Project>
+      <Name>VisualStudioIntegrationTestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utilities\Perf.Utilities.csproj">
+      <Project>{59AD474E-2A35-4E8A-A74D-E33479977FBF}</Project>
+      <Name>Perf.Utilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

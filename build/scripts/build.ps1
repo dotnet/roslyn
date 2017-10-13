@@ -256,7 +256,7 @@ function Test-PerfCorrectness() {
 }
 
 function Test-PerfRun() { 
-    Run-MSBuild "Roslyn.sln /p:DeployExtension=false"
+    Run-MSBuild "Roslyn.sln /p:DeployExtension=true"
 
     # Check if we have credentials to upload to benchview
     $extraArgs = @()
@@ -280,7 +280,7 @@ function Test-PerfRun() {
     }
 
     Stop-BuildProcesses
-    & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  $extraArgs --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload
+    & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  $extraArgs --search-directory=".\\Binaries\\$buildConfiguration\\UnitTests\\" --no-trace-upload
     if (-not $?) { 
         throw "Perf run failed"
     }
