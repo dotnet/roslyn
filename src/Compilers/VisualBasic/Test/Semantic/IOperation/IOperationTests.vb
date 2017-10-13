@@ -701,7 +701,5 @@ ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syn
 
             VerifyOperationTreeAndDiagnosticsForTest(Of CatchBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
-
     End Class
 End Namespace

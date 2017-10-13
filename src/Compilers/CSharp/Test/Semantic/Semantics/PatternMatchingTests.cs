@@ -5945,8 +5945,10 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        if (null as string is string) { }
         if (null as string is string s1) { }
         const string s = null;
+        if (s is string) { }
         if (s is string s2) { }
         if (""goo"" is string s3) { }
     }
@@ -5960,18 +5962,24 @@ public class Program
 ";
             var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
-                // (12,13): warning CS0184: The given expression is never of the provided ('long') type
+                // (8,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(8, 13),
+                // (9,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string s2) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string s2").WithArguments("string").WithLocation(9, 13),
+                // (14,13): warning CS0184: The given expression is never of the provided ('long') type
                 //         if (i is long) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "i is long").WithArguments("long").WithLocation(12, 13),
-                // (13,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'long'.
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "i is long").WithArguments("long").WithLocation(14, 13),
+                // (15,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'long'.
                 //         if (i is long l) { }
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(13, 18),
-                // (14,17): error CS0103: The name 'b' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(15, 18),
+                // (16,17): error CS0103: The name 'b' does not exist in the current context
                 //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(14, 17),
-                // (14,35): warning CS0162: Unreachable code detected
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(16, 17),
+                // (16,35): warning CS0162: Unreachable code detected
                 //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 35)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(16, 35)
                 );
         }
 
@@ -6344,6 +6352,34 @@ class Program
                 //         switch (Console.WriteLine("Hello"))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 17)
                 );
+        }
+
+        [Fact, WorkItem(20103, "https://github.com/dotnet/roslyn/issues/20103")]
+        public void TestNullInInPattern()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const string s = null;
+        if (s is string) {} else { Console.Write(""Hello ""); }
+        if (s is string t) {} else { Console.WriteLine(""World""); }
+    }
+}
+";
+            var expectedOutput = @"Hello World";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string) {} else { Console.Write("Hello "); }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(7, 13),
+                // (8,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string t) {} else { Console.WriteLine("World"); }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string t").WithArguments("string").WithLocation(8, 13)
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

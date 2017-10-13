@@ -37,10 +37,11 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c = new C()')
         Variables: Local_1: C c
         Initializer: 
-          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
-            Arguments(0)
-            Initializer: 
-              null
+          IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
+            IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+              Arguments(0)
+              Initializer: 
+                null
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... oString());')
@@ -92,17 +93,19 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (C c1 ... }')
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
         Variables: Local_1: C c1
         Initializer: 
-          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
-            Arguments(0)
-            Initializer: 
-              null
+          IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
+            IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+              Arguments(0)
+              Initializer: 
+                null
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2 = new C()')
         Variables: Local_1: C c2
         Initializer: 
-          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
-            Arguments(0)
-            Initializer: 
-              null
+          IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
+            IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+              Arguments(0)
+              Initializer: 
+                null
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... oString());')
@@ -202,10 +205,11 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
         Variables: Local_1: C c1
         Initializer: 
-          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
-            Arguments(0)
-            Initializer: 
-              null
+          IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
+            IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+              Arguments(0)
+              Initializer: 
+                null
   Body: 
     IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
       Resources: 
@@ -213,10 +217,11 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
           IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2 = new C()')
             Variables: Local_1: C c2
             Initializer: 
-              IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
-                Arguments(0)
-                Initializer: 
-                  null
+              IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
+                IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+                  Arguments(0)
+                  Initializer: 
+                    null
       Body: 
         IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
           IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... oString());')
@@ -335,17 +340,19 @@ IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (var  
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'c1 = new C()')
         Variables: Local_1: C c1
         Initializer: 
-          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
-            Arguments(0)
-            Initializer: 
-              null
+          IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new C()')
+            IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+              Arguments(0)
+              Initializer: 
+                null
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'c2 = new C()')
         Variables: Local_1: C c2
         Initializer: 
-          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
-            Arguments(0)
-            Initializer: 
-              null
+          IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new C()')
+            IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+              Arguments(0)
+              Initializer: 
+                null
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... oString());')
@@ -412,18 +419,20 @@ IBlockStatement (5 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
       Variables: Local_1: C c1
       Initializer: 
-        IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
-          Arguments(0)
-          Initializer: 
-            null
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
+          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+            Arguments(0)
+            Initializer: 
+              null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c2 = new C();')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2 = new C()')
       Variables: Local_1: C c2
       Initializer: 
-        IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
-          Arguments(0)
-          Initializer: 
-            null
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
+          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+            Arguments(0)
+            Initializer: 
+              null
   IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (c1')
     Resources: 
       ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C, IsInvalid) (Syntax: 'c1')
@@ -507,10 +516,11 @@ IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (var  
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'c1 = new C()')
         Variables: Local_1: C c1
         Initializer: 
-          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
-            Arguments(0)
-            Initializer: 
-              null
+          IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new C()')
+            IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+              Arguments(0)
+              Initializer: 
+                null
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... oString());')
@@ -761,10 +771,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c = new C()')
     Variables: Local_1: C c
     Initializer: 
-      IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
-        Arguments(0)
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
+        IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+          Arguments(0)
+          Initializer: 
+            null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -872,10 +883,11 @@ class C : IDisposable
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
   Variables: Local_1: C c1
   Initializer: 
-    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
-      Arguments(0)
-      Initializer: 
-        null
+    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
+      IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+        Arguments(0)
+        Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

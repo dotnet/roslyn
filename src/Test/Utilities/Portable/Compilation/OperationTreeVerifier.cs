@@ -74,6 +74,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(", ");
                 LogType(operation.Type);
             }
+            else
+            {
+                // https://github.com/dotnet/roslyn/issues/22581 tracks enabling this assert
+                // Verify null type for non-Expression operations.
+                //Assert.Null(operation.Type);
+            }
 
             // ConstantValue
             if (operation.ConstantValue.HasValue)
@@ -1177,6 +1183,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitFieldInitializer(operation);
         }
 
+        public override void VisitVariableInitializer(IVariableInitializer operation)
+        {
+            LogString(nameof(IVariableInitializer));
+            LogCommonPropertiesAndNewLine(operation);
+
+            base.VisitVariableInitializer(operation);
+        }
+
         public override void VisitPropertyInitializer(IPropertyInitializer operation)
         {
             LogString(nameof(IPropertyInitializer));
@@ -1222,6 +1236,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Target, "Left");
             Visit(operation.Value, "Right");
+        }
+
+        public override void VisitDeconstructionAssignmentExpression(IDeconstructionAssignmentExpression operation)
+        {
+            LogString(nameof(IDeconstructionAssignmentExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, "Left");
+            Visit(operation.Value, "Right");
+        }
+
+        public override void VisitDeclarationExpression(IDeclarationExpression operation)
+        {
+            LogString(nameof(IDeclarationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression);
         }
 
         public override void VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)

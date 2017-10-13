@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     compilationContext.RegisterOperationBlockStartAction(
                         (operationBlockContext) =>
                         {
-
                             if (operationBlockContext.OwningSymbol is IMethodSymbol containingMethod)
                             {
                                 Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes = new Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>>();
@@ -96,19 +95,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
-                                        IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
-                                        foreach (IVariableDeclaration variable in declaration.Declarations)
+                                        IVariableInitializer initializer = (IVariableInitializer)operationContext.Operation;
+                                        if (initializer.Parent is IVariableDeclaration variableDeclaration)
                                         {
-                                            foreach (ILocalSymbol local in variable.Variables)
+                                            foreach (ILocalSymbol local in variableDeclaration.Variables)
                                             {
-                                                if (variable.Initializer != null)
-                                                {
-                                                    AssignTo(local, local.Type, localsSourceTypes, variable.Initializer);
-                                                }
+                                                AssignTo(local, local.Type, localsSourceTypes, initializer.Value);
                                             }
                                         }
                                     },
-                                    OperationKind.VariableDeclarationStatement);
+                                    OperationKind.VariableInitializer);
 
                                 // Report locals that could have more specific types.
                                 operationBlockContext.RegisterOperationBlockEndAction(
