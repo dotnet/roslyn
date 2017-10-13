@@ -63,9 +63,14 @@ Then, use Visual Studio's "Report a Problem..." feature. It will allow you to at
 
 # Performance Issues
 
-When diagnosing performance issues, the goal is to capture a performance trace while performing the slow/hanging action. For best results in capturing the performance, follow these steps:
+When diagnosing performance issues, the goal is to capture a performance trace while performing the slow/hanging action. 
+
+:bulb: When possible, isolate each scenario in a separate, specific feedback report. For example, if typing and navigation are both slow, follow the steps below once per issue. This helps the product team isolate the cause of specific issues.
+
+For best results in capturing the performance, follow these steps:
 
 1. If not already running, have a copy of Visual Studio open where you will reproduce the problem
+    * Have everything set up to reproduce the problem. For example, if you need a particular project to be loaded with a specific file opened, then be sure both of those steps are complete before proceeding.
 2. Start a second copy of Visual Studio *with no solution open*
 3. In the new copy of Visual Studio, open the **Report a Problem** tool
 4. Follow the steps in "[How to Report a Problem with Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)" until you reach the "Provide a trace and heap dump (optional)" step.
