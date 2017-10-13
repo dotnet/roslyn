@@ -47,13 +47,13 @@ If you're not sure what's causing your crashes or they seem random, then you can
 "DumpType"=dword:00000002
 ```
 
-⚠️ Each dump file produced by this method will be up to 4GiB in size. Make sure to set `DumpFolder` to a location with adequate drive space.
+⚠️ Each dump file produced by this method will be up to 4GiB in size. Make sure to set `DumpFolder` to a location with adequate drive space or adjust the `DumpCount` appropriately.
 
 Each time Visual Studio crashes, it will create a dump file **devenv.exe.[number].dmp** file in the configured location.
 
 Then, use Visual Studio's "Report a Problem..." feature. It will allow you to attach the appropriate dump.
 
-1. Locate the dump file for the crash you are reporting (look for a file with the correct Creation time
+1. Locate the dump file for the crash you are reporting (look for a file with the correct Creation time)
 2. If possible, zip the file (*.zip) to reduce its size before submitting feedback
 3. Follow the steps in "[How to Report a Problem with Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)", and attach the heap dump to a new feedback item.
 
