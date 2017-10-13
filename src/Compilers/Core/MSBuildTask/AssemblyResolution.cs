@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return TryRedirect(name, s_b77a5c561934e089, 4, 1, 2, 0);
 
                 case "System.Console":
-                case "System.Diagnostics.FileVersionInfo":
                 case "System.IO.Pipes":
                 case "System.Security.AccessControl":
                 case "System.Security.Cryptography.Primitives":

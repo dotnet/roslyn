@@ -207,9 +207,9 @@ public class C
     void Goo(StringBuilder $$) {}
 }
 ";
-            await VerifyItemExistsAsync(markup, "stringBuilder", glyph: (int) Glyph.Parameter);
-            await VerifyItemExistsAsync(markup, "@string", glyph: (int) Glyph.Parameter);
-            await VerifyItemExistsAsync(markup, "builder", glyph: (int) Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "stringBuilder", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "@string", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "builder", glyph: (int)Glyph.Parameter);
         }
 
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
@@ -223,7 +223,7 @@ public class C
     void Goo(For $$) {}
 }
 ";
-            await VerifyItemExistsAsync(markup, "@for", glyph: (int) Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "@for", glyph: (int)Glyph.Parameter);
         }
 
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
@@ -704,6 +704,29 @@ class Test
             await VerifyItemExistsAsync(markup, "cancellationTokens");
             await VerifyItemExistsAsync(markup, "cancellations");
             await VerifyItemExistsAsync(markup, "tokens");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void DisabledByOption()
+        {
+            var workspace = WorkspaceFixture.GetWorkspace();
+            var originalOptions = WorkspaceFixture.GetWorkspace().Options;
+            try
+            {
+                workspace.Options = originalOptions.
+                    WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false);
+
+                var markup = @"
+class Test
+{
+    Test $$
+}
+";
+                await VerifyNoItemsExistAsync(markup);
+            }
+            finally
+            {
+                workspace.Options = originalOptions;
+            }
         }
     }
 }

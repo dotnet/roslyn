@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = completionContext.CancellationToken;
             var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
 
+            if (!completionContext.Options.GetOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp))
+            {
+                return;
+            }
+
             var context = CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
             if (context.IsInNonUserCode)
             {

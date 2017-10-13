@@ -168,9 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         private async Task VerifyCurrentParameterNameWorkerAsync(string markup, string expectedParameterName, SourceCodeKind sourceCodeKind)
         {
-            string code;
-            int cursorPosition;
-            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out code, out cursorPosition);
+            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out var code, out int cursorPosition);
 
             var document = workspaceFixture.UpdateDocument(code, sourceCodeKind);
 

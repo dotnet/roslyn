@@ -11973,6 +11973,7 @@ class B<T> : A<T>
         #endregion
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void MutateReadonlyNested()
         {
             string source = @"
@@ -12024,11 +12025,44 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"42");
+            var comp = CompileAndVerify(source, expectedOutput: @"42", verify: false);
 
-            // Dev10
-            compilation.VerifyIL("Program.Main",
-@"{
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (MyManagedStruct V_0,
+                MyManagedStruct.Nested.Nested1 V_1)
+  IL_0000:  newobj     ""cls1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""MyManagedStruct cls1.y""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       ""void MyManagedStruct.mutate(int)""
+  IL_0015:  dup
+  IL_0016:  ldflda     ""MyManagedStruct cls1.y""
+  IL_001b:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_0020:  ldfld      ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldc.i4     0x1c8
+  IL_002d:  call       ""void MyManagedStruct.Nested.Nested1.mutate(int)""
+  IL_0032:  ldflda     ""MyManagedStruct cls1.y""
+  IL_0037:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_003c:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0041:  ldfld      ""int MyManagedStruct.Nested.Nested1.num""
+  IL_0046:  call       ""void System.Console.WriteLine(int)""
+  IL_004b:  ret
+}
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: true, parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main",
+@"
+{
   // Code size       76 (0x4c)
   .maxstack  3
   .locals init (MyManagedStruct V_0)
@@ -12054,6 +12088,120 @@ struct MyManagedStruct
   IL_0046:  call       ""void System.Console.WriteLine(int)""
   IL_004b:  ret
 }
+");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void MutateReadonlyNested1()
+        {
+            string source = @"
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            GetRoRef().ro.ro.ro.ro.ToString();
+            System.Console.Write(GetRoRef().ro.ro.ro.ro.x);
+        }
+
+        private static ref readonly Largest GetRoRef()
+        {
+            return ref (new Largest[1])[0];
+        }
+    }
+
+    struct Largest
+    {
+        public int x;
+        public readonly Large ro;
+    }
+
+    struct Large
+    {
+        public int x;
+        public Medium ro;
+    }
+
+    struct Medium
+    {
+        public int x;
+        public Small ro;
+    }
+
+    struct Small
+    {
+        public int x;
+        public Smallest ro;
+    }
+
+    struct Smallest
+    {
+        public int x;
+
+        public override string ToString()
+        {
+            x = -1;
+            System.Console.Write(x);
+            return null;
+        }
+    }";
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: false);
+
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  1
+  .locals init (Smallest V_0)
+  IL_0000:  call       ""ref readonly Largest Program.GetRoRef()""
+  IL_0005:  ldflda     ""Large Largest.ro""
+  IL_000a:  ldflda     ""Medium Large.ro""
+  IL_000f:  ldflda     ""Small Medium.ro""
+  IL_0014:  ldfld      ""Smallest Small.ro""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  constrained. ""Smallest""
+  IL_0022:  callvirt   ""string object.ToString()""
+  IL_0027:  pop
+  IL_0028:  call       ""ref readonly Largest Program.GetRoRef()""
+  IL_002d:  ldflda     ""Large Largest.ro""
+  IL_0032:  ldflda     ""Medium Large.ro""
+  IL_0037:  ldflda     ""Small Medium.ro""
+  IL_003c:  ldflda     ""Smallest Small.ro""
+  IL_0041:  ldfld      ""int Smallest.x""
+  IL_0046:  call       ""void System.Console.Write(int)""
+  IL_004b:  ret
+}
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"-10", verify: true, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main",
+@"
+	{
+	  // Code size       76 (0x4c)
+	  .maxstack  1
+	  .locals init (Large V_0)
+	  IL_0000:  call       ""ref readonly Largest Program.GetRoRef()""
+	  IL_0005:  ldfld      ""Large Largest.ro""
+	  IL_000a:  stloc.0
+	  IL_000b:  ldloca.s   V_0
+	  IL_000d:  ldflda     ""Medium Large.ro""
+	  IL_0012:  ldflda     ""Small Medium.ro""
+	  IL_0017:  ldflda     ""Smallest Small.ro""
+	  IL_001c:  constrained. ""Smallest""
+	  IL_0022:  callvirt   ""string object.ToString()""
+	  IL_0027:  pop
+	  IL_0028:  call       ""ref readonly Largest Program.GetRoRef()""
+	  IL_002d:  ldfld      ""Large Largest.ro""
+	  IL_0032:  ldfld      ""Medium Large.ro""
+	  IL_0037:  ldfld      ""Small Medium.ro""
+	  IL_003c:  ldfld      ""Smallest Small.ro""
+	  IL_0041:  ldfld      ""int Smallest.x""
+	  IL_0046:  call       ""void System.Console.Write(int)""
+	  IL_004b:  ret
+	}
 ");
         }
 
@@ -15520,5 +15668,180 @@ public class Form1 {
 }");
         }
 
+        [Fact]
+        public void CorrectOverloadOfStackAllocSpanChosen()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    unsafe public static void Main()
+    {
+        bool condition = false;
+
+        var span1 = condition ? stackalloc int[1] : new Span<int>(null, 2);
+        Console.Write(span1.Length);
+
+        var span2 = condition ? new Span<int>(null, 3) : stackalloc int[4];
+        Console.Write(span2.Length);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "24");
+        }
+
+        [Fact]
+        public void StackAllocExpressionIL()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public static void Main()
+    {
+        Span<int> x = stackalloc int[33];
+        Console.Write(x.Length);
+        x = stackalloc int[0];
+        Console.Write(x.Length);
+    }
+}", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "330", verify: false).VerifyIL("Test.Main", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (System.Span<int> V_0, //x
+                int V_1)
+  IL_0000:  ldc.i4.s   33
+  IL_0002:  stloc.1
+  IL_0003:  ldloc.1
+  IL_0004:  conv.u
+  IL_0005:  ldc.i4.4
+  IL_0006:  mul.ovf.un
+  IL_0007:  localloc
+  IL_0009:  ldloc.1
+  IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int System.Span<int>.Length.get""
+  IL_0017:  call       ""void System.Console.Write(int)""
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  initobj    ""System.Span<int>""
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""int System.Span<int>.Length.get""
+  IL_002b:  call       ""void System.Console.Write(int)""
+  IL_0030:  ret
+}");
+        }
+
+        [Fact]
+        public void StackAllocSpanLengthNotEvaluatedTwice()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    private static int length = 0;
+
+    private static int GetLength()
+    {
+        return ++length;
+    }
+
+    public static void Main()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            Span<int> x = stackalloc int[GetLength()];
+            Console.Write(x.Length);
+        }
+    }
+}", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "12345", verify: false).VerifyIL("Test.Main", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (int V_0, //i
+                System.Span<int> V_1, //x
+                int V_2)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  br.s       IL_0027
+  IL_0004:  call       ""int Test.GetLength()""
+  IL_0009:  stloc.2
+  IL_000a:  ldloc.2
+  IL_000b:  conv.u
+  IL_000c:  ldc.i4.4
+  IL_000d:  mul.ovf.un
+  IL_000e:  localloc
+  IL_0010:  ldloc.2
+  IL_0011:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       ""int System.Span<int>.Length.get""
+  IL_001e:  call       ""void System.Console.Write(int)""
+  IL_0023:  ldloc.0
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.0
+  IL_0027:  ldloc.0
+  IL_0028:  ldc.i4.5
+  IL_0029:  blt.s      IL_0004
+  IL_002b:  ret
+}");
+        }
+
+        [Fact]
+        public void ImplicitCastOperatorOnStackAllocIsLoweredCorrectly()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public static void Main()
+    {
+        Test obj1 = stackalloc int[10];
+        Console.Write(""|"");
+        Test obj2 = stackalloc double[10];
+    }
+    
+    public static implicit operator Test(Span<int> value) 
+    {
+        Console.Write(""SpanOpCalled"");
+        return default(Test);
+    }
+    
+    public static implicit operator Test(double* value) 
+    {
+        Console.Write(""PointerOpCalled"");
+        return default(Test);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: false);
+        }
+
+        [Fact]
+        public void ExplicitCastOperatorOnStackAllocIsLoweredCorrectly()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public static void Main()
+    {
+        Test obj1 = (Test)stackalloc int[10];
+    }
+    
+    public static explicit operator Test(Span<int> value) 
+    {
+        Console.Write(""SpanOpCalled"");
+        return default(Test);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: false);
+        }
     }
 }

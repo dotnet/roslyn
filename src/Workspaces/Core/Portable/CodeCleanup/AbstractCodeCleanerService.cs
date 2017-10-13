@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Make sure annotations are positioned outside of any spans. If not, merge two adjacent spans to one.
         /// </summary>
-        private ImmutableArray<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        private ImmutableArray<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             // Create interval tree for spans
             var intervalTree = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spans);
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 #endif
 
                 var current = 0;
-                var count = codeCleaners.Count();
+                var count = codeCleaners.Length;
 
                 foreach (var codeCleaner in codeCleaners)
                 {
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 var spans = ImmutableArray<TextSpan>.Empty;
 
                 var current = 0;
-                var count = codeCleaners.Count();
+                var count = codeCleaners.Length;
 
                 foreach (var codeCleaner in codeCleaners)
                 {

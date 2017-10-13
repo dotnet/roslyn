@@ -5,22 +5,40 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.CodeAnalysis.ErrorReporting
 {
-    internal class WatsonReporter
+    /// <summary>
+    /// Controls whether or not we actually report the failure.
+    /// There are situations where we know we're in a bad state and any further reports are unlikely to be
+    /// helpful, so we shouldn't send them.
+    /// </summary>
+    internal static class WatsonDisabled
     {
+        // we have it this way to make debugging easier since VS debugger can't reach
+        // static type with same fully qualified name in multiple dlls.
+        public static bool s_reportWatson = true;
+    }
+
+    internal static class WatsonReporter
+    {
+        /// <summary>
+        /// hold onto last issue we reported. we use hash
+        /// since exception callstack could be quite big
+        /// </summary>
+        private static int s_lastExceptionReported;
+
+#if DEBUG
+        /// <summary>
+        /// in debug, we also hold onto reported string to make debugging easier
+        /// </summary>
+        private static string s_lastExceptionReportedDebug;
+#endif
+
         /// <summary>
         /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
         /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
         /// </summary>
         private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
-
-        /// <summary>
-        /// Controls whether or not we actually report the failure.
-        /// There are situations where we know we're in a bad state and any further reports are unlikely to be
-        /// helpful, so we shouldn't send them.
-        /// </summary>
-        private static bool s_reportWatson = true;
 
         /// <summary>
         /// Report Non-Fatal Watson
@@ -51,10 +69,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// CAB.</param>
         public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
         {
-            if (!s_reportWatson)
+            if (!WatsonDisabled.s_reportWatson)
             {
                 return;
             }
+
+            // this is a poor man's check whether we are called for same issues repeatedly
+            // one of problem of NFW compared to FW is that since we don't crash at an issue, same issue
+            // might happen repeatedly. especially in short amount of time. reporting all those issues
+            // are meaningless so we do cheap check to see we just reported same issue and
+            // bail out.
+            // I think this should be actually done by PostFault itself and I talked to them about it.
+            // but until they do something, we will do very simple throuttle ourselves.
+            var currentExceptionString = exception.GetParameterString();
+            var currentException = currentExceptionString.GetHashCode();
+            if (s_lastExceptionReported == currentException)
+            {
+                return;
+            }
+
+#if DEBUG
+            s_lastExceptionReportedDebug = currentExceptionString;
+#endif
+
+            s_lastExceptionReported = currentException;
 
             TelemetryService.DefaultSession.PostFault(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
@@ -64,6 +102,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     // always add current processes dump
                     arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
+
+                    // add extra bucket parameters to bucket better in NFW
+                    arg.SetExtraParameters(exception);
+
                     return callback(arg);
                 });
 
@@ -72,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // Once we've encountered one OOM we're likely to see more. There will probably be other
                 // failures as a direct result of the OOM, as well. These aren't helpful so we should just
                 // stop reporting failures.
-                s_reportWatson = false;
+                WatsonDisabled.s_reportWatson = false;
             }
         }
     }

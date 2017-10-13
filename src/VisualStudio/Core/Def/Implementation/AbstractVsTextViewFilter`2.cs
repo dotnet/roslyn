@@ -6,12 +6,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -32,7 +34,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _languageService = languageService;
         }
 
-        public virtual int GetDataTipText(TextSpan[] pSpan, out string pbstrText)
+        int IVsTextViewFilter.GetDataTipText(TextSpan[] pSpan, out string pbstrText)
+        {
+            try
+            {
+                return GetDataTipTextImpl(pSpan, out pbstrText);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        protected virtual int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
         {
             pbstrText = null;
 
@@ -45,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return VSConstants.E_FAIL;
                 }
 
-                var vsBuffer = this.EditorAdaptersFactory.GetBufferAdapter(subjectBuffer);
+                var vsBuffer = EditorAdaptersFactory.GetBufferAdapter(subjectBuffer);
 
                 // TODO: broken in REPL
                 if (vsBuffer == null)
@@ -59,15 +73,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.E_FAIL;
         }
 
-        public int GetPairExtents(int iLine, int iIndex, TextSpan[] pSpan)
+        int IVsTextViewFilter.GetPairExtents(int iLine, int iIndex, TextSpan[] pSpan)
         {
-            int result = VSConstants.S_OK;
-            _languageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
-                "Intellisense",
-                allowCancel: true,
-                action: c => result = GetPairExtentsWorker(iLine, iIndex, pSpan, c.CancellationToken));
+            try
+            {
+                int result = VSConstants.S_OK;
+                _languageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
+                    "Intellisense",
+                    allowCancel: true,
+                    action: c => result = GetPairExtentsWorker(iLine, iIndex, pSpan, c.CancellationToken));
 
-            return result;
+                return result;
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private int GetPairExtentsWorker(int iLine, int iIndex, TextSpan[] pSpan, CancellationToken cancellationToken)
@@ -84,17 +105,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 cancellationToken);
         }
 
-        public int GetWordExtent(int iLine, int iIndex, uint dwFlags, TextSpan[] pSpan)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+        int IVsTextViewFilter.GetWordExtent(int iLine, int iIndex, uint dwFlags, TextSpan[] pSpan)
+            => VSConstants.E_NOTIMPL;
 
         #region Edit and Continue 
 
         int IVsReadOnlyViewNotification.OnDisabledEditingCommand(ref Guid pguidCmdGuid, uint dwCmdId)
         {
             var container = GetSubjectBufferContainingCaret().AsTextContainer();
-            if (!Workspace.TryGetWorkspace(container, out var workspace))
+            if (!CodeAnalysis.Workspace.TryGetWorkspace(container, out var workspace))
             {
                 return VSConstants.S_OK;
             }

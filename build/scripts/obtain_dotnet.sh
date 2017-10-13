@@ -21,19 +21,21 @@ fi
 # This is a function to keep variable assignments out of the parent script (that is sourcing this file)
 install_dotnet () {
     # Download and install `dotnet` locally
-    local DOTNET_VERSION=1.0.1
-    local THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-    local DOTNET_PATH=${THIS_DIR}/../../Binaries/dotnet-cli
+    local THIS_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "${THIS_DIR}"/build-utils.sh
+
+    local DOTNET_VERSION="$(get_tool_version dotnetSdk)"
+    local DOTNET_PATH="${THIS_DIR}"/../../Binaries/dotnet-cli
 
     if [[ ! -x "${DOTNET_PATH}/dotnet" ]]
     then
         echo "Downloading and installing .NET CLI version ${DOTNET_VERSION} to ${DOTNET_PATH}"
-        curl https://raw.githubusercontent.com/dotnet/cli/rel/${DOTNET_VERSION}/scripts/obtain/dotnet-install.sh | \
+        curl https://dot.net/v1/dotnet-install.sh | \
             /usr/bin/env bash -s -- --version "${DOTNET_VERSION}" --install-dir "${DOTNET_PATH}"
     else
         echo "Skipping download of .NET CLI: Already installed at ${DOTNET_PATH}"
     fi
 
-    export PATH=${DOTNET_PATH}:${PATH}
+    export PATH="${DOTNET_PATH}:${PATH}"
 }
 install_dotnet

@@ -251,6 +251,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Kind() = SyntaxKind.ReturnStatement
         End Function
 
+        Public Function IsStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStatement
+            Return TypeOf node Is StatementSyntax
+        End Function
+
+        Public Function IsParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParameter
+            Return TypeOf node Is ParameterSyntax
+        End Function
+
+        Public Function IsVariableDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsVariableDeclarator
+            Return TypeOf node Is VariableDeclaratorSyntax
+        End Function
+
+        Public Function IsMethodBody(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMethodBody
+            Return TypeOf node Is MethodBlockBaseSyntax
+        End Function
+
         Public Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfReturnStatement
             Return TryCast(node, ReturnStatementSyntax)?.Expression
         End Function

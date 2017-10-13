@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Finally handler of the try.
         /// </summary>
-        IBlockStatement FinallyHandler { get; }
+        IBlockStatement Finally { get; }
     }
 }
 

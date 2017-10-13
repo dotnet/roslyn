@@ -87,6 +87,7 @@
   It is used to perform intermediate binding, and will not survive the local rewriting.
   -->
   <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!-- only used by codegen -->
@@ -399,7 +400,7 @@
   <Node Name="BoundConditionalOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
+    <Field Name="IsByRef" Type="bool"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundExpression"/>
     <Field Name="Alternative" Type="BoundExpression"/>
@@ -788,6 +789,9 @@
 
   <Node Name="BoundPatternSwitchStatement" Base="BoundStatement">
     <Field Name="Expression" Type="BoundExpression"/>
+    
+    <!-- SomeValueMatched is true if some case label would always match. -->
+    <Field Name="SomeLabelAlwaysMatches" Type="bool"/>
 
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
@@ -1289,6 +1293,7 @@
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Name" Type="string" Null="disallow"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
@@ -1321,6 +1326,13 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+
+    <!-- Used by IOperation to reconstruct the receiver for this expression. -->
+    <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
+    
+    <!-- BinderOpt is a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
 
   <Node Name="BoundDynamicObjectInitializerMember" Base="BoundExpression">
@@ -1431,9 +1443,13 @@
   </Node>
 
   <Node Name="BoundStackAllocArrayCreation" Base="BoundExpression">
+    <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="Count" Type="BoundExpression"/>
+  </Node>
+
+  <Node Name="BoundConvertedStackAllocExpression" Base="BoundStackAllocArrayCreation">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Count" Type="BoundExpression"/>
   </Node>
 
   <Node Name="BoundFieldAccess" Base="BoundExpression">
@@ -1445,6 +1461,7 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <Field Name="IsByValue" Type="bool"/>
+    <Field Name="IsDeclaration" Type="bool" />
   </Node>
   
   <!--
@@ -1491,6 +1508,7 @@
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
 
     <!-- BinderOpt and UseSetterForDefaultArgumentGeneration are added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
     <Field Name="BinderOpt" Type="Binder" Null="allow"/>
     <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
   </Node>
