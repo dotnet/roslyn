@@ -2449,99 +2449,36 @@ namespace Microsoft.CodeAnalysis
                     nativePdbWriter = new Cci.PdbWriter(pePdbFilePath, testSymWriterFactory, deterministic);
                 }
 
-                Func<Stream> getPortablePdbStream;
-                if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStreamProvider != null)
-                {
-                    getPortablePdbStream = () =>
-                    {
-                        if (metadataDiagnostics.HasAnyErrors())
-                        {
-                            return null;
-                        }
 
-                        portablePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
-                        Debug.Assert(portablePdbStream != null || metadataDiagnostics.HasAnyErrors());
-                        return portablePdbStream;
-                    };
-                }
-                else
-                {
-                    getPortablePdbStream = null;
-                }
-
-                // PROTOTYPE(strongname): simplify this code
                 Func<Stream> getPeStream = () =>
                 {
-                    if (metadataDiagnostics.HasAnyErrors())
-                    {
-                        return null;
-                    }
-
-                    peStream = peStreamProvider.GetOrCreateStream(metadataDiagnostics);
-                    if (peStream == null)
-                    {
-                        Debug.Assert(metadataDiagnostics.HasAnyErrors());
-                        return null;
-                    }
-
-                    // If the current strong name provider is the Desktop version, signing can only be done to on-disk files. 
-                    // If this binary is configured to be signed, create a temp file, output to that
-                    // then stream that to the stream that this method was called with. Otherwise output to the
-                    // stream that this method was called with.
-                    Stream retStream;
-                    if (!metadataOnly && IsRealSigned && this.Options.StrongNameProvider.Capability == SigningCapability.SignsStream)
-                    {
-                        Debug.Assert(Options.StrongNameProvider != null);
-
-                        try
-                        {
-                            signingInputStream = Options.StrongNameProvider.CreateInputStream();
-                        }
-                        catch (IOException e)
-                        {
-                            throw new Cci.PeWritingException(e);
-                        }
-
-                        retStream = signingInputStream;
-                    }
-                    else
-                    {
-                        signingInputStream = null;
-                        retStream = peStream;
-                    }
-
-                    return retStream;
+                    Stream ret;
+                    (peStream, signingInputStream, ret) = GetPeStream(metadataDiagnostics, peStreamProvider, metadataOnly);
+                    return ret;
                 };
 
-                Func<Stream> getRefPeStream;
-                if (metadataPEStreamProvider != null)
+                Func<Stream> getRefPeStream = () =>
                 {
-                    getRefPeStream = () =>
-                    {
-                        if (metadataDiagnostics.HasAnyErrors())
-                        {
-                            return null;
-                        }
+                    refPeStream = GetRefPeStream(metadataDiagnostics, metadataPEStreamProvider);
+                    return refPeStream;
+                };
 
-                        refPeStream = metadataPEStreamProvider.GetOrCreateStream(metadataDiagnostics);
-                        Debug.Assert(refPeStream != null || metadataDiagnostics.HasAnyErrors());
-                        return refPeStream;
-                    };
-                }
-                else
+                var includePortablePdbStream = moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStreamProvider != null;
+                Func<Stream> getPortablePdbStream = () =>
                 {
-                    getRefPeStream = null;
-                }
+                    portablePdbStream = GetPortablePdbStream(metadataDiagnostics, pdbStreamProvider);
+                    return portablePdbStream;
+                };
 
                 try
                 {
                     if (SerializePeToStream(
                         moduleBeingBuilt,
                         metadataDiagnostics,
-                        this.MessageProvider,
+                        MessageProvider,
                         getPeStream,
-                        getRefPeStream,
-                        getPortablePdbStream,
+                        metadataPEStreamProvider != null ? getRefPeStream : null,
+                        includePortablePdbStream ? getPortablePdbStream : null,
                         nativePdbWriter,
                         pePdbFilePath,
                         metadataOnly,
@@ -2620,6 +2557,78 @@ namespace Microsoft.CodeAnalysis
             }
 
             return true;
+
+
+        }
+
+        Stream GetRefPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider metadataPEStreamProvider) 
+        {
+            if (metadataDiagnostics.HasAnyErrors())
+            {
+                return null;
+            }
+
+            var refPeStream = metadataPEStreamProvider.GetOrCreateStream(metadataDiagnostics);
+            Debug.Assert(refPeStream != null || metadataDiagnostics.HasAnyErrors());
+            return refPeStream;
+        }
+
+        Stream GetPortablePdbStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider pdbStreamProvider)
+        {
+            if (metadataDiagnostics.HasAnyErrors())
+            {
+                return null;
+            }
+
+            var portablePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+            Debug.Assert(portablePdbStream != null || metadataDiagnostics.HasAnyErrors());
+            return portablePdbStream;
+        }
+
+        (Stream peStream, Stream signingStream, Stream retStream) GetPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider peStreamProvider, bool metadataOnly)
+        {
+            Stream peStream = null;
+            Stream signingStream = null;
+            Stream retStream = null;
+
+            if (metadataDiagnostics.HasAnyErrors())
+            {
+                return (peStream, signingStream, retStream);
+            }
+
+            peStream = peStreamProvider.GetOrCreateStream(metadataDiagnostics);
+            if (peStream == null)
+            {
+                Debug.Assert(metadataDiagnostics.HasAnyErrors());
+                return (peStream, signingStream, retStream);
+            }
+
+            // If the current strong name provider is the Desktop version, signing can only be done to on-disk files. 
+            // If this binary is configured to be signed, create a temp file, output to that
+            // then stream that to the stream that this method was called with. Otherwise output to the
+            // stream that this method was called with.
+            if (!metadataOnly && IsRealSigned && Options.StrongNameProvider.Capability == SigningCapability.SignsStream)
+            {
+                Debug.Assert(Options.StrongNameProvider != null);
+
+                try
+                {
+                    signingStream = Options.StrongNameProvider.CreateInputStream();
+                }
+                catch (IOException e)
+                {
+                    throw new Cci.PeWritingException(e);
+                }
+
+                retStream = signingStream;
+            }
+            else
+            {
+                signingStream = null;
+                retStream = peStream;
+            }
+
+            return (peStream, signingStream, retStream);
         }
 
         internal static bool SerializePeToStream(
