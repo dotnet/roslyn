@@ -88,24 +88,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             stack.Free();
         }
 
-        public static IOperation GetRootOperation(this ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (symbol == null)
-            {
-                throw new ArgumentNullException(nameof(symbol));
-            }
-
-            var symbolWithOperation = symbol as ISymbolWithOperation;
-            if (symbolWithOperation != null)
-            {
-                return symbolWithOperation.GetRootOperation(cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationStatement declarationStatement)
         {
             if (declarationStatement == null)
@@ -269,10 +251,5 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             return argumentRefKinds[index];
         }
-    }
-
-    internal interface ISymbolWithOperation
-    {
-        IOperation GetRootOperation(CancellationToken cancellationToken);
     }
 }
