@@ -7,8 +7,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum BinaryOperatorKind
     {
-        None = 0x0,
-
         /// <summary>
         /// Represents the '+' operator.
         /// </summary>

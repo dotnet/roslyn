@@ -7,8 +7,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum UnaryOperatorKind
     {
-        None = 0x0,
-
         /// <summary>
         /// Represents the C# '~' operator.
         /// </summary>

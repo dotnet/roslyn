@@ -7,8 +7,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum ArgumentKind
     {
-        None = 0x0,
-
         /// <summary>
         /// Argument value is explicitly supplied.
         /// </summary>

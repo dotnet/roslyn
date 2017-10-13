@@ -1,14 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Semantics
 {
+    /// <summary>
+    /// Kind of the branch for an <see cref="IBranchStatement"/>
+    /// </summary>
     public enum BranchKind
     {
-        None = 0x0,
+        /// <summary>
+        /// Represents a continue branch kind.
+        /// </summary>
         Continue = 0x1,
+
+        /// <summary>
+        /// Represents a break branch kind.
+        /// </summary>
         Break = 0x2,
+
+        /// <summary>
+        /// Represents a goto branch kind.
+        /// </summary>
         GoTo = 0x3
     }
 }

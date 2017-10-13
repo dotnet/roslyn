@@ -7,8 +7,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum LoopKind
     {
-        None = 0x0,
-
         /// <summary>
         /// Represents a <see cref="IDoLoopStatement"/> in C# or VB.
         /// </summary>

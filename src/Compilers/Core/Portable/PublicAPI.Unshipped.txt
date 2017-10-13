@@ -145,7 +145,6 @@ Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxN
 Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.DefaultValue = 3 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.Explicit = 1 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
-Microsoft.CodeAnalysis.Semantics.ArgumentKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.ParamArray = 2 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind.Add = 1 -> Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
@@ -165,7 +164,6 @@ Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind.LessThan = 20 -> Microsoft.C
 Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind.LessThanOrEqual = 21 -> Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind.Like = 24 -> Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind.Multiply = 3 -> Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
-Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind.NotEquals = 18 -> Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind.ObjectValueEquals = 17 -> Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind.ObjectValueNotEquals = 19 -> Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
@@ -178,10 +176,8 @@ Microsoft.CodeAnalysis.Semantics.BranchKind
 Microsoft.CodeAnalysis.Semantics.BranchKind.Break = 2 -> Microsoft.CodeAnalysis.Semantics.BranchKind
 Microsoft.CodeAnalysis.Semantics.BranchKind.Continue = 1 -> Microsoft.CodeAnalysis.Semantics.BranchKind
 Microsoft.CodeAnalysis.Semantics.BranchKind.GoTo = 3 -> Microsoft.CodeAnalysis.Semantics.BranchKind
-Microsoft.CodeAnalysis.Semantics.BranchKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.BranchKind
 Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.Default = 4 -> Microsoft.CodeAnalysis.Semantics.CaseKind
-Microsoft.CodeAnalysis.Semantics.CaseKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.Pattern = 5 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.Range = 3 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.Relational = 2 -> Microsoft.CodeAnalysis.Semantics.CaseKind
@@ -199,7 +195,6 @@ Microsoft.CodeAnalysis.Semantics.DoLoopKind.DoUntilTopLoop = 4 -> Microsoft.Code
 Microsoft.CodeAnalysis.Semantics.DoLoopKind.DoWhileBottomLoop = 1 -> Microsoft.CodeAnalysis.Semantics.DoLoopKind
 Microsoft.CodeAnalysis.Semantics.DoLoopKind.DoWhileTopLoop = 2 -> Microsoft.CodeAnalysis.Semantics.DoLoopKind
 Microsoft.CodeAnalysis.Semantics.DoLoopKind.Invalid = 15 -> Microsoft.CodeAnalysis.Semantics.DoLoopKind
-Microsoft.CodeAnalysis.Semantics.DoLoopKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.DoLoopKind
 Microsoft.CodeAnalysis.Semantics.IAddressOfExpression
 Microsoft.CodeAnalysis.Semantics.IAddressOfExpression.Reference.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IAnonymousFunctionExpression
@@ -476,7 +471,6 @@ Microsoft.CodeAnalysis.Semantics.LoopKind.Do = 1 -> Microsoft.CodeAnalysis.Seman
 Microsoft.CodeAnalysis.Semantics.LoopKind.For = 3 -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.LoopKind.ForEach = 5 -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.LoopKind.ForTo = 4 -> Microsoft.CodeAnalysis.Semantics.LoopKind
-Microsoft.CodeAnalysis.Semantics.LoopKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.LoopKind.While = 2 -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.OperationExtensions
 Microsoft.CodeAnalysis.Semantics.OperationVisitor
@@ -490,7 +484,6 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind.BitwiseNegation = 1 -> Micros
 Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind.False = 6 -> Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind.Invalid = 255 -> Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind.Minus = 4 -> Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind
-Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind.Not = 2 -> Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind.Plus = 3 -> Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind.True = 5 -> Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind
