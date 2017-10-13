@@ -1018,7 +1018,11 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 
   Locals: Local_1: System.Int32 a
     Local_2: System.Int32 b
   LoopControlVariable: 
-    IOperation:  (OperationKind.None) (Syntax: 'var (a, b)')
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 a, System.Int32 b)) (Syntax: 'var (a, b)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 a, System.Int32 b)) (Syntax: '(a, b)')
+        Elements(2):
+            ILocalReferenceExpression: a (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+            ILocalReferenceExpression: b (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
   Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -1054,7 +1058,14 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 
     Local_2: System.Int32 b
     Local_3: System.Int32 c
   LoopControlVariable: 
-    IOperation:  (OperationKind.None) (Syntax: 'var (a, (b, c))')
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 a, (System.Int32 b, System.Int32 c))) (Syntax: 'var (a, (b, c))')
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 a, (System.Int32 b, System.Int32 c))) (Syntax: '(a, (b, c))')
+        Elements(2):
+            ILocalReferenceExpression: a (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+            ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 b, System.Int32 c)) (Syntax: '(b, c)')
+              Elements(2):
+                  ILocalReferenceExpression: b (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+                  ILocalReferenceExpression: c (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'c')
   Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)

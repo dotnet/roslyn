@@ -454,6 +454,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
+        public sealed override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Target;
+                yield return Value;
+            }
+        }
         protected abstract IOperation TargetImpl { get; }
         protected abstract IOperation ValueImpl { get; }
         /// <summary>
@@ -474,14 +482,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public BaseSimpleAssignmentExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.SimpleAssignmentExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return Target;
-                yield return Value;
-            }
         }
         public override void Accept(OperationVisitor visitor)
         {
@@ -524,6 +524,132 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         protected override IOperation TargetImpl => _lazyTarget.Value;
         protected override IOperation ValueImpl => _lazyValue.Value;
+    }
+
+    /// <summary>
+    /// Represents a deconstruction assignment expression.
+    /// </summary>
+    internal abstract partial class BaseDeconstructionAssignmentExpression : AssignmentExpression, IDeconstructionAssignmentExpression
+    {
+        public BaseDeconstructionAssignmentExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.DeconstructionAssignmentExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDeconstructionAssignmentExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDeconstructionAssignmentExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a deconstruction assignment expression.
+    /// </summary>
+    internal sealed partial class DeconstructionAssignmentExpression : BaseDeconstructionAssignmentExpression, IDeconstructionAssignmentExpression
+    {
+        public DeconstructionAssignmentExpression(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            TargetImpl = target;
+            ValueImpl = value;
+        }
+        protected override IOperation TargetImpl { get; }
+        protected override IOperation ValueImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents a deconstruction assignment expression.
+    /// </summary>
+    internal sealed partial class LazyDeconstructionAssignmentExpression : BaseDeconstructionAssignmentExpression, IDeconstructionAssignmentExpression
+    {
+        private readonly Lazy<IOperation> _lazyTarget;
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyDeconstructionAssignmentExpression(Lazy<IOperation> target, Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+        protected override IOperation TargetImpl => _lazyTarget.Value;
+        protected override IOperation ValueImpl => _lazyValue.Value;
+    }
+
+    /// <summary>
+    /// Represents a declaration expression in C#.
+    /// Unlike a regular variable declaration, this operation represents an "expression" declaring a variable.
+    /// For example,
+    ///   1. "var (x, y)" is a deconstruction declaration expression with variables x and y.
+    ///   2. "(var x, var y)" is a tuple expression with two declaration expressions.
+    ///   3. "M(out var x);" is an invocation expression with an out "var x" declaration expression.
+    /// </summary>
+    internal abstract partial class BaseDeclarationExpression : Operation, IDeclarationExpression
+    {
+        public BaseDeclarationExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.DeclarationExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Expression;
+            }
+        }
+        /// <summary>
+        /// Underlying expression.
+        /// </summary>
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
+        protected abstract IOperation ExpressionImpl { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDeclarationExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDeclarationExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a declaration expression in C#.
+    /// Unlike a regular variable declaration, this operation represents an "expression" declaring a variable.
+    /// For example,
+    ///   1. "var (x, y)" is a deconstruction declaration expression with variables x and y.
+    ///   2. "(var x, var y)" is a tuple expression with two declaration expressions.
+    ///   3. "M(out var x);" is an invocation expression with an out "var x" declaration expression.
+    /// </summary>
+    internal sealed partial class DeclarationExpression : BaseDeclarationExpression, IDeclarationExpression
+    {
+        public DeclarationExpression(IOperation expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            ExpressionImpl = expression;
+        }
+        protected override IOperation ExpressionImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents a declaration expression in C#.
+    /// Unlike a regular variable declaration, this operation represents an "expression" declaring a variable.
+    /// For example,
+    ///   1. "var (x, y)" is a deconstruction declaration expression with variables x and y.
+    ///   2. "(var x, var y)" is a tuple expression with two declaration expressions.
+    ///   3. "M(out var x);" is an invocation expression with an out "var x" declaration expression.
+    /// </summary>
+    internal sealed partial class LazyDeclarationExpression : BaseDeclarationExpression, IDeclarationExpression
+    {
+        private readonly Lazy<IOperation> _lazyExpression;
+
+        public LazyDeclarationExpression(Lazy<IOperation> expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+        }
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
     }
 
     /// <summary>
@@ -946,14 +1072,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return Target;
-                yield return Value;
-            }
-        }
 
         public override void Accept(OperationVisitor visitor)
         {
