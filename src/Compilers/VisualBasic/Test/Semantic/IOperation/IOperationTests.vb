@@ -701,5 +701,142 @@ ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syn
 
             VerifyOperationTreeAndDiagnosticsForTest(Of CatchBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestSubSingleLineLambda()
+            Dim source = <![CDATA[
+Imports System
+
+Class Test
+    Sub Method()
+        Dim a As Action = Sub() Console.Write("hello")'BIND:"Sub() Console.Write("hello")"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... te("hello")')
+  IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write("hello")')
+      Expression: 
+        IInvocationExpression (Sub System.Console.Write(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write("hello")')
+          Instance Receiver: 
+            null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"hello"')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "hello") (Syntax: '"hello"')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
+      Statement: 
+        null
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
+      ReturnedValue: 
+        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestFunctionSingleLineLambda()
+            Dim source = <![CDATA[
+Imports System
+
+Class Test
+    Sub Method()
+        Dim a As Func(Of Integer) = Function() 1'BIND:"Function() 1"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() 1')
+  IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function() 1')
+    Locals: Local_1: <anonymous local> As System.Int32
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '1')
+      ReturnedValue: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Function() 1')
+      Statement: 
+        null
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Function() 1')
+      ReturnedValue: 
+        ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'Function() 1')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestFunctionMultiLineLambda()
+            Dim source = <![CDATA[
+Imports System
+
+Class Test
+    Sub Method()
+        Dim a As Func(Of Integer) = Function()'BIND:"Function()"
+                                        Return 1
+                                    End Function
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()' ... nd Function')
+  IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function()' ... nd Function')
+    Locals: Local_1: <anonymous local> As System.Int32
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
+      ReturnedValue: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+      Statement: 
+        null
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+      ReturnedValue: 
+        ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestSubMultiLineLambda()
+            Dim source = <![CDATA[
+Imports System
+
+Class Test
+    Sub Method()
+        Dim a As Action = Sub()'BIND:"Sub()"
+                              Return
+                          End Sub
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
+  IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
+      ReturnedValue: 
+        null
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+      Statement: 
+        null
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+      ReturnedValue: 
+        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
