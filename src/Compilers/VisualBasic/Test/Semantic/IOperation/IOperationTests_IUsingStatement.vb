@@ -144,17 +144,19 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Usi
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
         Variables: Local_1: c1 As Program.C
         Initializer: 
-          IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
-            Arguments(0)
-            Initializer: 
-              null
+          IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New C')
+            IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+              Arguments(0)
+              Initializer: 
+                null
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2')
         Variables: Local_1: c2 As Program.C
         Initializer: 
-          IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
-            Arguments(0)
-            Initializer: 
-              null
+          IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New C')
+            IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+              Arguments(0)
+              Initializer: 
+                null
   Value: 
     null
   Body: 
@@ -203,17 +205,19 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
     Variables: Local_1: c1 As Program.C
     Initializer: 
-      IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
-        Arguments(0)
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New C')
+        IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+          Arguments(0)
+          Initializer: 
+            null
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2')
     Variables: Local_1: c2 As Program.C
     Initializer: 
-      IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
-        Arguments(0)
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New C')
+        IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+          Arguments(0)
+          Initializer: 
+            null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

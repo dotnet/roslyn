@@ -809,23 +809,24 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
       Variables: Local_1: x As C3
       Initializer: 
-        IObjectCreationExpression (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')
-          Arguments(0)
-          Initializer: 
-            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C3, IsInvalid) (Syntax: 'With {.X = "goo"}')
-              Initializers(1):
-                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
-                    Left: 
-                      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
-                        Children(1):
-                            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
-                              Children(1):
-                                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ... .X = "goo"}')
-                    Right: 
-                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '"goo"')
-                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand: 
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New C3() ... .X = "goo"}')
+          IObjectCreationExpression (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')
+            Arguments(0)
+            Initializer: 
+              IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C3, IsInvalid) (Syntax: 'With {.X = "goo"}')
+                Initializers(1):
+                    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
+                      Left: 
+                        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
+                          Children(1):
+                              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
+                                Children(1):
+                                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ... .X = "goo"}')
+                      Right: 
+                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '"goo"')
+                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand: 
+                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
     Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C3, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')

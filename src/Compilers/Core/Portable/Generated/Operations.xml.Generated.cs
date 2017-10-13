@@ -1512,6 +1512,61 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents an initialization of a local variable.
+    /// </summary>
+    internal abstract partial class BaseVariableInitializer : SymbolInitializer, IVariableInitializer
+    {
+        public BaseVariableInitializer(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.VariableInitializer, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitVariableInitializer(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitVariableInitializer(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a local variable.
+    /// </summary>
+    internal sealed partial class VariableInitializer : BaseVariableInitializer, IVariableInitializer
+    {
+        public VariableInitializer(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            ValueImpl = value;
+        }
+        protected override IOperation ValueImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a local variable.
+    /// </summary>
+    internal sealed partial class LazyVariableInitializer : BaseVariableInitializer, IVariableInitializer
+    {
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyVariableInitializer(Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+        protected override IOperation ValueImpl => _lazyValue.Value;
+    }
+
+    /// <summary>
     /// Represents an initialization of a field.
     /// </summary>
     internal abstract partial class BaseFieldInitializer : SymbolInitializer, IFieldInitializer
@@ -5124,7 +5179,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// same initializer. In C#, this will always have a single symbol.
         /// </summary>
         public ImmutableArray<ILocalSymbol> Variables { get; }
-        protected abstract IOperation InitializerImpl { get; }
+        protected abstract IVariableInitializer InitializerImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -5136,7 +5191,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Optional initializer of the variable.
         /// </summary>
-        public IOperation Initializer => Operation.SetParentOperation(InitializerImpl, this);
+        public IVariableInitializer Initializer => Operation.SetParentOperation(InitializerImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitVariableDeclaration(this);
@@ -5152,13 +5207,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class VariableDeclaration : BaseVariableDeclaration, IVariableDeclaration
     {
-        public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(variables, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InitializerImpl = initializer;
         }
 
-        protected override IOperation InitializerImpl { get; }
+        protected override IVariableInitializer InitializerImpl { get; }
     }
 
     /// <summary>
@@ -5166,14 +5221,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyVariableDeclaration : BaseVariableDeclaration, IVariableDeclaration
     {
-        private readonly Lazy<IOperation> _lazyInitializer;
+        private readonly Lazy<IVariableInitializer> _lazyInitializer;
 
-        public LazyVariableDeclaration(ImmutableArray<ILocalSymbol> variables, Lazy<IOperation> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(variables, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyVariableDeclaration(ImmutableArray<ILocalSymbol> variables, Lazy<IVariableInitializer> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(variables, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
 
-        protected override IOperation InitializerImpl => _lazyInitializer.Value;
+        protected override IVariableInitializer InitializerImpl => _lazyInitializer.Value;
     }
 
     /// <summary>

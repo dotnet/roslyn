@@ -543,7 +543,8 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Catch clauses(1):
       ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Exce ... }')
         ExceptionDeclarationOrExpression: 
@@ -602,7 +603,8 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
               IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
                 Variables: Local_1: System.Int32 i
                 Initializer: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Finally: 
     null
 ";
@@ -744,7 +746,8 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i' is assigned but its value is never used
