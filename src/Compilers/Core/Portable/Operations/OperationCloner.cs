@@ -355,6 +355,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new FieldInitializer(operation.InitializedFields, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        public override IOperation VisitVariableInitializer(IVariableInitializer operation, object argument)
+        {
+            return new VariableInitializer(Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
         public override IOperation VisitPropertyInitializer(IPropertyInitializer operation, object argument)
         {
             return new PropertyInitializer(operation.InitializedProperty, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);

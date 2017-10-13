@@ -736,9 +736,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var compilation = compilationFactory.CreateCompilation(assemblyName, options);
 
             var documentElements = referencedSource.Elements(DocumentElementName).ToList();
+            var parseOptions = GetParseOptions(referencedSource, languageName, languageServices);
+
             foreach (var documentElement in documentElements)
             {
-                compilation = compilation.AddSyntaxTrees(CreateSyntaxTree(languageName, documentElement.Value));
+                compilation = compilation.AddSyntaxTrees(CreateSyntaxTree(parseOptions, documentElement.Value));
             }
 
             foreach (var reference in CreateReferenceList(workspace, referencedSource))
@@ -749,15 +751,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return compilation;
         }
 
-        private static SyntaxTree CreateSyntaxTree(string languageName, string referencedCode)
+        private static SyntaxTree CreateSyntaxTree(ParseOptions options, string referencedCode)
         {
-            if (LanguageNames.CSharp == languageName)
+            if (LanguageNames.CSharp == options.Language)
             {
-                return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(referencedCode);
+                return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(referencedCode, options);
             }
             else
             {
-                return Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(referencedCode);
+                return Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(referencedCode, options);
             }
         }
 

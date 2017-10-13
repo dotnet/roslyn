@@ -1831,24 +1831,25 @@ class C
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'y = (x, x,  ... ) = new C()')
   Variables: Local_1: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y
   Initializer: 
-    IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)) (Syntax: '(x, x, x, x ... ) = new C()')
-      Left: 
-        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)) (Syntax: '(x, x, x, x ... x, x, x, x)')
-          Elements(9):
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
-      Right: 
-        IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
-          Arguments(0)
-          Initializer: 
-            null
+    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (x, x, x, ... ) = new C()')
+      IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)) (Syntax: '(x, x, x, x ... ) = new C()')
+        Left: 
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)) (Syntax: '(x, x, x, x ... x, x, x, x)')
+            Elements(9):
+                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+                ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64) (Syntax: 'x')
+        Right: 
+          IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
+            Arguments(0)
+            Initializer: 
+              null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3934,13 +3935,14 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '= (1, 2)')
     Variables: Local_1: (System.Int32 x, System.Int32 y) 
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')
-        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
-            Elements(2):
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (1, 2)')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')
+          Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+              Elements(2):
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1001: Identifier expected

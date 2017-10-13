@@ -1152,7 +1152,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     If boundCatchBlock.LocalOpt IsNot Nothing AndAlso
                         boundCatchBlock.ExceptionSourceOpt?.Kind = BoundKind.Local AndAlso
                         boundCatchBlock.LocalOpt Is DirectCast(boundCatchBlock.ExceptionSourceOpt, BoundLocal).LocalSymbol Then
-                        Return OperationFactory.CreateVariableDeclaration(boundCatchBlock.LocalOpt, initialValue:=Nothing, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax)
+                        Return OperationFactory.CreateVariableDeclaration(boundCatchBlock.LocalOpt, initializer:=Nothing, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax)
                     Else
                         Return Create(boundCatchBlock.ExceptionSourceOpt)
                     End If
@@ -1244,7 +1244,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationStatement
-            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclaration)) = New Lazy(Of ImmutableArray(Of IVariableDeclaration))(Function() GetVariableDeclarationStatementVariables(boundDimStatement))
+            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclaration)) = New Lazy(Of ImmutableArray(Of IVariableDeclaration))(Function() GetVariableDeclarationStatementVariables(boundDimStatement.LocalDeclarations))
             Dim syntax As SyntaxNode = boundDimStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()

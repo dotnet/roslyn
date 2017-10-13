@@ -231,16 +231,39 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return Nothing
         End Function
 
-        Private Function GetVariableDeclarationStatementVariables(statement As BoundDimStatement) As ImmutableArray(Of IVariableDeclaration)
+        Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclaration)
             Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
-            For Each base In statement.LocalDeclarations
+            For Each base In declarations
                 If base.Kind = BoundKind.LocalDeclaration Then
                     Dim declaration = DirectCast(base, BoundLocalDeclaration)
-                    builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), _semanticModel, declaration.Syntax))
+                    Dim initializer As IVariableInitializer = Nothing
+                    If declaration.InitializerOpt IsNot Nothing Then
+                        Debug.Assert(TypeOf declaration.Syntax Is ModifiedIdentifierSyntax)
+                        Dim initializerValue As IOperation = Create(declaration.InitializerOpt)
+                        Dim variableDeclaratorSyntax = TryCast(declaration.Syntax.Parent, VariableDeclaratorSyntax)
+                        Dim initializerSyntax As SyntaxNode = Nothing
+                        If variableDeclaratorSyntax IsNot Nothing Then
+                            initializerSyntax = If(declaration.InitializedByAsNew,
+                                DirectCast(variableDeclaratorSyntax.AsClause, SyntaxNode),
+                                variableDeclaratorSyntax.Initializer)
+                        End If
+
+                        Dim isImplicit As Boolean = False
+                        If initializerSyntax Is Nothing Then
+                            ' There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
+                            initializerSyntax = initializerValue.Syntax
+                            isImplicit = True
+                        End If
+                        initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit)
+                    End If
+                    builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, initializer, _semanticModel, declaration.Syntax))
                 ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
                     Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
                     Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
-                    builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, Create(asNewDeclarations.Initializer), _semanticModel, asNewDeclarations.Syntax))
+                    Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
+                    Dim initializerValue As IOperation = Create(asNewDeclarations.Initializer)
+                    Dim initializer As IVariableInitializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit:=False)
+                    builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, initializer, _semanticModel, asNewDeclarations.Syntax))
                 End If
             Next
 
@@ -251,9 +274,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             If resourceList.IsDefault Then
                 Return Nothing
             End If
-            Dim declaration = resourceList.Select(Function(n) Create(n)).OfType(Of IVariableDeclaration).ToImmutableArray()
+
             Return New VariableDeclarationStatement(
-                            declaration,
+                            GetVariableDeclarationStatementVariables(resourceList),
                             _semanticModel,
                             syntax,
                             type:=Nothing,
