@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
+        private readonly IDisposable _dbOwnershipLock;
         private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
 
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
@@ -146,10 +147,13 @@ namespace Microsoft.CodeAnalysis.SQLite
             string solutionFilePath,
             string databaseFile,
             Action<AbstractPersistentStorage> disposer,
+            IDisposable dbOwnershipLock,
             IPersistentStorageFaultInjector faultInjectorOpt)
             : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
         {
+            _dbOwnershipLock = dbOwnershipLock;
             _faultInjectorOpt = faultInjectorOpt;
+
             _solutionAccessor = new SolutionAccessor(this);
             _projectAccessor = new ProjectAccessor(this);
             _documentAccessor = new DocumentAccessor(this);
@@ -192,6 +196,21 @@ namespace Microsoft.CodeAnalysis.SQLite
             // are definitely persisted to the DB.
             try
             {
+                CloseWorker();
+            }
+            finally
+            {
+                // let the lock go
+                _dbOwnershipLock.Dispose();
+            }
+        }
+
+        private void CloseWorker()
+        {
+            // Flush all pending writes so that all data our features wanted written
+            // are definitely persisted to the DB.
+            try
+            {
                 FlushAllPendingWritesAsync(CancellationToken.None).Wait();
             }
             catch (Exception e)
@@ -214,6 +233,14 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
+        /// <summary>
+        /// Gets an <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
+        /// </summary>
+        /// <remarks>
+        /// Database connections have a large amount of overhead, and should be returned to the pool when they are no
+        /// longer in use. In particular, make sure to avoid letting a connection lease cross an <see langword="await"/>
+        /// boundary, as it will prevent code in the asynchronous operation from using the existing connection.
+        /// </remarks>
         private PooledConnection GetPooledConnection()
             => new PooledConnection(this, GetConnection());
 
@@ -251,12 +278,16 @@ $@"create table if not exists ""{DocumentDataTableName}"" (
     ""{DataColumnName}"" blob)");
 
                 // Also get the known set of string-to-id mappings we already have in the DB.
-                FetchStringTable(connection);
+                // Do this in one batch if possible.
+                var fetched = TryFetchStringTable(connection);
+
+                // If we weren't able to retrieve the entire string table in one batch,
+                // attempt to retrieve it for each 
+                var fetchStringTable = !fetched;
 
                 // Try to bulk populate all the IDs we'll need for strings/projects/documents.
                 // Bulk population is much faster than trying to do everything individually.
-                // Note: we don't need to fetch the string table as we did it right above this.
-                BulkPopulateIds(connection, solution, fetchStringTable: false);
+                BulkPopulateIds(connection, solution, fetchStringTable);
             }
         }
     }
