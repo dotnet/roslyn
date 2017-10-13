@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
 
                 // and ask to re-analyze whole solution for the given analyzer
-                var set = _registration.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet();
+                var set = _registration.CurrentSolution.Projects.Select(p => p.Id).ToSet<object>();
                 Reanalyze(analyzer, set);
             }
 
@@ -151,29 +151,29 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void ReanalyzeOnOptionChange(object sender, OptionChangedEventArgs e)
             {
-                // otherwise, let each analyzer decide what they want on option change
-                ISet<DocumentId> set = null;
+                // let each analyzer decide what they want on option change
+                ISet<object> set = null;
                 foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
                 {
                     if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
                     {
-                        set = set ?? _registration.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet();
+                        set = set ?? _registration.CurrentSolution.Projects.Select(p => p.Id).ToSet<object>();
                         this.Reanalyze(analyzer, set);
                     }
                 }
             }
 
-            public void Reanalyze(IIncrementalAnalyzer analyzer, ISet<DocumentId> documentIds, bool highPriority = false)
+            public void Reanalyze(IIncrementalAnalyzer analyzer, ISet<object> projectOrDocumentIds, bool highPriority = false)
             {
                 var asyncToken = _listener.BeginAsyncOperation("Reanalyze");
                 _eventProcessingQueue.ScheduleTask(
-                    () => EnqueueWorkItemAsync(analyzer, documentIds, highPriority), _shutdownToken).CompletesAsyncOperation(asyncToken);
+                    () => EnqueueWorkItemAsync(analyzer, projectOrDocumentIds, highPriority), _shutdownToken).CompletesAsyncOperation(asyncToken);
 
-                if (documentIds?.Count > 1)
+                if (projectOrDocumentIds?.Count > 1)
                 {
                     // log big reanalysis request from things like fix all, suppress all or option changes
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
-                    SolutionCrawlerLogger.LogReanalyze(CorrelationId, analyzer, documentIds, highPriority);
+                    SolutionCrawlerLogger.LogReanalyze(CorrelationId, analyzer, _registration.CurrentSolution, projectOrDocumentIds, highPriority);
                 }
             }
 
@@ -414,26 +414,50 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds, bool highPriority)
+            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, IEnumerable<object> projectOrDocumentIds, bool highPriority)
             {
                 var solution = _registration.CurrentSolution;
-                foreach (var documentId in documentIds)
+                var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
+
+                foreach (var projectOrDocumentId in projectOrDocumentIds)
                 {
-                    var document = solution.GetDocument(documentId);
-                    if (document == null)
+                    switch (projectOrDocumentId)
                     {
-                        continue;
+                        case ProjectId projectId:
+                        {
+                            var project = solution.GetProject(projectId);
+                            if (project != null)
+                            {
+                                foreach (var document in project.Documents)
+                                {
+                                    await EnqueueWorkItemAsync(analyzer, document, invocationReasons).ConfigureAwait(false);
+                                }
+                            }
+                            break;
+                        }
+                        case DocumentId documentId:
+                        {
+                            var document = solution.GetDocument(documentId);
+                            if (document != null)
+                            {
+                                break;
+                            }
+
+                            await EnqueueWorkItemAsync(analyzer, document, invocationReasons).ConfigureAwait(false);
+                            break;
+                        }
                     }
-
-                    var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
-                    var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
-
-                    var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
-
-                    _documentAndProjectWorkerProcessor.Enqueue(
-                        new WorkItem(documentId, document.Project.Language, invocationReasons,
-                        isLowPriority, analyzer, _listener.BeginAsyncOperation("WorkItem")));
                 }
+            }
+
+            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, Document document, InvocationReasons invocationReasons)
+            {
+                var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
+                var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
+
+                _documentAndProjectWorkerProcessor.Enqueue(
+                    new WorkItem(document.Id, document.Project.Language, invocationReasons,
+                    isLowPriority, analyzer, _listener.BeginAsyncOperation("WorkItem")));
             }
 
             private async Task EnqueueWorkItemAsync(Solution oldSolution, Solution newSolution)

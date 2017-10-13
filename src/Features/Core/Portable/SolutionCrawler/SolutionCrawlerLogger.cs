@@ -10,12 +10,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal class SolutionCrawlerLogger
+    internal static class SolutionCrawlerLogger
     {
         private const string Id = nameof(Id);
         private const string Kind = nameof(Kind);
         private const string Analyzer = nameof(Analyzer);
+        private const string ProjectCount = nameof(ProjectCount);
         private const string DocumentCount = nameof(DocumentCount);
+        private const string Offender = nameof(Offender);
+        private const string Languages = nameof(Languages);
         private const string HighPriority = nameof(HighPriority);
         private const string Enabled = nameof(Enabled);
         private const string AnalyzerCount = nameof(AnalyzerCount);
@@ -67,14 +70,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
-        public static void LogReanalyze(int correlationId, IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds, bool highPriority)
+        public static void LogReanalyze(int correlationId, IIncrementalAnalyzer analyzer, Solution solution, IEnumerable<object> projectOrDocumentIds, bool highPriority)
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Reanalyze, KeyValueLogMessage.Create(m =>
             {
                 m[Id] = correlationId;
                 m[Analyzer] = analyzer.ToString();
-                m[DocumentCount] = documentIds == null ? 0 : documentIds.Count();
+                m[ProjectCount] = projectOrDocumentIds?.OfType<ProjectId>().Count() ?? 0;
+                m[DocumentCount] = projectOrDocumentIds?.OfType<DocumentId>().Count() ?? 0;
                 m[HighPriority] = highPriority;
+                m[Languages] = GetLanguages(solution, projectOrDocumentIds);
+                m[Offender] = GetOffender();
             }));
         }
 
@@ -333,6 +339,81 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static void LogProcessProjectNotExist(LogAggregator logAggregator)
         {
             logAggregator.IncreaseCount(ProjectNotExist);
+        }
+
+        private static string GetLanguages(Solution solution, IEnumerable<object> projectOrDocumentIds)
+        {
+            using (var pool = SharedPools.Default<HashSet<string>>().GetPooledObject())
+            {
+                foreach (var projectOrDocumentId in projectOrDocumentIds)
+                {
+                    switch (projectOrDocumentId)
+                    {
+                        case ProjectId projectId:
+                            var project = solution.GetProject(projectId);
+                            if (project != null)
+                            {
+                                pool.Object.Add(project.Language);
+                            }
+                            break;
+                        case DocumentId documentId:
+                            var document = solution.GetDocument(documentId);
+                            if (document != null)
+                            {
+                                pool.Object.Add(document.Project.Language);
+                            }
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
+                    }
+                }
+
+                return string.Join(",", pool.Object);
+            }
+        }
+
+        // we are seeing this get called several hundred times per second which shouldn't happen.
+        // there seems bad consumer of Reanalyze API among our partners. adding some diagnostic info
+        // to figure that out
+        // if this get called more than 30 times within 10 second, we will log callstack to find out who
+        // is calling us.
+        private const int MAX_CONTINUOUS_CALL = 30;
+        private static readonly TimeSpan s_interval = TimeSpan.FromSeconds(10);
+
+        private static int s_continousCall = 0;
+        private static DateTime s_lastTimeCalled = DateTime.MinValue;
+
+        public static string GetOffender()
+        {
+            var current = DateTime.UtcNow;
+
+            // reset data on every s_interval
+            if (current - s_lastTimeCalled > s_interval)
+            {
+                s_lastTimeCalled = current;
+                s_continousCall = 0;
+
+                return string.Empty;
+            }
+            else
+            {
+                var result = string.Empty;
+                if (s_continousCall == MAX_CONTINUOUS_CALL)
+                {
+                    // report callstack only for MAX case.
+                    try
+                    {
+                        throw new Exception();
+                    }
+                    catch (Exception e)
+                    {
+                        result = e.StackTrace;
+                    }
+                }
+
+                s_continousCall++;
+                return result;
+            }
         }
     }
 }
