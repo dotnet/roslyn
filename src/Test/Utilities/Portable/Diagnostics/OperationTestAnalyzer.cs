@@ -184,19 +184,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                             SemanticModel semanticModel = operationContext.Compilation.GetSemanticModel(advance.Syntax.SyntaxTree);
 
                                             IOperation advanceIncrement;
-                                            BinaryOperatorKind advanceOperationCode;
+                                            BinaryOperatorKind? advanceOperationCode;
                                             GetOperationKindAndValue(semanticModel, testVariable, advanceExpression, out advanceOperationCode, out advanceIncrement);
 
-                                            if (advanceIncrement != null)
+                                            if (advanceIncrement != null && advanceOperationCode.HasValue)
                                             {
                                                 int incrementValue = (int)advanceIncrement.ConstantValue.Value;
-                                                if (advanceOperationCode == BinaryOperatorKind.Subtract)
+                                                if (advanceOperationCode.Value == BinaryOperatorKind.Subtract)
                                                 {
                                                     advanceOperationCode = BinaryOperatorKind.Add;
                                                     incrementValue = -incrementValue;
                                                 }
 
-                                                if (advanceOperationCode == BinaryOperatorKind.Add &&
+                                                if (advanceOperationCode.Value == BinaryOperatorKind.Add &&
                                                     incrementValue != 0 &&
                                                     (condition.OperatorKind == BinaryOperatorKind.LessThan ||
                                                      condition.OperatorKind == BinaryOperatorKind.LessThanOrEqual ||
@@ -223,10 +223,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private void GetOperationKindAndValue(
             SemanticModel semanticModel, ILocalSymbol testVariable, IOperation advanceExpression,
-            out BinaryOperatorKind advanceOperationCode, out IOperation advanceIncrement)
+            out BinaryOperatorKind? advanceOperationCode, out IOperation advanceIncrement)
         {
             advanceIncrement = null;
-            advanceOperationCode = BinaryOperatorKind.None;
+            advanceOperationCode = null;
 
             if (advanceExpression.Kind == OperationKind.SimpleAssignmentExpression)
             {
