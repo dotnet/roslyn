@@ -271,10 +271,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationStatement
-            If resourceList.IsDefault Then
-                Return Nothing
-            End If
-
             Return New VariableDeclarationStatement(
                             GetVariableDeclarationStatementVariables(resourceList),
                             _semanticModel,

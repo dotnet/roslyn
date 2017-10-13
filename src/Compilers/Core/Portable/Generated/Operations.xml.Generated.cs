@@ -5203,32 +5203,27 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
         }
 
+        protected abstract IOperation ResourcesImpl { get; }
         protected abstract IOperation BodyImpl { get; }
-        protected abstract IVariableDeclarationStatement DeclarationImpl { get; }
-        protected abstract IOperation ValueImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return Declaration;
-                yield return Value;
+                yield return Resources;
                 yield return Body;
             }
         }
+
+        /// <summary>
+        /// Declaration introduced or resource held by the using.
+        /// </summary>
+        public IOperation Resources => Operation.SetParentOperation(ResourcesImpl, this);
+
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.
         /// </summary>
         public IOperation Body => Operation.SetParentOperation(BodyImpl, this);
 
-        /// <summary>
-        /// Declaration introduced by the using statement. Null if the using statement does not declare any variables.
-        /// </summary>
-        public IVariableDeclarationStatement Declaration => Operation.SetParentOperation(DeclarationImpl, this);
-
-        /// <summary>
-        /// Resource held by the using. Can be null if Declaration is not null.
-        /// </summary>
-        public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitUsingStatement(this);
@@ -5244,17 +5239,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class UsingStatement : BaseUsingStatement, IUsingStatement
     {
-        public UsingStatement(IOperation body, IVariableDeclarationStatement declaration, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public UsingStatement(IOperation resources, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            ResourcesImpl = resources;
             BodyImpl = body;
-            DeclarationImpl = declaration;
-            ValueImpl = value;
         }
 
+        protected override IOperation ResourcesImpl { get; }
         protected override IOperation BodyImpl { get; }
-        protected override IVariableDeclarationStatement DeclarationImpl { get; }
-        protected override IOperation ValueImpl { get; }
     }
 
     /// <summary>
@@ -5262,22 +5255,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyUsingStatement : BaseUsingStatement, IUsingStatement
     {
+        private readonly Lazy<IOperation> _lazyResources;
         private readonly Lazy<IOperation> _lazyBody;
-        private readonly Lazy<IVariableDeclarationStatement> _lazyDeclaration;
-        private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyUsingStatement(Lazy<IOperation> body, Lazy<IVariableDeclarationStatement> declaration, Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyUsingStatement(Lazy<IOperation> resources, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            _lazyResources = resources ?? throw new System.ArgumentNullException(nameof(resources));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
-            _lazyDeclaration = declaration ?? throw new System.ArgumentNullException(nameof(declaration));
-            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
 
+        protected override IOperation ResourcesImpl => _lazyResources.Value;
         protected override IOperation BodyImpl => _lazyBody.Value;
-
-        protected override IVariableDeclarationStatement DeclarationImpl => _lazyDeclaration.Value;
-
-        protected override IOperation ValueImpl => _lazyValue.Value;
     }
 
     /// <summary>
