@@ -14966,7 +14966,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(patterns)")]
         public void TupleTypeWithPatternSwitch()
         {
             var source = @"
@@ -15004,7 +15004,7 @@ class C
                );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(patterns)")]
         public void TupleLiteralWithPatternSwitch()
         {
             var source = @"
@@ -15030,7 +15030,7 @@ class C
                );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(patterns)")]
         public void TupleLiteralWithPatternSwitch2()
         {
             var source = @"

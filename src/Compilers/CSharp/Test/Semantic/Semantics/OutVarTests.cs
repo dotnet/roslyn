@@ -30342,7 +30342,8 @@ class H
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
         }
 
-        [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
+        [Fact(Skip = "PROTOTYPE(patterns)")]
+        [WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
         public void ExpressionVariableInCase_1()
         {
             string source =
@@ -30383,7 +30384,8 @@ class Program
             VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
         }
 
-        [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
+        [Fact(Skip = "PROTOTYPE(patterns)")]
+        [WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
         public void ExpressionVariableInCase_2()
         {
             string source =
@@ -32128,7 +32130,7 @@ class MyAttribute: System.Attribute
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(patterns)")]
         public void DeclarationInNameof_03()
         {
             var text = @"
