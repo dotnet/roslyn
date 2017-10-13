@@ -71,13 +71,14 @@ For best results in capturing the performance, follow these steps:
 
 1. If not already running, have a copy of Visual Studio open where you will reproduce the problem
     * Have everything set up to reproduce the problem. For example, if you need a particular project to be loaded with a specific file opened, then be sure both of those steps are complete before proceeding.
+    * If you are *not* reporting a problem specific to loading a solution, try to wait 5-10 minutes (or more) after opening the solution before recording the performance trace. The solution load process produces a large amount of data, so waiting for a few minutes helps us focus on the specific problem you are reporting.
 2. Start a second copy of Visual Studio *with no solution open*
 3. In the new copy of Visual Studio, open the **Report a Problem** tool
 4. Follow the steps in "[How to Report a Problem](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)" until you reach the "Provide a trace and heap dump (optional)" step.
 5. Choose to record the first copy of Visual Studio (the one encountering performance problems), and start recording.
     * The Steps Recorder application will appear begin recording. 
     * **During the recording,** perform the problematic action in the separate copy of Visual Studio. It is very difficult for us to correct specific performance problems if they do not appear within the recorded time.
-    * If the action is shorter than 30 seconds and can be easily repeated, repeat the action to further demonstrate the problem
+    * If the action is shorter than 30 seconds and can be easily repeated, repeat the action to further demonstrate the problem.
     * For most cases, a trace of 60 seconds is sufficient to demonstrate the problems, especially if the problematic action lasted (or was repeated) for more than 30 seconds. The duration can be adjusted as necessary to capture the behavior you would like fixed.
 6. Click "Stop Record" in Steps Recorder. It may take a few minutes to process the performance trace. 
 7. Once complete, there will be several attachments to your feedback. Attach any additional files that may help reproduce the problem (a sample project, screenshots, videos, etc.).
