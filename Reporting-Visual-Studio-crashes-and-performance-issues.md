@@ -43,7 +43,7 @@ If you're not sure what's causing your crashes or they seem random, then you can
 ```
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\devenv.exe]
 "DumpFolder"="C:\\Crashdumps"
-"DumpCount"=dword:00000010
+"DumpCount"=dword:00000005
 "DumpType"=dword:00000002
 ```
 
