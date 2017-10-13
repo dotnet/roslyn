@@ -10322,7 +10322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
   }
 
-  /// <summary>Class which represents a simple pattern-maching expresion using the "is" keyword.</summary>
+  /// <summary>Class which represents a simple pattern-matching expression using the "is" keyword.</summary>
   internal sealed partial class IsPatternExpressionSyntax : ExpressionSyntax
   {
     internal readonly ExpressionSyntax expression;
