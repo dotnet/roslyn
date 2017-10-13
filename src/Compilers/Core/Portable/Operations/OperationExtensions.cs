@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -38,11 +37,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
+        /// <summary>
+        /// Returns all the descendant operations of the given <paramref name="operation"/> in evaluation order.
+        /// </summary>
+        /// <param name="operation">Operation whose descendants are to be fetched.</param>
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
         {
             return Descendants(operation, includeSelf: false);
         }
 
+        /// <summary>
+        /// Returns all the descendant operations of the given <paramref name="operation"/> including the given <paramref name="operation"/> in evaluation order.
+        /// </summary>
+        /// <param name="operation">Operation whose descendants are to be fetched.</param>
         public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation operation)
         {
             return Descendants(operation, includeSelf: true);
@@ -88,6 +95,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             stack.Free();
         }
 
+        /// <summary>
+        /// Gets all the declared local variables in the given <paramref name="declarationStatement"/>.
+        /// </summary>
+        /// <param name="declarationStatement">Variable declaration statement</param>
         public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationStatement declarationStatement)
         {
             if (declarationStatement == null)

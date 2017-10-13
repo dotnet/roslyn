@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public enum OperationKind
     {
+        /// <summary>
+        /// Indicates an <see cref="IOperation"/> for an not yet implemented semantic construct.
+        /// </summary>
         None = 0x0,
 
         // Statements
