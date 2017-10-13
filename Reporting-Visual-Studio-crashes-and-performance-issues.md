@@ -61,9 +61,17 @@ Then, use Visual Studio's "Report a Problem..." feature. It will allow you to at
 
 # Performance Issues
 
-When diagnosing performance issues, the goal is to capture a performance trace while performing the slow/hanging action.
+When diagnosing performance issues, the goal is to capture a performance trace while performing the slow/hanging action. For best results in capturing the performance, follow these steps:
 
-- If necessary, start a second Visual Studio instance (with no solution open) to capture the trace. You can target the data collection from the Visual Studio encountering the problem.
-- Perform the action that is causing performance issues while the trace is recording. If typing is delayed, type during the trace. If opening a file is slow, open a bunch of files.
-- Try to repeat the action and capture a trace for 30 seconds to 2 minutes.
-- *File new feedback issues* instead of commenting on existing issues. This allows us to correctly deduplicate issues.
+1. If not already running, have a copy of Visual Studio open where you will reproduce the problem
+2. Start a second copy of Visual Studio *with no solution open*
+3. In the new copy of Visual Studio, open the **Report a Problem** tool
+4. @dpoeschl add steps here to start feedback; make sure to include importance of describing the *specific* behavior the user would like improved
+5. Start recording (@dpoeschl how?)
+    * **During the recording,** perform the problematic action in the separate copy of Visual Studio. It is very difficult for us to correct specific performance problems if they do not appear within the recorded time.
+    * If the action is shorter than 30 seconds and can be easily repeated, repeat the action to further demonstrate the problem
+    * For most cases, a trace of 60 seconds is sufficient to demonstrate the problems, especially if the problematic action lasted (or was repeated) for more than 30 seconds. The duration can be adjusted as necessary to capture the behavior you would like fixed.
+
+⚠️ Do not attach performance traces to existing feedback items. Please create a new feedback item for each performance trace you would like to submit. If you were requested to provide a performance trace in order to resolve a previous feedback item, simply reply to the request with a link to the new feedback item where the performance trace is attached.
+
+:bulb: **Most valuable feedback:** For almost all performance issues, the most valuable feedback is a high-level description of what you were trying to do, along with the performance trace (*.etl.zip) which captures the behavior during that time.
