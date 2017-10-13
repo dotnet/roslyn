@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Optional initializer of the variable.
         /// </summary>
-        IOperation Initializer { get; }
+        IVariableInitializer Initializer { get; }
     }
 }
 
