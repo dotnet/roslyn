@@ -80,7 +80,7 @@ For best results in capturing the performance, follow these steps:
     * If the action is shorter than 30 seconds and can be easily repeated, repeat the action to further demonstrate the problem
     * For most cases, a trace of 60 seconds is sufficient to demonstrate the problems, especially if the problematic action lasted (or was repeated) for more than 30 seconds. The duration can be adjusted as necessary to capture the behavior you would like fixed.
 6. Click "Stop Record" in Steps Recorder. It may take a few minutes to process the performance trace. 
-7. Once complete, there will be three attachments. Attach any additional files that may help reproduce the problem (a sample project, screenshots, videos, etc.).
+7. Once complete, there will be several attachments to your feedback. Attach any additional files that may help reproduce the problem (a sample project, screenshots, videos, etc.).
 8. Submit the feedback.
 
 ⚠️ Do not attach performance traces to existing feedback items. Please create a new feedback item for each performance trace you would like to submit. If you were requested to provide a performance trace in order to resolve a previous feedback item, simply reply to the request with a link to the new feedback item where the performance trace is attached.
