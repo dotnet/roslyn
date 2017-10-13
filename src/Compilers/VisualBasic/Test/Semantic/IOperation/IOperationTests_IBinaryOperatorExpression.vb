@@ -264,7 +264,7 @@ IBlockStatement (26 statements, 3 locals) (OperationKind.BlockStatement) (Syntax
           Initializer: 
             null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim r As Integer')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'r')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'r As Integer')
       Variables: Local_1: r As System.Int32
       Initializer: 
         null
@@ -644,7 +644,7 @@ IBlockStatement (26 statements, 3 locals) (OperationKind.BlockStatement) (Syntax
           Initializer: 
             null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim r As Integer')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'r')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'r As Integer')
       Variables: Local_1: r As System.Int32
       Initializer: 
         null
@@ -1591,7 +1591,7 @@ IBlockStatement (24 statements, 3 locals) (OperationKind.BlockStatement) (Syntax
           Initializer: 
             null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim r As B2')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'r')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'r As B2')
       Variables: Local_1: r As B2
       Initializer: 
         null

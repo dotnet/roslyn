@@ -139,7 +139,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'Whi
     IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'While condi ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim value A ... ment(index)')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value As In ... ment(index)')
           Variables: Local_1: value As System.Int32
           Initializer: 
             IInvocationExpression (Function System.Threading.Interlocked.Increment(ByRef location As System.Int32) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'System.Thre ... ment(index)')
@@ -249,7 +249,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'Whi
     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'While True' ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim value A ... ment(index)')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value As In ... ment(index)')
           Variables: Local_1: value As System.Int32
           Initializer: 
             IInvocationExpression (Function System.Threading.Interlocked.Increment(ByRef location As System.Int32) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'System.Thre ... ment(index)')
@@ -323,7 +323,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'Whi
     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'While True' ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim value A ... ment(index)')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value As In ... ment(index)')
           Variables: Local_1: value As System.Int32
           Initializer: 
             IInvocationExpression (Function System.Threading.Interlocked.Increment(ByRef location As System.Int32) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'System.Thre ... ment(index)')
@@ -625,7 +625,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement, IsInvalid) (S
     IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'While 'BIND ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim value A ... ment(index)')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value As In ... ment(index)')
           Variables: Local_1: value As System.Int32
           Initializer: 
             IInvocationExpression (Function System.Threading.Interlocked.Increment(ByRef location As System.Int32) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'System.Thre ... ment(index)')
@@ -845,7 +845,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'Whi
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim j As Integer = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j As Integer = 0')
           Variables: Local_1: j As System.Int32
           Initializer: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -930,7 +930,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'Whi
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim j As Integer = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j As Integer = 0')
           Variables: Local_1: j As System.Int32
           Initializer: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')

@@ -403,7 +403,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a = {}')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = {}')
     Variables: Local_1: a As System.Object()
     Initializer: 
       IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Object()) (Syntax: '{}')
@@ -1201,7 +1201,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x(2) As Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x(2)')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x(2) As Integer')
     Variables: Local_1: x As System.Int32()
     Initializer: 
       IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x(2)')

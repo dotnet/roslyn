@@ -232,15 +232,41 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclaration)
+            ' Group the declarations by their VariableDeclaratorSyntaxes. The issue we're compensating for here is that the
+            ' the declarations that are BoundLocalDeclaration nodes have a ModifiedIdentifierSyntax as their syntax nodes,
+            ' not a VariableDeclaratorSyntax. We want to group BoundLocalDeclarations by their parent VariableDeclaratorSyntax
+            ' nodes, and deduplicate based on that. As an example:
+            '
+            ' Dim x, y = 1
+            '
+            ' This is an error scenario, but if we just use the BoundLocalDeclaration.Syntax.Parent directly, without deduplicating,
+            ' we'll end up with two IVariableDeclarations that have the same syntax node. So, we group by VariableDeclaratorSyntax
+            ' to put x and y in the same IVariableDeclaration
+
+            Dim groupedDeclarations = declarations.GroupBy(Function(decl)
+                                                               If decl.Kind = BoundKind.LocalDeclaration Then
+                                                                   Debug.Assert(decl.Syntax.Parent.IsKind(SyntaxKind.VariableDeclarator))
+                                                                   Return decl.Syntax.Parent
+                                                               Else
+                                                                   Return decl.Syntax
+                                                               End If
+                                                           End Function)
+
             Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
-            For Each base In declarations
-                If base.Kind = BoundKind.LocalDeclaration Then
-                    Dim declaration = DirectCast(base, BoundLocalDeclaration)
-                    builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), _semanticModel, declaration.Syntax))
-                ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
-                    Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
+            For Each declGroup In groupedDeclarations
+                If declGroup.First().Kind = BoundKind.AsNewLocalDeclarations Then
+                    ' There should only ever be 1 AsNewLocalDeclarations per syntax, as we use its syntax directly
+                    Debug.Assert(declGroup.Count() = 1)
+                    Dim asNewDeclarations = DirectCast(declGroup.First(), BoundAsNewLocalDeclarations)
                     Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
                     builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, Create(asNewDeclarations.Initializer), _semanticModel, asNewDeclarations.Syntax))
+                ElseIf declGroup.First().Kind = BoundKind.LocalDeclaration Then
+                    ' Only the last of the declarations can have an initializer.
+                    Dim localSymbols = declGroup.SelectAsArray(Of ILocalSymbol)(Function(decl) DirectCast(decl, BoundLocalDeclaration).LocalSymbol)
+                    Dim initializer = Create(DirectCast(declGroup.Last(), BoundLocalDeclaration).InitializerOpt)
+                    Dim syntax = declGroup.Key
+                    Debug.Assert(syntax.IsKind(SyntaxKind.VariableDeclarator))
+                    builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, initializer, _semanticModel, syntax))
                 End If
             Next
 
