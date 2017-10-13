@@ -5216,4 +5216,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRecursivePatterns" xml:space="preserve">
     <value>recursive patterns</value>
   </data>
+  <data name="ERR_InferredRecursivePatternType" xml:space="preserve">
+    <value>The type 'var' is not permitted in recursive patterns. If you want the type inferred, just omit it.</value>
+  </data>
+  <data name="ERR_WrongNumberOfSubpatterns" xml:space="preserve">
+    <value>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</value>
+  </data>
+  <data name="ERR_PropertyPatternNameMissing" xml:space="preserve">
+    <value>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0}}}'</value>
+  </data>
 </root>

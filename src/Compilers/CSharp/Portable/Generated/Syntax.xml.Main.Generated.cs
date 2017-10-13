@@ -454,6 +454,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a DiscardPatternSyntax node.</summary>
+    public virtual TResult VisitDiscardPattern(DiscardPatternSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a DeclarationPatternSyntax node.</summary>
     public virtual TResult VisitDeclarationPattern(DeclarationPatternSyntax node)
     {
@@ -1701,6 +1707,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>Called when the visitor visits a WhenClauseSyntax node.</summary>
     public virtual void VisitWhenClause(WhenClauseSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a DiscardPatternSyntax node.</summary>
+    public virtual void VisitDiscardPattern(DiscardPatternSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -3088,6 +3100,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       var whenKeyword = this.VisitToken(node.WhenKeyword);
       var condition = (ExpressionSyntax)this.Visit(node.Condition);
       return node.Update(whenKeyword, condition);
+    }
+
+    public override SyntaxNode VisitDiscardPattern(DiscardPatternSyntax node)
+    {
+      var underscoreToken = this.VisitToken(node.UnderscoreToken);
+      return node.Update(underscoreToken);
     }
 
     public override SyntaxNode VisitDeclarationPattern(DeclarationPatternSyntax node)
@@ -6608,6 +6626,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       return SyntaxFactory.WhenClause(SyntaxFactory.Token(SyntaxKind.WhenKeyword), condition);
     }
+
+    /// <summary>Creates a new DiscardPatternSyntax instance.</summary>
+    public static DiscardPatternSyntax DiscardPattern(SyntaxToken underscoreToken)
+    {
+      switch (underscoreToken.Kind())
+      {
+        case SyntaxKind.IdentifierToken:
+          break;
+        default:
+          throw new ArgumentException("underscoreToken");
+      }
+      return (DiscardPatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DiscardPattern((Syntax.InternalSyntax.SyntaxToken)underscoreToken.Node).CreateRed();
+    }
+
 
     /// <summary>Creates a new DeclarationPatternSyntax instance.</summary>
     public static DeclarationPatternSyntax DeclarationPattern(TypeSyntax type, VariableDesignationSyntax designation)

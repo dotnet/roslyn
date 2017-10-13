@@ -490,6 +490,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitDiscardPattern(IDiscardPattern operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitRecursivePattern(IRecursivePattern operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitPatternCaseClause(IPatternCaseClause operation)
         {
             DefaultVisit(operation);
@@ -1001,6 +1011,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitDeclarationPattern(IDeclarationPattern operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDiscardPattern(IDiscardPattern operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitRecursivePattern(IRecursivePattern operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

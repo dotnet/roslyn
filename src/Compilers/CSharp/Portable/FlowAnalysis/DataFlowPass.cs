@@ -1189,6 +1189,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.RecursivePattern:
+                    {
+                        var pattern = (BoundRecursivePattern)node;
+                        var symbol = pattern.Variable as LocalSymbol;
+                        if ((object)symbol != null)
+                        {
+                            // we do not track definite assignment for pattern variables when they are
+                            // promoted to fields for top-level code in scripts and interactive
+                            int slot = GetOrCreateSlot(symbol);
+                            SetSlotState(slot, assigned: written || !this.State.Reachable);
+                        }
+
+                        if (written) NoteWrite(pattern.VariableAccess, value, read);
+                        break;
+                    }
+
                 case BoundKind.LocalDeclaration:
                     {
                         var local = (BoundLocalDeclaration)node;
@@ -1479,12 +1495,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Assign(pat, null, RefKind.None, false);
                         break;
                     }
-                case BoundKind.WildcardPattern:
+                case BoundKind.DiscardPattern:
                     break;
                 case BoundKind.ConstantPattern:
                     {
                         var pat = (BoundConstantPattern)pattern;
                         this.VisitRvalue(pat.Value);
+                        break;
+                    }
+                case BoundKind.RecursivePattern:
+                    {
+                        var pat = (BoundRecursivePattern)pattern;
+                        if (!pat.Deconstruction.IsDefaultOrEmpty)
+                        {
+                            foreach (var subpat in pat.Deconstruction)
+                            {
+                                AssignPatternVariables(subpat);
+                            }
+                        }
+                        if (!pat.PropertiesOpt.IsDefaultOrEmpty)
+                        {
+                            foreach (var (_, subpat) in pat.PropertiesOpt)
+                            {
+                                AssignPatternVariables(subpat);
+                            }
+                        }
+                        Assign(pat, null, RefKind.None, false);
                         break;
                     }
                 default:

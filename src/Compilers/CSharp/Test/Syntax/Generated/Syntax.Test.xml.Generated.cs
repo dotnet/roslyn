@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.IsPatternExpressionSyntax GenerateIsPatternExpression()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.IsPatternExpression(GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.IsKeyword), GenerateDeclarationPattern());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.IsPatternExpression(GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.IsKeyword), GenerateDiscardPattern());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ThrowExpressionSyntax GenerateThrowExpression()
@@ -372,6 +372,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.WhenClauseSyntax GenerateWhenClause()
         {
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.WhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.WhenKeyword), GenerateIdentifierName());
+        }
+        
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DiscardPatternSyntax GenerateDiscardPattern()
+        {
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DiscardPattern(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Identifier("UnderscoreToken"));
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DeclarationPatternSyntax GenerateDeclarationPattern()
@@ -386,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternElementSyntax GenerateSubpatternElement()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SubpatternElement(null, GenerateDeclarationPattern());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SubpatternElement(null, GenerateDiscardPattern());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PropertyPatternSyntax GeneratePropertyPattern()
@@ -591,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CasePatternSwitchLabelSyntax GenerateCasePatternSwitchLabel()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.CasePatternSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateDeclarationPattern(), null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Identifier("ColonToken"));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.CasePatternSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateDiscardPattern(), null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Identifier("ColonToken"));
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CaseSwitchLabelSyntax GenerateCaseSwitchLabel()
@@ -1911,6 +1916,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.WhenKeyword, node.WhenKeyword.Kind);
             Assert.NotNull(node.Condition);
+            
+            AttachAndCheckDiagnostics(node);
+        }
+        
+        [Fact]
+        public void TestDiscardPatternFactoryAndProperties()
+        {
+            var node = GenerateDiscardPattern();
+            
+            Assert.Equal(SyntaxKind.IdentifierToken, node.UnderscoreToken.Kind);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -5581,6 +5596,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestWhenClauseIdentityRewriter()
         {
             var oldNode = GenerateWhenClause();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestDiscardPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateDiscardPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestDiscardPatternIdentityRewriter()
+        {
+            var oldNode = GenerateDiscardPattern();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -9454,7 +9495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static IsPatternExpressionSyntax GenerateIsPatternExpression()
         {
-            return SyntaxFactory.IsPatternExpression(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.IsKeyword), GenerateDeclarationPattern());
+            return SyntaxFactory.IsPatternExpression(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.IsKeyword), GenerateDiscardPattern());
         }
         
         private static ThrowExpressionSyntax GenerateThrowExpression()
@@ -9465,6 +9506,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static WhenClauseSyntax GenerateWhenClause()
         {
             return SyntaxFactory.WhenClause(SyntaxFactory.Token(SyntaxKind.WhenKeyword), GenerateIdentifierName());
+        }
+        
+        private static DiscardPatternSyntax GenerateDiscardPattern()
+        {
+            return SyntaxFactory.DiscardPattern(SyntaxFactory.Identifier("UnderscoreToken"));
         }
         
         private static DeclarationPatternSyntax GenerateDeclarationPattern()
@@ -9479,7 +9525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static SubpatternElementSyntax GenerateSubpatternElement()
         {
-            return SyntaxFactory.SubpatternElement(default(NameColonSyntax), GenerateDeclarationPattern());
+            return SyntaxFactory.SubpatternElement(default(NameColonSyntax), GenerateDiscardPattern());
         }
         
         private static PropertyPatternSyntax GeneratePropertyPattern()
@@ -9684,7 +9730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static CasePatternSwitchLabelSyntax GenerateCasePatternSwitchLabel()
         {
-            return SyntaxFactory.CasePatternSwitchLabel(SyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateDeclarationPattern(), default(WhenClauseSyntax), SyntaxFactory.Identifier("ColonToken"));
+            return SyntaxFactory.CasePatternSwitchLabel(SyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateDiscardPattern(), default(WhenClauseSyntax), SyntaxFactory.Identifier("ColonToken"));
         }
         
         private static CaseSwitchLabelSyntax GenerateCaseSwitchLabel()
@@ -11005,6 +11051,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.WhenKeyword, node.WhenKeyword.Kind());
             Assert.NotNull(node.Condition);
             var newNode = node.WithWhenKeyword(node.WhenKeyword).WithCondition(node.Condition);
+            Assert.Equal(node, newNode);
+        }
+        
+        [Fact]
+        public void TestDiscardPatternFactoryAndProperties()
+        {
+            var node = GenerateDiscardPattern();
+            
+            Assert.Equal(SyntaxKind.IdentifierToken, node.UnderscoreToken.Kind());
+            var newNode = node.WithUnderscoreToken(node.UnderscoreToken);
             Assert.Equal(node, newNode);
         }
         
@@ -14674,6 +14730,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestWhenClauseIdentityRewriter()
         {
             var oldNode = GenerateWhenClause();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestDiscardPatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateDiscardPattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestDiscardPatternIdentityRewriter()
+        {
+            var oldNode = GenerateDiscardPattern();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             

@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders;
                 var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, this.LocalScopeDepth, type);
                 var deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
-                    inputPlaceholder, rightSyntax, diagnostics, out outPlaceholders);
+                    inputPlaceholder, rightSyntax, diagnostics, out outPlaceholders, requireTwoOrMoreElements: true);
 
                 if (deconstructInvocation.HasAnyErrors)
                 {
@@ -589,10 +589,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeDeconstructInvocationExpression(
                                     int numCheckedVariables, BoundExpression receiver, SyntaxNode rightSyntax,
-                                    DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders)
+                                    DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders,
+                                    bool requireTwoOrMoreElements)
         {
             var receiverSyntax = (CSharpSyntaxNode)receiver.Syntax;
-            if (numCheckedVariables < 2)
+            if (requireTwoOrMoreElements && numCheckedVariables < 2)
             {
                 Error(diagnostics, ErrorCode.ERR_DeconstructTooFewElements, receiverSyntax);
                 outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
@@ -690,9 +691,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBadExpression MissingDeconstruct(BoundExpression receiver, SyntaxNode rightSyntax, int numParameters, DiagnosticBag diagnostics,
                                     out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundExpression childNode)
         {
-            Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type, numParameters);
-            outPlaceholders = default;
+            if (!receiver.Type.IsErrorType())
+            {
+                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type, numParameters);
+            }
 
+            outPlaceholders = default;
             return BadExpression(rightSyntax, childNode);
         }
 

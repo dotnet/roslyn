@@ -8370,7 +8370,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
+        [Fact(Skip = "PROTOTYPE(patterns2): code quality"), WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
         public void BoxInPatternIf_02()
         {
             var source = @"using System;
@@ -8428,7 +8428,7 @@ public class Program
             );
         }
 
-        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact(Skip = "PROTOTYPE(patterns2): code quality"), WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
         public void TestMatchWithTypeParameter_01()
         {
             var source =
@@ -8631,7 +8631,7 @@ class Program
             );
         }
 
-        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact(Skip = "PROTOTYPE(patterns2): code quality"), WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
         public void TestMatchWithTypeParameter_02()
         {
             var source =
@@ -9250,7 +9250,7 @@ Generic<object>.Color.Red");
             );
         }
 
-        [Fact, WorkItem(16129, "https://github.com/dotnet/roslyn/issues/16129")]
+        [Fact(Skip = "PROTOTYPE(patterns2): code quality"), WorkItem(16129, "https://github.com/dotnet/roslyn/issues/16129")]
         public void ExactPatternMatch()
         {
             var source =

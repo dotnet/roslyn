@@ -324,7 +324,7 @@ namespace My
                     break;
                 case int i:
                     break;
-                case Type (int x, 3) { A: 5, B: 7 } identifier:
+                case Type (int x, 3) { A: _, B: 7 } identifier:
                     break;
                 default:
                     {

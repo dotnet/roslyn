@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
 
         public static readonly CSharpParseOptions RegularWithIOperationFeature = Regular.WithIOperationsFeature();
-        
+
+        public static readonly CSharpParseOptions RegularWithRecursivePatterns = Regular.WithRecursivePatterns();
+
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release);
 
@@ -110,6 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("IOperation", "true") }));
+        }
+
+        public static CSharpParseOptions WithRecursivePatterns(this CSharpParseOptions options)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("patterns2", "true") }));
         }
     }
 }
