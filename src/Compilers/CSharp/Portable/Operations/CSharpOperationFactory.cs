@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Optional<object> constantValue = ConvertToOptional(boundCall.ConstantValue);
             bool isImplicit = boundCall.WasCompilerGenerated;
             
-            if (!boundCall.OriginalMethodsOpt.IsDefault || boundCall.ResultKind == LookupResultKind.OverloadResolutionFailure)
+            if (!boundCall.OriginalMethodsOpt.IsDefault || boundCall.ResultKind == LookupResultKind.OverloadResolutionFailure || targetMethod == null || targetMethod.OriginalDefinition is ErrorMethodSymbol)
             {
                 return CreateInvalidExpressionForHasArgumentsExpression(boundCall.ReceiverOpt, boundCall.Arguments, null, syntax, type, constantValue, isImplicit);
             }
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 ? property.GetOwnOrInheritedSetMethod()
                 : property.GetOwnOrInheritedGetMethod();
             
-            if (!boundIndexerAccess.OriginalIndexersOpt.IsDefault || accessor == null)
+            if (!boundIndexerAccess.OriginalIndexersOpt.IsDefault || boundIndexerAccess.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor == null || accessor.OriginalDefinition is ErrorMethodSymbol)
             {
                 return CreateInvalidExpressionForHasArgumentsExpression(boundIndexerAccess.ReceiverOpt, boundIndexerAccess.Arguments, null, syntax, type, constantValue, isImplicit);
             }
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Optional<object> constantValue = ConvertToOptional(boundObjectCreationExpression.ConstantValue);
             bool isImplicit = boundObjectCreationExpression.WasCompilerGenerated;
             
-            if (constructor == null)
+            if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor == null || constructor.OriginalDefinition is ErrorMethodSymbol)
             {
                 return CreateInvalidExpressionForHasArgumentsExpression(null, boundObjectCreationExpression.Arguments, boundObjectCreationExpression.InitializerExpressionOpt, syntax, type, constantValue, isImplicit);
             }
@@ -471,19 +471,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<IObjectOrCollectionInitializerExpression> initializer = new Lazy<IObjectOrCollectionInitializerExpression>(() => (IObjectOrCollectionInitializerExpression)Create(boundObjectCreationExpression.InitializerExpressionOpt));
             Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() =>
             {
-                if (boundObjectCreationExpression.BinderOpt == null)
-                {
-                    // binder can only be null for a generated non-null default value of a nullable type parameter, 
-                    // e.g. for `M(double? x = 1.23)`, the argument is replaced by `new double?(1.23)`.
-                    // In this case, we create and return an explicit argument.
-                    // See method `LocalRewriter.GetDefaultParameterValue` for more details.
-                    Debug.Assert(constructor.ContainingType.IsNullableType());
-                    Debug.Assert(constructor.Parameters.Length <= 1);
-                    Debug.Assert(boundObjectCreationExpression.Arguments.Length == 1);
-
-                    return ImmutableArray.Create(CreateArgumentOperation(ArgumentKind.Explicit, constructor.Parameters.FirstOrDefault(), boundObjectCreationExpression.Arguments.Single()));
-                }
-
                 return DeriveArguments(
                     boundObjectCreationExpression,
                     boundObjectCreationExpression.BinderOpt,
@@ -597,9 +584,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                     }
                     else
                     {
-                        // Can't decide if resolution is failed or not, since indexer access node is not available here (i.e. need to check BoundIndexerAccess.OriginalIndexersOpt)
-                        // so we have to be conservative when creating InvalidExpression.
-                        if (boundObjectInitializerMember.HasErrors)
+                        var accessor = property.GetOwnOrInheritedSetMethod();
+                        if (accessor == null || boundObjectInitializerMember.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor.OriginalDefinition is ErrorMethodSymbol)
                         {
                             Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(
                                  () =>
@@ -618,7 +604,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                                 boundObjectInitializerMember,
                                 boundObjectInitializerMember.BinderOpt,
                                 property,
-                                property.GetOwnOrInheritedSetMethod(),
+                                accessor,
                                 boundObjectInitializerMember.Arguments,
                                 boundObjectInitializerMember.ArgumentNamesOpt,
                                 boundObjectInitializerMember.ArgsToParamsOpt,

@@ -2140,14 +2140,9 @@ IInvocationExpression (void P.M2([System.Boolean[missing]? x = true])) (Operatio
     null
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'M2()')
-        IObjectCreationExpression (Constructor: .ctor System.Boolean[missing]?.Missing()) (OperationKind.ObjectCreationExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'M2()')
-          Arguments(1):
-              IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'M2()')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean[missing], Constant: True, IsInvalid) (Syntax: 'M2()')
-                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Initializer: 
-            null
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'M2()')
+          Children(1):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean[missing], Constant: True, IsInvalid) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2204,14 +2199,9 @@ class P
 IObjectCreationExpression (Constructor: P..ctor([System.Boolean[missing]? x = true])) (OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P()')
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'new P()')
-        IObjectCreationExpression (Constructor: .ctor System.Boolean[missing]?.Missing()) (OperationKind.ObjectCreationExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'new P()')
-          Arguments(1):
-              IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'new P()')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean[missing], Constant: True, IsInvalid) (Syntax: 'new P()')
-                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Initializer: 
-            null
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'new P()')
+          Children(1):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean[missing], Constant: True, IsInvalid) (Syntax: 'new P()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Initializer: 
@@ -2282,14 +2272,9 @@ IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing]
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'this[0]')
-        IObjectCreationExpression (Constructor: .ctor System.Int32[missing]?.Missing()) (OperationKind.ObjectCreationExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: 'this[0]')
-          Arguments(1):
-              IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'this[0]')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 5, IsInvalid) (Syntax: 'this[0]')
-                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Initializer: 
-            null
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: 'this[0]')
+          Children(1):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 5, IsInvalid) (Syntax: 'this[0]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3481,10 +3466,20 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax
         Initializers(1):
             ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0] = 1')
               Left: 
-                IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
-                  Children(2):
-                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: '[0]')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+                IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 0]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
+                  Instance Receiver: 
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: '[0]')
+                  Arguments(2):
+                      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: '[0]')
+                        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: '[0]')
+                          Children(1):
+                              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '[0]')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Right: 
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 1, IsInvalid) (Syntax: '1')
 ";
@@ -3568,10 +3563,18 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax
         Initializers(1):
             ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0] = 1')
               Left: 
-                IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
-                  Children(2):
-                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: '[0]')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+                IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
+                  Instance Receiver: 
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: '[0]')
+                  Arguments(2):
+                      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: '[0]')
+                        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: '[0]')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Right: 
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 1, IsInvalid) (Syntax: '1')
 ";
@@ -3679,6 +3682,36 @@ IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreation
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void UndefinedMethod()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1, 2)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M2(1, 2)')
+  Children(3):
+      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M2')
+        Children(0)
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,19): error CS0103: The name 'M2' does not exist in the current context
+                //         /*<bind>*/M2(1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M2").WithArguments("M2").WithLocation(6, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
         }
 
         private class IndexerAccessArgumentVerifier : OperationWalker

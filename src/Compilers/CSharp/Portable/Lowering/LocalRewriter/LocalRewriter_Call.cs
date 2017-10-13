@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
 
-            if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
+            if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, false, out var isComReceiver))
             {
                 temps = temporariesBuilder.ToImmutableAndFree();
                 argumentRefKindsOpt = GetEffectiveArgumentRefKinds(argumentRefKindsOpt, parameters);
@@ -551,8 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             bool invokedAsExtensionMethod)
         {
-            Debug.Assert(binder != null);
-
             // Either the methodOrIndexer is a property, in which case the method used
             // for optional parameters is an accessor of that property (or an overridden
             // property), or the methodOrIndexer is used for optional parameters directly.
@@ -565,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If neither of those are the case then we can just take an early out.
 
-            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var _))
+            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, true, out _))
             {
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
                 // So we just return list of arguments as is.
@@ -592,6 +590,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return argumentsBuilder.ToImmutableAndFree();
             }
 
+            Debug.Assert(binder != null);
+
             return BuildArgumentsInEvaluationOrder(
                 operationFactory,
                 syntax,
@@ -610,8 +610,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             bool invokedAsExtensionMethod,
+            bool ignoreComReceiver,
             out bool isComReceiver)
         {
+            isComReceiver = false;
+
             // An applicable "vararg" method could not possibly be applicable in its expanded
             // form, and cannot possibly have named arguments or used optional parameters, 
             // because the __arglist() argument has to be positional and in the last position. 
@@ -621,15 +624,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(rewrittenArguments.Length == methodOrIndexer.GetParameterCount() + 1);
                 Debug.Assert(argsToParamsOpt.IsDefault);
                 Debug.Assert(!expanded);
-                isComReceiver = false;
                 return true;
             }
 
-            var receiverNamedType = invokedAsExtensionMethod ?
-                                    ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
-                                    methodOrIndexer.ContainingType;
+            if (!ignoreComReceiver)
+            {
+                var receiverNamedType = invokedAsExtensionMethod ?
+                                        ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
+                                        methodOrIndexer.ContainingType;
 
-            isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
+                isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
+            }
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
