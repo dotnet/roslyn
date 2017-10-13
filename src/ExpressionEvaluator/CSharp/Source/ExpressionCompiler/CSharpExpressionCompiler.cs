@@ -4,28 +4,18 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.Debugger;
-using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.Clr;
-using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     [DkmReportNonFatalWatsonException(ExcludeExceptionType = typeof(NotImplementedException)), DkmContinueCorruptingException]
-    internal sealed class CSharpExpressionCompiler : ExpressionCompiler, IDkmLanguageFrameDecoder, IDkmLanguageInstructionDecoder
+    internal sealed class CSharpExpressionCompiler : ExpressionCompiler
     {
         private static readonly DkmCompilerId s_compilerId = new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.CSharp);
 
-        // Need to support IDkmLanguageFrameDecoder and IDkmLanguageInstructionDecoder
-        // See https://github.com/dotnet/roslyn/issues/22620
-        private CSharpFrameDecoder _frameDecoder;
-        private CSharpLanguageInstructionDecoder _languageInstructionDecoder;
-
-        internal CSharpExpressionCompiler(): base()
+        internal CSharpExpressionCompiler(): base(new CSharpFrameDecoder(), new CSharpLanguageInstructionDecoder())
         {
-            _frameDecoder = new CSharpFrameDecoder();
-            _languageInstructionDecoder = new CSharpLanguageInstructionDecoder();
         }
 
         internal override DiagnosticFormatter DiagnosticFormatter
@@ -128,24 +118,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
             return runtimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
         }
-
-        #region IDkmLanguageFrameDecoder, IDkmLanguageInstructionDecoder
-
-        void IDkmLanguageFrameDecoder.GetFrameName(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmVariableInfoFlags argumentFlags, DkmCompletionRoutine<DkmGetFrameNameAsyncResult> completionRoutine)
-        {
-            ((IDkmLanguageFrameDecoder)_frameDecoder).GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine);
-        }
-
-        void IDkmLanguageFrameDecoder.GetFrameReturnType(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmCompletionRoutine<DkmGetFrameReturnTypeAsyncResult> completionRoutine)
-        {
-            ((IDkmLanguageFrameDecoder)_frameDecoder).GetFrameReturnType(inspectionContext, workList, frame, completionRoutine);
-        }
-
-        string IDkmLanguageInstructionDecoder.GetMethodName(DkmLanguageInstructionAddress languageInstructionAddress, DkmVariableInfoFlags argumentFlags)
-        {
-            return ((IDkmLanguageInstructionDecoder)_languageInstructionDecoder).GetMethodName(languageInstructionAddress, argumentFlags);
-        }
-
-        #endregion
     }
 }
