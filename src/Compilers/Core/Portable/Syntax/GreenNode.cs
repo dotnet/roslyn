@@ -397,7 +397,10 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.GetLeadingTriviaWidth() != 0;
+                var result = this.GetLeadingTriviaWidth() != 0;
+                Debug.Assert((result && GetLeadingTriviaCore() != null) ||
+                             (!result && GetLeadingTriviaCore() == null));
+                return result;
             }
         }
 
@@ -405,7 +408,10 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.GetTrailingTriviaWidth() != 0;
+                var result = this.GetTrailingTriviaWidth() != 0;
+                Debug.Assert((result && GetTrailingTriviaCore() != null) ||
+                             (!result && GetTrailingTriviaCore() == null));
+                return result;
             }
         }
         #endregion
