@@ -71,6 +71,7 @@ When diagnosing performance issues, the goal is to capture a performance trace w
     * **During the recording,** perform the problematic action in the separate copy of Visual Studio. It is very difficult for us to correct specific performance problems if they do not appear within the recorded time.
     * If the action is shorter than 30 seconds and can be easily repeated, repeat the action to further demonstrate the problem
     * For most cases, a trace of 60 seconds is sufficient to demonstrate the problems, especially if the problematic action lasted (or was repeated) for more than 30 seconds. The duration can be adjusted as necessary to capture the behavior you would like fixed.
+6. Stop recording and submit the feedback (@dpoeschl how?)
 
 ⚠️ Do not attach performance traces to existing feedback items. Please create a new feedback item for each performance trace you would like to submit. If you were requested to provide a performance trace in order to resolve a previous feedback item, simply reply to the request with a link to the new feedback item where the performance trace is attached.
 
