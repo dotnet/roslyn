@@ -10,8 +10,7 @@ Partial Public Class ParseParametersTest
 
     <Fact,
      Trait("Bug", "862436"),
-     Trait("Feature", "DefaultOptionalParameter"),
-     Trait("DefaultOptionalParameter", "Explicit")>
+     Trait("Feature", "DefaultOptionalParameter")>
     Public Sub Bug862436()
         ParseAndVerify(<![CDATA[
             Module Module1
@@ -22,8 +21,7 @@ Partial Public Class ParseParametersTest
     End Sub
 
     <Fact,
-    Trait("CompilerFeature", "DefaultOptionalParameter"),
-    Trait("DefaultOptionalParameter", "Implicit")>
+    Trait("Feature", "DefaultOptionalParameter")>
     Public Sub Bug862436_Implicit()
         ParseAndVerify(<![CDATA[
             Module Module1
@@ -34,8 +32,7 @@ Partial Public Class ParseParametersTest
     End Sub
 
     <Fact,
-    Trait("Feature", "DefaultOptionalParameter"),
-    Trait("DefaultOptionalParameter", "Explicit")>
+    Trait("Feature", "DefaultOptionalParameter")>
     Public Sub Bug862505()
         ParseAndVerify(<![CDATA[
             Class C1

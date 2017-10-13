@@ -9,8 +9,7 @@ Partial Public Class ParseParametersTest
     Inherits BasicTestBase
 
     <Fact,
-Trait("CompilerFeature", "DefaultOptionalParameter"),
-Trait("DefaultOptionalParameter", "Required")>
+Trait("Feature", "DefaultOptionalParameter")>
     Public Sub ParmeterIsClassType_Required()
         ParseAndVerify(<![CDATA[
             Class C1
@@ -23,8 +22,7 @@ Trait("DefaultOptionalParameter", "Required")>
     End Sub
 
     <Fact,
-Trait("CompilerFeature", "DefaultOptionalParameter"),
-Trait("DefaultOptionalParameter", "Explicit")>
+Trait("Feature", "DefaultOptionalParameter")>
     Public Sub ParmeterIsClassType_EqualsLiteralNothing()
         ParseAndVerify(<![CDATA[
             Class C1
@@ -37,8 +35,7 @@ Trait("DefaultOptionalParameter", "Explicit")>
     End Sub
 
     <Fact,
-Trait("CompilerFeature", "DefaultOptionalParameter"),
-Trait("DefaultOptionalParameter", "Explicit")>
+Trait("Feature", "DefaultOptionalParameter")>
     Public Sub ParmeterIsClassType_EqualsStringLiteral()
         ParseAndVerify(<![CDATA[
             Class C1
@@ -50,8 +47,7 @@ Trait("DefaultOptionalParameter", "Explicit")>
         )
     End Sub
     <Fact,
-Trait("CompilerFeature", "DefaultOptionalParameter"),
-Trait("DefaultOptionalParameter", "Explicit")>
+Trait("Feature", "DefaultOptionalParameter")>
     Public Sub ParmeterIsClassType_EqualsConstant()
         ParseAndVerify(<![CDATA[
             Class C1
@@ -63,8 +59,7 @@ Trait("DefaultOptionalParameter", "Explicit")>
         )
     End Sub
     <Fact,
-Trait("CompilerFeature", "DefaultOptionalParameter"),
-Trait("DefaultOptionalParameter", "Implicit")>
+Trait("Feature", "DefaultOptionalParameter")>
     Public Sub ParmeterIsClassType_Implicit()
         ParseAndVerify(<![CDATA[
             Class C1
