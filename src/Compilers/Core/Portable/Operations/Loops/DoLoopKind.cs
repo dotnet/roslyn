@@ -7,8 +7,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum DoLoopKind
     {
-        None = 0x0,
-
         /// <summary>
         /// Indicates a C# 'do while' or a VB 'Do While' loop where the loop condition is executed at the bottom of the loop, i.e. end of the loop iteration.
         /// Loop executes while the loop condition evaluates to <code>true</code>.

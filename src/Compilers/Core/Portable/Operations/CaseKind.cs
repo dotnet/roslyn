@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum CaseKind
     {
-        None = 0x0,
-
         /// <summary>
         /// Indicates case x in C# or Case x in VB.
         /// </summary>
