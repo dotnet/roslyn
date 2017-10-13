@@ -27,10 +27,12 @@ Directly reproducible crashes are cases which have all of the following characte
 2. Can be observed on multiple computers (if available)
 3. If the steps involve opening a project or document, can be reproduced in sample code or a project which can be linked to or provided as part of the feedback
 
-For these issues, follow the steps in "[How to Report a Problem with Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)" and be sure to include:
+For these issues, follow the steps in "[How to Report a Problem](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)" and be sure to include:
 - The steps to reproduce the problem
-- The language of the open projects (C#, C++, etc.)
-- The kind of project (Console Application, ASP.NET, etc.)
+- A standalone repro project as described above, if possible. If not possible, then please include:
+    - The language of the open projects (C#, C++, etc.)
+    - The kind of project (Console Application, ASP.NET, etc.)
+    - Any extensions that are installed
 
 :bulb: **Most valuable feedback:** For this case, the most valuable feedback is the set of steps to reproduce the issue along with sample source code.
 
