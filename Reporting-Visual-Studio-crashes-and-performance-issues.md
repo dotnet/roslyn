@@ -4,7 +4,7 @@ This document provides specific guidance and best practices for reporting crashe
 
 # Audience
 
-This document describes the best known ways to report actionable product feedback, i.e. feedback for which the product team is most likely to resolve quickly. It focused on two categories of severe problems which are historically challenging to resolve.
+This document describes the best known ways to report actionable product feedback, i.e. feedback for which the product team is most likely to diagnose and resolve quickly. It focuses on two categories of severe problems which are historically challenging to resolve.
 
 :bulb: After identifying the case which best describes your issue, follow the feedback steps specific to that case.
 
