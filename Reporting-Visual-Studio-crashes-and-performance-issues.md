@@ -29,7 +29,7 @@ Directly reproducible crashes are cases which have all of the following characte
 
 For these issues, follow the steps in "[How to Report a Problem](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)" and be sure to include:
 - The steps to reproduce the problem
-- A standalone repro project as described above, if possible. If not possible, then please include:
+- A standalone repro project as described above. If this is not possible, then please include:
     - The language of the open projects (C#, C++, etc.)
     - The kind of project (Console Application, ASP.NET, etc.)
     - Any extensions that are installed
