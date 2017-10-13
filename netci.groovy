@@ -217,7 +217,7 @@ commitPullList.each { isPr ->
 // VS Integration Tests
 commitPullList.each { isPr ->
   ['debug', 'release'].each { configuration ->
-    ['vs-integration'].each { buildTarget ->
+    ['vs-integration', 'optprof'].each { buildTarget ->
       def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
       def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
