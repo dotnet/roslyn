@@ -64,6 +64,8 @@ namespace Microsoft.CodeAnalysis
         // https://github.com/dotnet/roslyn/issues/22005
         // /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
         // WithStatement = 0x52,
+        /// <summary>Indicates an <see cref="IRaiseEventStatement"/>.</summary>
+        RaiseEventStatement = 0x53,
 
         // Expressions
 
@@ -148,6 +150,8 @@ namespace Microsoft.CodeAnalysis
         DynamicIndexerAccessExpression = 0x128,
         /// <summary>Indicates an <see cref="ITranslatedQueryExpression"/>.</summary>
         TranslatedQueryExpression = 0x129,
+        /// <summary>Indicates a <see cref="IDelegateCreationExpression"/>.</summary>
+        DelegateCreationExpression = 0x130,
 
         // Expressions that occur only in C#.
 
@@ -177,8 +181,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x300,
 
-        // 0x301 was removed, and is available for use.
-
+        // Unused 0x301
+        
         // https://github.com/dotnet/roslyn/issues/21294
         // /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
         // PlaceholderExpression = 0x302,
@@ -186,10 +190,12 @@ namespace Microsoft.CodeAnalysis
         // Operations that are constituents of statements, expressions, or declarations.
 
 
-        // Unused 0x400 and 0x402
+        // Unused 0x400
 
         /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
         FieldInitializer = 0x401,
+        /// <summary>Indicates an <see cref="IVariableInitializer"/>.</summary>
+        VariableInitializer = 0x402,
         /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
         PropertyInitializer = 0x403,
         /// <summary>Indicates an <see cref="IParameterInitializer"/>.</summary>
