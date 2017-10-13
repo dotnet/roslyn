@@ -285,15 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sb.Append(", ");
                 }
 
-                var refKind = GetRefKind(i);
-                if (refKind == RefKind.Out)
-                {
-                    sb.Append("out ");
-                }
-                else if (refKind == RefKind.Ref)
-                {
-                    sb.Append("ref ");
-                }
+                sb.Append(GetRefKind(i).ToParameterPrefix());
                 sb.Append(_formalParameterTypes[i]);
             }
 
