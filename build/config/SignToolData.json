@@ -163,7 +163,7 @@
     "Microsoft.VisualStudio.Validation.dll",
     "Nerdbank.FullDuplexStream.dll",
     "Validation.dll",
-	"Humanizer.dll",
-	"Humanizer.resources.dll"
+	  "Humanizer.dll",
+	  "Humanizer.resources.dll"
   ]
 }
