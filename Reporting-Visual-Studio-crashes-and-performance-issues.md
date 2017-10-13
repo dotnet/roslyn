@@ -71,7 +71,7 @@ For best results in capturing the performance, follow these steps:
 
 1. If not already running, have a copy of Visual Studio open where you will reproduce the problem
     * Have everything set up to reproduce the problem. For example, if you need a particular project to be loaded with a specific file opened, then be sure both of those steps are complete before proceeding.
-    * If you are *not* reporting a problem specific to loading a solution, try to wait 5-10 minutes (or more) after opening the solution before recording the performance trace. The solution load process produces a large amount of data, so waiting for a few minutes helps us focus on the specific problem you are reporting.
+    * If you are *not* reporting a problem specific to loading a solution, try to wait 5-10 minutes (or more, depending on solution size) after opening the solution before recording the performance trace. The solution load process produces a large amount of data, so waiting for a few minutes helps us focus on the specific problem you are reporting.
 2. Start a second copy of Visual Studio *with no solution open*
 3. In the new copy of Visual Studio, open the **Report a Problem** tool
 4. Follow the steps in "[How to Report a Problem](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)" until you reach the "Provide a trace and heap dump (optional)" step.
