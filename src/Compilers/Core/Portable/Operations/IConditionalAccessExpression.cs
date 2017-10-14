@@ -18,7 +18,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         IOperation Expression { get; }
         /// <summary>
+<<<<<<< HEAD
         /// Expression to be evaluated if <see cref="Expression"/> is non null.
+=======
+        /// Expresson that is conditionally accessed.
+>>>>>>> cf61f21e208e7b61949773b95eaa5776634c1ff4
         /// </summary>
         IOperation WhenNotNull { get; }
     }
