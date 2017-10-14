@@ -2116,7 +2116,7 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
-        public void DefaultValueNonNullForNullableTypeParameterWithMissingNullableReference_Call()
+        public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_Call()
         {
             string source = @"
 class P
@@ -2177,7 +2177,7 @@ IInvocationExpression (void P.M2([System.Boolean[missing]? x = true])) (Operatio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
-        public void DefaultValueNonNullForNullableTypeParameterWithMissingNullableReference_ObjectCreation()
+        public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_ObjectCreation()
         {
             string source = @"
 class P
@@ -2240,7 +2240,7 @@ IObjectCreationExpression (Constructor: P..ctor([System.Boolean[missing]? x = tr
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
-        public void DefaultValueNonNullForNullableTypeParameterWithMissingNullableReference_Indexer()
+        public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_Indexer()
         {
             string source = @"
 
@@ -2324,7 +2324,7 @@ IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing]
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
-        public void DefaultValueNullForNullableTypeParameterWithMissingNullableReference_Call()
+        public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_Call()
         {
             string source = @"
 class P
@@ -2380,7 +2380,7 @@ IInvocationExpression (void P.M2([System.Boolean[missing]? x = null])) (Operatio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
-        public void DefaultValueNullForNullableTypeParameterWithMissingNullableReference_ObjectCreation()
+        public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_ObjectCreation()
         {
             string source = @"
 class P
@@ -2438,7 +2438,7 @@ IObjectCreationExpression (Constructor: P..ctor([System.Boolean[missing]? x = nu
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
-        public void DefaultValueNullForNullableTypeParameterWithMissingNullableReference_Indexer()
+        public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_Indexer()
         {
             string source = @"
 class P
@@ -3314,7 +3314,7 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: i2) (OperationKind.Argumen
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void NonNullDefaultValueForNullableTypeParameter()
+        public void NonNullDefaultValueForNullableParameterType()
         {
             string source = @"
 class P
@@ -3436,7 +3436,7 @@ IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreation
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DefaultValueNonNullForNullableTypeParameterWithMissingNullableReference_IndexerInObjectCreationInitializer()
+        public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_IndexerInObjectCreationInitializer()
         {
             string source = @"
 class P
@@ -3533,7 +3533,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DefaultValueNullForNullableTypeParameterWithMissingNullableReference_IndexerInObjectCreationInitializer()
+        public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_IndexerInObjectCreationInitializer()
         {
             string source = @"
 class P
