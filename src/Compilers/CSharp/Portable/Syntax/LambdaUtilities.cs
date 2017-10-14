@@ -108,9 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LocalFunctionStatement:
                     return GetLocalFunctionBody((LocalFunctionStatementSyntax)newLambda);
 
-                case SyntaxKind.ArrowExpressionClause:
-                    return ((ArrowExpressionClauseSyntax)newLambda).Expression;
-
                 default:
                     throw ExceptionUtilities.UnexpectedValue(newLambda.Kind());
             }

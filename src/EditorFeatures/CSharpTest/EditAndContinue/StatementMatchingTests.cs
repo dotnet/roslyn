@@ -1061,6 +1061,46 @@ void G6(int a)
             expected.AssertEqual(actual);
         }
 
+        [Fact]
+        public void LocalFunctions6()
+        {
+            var src1 = @"int f() { return local(); int local() { return 1; }}";
+            var src2 = @"int f() { return local(); int local() => 2; }";
+
+            var matches = GetMethodMatches(src1, src2);
+            var actual = ToMatchingPairs(matches);
+
+            var expected = new MatchingPairs
+            {
+                { "int f() { return local(); int local() { return 1; }}", "int f() { return local(); int local() => 2; }" },
+                { "{ return local(); int local() { return 1; }}", "{ return local(); int local() => 2; }" },
+                { "return local();", "return local();" },
+                { "int local() { return 1; }", "int local() => 2;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LocalFunctions6Reverse()
+        {
+            var src1 = @"int f() { return local(); int local() => 2; }";
+            var src2 = @"int f() { return local(); int local() { return 1; }}";
+
+            var matches = GetMethodMatches(src1, src2);
+            var actual = ToMatchingPairs(matches);
+
+            var expected = new MatchingPairs
+            {
+                { "int f() { return local(); int local() => 2; }", "int f() { return local(); int local() { return 1; }}" },
+                { "{ return local(); int local() => 2; }", "{ return local(); int local() { return 1; }}" },
+                { "return local();", "return local();" },
+                { "int local() => 2;", "int local() { return 1; }" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
         #endregion
 
         #region LINQ
