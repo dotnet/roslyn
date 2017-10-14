@@ -704,6 +704,7 @@ class Test
             await VerifyItemExistsAsync(markup, "cancellationTokens");
             await VerifyItemExistsAsync(markup, "cancellations");
             await VerifyItemExistsAsync(markup, "tokens");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void DisabledByOption()
