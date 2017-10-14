@@ -120,6 +120,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                    token.HasNonContinuableEndOfLineBeforePosition(position, checkForSecondEol:=True)
         End Function
 
+        <Extension>
+        Friend Function IsMandatoryNamedParameterPosition(token As SyntaxToken) As Boolean
+            If token.Kind() = SyntaxKind.CommaToken Then
+                Dim argumentList = TryCast(token.Parent, ArgumentListSyntax)
+                If argumentList Is Nothing Then
+                    Return False
+                End If
+
+                For Each n In argumentList.Arguments.GetWithSeparators()
+                    If n.IsToken AndAlso n.AsToken() = token Then
+                        Return False
+                    End If
+
+                    If n.IsNode AndAlso DirectCast(n.AsNode(), ArgumentSyntax).IsNamed Then
+                        Return True
+                    End If
+                Next
+            End If
+
+            Return False
+        End Function
+
         <Extension()>
         Friend Function IsModifier(token As SyntaxToken) As Boolean
             Select Case token.Kind

@@ -10,6 +10,8 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(MiscellaneousDiagnosticListTable))]
     internal class MiscellaneousDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {

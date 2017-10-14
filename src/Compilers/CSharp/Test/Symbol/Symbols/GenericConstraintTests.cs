@@ -5593,15 +5593,23 @@ class B : A<S>
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (2,16): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // abstract class A<T>
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Object").WithLocation(2, 16),
                 // (1,8): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                // struct S { }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S").WithArguments("System.ValueType").WithLocation(1, 8),
                 // (4,23): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     internal abstract void M<U>() where U : struct, T;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(4, 23),
                 // (8,23): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     internal override void M<U>() { }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(8, 23),
                 // (2,16): error CS1729: 'object' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "A").WithArguments("object", "0").WithLocation(2, 16));
+                // abstract class A<T>
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "A").WithArguments("object", "0").WithLocation(2, 16),
+                // (6,7): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // class B : A<S>
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Void").WithLocation(6, 7));
         }
 
         [WorkItem(11243, "DevDiv_Projects/Roslyn")]

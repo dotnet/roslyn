@@ -8536,41 +8536,51 @@ class FixedTest
         }
 
         [Fact]
-        public void CS0255ERR_StackallocInCatchFinally()
+        public void CS0255ERR_StackallocInFinally()
         {
             var text = @"
-using System;
-
-public class TestTryFinally
+unsafe class Test
 {
-   public static unsafe void Test()
-   {
-      int i = 123;
-      string s = ""Some string"";
-      object o = s;
-
-      try
-      {
-         // Conversion is not valid; o contains a string not an int
-         i = (int) o;
-      }
-
-      finally
-      {
-         Console.Write(""i = {0}"", i);
-         int* fib = stackalloc int[100];   // CS0255
-      }
-   }
-
-   public static void Main()
-   {
-   }
-}
-";
+    void M()
+    {
+        try
+        {
+            // Something        
+        }
+        finally
+        {
+            int* fib = stackalloc int[100];
+        }
+    }
+}";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (21,21): error CS0255: stackalloc may not be used in a catch or finally block
-                //          int* fib = stackalloc int[100];   // CS0255
-                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]"));
+                // (12,24): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* fib = stackalloc int[100];
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]").WithLocation(12, 24));
+        }
+
+        [Fact]
+        public void CS0255ERR_StackallocInCatch()
+        {
+            var text = @"
+unsafe class Test
+{
+    void M()
+    {
+        try
+        {
+            // Something        
+        }
+        catch
+        {
+            int* fib = stackalloc int[100];
+        }
+    }
+}";
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (12,24): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* fib = stackalloc int[100];
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]").WithLocation(12, 24));
         }
 
         [Fact]
@@ -10250,8 +10260,9 @@ public class Test
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "h1a").WithArguments("H1<A>.implicit operator G1<A>(H1<A>)", "H0.implicit operator G0(H0)", "H1<A>", "G0"));
         }
 
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
-        public void CS0459ERR_AddrOnReadOnlyLocal()
+        public void AddrOnReadOnlyLocal()
         {
             var text = @"
 class A
@@ -10261,25 +10272,19 @@ class A
         int[] ints = new int[] { 1, 2, 3 };
         foreach (int i in ints)
         {
-            int *j = &i;  // CS0459
+            int *j = &i;  
         }
 
         fixed (int *i = &_i)
         {
-            int **j = &i;  // CS0459
+            int **j = &i;  
         }
     }
 
     private int _i = 0;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,23): error CS0459: Cannot take the address of a read-only local variable
-                //             int *j = &i;  // CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i"),
-                // (14,24): error CS0459: Cannot take the address of a read-only local variable
-                //             int **j = &i;  // CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i"));
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -10811,6 +10816,28 @@ class D : C
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_BadTypeReference, Line = 16, Column = 32 } });
+        }
+
+        [Fact]
+        public void CS0574ERR_BadDestructorName()
+        {
+            var test = @"
+namespace x
+{
+    public class iii
+    {
+        ~iiii(){}
+        public static void Main()
+        {
+        }
+    }
+}
+";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,10): error CS0574: Name of destructor must match name of class
+                //         ~iiii(){}
+                Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
         }
 
         [WorkItem(541951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541951")]
@@ -13450,6 +13477,26 @@ public class A : Attribute
         }
 
         [Fact]
+        public void CS1520ERR_MemberNeedsType_02()
+        {
+            CreateStandardCompilation(
+@"class Program
+{
+    Main() {}
+    Helper() {}
+    \u0050rogram(int x) {}
+}")
+                .VerifyDiagnostics(
+                // (3,5): error CS1520: Method must have a return type
+                //     Main() {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Main"),
+                // (4,5): error CS1520: Method must have a return type
+                //     Helper() {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Helper").WithLocation(4, 5)
+                );
+        }
+
+        [Fact]
         public void CS1525ERR_InvalidExprTerm()
         {
             CreateStandardCompilation(
@@ -15491,22 +15538,15 @@ public unsafe class C
     public readonly S _s2;
 }";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (18,9): error CS1708: Fixed size buffers can only be accessed through locals or fields
+                // (18,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //         myC.UnsafeMethod().name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedNeedsLvalue, "myC.UnsafeMethod().name"),
-                // (19,9): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
-                //         C._s1.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "C._s1.name"),
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC.UnsafeMethod().name").WithLocation(18, 9),
                 // (19,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //         C._s1.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "C._s1.name"),
-                // (20,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
-                //         myC._s2.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "myC._s2.name"),
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "C._s1.name").WithLocation(19, 9),
                 // (20,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //         myC._s2.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC._s2.name")
-                );
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC._s2.name").WithLocation(20, 9));
         }
 
         [Fact, WorkItem(543995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543995"), WorkItem(544258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
@@ -15681,16 +15721,19 @@ class C
 public class C
 {
     public static int Main()
-        {
-            Test(age: 5,"""");
+    {
+        Test(age: 5,"""");
         return 0;
-        }
-    public static void Test(int age , string Name)
+    }
+    public static void Test(int age, string Name)
     { }
-
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = 1738, Line = 6, Column = 25 } });
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular6);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         Test(age: 5,"");
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, @"""""").WithArguments("7.2").WithLocation(6, 21)
+                );
         }
 
         [Fact]
@@ -21965,7 +22008,8 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(13, 42),
                 // (13,46): error CS0149: Method name expected
                 //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(13, 46));
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(13, 46)
+                );
         }
 
         [WorkItem(538430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538430")]

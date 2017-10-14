@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     var oldSnapshot = buffer.CurrentSnapshot;
                     var oldText = oldSnapshot.AsText();
                     var changes = newText.GetTextChanges(oldText);
-                    if (Workspace.TryGetWorkspace(oldText.Container, out var workspace))
+                    if (CodeAnalysis.Workspace.TryGetWorkspace(oldText.Container, out var workspace))
                     {
                         var undoService = workspace.Services.GetService<ISourceTextUndoService>();
                         undoService.BeginUndoTransaction(oldSnapshot);

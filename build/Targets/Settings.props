@@ -18,8 +18,9 @@
     <!-- Disable analyzers if NuGet deviated from the expected restore location (e.g. by changing case on a case-sensitive file system) -->
     <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Analyzer.Utilities.dll')">False</UseRoslynAnalyzers>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/roslyn/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
-    <RoslynRuntimeIdentifier Condition="'$(RoslynRuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7-x64</RoslynRuntimeIdentifier>
-    <RoslynPortableTargetFrameworks>net46;netcoreapp2.0</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks>net461;netcoreapp2.0</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks46>net46;netcoreapp2.0</RoslynPortableTargetFrameworks46>
+    <RoslynPortableRuntimeIdentifiers>win7;win7-x64</RoslynPortableRuntimeIdentifiers>
  
     <Features>strict,IOperation</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
@@ -81,7 +82,6 @@
     <!-- https://github.com/dotnet/roslyn/issues/21183 -->
     <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>
 
-    <RoslynNetSdkRootPath>$(MSBuildSDKsPath)\Microsoft.NET.Sdk\Sdk\</RoslynNetSdkRootPath> 
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
 
     <!-- Live Unit Testing does not currently support PackageReference style restore unless the Sdk="Microsoft.NET.Sdk" attribute is used on projects.
@@ -118,6 +118,8 @@
          
          https://github.com/dotnet/roslyn/issues/20932 -->
     <RoslynPortableTargetFrameworks>netcoreapp2.0</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks46>netcoreapp2.0</RoslynPortableTargetFrameworks46>
+    <RoslynPortableRuntimeIdentifiers>ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.12-x64</RoslynPortableRuntimeIdentifiers>
   </PropertyGroup>
 
   <!--
@@ -167,7 +169,7 @@
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(RoslynSdkProject)' != 'true'" />
 
-  <Import Project="$(RoslynNetSdkRootPath)Sdk.props" Condition="'$(RoslynSdkProject)' == 'true'" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(RoslynSdkProject)' == 'true'" />
 
   <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
 
@@ -175,7 +177,12 @@
     <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props" />
   </ImportGroup>
 
-  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == ''" />
+  <!-- 
+    Temporarirly disable Toolset builds on Unix 
+
+    https://github.com/dotnet/roslyn/issues/21725
+   -->
+  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == '' AND '$(OS)' == 'Windows_NT'" />
 
   <!-- 
     Language specifc settings 

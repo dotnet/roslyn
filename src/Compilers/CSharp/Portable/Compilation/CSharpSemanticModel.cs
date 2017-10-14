@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The root node of the syntax tree that this binding is based on.
         /// </summary>
-        internal abstract CSharpSyntaxNode Root { get; }
+        internal new abstract CSharpSyntaxNode Root { get; }
 
 
         // Is this node one that could be successfully interrogated by GetSymbolInfo/GetTypeInfo/GetMemberGroup/GetConstantValue?
@@ -465,19 +465,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var csnode = (CSharpSyntaxNode)node;
             CheckSyntaxNode(csnode);
-            return this.GetOperationWorker(csnode, GetOperationOptions.Lowest, cancellationToken);
+
+            return this.GetOperationWorker(csnode, cancellationToken);
         }
 
-        internal enum GetOperationOptions
-        {
-            Highest,
-            Lowest,
-            Parent
-        }
-
-        internal virtual IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        internal virtual IOperation GetOperationWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
             return null;
+        }
+
+        internal override IOperation CloneOperationCore(IOperation operation)
+        {
+            return CSharpOperationCloner.Instance.Visit(operation);
         }
 
         #region GetSymbolInfo
@@ -1887,29 +1886,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     type = boundExpr.Type;
 
-                    // Use of local before declaration requires some additional fixup.
-                    // Due to complications around implicit locals and type inference, we do not
-                    // try to obtain a type of a local when it is used before declaration, we use
-                    // a special error type symbol. However, semantic model should return the same
-                    // type information for usage of a local before and after its declaration.
-                    // We will detect the use before declaration cases and replace the error type
-                    // symbol with the one obtained from the local. It should be safe to get the type
-                    // from the local at this point.
-                    if (type.IsErrorType() && boundExpr.Kind == BoundKind.Local)
+                    switch (boundExpr.Kind)
                     {
-                        var extended = type as ExtendedErrorTypeSymbol;
-                        if ((object)extended != null && extended.VariableUsedBeforeDeclaration)
-                        {
-                            type = ((BoundLocal)boundExpr).LocalSymbol.Type;
-                        }
-                    }
-
-                    if (boundExpr.Kind == BoundKind.ConvertedTupleLiteral)
-                    {
-                        // The bound tree always fully binds tuple literals. From the language point of
-                        // view, however, converted tuple literals represent tuple conversions
-                        // from tuple literal expressions which may or may not have types
-                        type = ((BoundConvertedTupleLiteral)boundExpr).NaturalTypeOpt;
+                        case BoundKind.Local:
+                            {
+                                // Use of local before declaration requires some additional fixup.
+                                // Due to complications around implicit locals and type inference, we do not
+                                // try to obtain a type of a local when it is used before declaration, we use
+                                // a special error type symbol. However, semantic model should return the same
+                                // type information for usage of a local before and after its declaration.
+                                // We will detect the use before declaration cases and replace the error type
+                                // symbol with the one obtained from the local. It should be safe to get the type
+                                // from the local at this point.
+                                if (type is ExtendedErrorTypeSymbol extended && extended.VariableUsedBeforeDeclaration)
+                                {
+                                    type = ((BoundLocal)boundExpr).LocalSymbol.Type;
+                                }
+                                break;
+                            }
+                        case BoundKind.ConvertedTupleLiteral:
+                            {
+                                // The bound tree always fully binds tuple literals. From the language point of
+                                // view, however, converted tuple literals represent tuple conversions
+                                // from tuple literal expressions which may or may not have types
+                                type = ((BoundConvertedTupleLiteral)boundExpr).NaturalTypeOpt;
+                                break;
+                            }
                     }
                 }
 
@@ -4511,6 +4513,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.SyntaxTree;
             }
         }
+
+        protected sealed override SyntaxNode RootCore => this.Root;
 
         private SymbolInfo GetSymbolInfoFromNode(SyntaxNode node, CancellationToken cancellationToken)
         {

@@ -37,7 +37,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var remoteHostService = CreateService();
 
             var input = "Test";
-            var output = remoteHostService.Connect(input, serializedSession: null);
+            var output = remoteHostService.Connect(input, serializedSession: null, cancellationToken: CancellationToken.None);
 
             Assert.Equal(input, output);
         }
@@ -98,11 +98,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var solution = workspace.CurrentSolution;
 
-                var result = await client.TryRunCodeAnalysisRemoteAsync<ImmutableArray<DesignerAttributeDocumentData>>(
-                    solution, nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
-                    solution.Projects.First().Id, CancellationToken.None);
+                var keepAliveSession = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(CancellationToken.None);
+                var result = await keepAliveSession.TryInvokeAsync<DesignerAttributeResult>(
+                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
+                    solution,
+                    new object[] { solution.Projects.First().DocumentIds.First() },
+                    CancellationToken.None);
 
-                Assert.Equal(result[0].DesignerAttributeArgument, "Form");
+                Assert.Equal(result.DesignerAttributeArgument, "Form");
             }
         }
 

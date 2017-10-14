@@ -177,6 +177,10 @@ namespace System
     {
     }
 
+    public class Void
+    {
+    }
+
     public class Array : Object
     {
     }

@@ -5015,5 +5015,50 @@ class Test
 ",
             MainDescription("T Test.F<T>()"));
         }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(403665, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=403665&_a=edit")]
+        public async Task TestExceptionWithCrefToConstructorDoesNotCrash()
+        {
+            await TestAsync(
+@"
+class Test
+{
+    /// <summary>
+    /// </summary>
+    /// <exception cref=""Test.Test""/>
+    public Test$$() {}
+}
+",
+            MainDescription("Test.Test()"));
+        }
+
+        [WorkItem(22450, "https://github.com/dotnet/roslyn/issues/22450")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefLikeTypesNoDeprecated()
+        {
+            var xmlString = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
+            <Document FilePath=""ReferencedDocument"">
+public ref struct TestRef
+{
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document FilePath=""SourceDocument"">
+ref struct Test
+{
+    private $$TestRef _field;
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            // There should be no [deprecated] attribute displayed.
+            await VerifyWithReferenceWorkerAsync(xmlString, MainDescription($"struct TestRef"));
+        }
     }
 }

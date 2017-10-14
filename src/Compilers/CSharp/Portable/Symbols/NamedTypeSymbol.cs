@@ -375,6 +375,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (method.IsExtensionMethod &&
                         ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
+                        var thisParam = method.Parameters.First();
+
+                        if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
+                            (thisParam.RefKind == RefKind.In && thisParam.Type.TypeKind != TypeKind.Struct))
+                        {
+                            // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
+                            continue;
+                        }
+
                         Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
                         methods.Add(method);
                     }
@@ -824,6 +833,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return this.ConstructUnboundGenericType();
         }
+
+        /// <summary>
+        /// Gets a value indicating whether this type has an EmbeddedAttribute or not.
+        /// </summary>
+        internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
         internal static readonly Func<TypeWithModifiers, bool> TypeSymbolIsNullFunction = type => (object)type.Type == null;
 

@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     compilationContext.RegisterOperationBlockStartAction(
                         (operationBlockContext) =>
                         {
-
                             if (operationBlockContext.OwningSymbol is IMethodSymbol containingMethod)
                             {
                                 Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes = new Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>>();
@@ -54,10 +53,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 operationBlockContext.RegisterOperationAction(
                                    (operationContext) =>
                                    {
-                                       IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
-                                       AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
+                                       if (operationContext.Operation is IAssignmentExpression assignment)
+                                       {
+                                           AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
+                                       }
+                                       else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
+                                       {
+                                           SyntaxNode syntax = increment.Syntax;
+                                           ITypeSymbol type = increment.Type;
+                                           Optional<object> constantValue = new Optional<object>(1);
+                                           bool isImplicit = increment.IsImplicit;
+                                           var value = new LiteralExpression(operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
+
+                                           AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
+                                       }
+                                       else
+                                       {
+                                           throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
+                                       }
                                    },
-                                   OperationKind.AssignmentExpression,
+                                   OperationKind.SimpleAssignmentExpression,
                                    OperationKind.CompoundAssignmentExpression,
                                    OperationKind.IncrementExpression);
 
@@ -80,19 +95,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
-                                        IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
-                                        foreach (IVariableDeclaration variable in declaration.Declarations)
+                                        IVariableInitializer initializer = (IVariableInitializer)operationContext.Operation;
+                                        if (initializer.Parent is IVariableDeclaration variableDeclaration)
                                         {
-                                            foreach (ILocalSymbol local in variable.Variables)
+                                            foreach (ILocalSymbol local in variableDeclaration.Variables)
                                             {
-                                                if (variable.Initializer != null)
-                                                {
-                                                    AssignTo(local, local.Type, localsSourceTypes, variable.Initializer);
-                                                }
+                                                AssignTo(local, local.Type, localsSourceTypes, initializer.Value);
                                             }
                                         }
                                     },
-                                    OperationKind.VariableDeclarationStatement);
+                                    OperationKind.VariableInitializer);
 
                                 // Report locals that could have more specific types.
                                 operationBlockContext.RegisterOperationBlockEndAction(
@@ -119,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 AssignTo(initializedField, initializedField.Type, fieldsSourceTypes, initializer.Value);
                             }
                         },
-                        OperationKind.FieldInitializerAtDeclaration);
+                        OperationKind.FieldInitializer);
 
                     // Report fields that could have more specific types.
                     compilationContext.RegisterCompilationEndAction(
@@ -258,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (value.Kind == OperationKind.ConversionExpression)
             {
                 IConversionExpression conversion = (IConversionExpression)value;
-                if (!conversion.IsExplicit)
+                if (!conversion.IsExplicitInCode)
                 {
                     return conversion.Operand.Type;
                 }

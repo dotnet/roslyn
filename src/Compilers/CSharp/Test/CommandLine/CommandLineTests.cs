@@ -1417,7 +1417,7 @@ d.cs
         public void LanguageVersion_TryParseTurkishDisplayString()
         {
             var originalCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR", useUserOverride: false);
             Assert.True("ISO-1".TryParse(out var version));
             Assert.Equal(LanguageVersion.CSharp1, version);
             Thread.CurrentThread.CurrentCulture = originalCulture;
@@ -9213,6 +9213,77 @@ class C {
             }
         }
 
+        [CompilerTrait(CompilerFeature.Determinism)]
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void DeterministicPdbsRegardlessOfBitness()
+        {
+            var dir = Temp.CreateDirectory();
+            var dir32 = dir.CreateDirectory("32");
+            var dir64 = dir.CreateDirectory("64");
+
+            var programExe32 = dir32.CreateFile("Program.exe");
+            var programPdb32 = dir32.CreateFile("Program.pdb");
+            var programExe64 = dir64.CreateFile("Program.exe");
+            var programPdb64 = dir64.CreateFile("Program.pdb");
+
+            var sourceFile = dir.CreateFile("Source.cs").WriteAllText(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+namespace N
+{
+    using I4 = System.Int32;
+    
+    class Program
+    {
+        public static IEnumerable<int> F() 
+        {
+            I4 x = 1; 
+            yield return 1;
+            yield return x;
+        }
+
+        public static void Main(string[] args) 
+        {
+            dynamic x = 1;
+            const int a = 1;
+            F().ToArray();
+            Console.WriteLine(x + a);
+        }
+    }
+}");
+            var csc32src = $@"
+using System;
+using System.Reflection;
+
+class Runner
+{{
+    static int Main(string[] args)
+    {{
+        var assembly = Assembly.LoadFrom(@""{s_CSharpCompilerExecutable}"");
+        var program = assembly.GetType(""{typeof(Program).FullName}"");
+        var main = program.GetMethod(""Main"");
+        return (int)main.Invoke(null, new object[] {{ args }});
+    }}
+}}
+";
+            var csc32 = CreateCompilationWithMscorlib46(csc32src, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86), assemblyName: "csc32");
+            var csc32exe = dir.CreateFile("csc32.exe").WriteAllBytes(csc32.EmitToArray());
+
+            dir.CopyFile(Path.ChangeExtension(s_CSharpCompilerExecutable, ".exe.config"), "csc32.exe.config");
+            dir.CopyFile(Path.Combine(Path.GetDirectoryName(s_CSharpCompilerExecutable), "csc.rsp"));
+
+            var output = ProcessUtilities.RunAndGetOutput(csc32exe.Path, $@"/nologo /debug:full /deterministic /out:Program.exe /pathmap:{dir32.Path}=X:\ ""{sourceFile.Path}""", expectedRetCode: 0, startFolder: dir32.Path);
+            Assert.Equal("", output);
+
+            output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $@"/nologo /debug:full /deterministic /out:Program.exe /pathmap:{dir64.Path}=X:\ ""{sourceFile.Path}""", expectedRetCode: 0, startFolder: dir64.Path);
+            Assert.Equal("", output);
+
+            AssertEx.Equal(programExe32.ReadAllBytes(), programExe64.ReadAllBytes());
+            AssertEx.Equal(programPdb32.ReadAllBytes(), programPdb64.ReadAllBytes());
+        }
+
         [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]
         [Fact]
         public void Version()
@@ -9478,6 +9549,78 @@ class C
             Assert.Equal(
                 $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
+        }
+
+        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
+        [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
+        public void MicrosoftDiaSymReaderNativeAltLoadPath()
+        {
+            var dir = Temp.CreateDirectory();
+            var cscDir = Path.GetDirectoryName(s_CSharpCompilerExecutable);
+            
+            // copy csc and dependencies except for DSRN:
+            foreach (var filePath in Directory.EnumerateFiles(cscDir))
+            {
+                var fileName = Path.GetFileName(filePath);
+
+                if (fileName.StartsWith("csc") ||
+                    fileName.StartsWith("System.") ||
+                    fileName.StartsWith("Microsoft.") && !fileName.StartsWith("Microsoft.DiaSymReader.Native"))
+                {
+                    dir.CopyFile(filePath);
+                }
+            }
+
+            dir.CreateFile("Source.cs").WriteAllText("class C { void F() { } }");
+
+            var cscCopy = Path.Combine(dir.Path, "csc.exe");
+
+            var arguments = "/nologo /t:library /debug:full Source.cs";
+
+            // env variable not set (deterministic) -- DSRN is required:
+            var result = ProcessUtilities.Run(cscCopy, arguments + " /deterministic", workingDirectory: dir.Path);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                "error CS0041: Unexpected error writing debug information -- 'Unable to load DLL 'Microsoft.DiaSymReader.Native.amd64.dll': " +
+                "The specified module could not be found. (Exception from HRESULT: 0x8007007E)'", result.Output.Trim());
+
+            // env variable not set (non-deterministic) -- globally registered SymReader is picked up:
+            result = ProcessUtilities.Run(cscCopy, arguments, workingDirectory: dir.Path);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", result.Output.Trim());
+
+            // env variable set:
+            result = ProcessUtilities.Run(
+                cscCopy,
+                arguments + " /deterministic",
+                workingDirectory: dir.Path, 
+                additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
+
+            Assert.Equal("", result.Output.Trim());
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")]
+        public void PdbPathNotEmittedWitoutPdb()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var source = @"class Program { static void Main() { } }";
+            var src = dir.CreateFile("a.cs").WriteAllText(source);
+            var args = new[] { "/nologo", "a.cs", "/out:a.exe", "/debug-" };
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var csc = new MockCSharpCompiler(null, dir.Path, args);
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            var exePath = Path.Combine(dir.Path, "a.exe");
+            Assert.True(File.Exists(exePath));
+            using (var peStream = File.OpenRead(exePath))
+            using (var peReader = new PEReader(peStream))
+            {
+                var debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory;
+                Assert.Equal(0, debugDirectory.Size);
+                Assert.Equal(0, debugDirectory.RelativeVirtualAddress);
+            }
         }
 
         public class QuotedArgumentTests

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
@@ -14,15 +12,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IEventAssignmentExpression : IOperation
     {
         /// <summary>
-        /// Event being bound.
+        /// Reference to the event being bound.
         /// </summary>
-        IEventSymbol Event { get; }
-
-        /// <summary>
-        /// Instance used to refer to the event being bound.
-        /// </summary>
-        IOperation EventInstance { get; }
-
+        IEventReferenceExpression EventReference { get; }
+        
         /// <summary>
         /// Handler supplied for the event.
         /// </summary>
