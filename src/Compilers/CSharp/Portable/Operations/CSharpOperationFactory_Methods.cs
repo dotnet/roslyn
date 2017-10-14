@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                       {
                           ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance();
 
-                          if (ReceiverOpt != null)
+                          if (ReceiverOpt != null && !ReceiverOpt.WasCompilerGenerated)
                           {
                               builder.Add(Create(ReceiverOpt));
                           }

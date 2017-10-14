@@ -558,7 +558,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IOperation CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
         {
-            Lazy<IOperation> instance = new Lazy<IOperation>(CreateInstanceReferenceExpression);
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => new InstanceReferenceExpression(
+                    semanticModel: _semanticModel,
+                    syntax: boundObjectInitializerMember.Syntax,
+                    type: boundObjectInitializerMember.ReceiverType,
+                    constantValue: default(Optional<object>),
+                    isImplicit: true));
 
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
             ITypeSymbol type = boundObjectInitializerMember.Type;
@@ -590,8 +595,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                             Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(
                                  () =>
                                  {
-                                     var builder = ArrayBuilder<IOperation>.GetInstance(boundObjectInitializerMember.Arguments.Length + 1);
-                                     builder.Add(CreateInstanceReferenceExpression());
+                                     var builder = ArrayBuilder<IOperation>.GetInstance(boundObjectInitializerMember.Arguments.Length);
                                      builder.AddRange(boundObjectInitializerMember.Arguments.Select(a => Create(a)));
                                      return builder.ToImmutableAndFree();
                                  });
@@ -618,16 +622,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return new LazyPropertyReferenceExpression(property, instance, property, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
                 default:
                     throw ExceptionUtilities.Unreachable;
-            }
-
-            IOperation CreateInstanceReferenceExpression()
-            {
-                return new InstanceReferenceExpression(
-                    semanticModel: _semanticModel,
-                    syntax: boundObjectInitializerMember.Syntax,
-                    type: boundObjectInitializerMember.ReceiverType,
-                    constantValue: default(Optional<object>),
-                    isImplicit: boundObjectInitializerMember.WasCompilerGenerated);
             }
         }
 

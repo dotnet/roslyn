@@ -1602,14 +1602,14 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (F 
                         Left: 
                           IFieldReferenceExpression: System.Int32 F.i (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
                             Instance Receiver: 
-                              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'i')
+                              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'i')
                         Right: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 's = ""abc""')
                         Left: 
                           IFieldReferenceExpression: System.String F.s (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 's')
                             Instance Receiver: 
-                              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 's')
+                              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 's')
                         Right: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"") (Syntax: '""abc""')
   AtLoopBottom:

@@ -60,8 +60,7 @@ public class Cls
 
             compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
 @"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
-  Children(3):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Cls, IsImplicit) (Syntax: 'Test2')
+  Children(2):
       IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'new object()')
         Arguments(0)
         Initializer: 

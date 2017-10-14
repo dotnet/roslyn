@@ -35,7 +35,7 @@ IInvocationExpression (void P.M2()) (OperationKind.InvocationExpression, Type: S
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences:true);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1215,8 +1215,7 @@ class P
 ";
             string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
-  Children(3):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid, IsImplicit) (Syntax: 'M2')
+  Children(2):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
@@ -1247,8 +1246,7 @@ class P
 ";
             string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1,)')
-  Children(3):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+  Children(2):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
@@ -1280,8 +1278,7 @@ class P
 ";
             string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1)')
-  Children(2):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+  Children(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
@@ -3378,8 +3375,7 @@ IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreation
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '[0] = 1')
             Left: 
               IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: '[0]')
-                Children(2):
-                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: '[0]')
+                Children(1):
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -3423,8 +3419,7 @@ IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreation
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '[0] = 1')
             Left: 
               IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: '[0]')
-                Children(2):
-                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: '[0]')
+                Children(1):
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -3468,7 +3463,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax
               Left: 
                 IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 0]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
                   Instance Receiver: 
-                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: '[0]')
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
                   Arguments(2):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
@@ -3565,7 +3560,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax
               Left: 
                 IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
                   Instance Receiver: 
-                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: '[0]')
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
                   Arguments(2):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
@@ -3658,7 +3653,7 @@ IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreation
             Left: 
               IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, [S s = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '[0]')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: '[0]')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: '[0]')
                 Arguments(2):
                     IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')

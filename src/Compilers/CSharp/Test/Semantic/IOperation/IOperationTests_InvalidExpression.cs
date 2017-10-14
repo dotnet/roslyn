@@ -63,8 +63,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'F(string.Empty)')
-  Children(2):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'F')
+  Children(1):
       IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
         Instance Receiver: 
           null
@@ -99,8 +98,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'F(string.Empty)')
-  Children(2):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'F')
+  Children(1):
       IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'string.Empty')
         Instance Receiver: 
           null
