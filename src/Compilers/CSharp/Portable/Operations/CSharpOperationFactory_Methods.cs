@@ -53,12 +53,37 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IVariableDeclaration CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
-            return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, Create(boundLocalDeclaration.InitializerOpt), _semanticModel, syntax);
+            IVariableInitializer initializer = null;
+            if (boundLocalDeclaration.InitializerOpt != null)
+            {
+                IOperation initializerValue = Create(boundLocalDeclaration.InitializerOpt);
+                SyntaxNode initializerSyntax = null;
+                bool isImplicit = false;
+                if (syntax is VariableDeclaratorSyntax variableDeclarator)
+                {
+                    initializerSyntax = variableDeclarator.Initializer;
+                }
+                else
+                {
+                    Debug.Fail($"Unexpected syntax kind: {syntax.Kind()}");
+                }
+
+                if (initializerSyntax == null)
+                {
+                    // There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
+                    initializerSyntax = initializerValue.Syntax;
+                    isImplicit = true;
+                }
+
+                initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit);
+            }
+
+            return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, initializer, _semanticModel, syntax);
         }
 
         private IVariableDeclaration CreateVariableDeclaration(BoundLocal boundLocal)
         {
-            return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initialValue: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
+            return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
         }
 
         private IOperation CreateBoundCallInstanceOperation(BoundCall boundCall)
@@ -84,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 
-            return new LazyEventReferenceExpression(@event, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
+            return new LazyEventReferenceExpression(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
         }
 
         private ImmutableArray<IArgument> DeriveArguments(

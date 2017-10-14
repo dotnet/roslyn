@@ -28,11 +28,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... iteLine("")')
-            IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
-              IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Sub() Con ... iteLine("")')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... iteLine("")')
+              IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
                 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine("")')
                   Expression: 
                     IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine("")')
@@ -43,12 +43,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "") (Syntax: '""')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
-                Statement: 
-                  null
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
-                ReturnedValue: 
-                  null
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
+                  Statement: 
+                    null
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
+                  ReturnedValue: 
+                    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -71,17 +71,16 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... iteLine("")')
   IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
-    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine("")')
-        Expression: 
-          IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine("")')
-            Instance Receiver: 
-              null
-            Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "") (Syntax: '""')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine("")')
+      Expression: 
+        IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine("")')
+          Instance Receiver: 
+            null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "") (Syntax: '""')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
       Statement: 
         null
@@ -112,11 +111,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... iteLine("")')
-            IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
-              IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Sub(i As  ... iteLine("")')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... iteLine("")')
+              IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
                 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
                   Expression: 
                     IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
@@ -127,12 +126,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
-                Statement: 
-                  null
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
-                ReturnedValue: 
-                  null
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
+                  Statement: 
+                    null
+                IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
+                  ReturnedValue: 
+                    null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -162,11 +161,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action(Of System.String)
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
-            IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-              IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Sub(c1 As ... iteLine("")')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+              IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
                 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
                   Expression: 
                     IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
@@ -177,12 +176,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-                Statement: 
-                  null
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-                ReturnedValue: 
-                  null
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
+                  Statement: 
+                    null
+                IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
+                  ReturnedValue: 
+                    null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -211,24 +210,25 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Func(Of System.String)
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nExistant()')
-            IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
-              Locals: Local_1: <anonymous local> As System.String
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
-                ReturnedValue: 
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
-                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      IInvalidExpression (OperationKind.InvalidExpression, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
-                        Children(0)
-              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
-                Statement: 
-                  null
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
-                ReturnedValue: 
-                  ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Function( ... nExistant()')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+              IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
+                Locals: Local_1: <anonymous local> As System.String
+                IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+                  ReturnedValue: 
+                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: 
+                        IInvalidExpression (OperationKind.InvalidExpression, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
+                          Children(0)
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
+                  Statement: 
+                    null
+                IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
+                  ReturnedValue: 
+                    ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -257,23 +257,24 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Func(Of System.String)
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function() 1')
-            IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-              Locals: Local_1: <anonymous local> As System.String
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '1')
-                ReturnedValue: 
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                Statement: 
-                  null
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                ReturnedValue: 
-                  ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Function() 1')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function() 1')
+              IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                Locals: Local_1: <anonymous local> As System.String
+                IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '1')
+                  ReturnedValue: 
+                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                  Statement: 
+                    null
+                IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                  ReturnedValue: 
+                    ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -302,20 +303,21 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'Function() 1')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() 1')
-            IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function() 1')
-              Locals: Local_1: <anonymous local> As System.Int32
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '1')
-                ReturnedValue: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Function() 1')
-                Statement: 
-                  null
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Function() 1')
-                ReturnedValue: 
-                  ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'Function() 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Function() 1')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'Function() 1')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() 1')
+              IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function() 1')
+                Locals: Local_1: <anonymous local> As System.Int32
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '1')
+                  ReturnedValue: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Function() 1')
+                  Statement: 
+                    null
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Function() 1')
+                  ReturnedValue: 
+                    ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'Function() 1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -340,11 +342,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action(Of System.String)
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: Sub (o As System.Object)) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub(o As Ob ... riteLine(o)')
-            IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
-              IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Sub(o As  ... riteLine(o)')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: Sub (o As System.Object)) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub(o As Ob ... riteLine(o)')
+              IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
                 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(o)')
                   Expression: 
                     IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(o)')
@@ -355,12 +357,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                             IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
-                Statement: 
-                  null
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
-                ReturnedValue: 
-                  null
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
+                  Statement: 
+                    null
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
+                  ReturnedValue: 
+                    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -385,13 +387,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
           Statement: 
             null
@@ -422,13 +423,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
           Statement: 
             null
@@ -465,17 +465,16 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
-                Instance Receiver: 
-                  null
-                Arguments(1):
-                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
-                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
           Statement: 
             null
@@ -595,26 +594,26 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action(Of System.Object)
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Sub(i ... f Integer))')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Sub(i ... f Integer))')
-            Target: 
-              IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
-                IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-                  IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= CType(Sub ... f Integer))')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Sub(i ... f Integer))')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Sub(i ... f Integer))')
+              Target: 
+                IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+                  IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
                     IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
                       Expression: 
                         IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
                           Instance Receiver: 
                             null
                           Arguments(0)
-                  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-                    Statement: 
-                      null
-                  IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-                    ReturnedValue: 
-                      null
+                    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
+                      Statement: 
+                        null
+                    IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
+                      ReturnedValue: 
+                        null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -680,13 +679,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
           Statement: 
             null
@@ -754,14 +752,15 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action(Of System.Object)
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Addre ... f Integer))')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Addre ... f Integer))')
-            Target: 
-              IMethodReferenceExpression: Sub Program.M1(i As System.Int32) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf M1')
-                Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= CType(Add ... f Integer))')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Addre ... f Integer))')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Addre ... f Integer))')
+              Target: 
+                IMethodReferenceExpression: Sub Program.M1(i As System.Int32) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf M1')
+                  Instance Receiver: 
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -792,13 +791,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
           Statement: 
             null
@@ -831,13 +829,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
           Statement: 
             null
@@ -874,17 +871,16 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
-                Instance Receiver: 
-                  null
-                Arguments(1):
-                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
-                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
           Statement: 
             null
@@ -1086,13 +1082,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
           Statement: 
             null
@@ -1125,13 +1120,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
           Statement: 
             null
@@ -1164,13 +1158,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
           Statement: 
             null
@@ -1207,17 +1200,16 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
-                Instance Receiver: 
-                  null
-                Arguments(1):
-                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
-                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
           Statement: 
             null
@@ -1254,13 +1246,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
           Statement: 
             null
@@ -1340,13 +1331,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
           Statement: 
             null
@@ -1383,13 +1373,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
           Statement: 
             null
@@ -1457,13 +1446,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
           Statement: 
             null
@@ -1495,26 +1483,26 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... eLine(), 1)')
-        Children(2):
-            IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>(), IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-              Target: 
-                IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
-                  IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New Actio ... eLine(), 1)')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... eLine(), 1)')
+          Children(2):
+              IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>(), IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                Target: 
+                  IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
                       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
                         Expression: 
                           IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
                             Instance Receiver: 
                               null
                             Arguments(0)
-                    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                      Statement: 
-                        null
-                    IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                      ReturnedValue: 
-                        null
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                        Statement: 
+                          null
+                      IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                        ReturnedValue: 
+                          null
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1544,13 +1532,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
           Statement: 
             null
@@ -1617,13 +1604,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... WriteLine()')
           Statement: 
             null
@@ -1660,17 +1646,16 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
-                Instance Receiver: 
-                  null
-                Arguments(1):
-                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
-                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
           Statement: 
             null
@@ -1705,13 +1690,12 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
       IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
-            Expression: 
-              IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
+          Expression: 
+            IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+              Instance Receiver: 
+                null
+              Arguments(0)
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
           Statement: 
             null
@@ -1795,11 +1779,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf Method2')
-        Target: 
-          IMethodReferenceExpression: Sub M1.Method2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
-            Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf Method2')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf Method2')
+          Target: 
+            IMethodReferenceExpression: Sub M1.Method2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1853,11 +1838,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf o.ToString')
-        Target: 
-          IMethodReferenceExpression: Function System.Object.ToString() As System.String (IsVirtual) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf o.ToString')
-            Instance Receiver: 
-              ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf o.ToString')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf o.ToString')
+          Target: 
+            IMethodReferenceExpression: Function System.Object.ToString() As System.String (IsVirtual) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf o.ToString')
+              Instance Receiver: 
+                ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1885,13 +1871,14 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
-        Target: 
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
-            Children(1):
-                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
-                  Children(1):
-                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+          Target: 
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+              Children(1):
+                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+                    Children(1):
+                        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1925,13 +1912,14 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action(Of System.String)
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
-        Target: 
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
-            Children(1):
-                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
-                  Children(1):
-                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+          Target: 
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+              Children(1):
+                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+                    Children(1):
+                        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1964,11 +1952,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Func(Of System.String)
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
-        Target: 
-          IMethodReferenceExpression: Function M1.Method2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf Method2')
-            Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+          Target: 
+            IMethodReferenceExpression: Function M1.Method2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf Method2')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2001,13 +1990,14 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Func(Of System.String)
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
-        Target: 
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
-            Children(1):
-                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
-                  Children(1):
-                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+          Target: 
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+              Children(1):
+                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+                    Children(1):
+                        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2046,11 +2036,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf Method2')
-        Target: 
-          IMethodReferenceExpression: Function M1.Method2() As System.Object (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
-            Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf Method2')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf Method2')
+          Target: 
+            IMethodReferenceExpression: Function M1.Method2() As System.Object (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2078,11 +2069,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action(Of System.Int32)
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'AddressOf Method2')
-        Target: 
-          IMethodReferenceExpression: Sub M1.Method2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
-            Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf Method2')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'AddressOf Method2')
+          Target: 
+            IMethodReferenceExpression: Sub M1.Method2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2114,14 +2106,15 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.String
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
-            Children(1):
-                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
-                  Children(1):
-                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+              Children(1):
+                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+                    Children(1):
+                        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3067,16 +3060,17 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... Method2, 1)')
-        Children(2):
-            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
-              Children(1):
-                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
-                    Children(1):
-                        IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
-                          Children(1):
-                              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New Actio ... Method2, 1)')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... Method2, 1)')
+          Children(2):
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+                Children(1):
+                    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+                      Children(1):
+                          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+                            Children(1):
+                                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3311,16 +3305,17 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As Sub <generated method>()
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
-            IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-                Statement: 
-                  null
-              IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-                ReturnedValue: 
-                  null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Sub()'BIN ... End Sub')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
+              IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+                  Statement: 
+                    null
+                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+                  ReturnedValue: 
+                    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -3374,23 +3369,23 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As Sub <generated method>()
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
-            IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-              IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Sub() Con ... WriteLine()')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+              IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
                 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
                   Expression: 
                     IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
                       Instance Receiver: 
                         null
                       Arguments(0)
-              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                Statement: 
-                  null
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
-                ReturnedValue: 
-                  null
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                  Statement: 
+                    null
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
+                  ReturnedValue: 
+                    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
