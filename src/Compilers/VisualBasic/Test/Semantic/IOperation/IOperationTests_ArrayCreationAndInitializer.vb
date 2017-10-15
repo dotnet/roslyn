@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -1220,6 +1220,42 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
+        Public Sub SimpleArrayCreation_ConstantConversion()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Public Sub F()
+        Dim a = New String(0.0) {}'BIND:"New String(0.0) {}"
+    End Sub
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String(), IsInvalid) (Syntax: 'New String(0.0) {}')
+  Dimension Sizes(1):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '0.0')
+        Left: 
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '0.0')
+  Initializer: 
+    IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
+      Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Integer'.
+        Dim a = New String(0.0) {}'BIND:"New String(0.0) {}"
+                           ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
 End Namespace
