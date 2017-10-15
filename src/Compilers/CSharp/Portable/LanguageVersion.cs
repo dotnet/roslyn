@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         Default = 0,
 
         /// <summary>
-        /// C# language version 1.0.
+        /// C# language version 1
         /// </summary>
         CSharp1 = 1,
 
         /// <summary>
-        /// C# language version 2.0.
+        /// C# language version 2
         /// </summary>
         CSharp2 = 2,
 
         /// <summary>
-        /// C# language version 3.0.
+        /// C# language version 3
         /// </summary>
         /// <remarks> 
         /// Features: LINQ.
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp3 = 3,
 
         /// <summary>
-        /// C# language version 4.0.
+        /// C# language version 4
         /// </summary>
         /// <remarks> 
         /// Features: dynamic.
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp4 = 4,
 
         /// <summary>
-        /// C# language version 5.0.
+        /// C# language version 5
         /// </summary>
         /// <remarks> 
         /// Features: async.
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp5 = 5,
 
         /// <summary> 
-        /// C# language version 6.0.
+        /// C# language version 6
         /// </summary>
         /// <remarks>
         /// <para>Features:</para>
@@ -65,18 +65,56 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp6 = 6,
 
         /// <summary>
-        /// C# language version 7.
+        /// C# language version 7.0
         /// </summary>
+        /// <remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Out variables</description></item>
+        /// <item><description>Pattern-matching</description></item>
+        /// <item><description>Tuples</description></item>
+        /// <item><description>Deconstruction</description></item>
+        /// <item><description>Discards</description></item>
+        /// <item><description>Local functions</description></item>
+        /// <item><description>Digit separators</description></item>
+        /// <item><description>Ref returns and locals</description></item>
+        /// <item><description>Generalized async return types</description></item>
+        /// <item><description>More expression-bodied members</description></item>
+        /// <item><description>Throw expressions</description></item>
+        /// </list>
+        /// </remarks>
         CSharp7 = 7,
 
         /// <summary>
         /// C# language version 7.1
         /// </summary>
+        /// <remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Async Main</description></item>
+        /// <item><description>Default literal</description></item>
+        /// <item><description>Reference assemblies</description></item>
+        /// <item><description>Inferred tuple element names</description></item>
+        /// <item><description>Pattern-matching with generics</description></item>
+        /// </list>
+        /// </remarks>
         CSharp7_1 = 701,
 
         /// <summary>
         /// C# language version 7.2
         /// </summary>
+        /// <remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Ref readonly</description></item>
+        /// <item><description>Ref and readonly structs</description></item>
+        /// <item><description>Ref extensions</description></item>
+        /// <item><description>Conditional ref operator</description></item>
+        /// <item><description>Private protected</description></item>
+        /// <item><description>Digit separators after base specifier</description></item>
+        /// <item><description>Non-trailing named arguments</description></item>
+        /// </list>
+        /// </remarks>
         CSharp7_2 = 702,
 
         /// <summary>
