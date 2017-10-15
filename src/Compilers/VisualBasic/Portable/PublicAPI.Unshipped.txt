@@ -1,5 +1,23 @@
 Microsoft.CodeAnalysis.VisualBasic.Conversion.ToCommonConversion() -> Microsoft.CodeAnalysis.Semantics.CommonConversion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax.AddTypes(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax.CloseBraceToken() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax.OpenBraceToken() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax.Types() -> Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax)
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax.Update(openBraceToken As Microsoft.CodeAnalysis.SyntaxToken, types As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax), closeBraceToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax.WithCloseBraceToken(closeBraceToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax.WithOpenBraceToken(openBraceToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax.WithTypes(types As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax
+Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TypeList = 793 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetConversion(conversionExpression As Microsoft.CodeAnalysis.Semantics.IConversionExpression) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetInConversion(argument As Microsoft.CodeAnalysis.Semantics.IArgument) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetOutConversion(argument As Microsoft.CodeAnalysis.Semantics.IArgument) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult).VisitTypeList(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax) -> TResult
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor.VisitTypeList(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax.Accept(Of TResult)(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)) -> TResult
+Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitTypeList(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TypeList(ParamArray types As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TypeList(openBraceToken As Microsoft.CodeAnalysis.SyntaxToken, types As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax), closeBraceToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TypeList(types As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeListSyntax

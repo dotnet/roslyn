@@ -8832,6 +8832,34 @@ Unify Enum declarations with other block type declarations.
       </node-kind>
     </node-structure>
 
+        <!--
+      **********************
+      -  TypeList
+      **********************-->
+    <node-structure name="TypeListSyntax" parent="TypeSyntax">
+      <description>Represents the type parameter list in a declaration.</description>
+      <lm-equiv name="TypeList"></lm-equiv>
+
+      <node-kind name="TypeList" />
+
+      <child name="OpenBraceToken" kind="OpenBraceToken">
+        <description>The "(" token.</description>
+        <lm-equiv name="TypeListLeftBrace"></lm-equiv>
+        <native-equiv name="TypeListLeftBrace"></native-equiv>
+      </child>
+
+      <child name="Types" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@TypeSyntax">
+        <description>A list of the type parameters. There must be at least one type parameter in the list.</description>
+        <lm-equiv name="TypeParameters"></lm-equiv>
+        <native-equiv name="TypeParameters"></native-equiv>
+      </child>
+
+      <child name="CloseBraceToken" kind="CloseBraceToken">
+        <description>The "}" token.</description>
+        <lm-equiv name="TypeListRightBrace"></lm-equiv>
+        <native-equiv name="TypeListRightBrace"></native-equiv>
+      </child>
+    </node-structure>
     <!--********************
       -  XmlNameToken
       **********************-->

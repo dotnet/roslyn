@@ -37,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         LeadingDigitSeparator
         NonTrailingNamedArguments
         PrivateProtected
+        TypeOfMany
     End Enum
 
     Friend Module FeatureExtensions
@@ -45,7 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Select Case feature
                 Case Feature.IOperation
                     Return "IOperation"
-
+                Case Feature.TypeOfMany
+                    Return "TypeOfMany"
                 Case Else
                     Return Nothing
             End Select
@@ -97,7 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Feature.NonTrailingNamedArguments,
                     Feature.PrivateProtected
                     Return LanguageVersion.VisualBasic15_5
-
+                Case Feature.TypeOfMany
+                    Return LanguageVersion.VisualBasic15 ' Experimental
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
@@ -165,6 +168,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_LeadingDigitSeparator
                 Case Feature.PrivateProtected
                     Return ERRID.FEATURE_PrivateProtected
+                Case Feature.TypeOfMany
+                    Return ERRID.FEATURE_TypeOfMany
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
