@@ -61,6 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (_currentSnapshot == null)
                 {
+                    _fileChangeTracker.StartFileChangeListeningAsync();
                     UpdateSnapshot();
                 }
 
