@@ -62,6 +62,11 @@ namespace Microsoft.CodeAnalysis.TodoComments
             RemoteHostClient client, Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             var keepAliveSession = await TryGetKeepAliveSessionAsync(client, cancellationToken).ConfigureAwait(false);
+            if (keepAliveSession == null)
+            {
+                // The client is not currently running, so we don't have any results.
+                return SpecializedCollections.EmptyList<TodoComment>();
+            }
 
             var result = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
                 nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),

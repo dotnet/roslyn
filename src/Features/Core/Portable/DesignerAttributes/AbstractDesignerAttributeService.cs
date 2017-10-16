@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
         private async Task<DesignerAttributeResult> ScanDesignerAttributesInRemoteHostAsync(RemoteHostClient client, Document document, CancellationToken cancellationToken)
         {
             var keepAliveSession = await TryGetKeepAliveSessionAsync(client, cancellationToken).ConfigureAwait(false);
+            if (keepAliveSession == null)
+            {
+                // The client is not currently running, so we don't know the state of the DesignerAttribute.
+                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: false, notApplicable: true);
+            }
 
             var result = await keepAliveSession.TryInvokeAsync<DesignerAttributeResult>(
                 nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
