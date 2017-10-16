@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -18,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     internal class ChangeSignatureDialogViewModel : AbstractNotifyPropertyChanged
     {
         private readonly INotificationService _notificationService;
+        private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly ParameterConfiguration _originalParameterConfiguration;
         private readonly ISymbol _symbol;
@@ -30,10 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
 
-        internal ChangeSignatureDialogViewModel(INotificationService notificationService, ParameterConfiguration parameters, ISymbol symbol, ClassificationTypeMap classificationTypeMap)
+        internal ChangeSignatureDialogViewModel(INotificationService notificationService, ParameterConfiguration parameters, ISymbol symbol, IClassificationFormatMap classificationFormatMap, ClassificationTypeMap classificationTypeMap)
         {
             _originalParameterConfiguration = parameters;
             _notificationService = notificationService;
+            _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
             int startingSelectedIndex = 0;
@@ -184,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 // TODO: Should probably use original syntax & formatting exactly instead of regenerating here
                 var displayParts = GetSignatureDisplayParts();
 
-                var textBlock = displayParts.ToTaggedText().ToTextBlock(_classificationTypeMap);
+                var textBlock = displayParts.ToTaggedText().ToTextBlock(_classificationFormatMap, _classificationTypeMap);
 
                 foreach (var inline in textBlock.Inlines)
                 {

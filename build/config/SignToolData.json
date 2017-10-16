@@ -29,6 +29,7 @@
         "Dlls\\CodeStyleFixes\\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll",
         "Dlls\\Diagnostics\\Roslyn.Hosting.Diagnostics.dll",
         "Dlls\\EditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "Dlls\\EditorFeatures.Wpf\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
         "Dlls\\Features\\Microsoft.CodeAnalysis.Features.dll",
         "Dlls\\InteractiveEditorFeatures\\Microsoft.CodeAnalysis.InteractiveEditorFeatures.dll",
         "Dlls\\InteractiveFeatures\\Microsoft.CodeAnalysis.InteractiveFeatures.dll",

@@ -22,12 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object)) As Task
             Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
 
-            Dim provider = New SemanticQuickInfoProvider(
-             workspace.GetService(Of IProjectionBufferFactoryService),
-             workspace.GetService(Of IEditorOptionsFactoryService),
-             workspace.GetService(Of ITextEditorFactoryService),
-             workspace.GetService(Of IGlyphService),
-             workspace.GetService(Of ClassificationTypeMap))
+            Dim provider = New SemanticQuickInfoProvider()
 
             Await TestSharedAsync(workspace, provider, position, expectedResults)
 

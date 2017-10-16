@@ -4,8 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
@@ -34,12 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             var kind = ForegroundThreadDataInfo.CreateDefault(defaultKind);
 
-            // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
-            // So instead of using the default priority which is above user input, we use Background priority which is 1 level
-            // below user input.
-            var taskScheduler = new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
-
-            return new ForegroundThreadData(Thread.CurrentThread, taskScheduler, kind);
+            return new ForegroundThreadData(Thread.CurrentThread, new SynchronizationContextTaskScheduler(SynchronizationContext.Current), kind);
         }
     }
 
@@ -86,17 +79,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             _foregroundThreadDataWhenCreated = CurrentForegroundThreadData;
 
-            // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's. But we won't assert
-            // anything if we haven't figured it out yet.
-            Contract.ThrowIfFalse(
-                CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown ||
-                Application.Current == null ||
-                Application.Current.Dispatcher.Thread == ForegroundThread);
-
             // ForegroundThreadAffinitizedObject might not necessarily be created on a foreground thread.
             // AssertIsForeground here only if the object must be created on a foreground thread.
             if (assertIsForeground)
             {
+                // Assert we have some kind of foreground thread
+                Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
+
                 AssertIsForeground();
             }
         }

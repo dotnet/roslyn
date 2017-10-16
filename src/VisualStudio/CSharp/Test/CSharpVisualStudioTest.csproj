@@ -37,6 +37,7 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj" />
     <ProjectReference Include="..\..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj" />
@@ -57,12 +58,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
     <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
