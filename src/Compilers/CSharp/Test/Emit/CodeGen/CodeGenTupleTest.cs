@@ -14983,6 +14983,9 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
+                // (7,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) tuple").WithArguments("recursive patterns", "patterns2").WithLocation(7, 18),
                 // (7,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 19),
@@ -15015,12 +15018,16 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
+                // (7,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (1, 1): return;
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(1, 1)").WithArguments("recursive patterns", "patterns2").WithLocation(7, 18),
                 // (7,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (1, 1): return;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "(1, 1)").WithArguments("recursive pattern").WithLocation(7, 18),
                 // (7,26): warning CS0162: Unreachable code detected
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 26));
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 26)
+                );
         }
 
         [Fact]
@@ -15040,6 +15047,9 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
+                // (7,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (1, 1) t: return;
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(1, 1) t").WithArguments("recursive patterns", "patterns2").WithLocation(7, 18),
                 // (7,18): error CS0570: 'recursive pattern' is not supported by the language
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "(1, 1) t").WithArguments("recursive pattern").WithLocation(7, 18),

@@ -5213,4 +5213,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MissingPattern" xml:space="preserve">
     <value>Pattern missing</value>
   </data>
+  <data name="IDS_FeatureRecursivePatterns" xml:space="preserve">
+    <value>recursive patterns</value>
+  </data>
 </root>

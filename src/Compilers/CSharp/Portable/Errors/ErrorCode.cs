@@ -1539,7 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
 
         #region diagnostics introduced for recursive patterns
-        // PROTOTYPE(patterns): renumber these before committing
+        // PROTOTYPE(patterns2): renumber these before committing
         ERR_MissingPattern = 8500,
         #endregion diagnostics introduced for recursive patterns
 

@@ -1512,36 +1512,63 @@ class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
+                // (21,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (int, int):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int)").WithArguments("recursive patterns", "patterns2").WithLocation(21, 18),
                 // (21,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 19),
                 // (21,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 24),
+                // (22,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (int x, int y):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int x, int y)").WithArguments("recursive patterns", "patterns2").WithLocation(22, 18),
+                // (23,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) z").WithArguments("recursive patterns", "patterns2").WithLocation(23, 18),
                 // (23,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 19),
                 // (23,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 24),
+                // (24,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int a, int b) c").WithArguments("recursive patterns", "patterns2").WithLocation(24, 18),
+                // (25,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(long, long) d").WithArguments("recursive patterns", "patterns2").WithLocation(25, 18),
                 // (25,19): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 19),
                 // (25,25): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 25),
+                // (30,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) z").WithArguments("recursive patterns", "patterns2").WithLocation(30, 18),
                 // (30,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 19),
                 // (30,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 24),
+                // (32,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(long, long) d").WithArguments("recursive patterns", "patterns2").WithLocation(32, 18),
                 // (32,19): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 19),
                 // (32,25): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 25),
+                // (37,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32, System.Int32) z").WithArguments("recursive patterns", "patterns2").WithLocation(37, 18),
+                // (39,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int64, System.Int64) d").WithArguments("recursive patterns", "patterns2").WithLocation(39, 18),
                 // (43,23): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 23),

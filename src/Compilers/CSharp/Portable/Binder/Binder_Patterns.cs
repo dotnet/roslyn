@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.DeconstructionPattern:
                 case SyntaxKind.PropertyPattern:
-                    // PROTOTYPE(patterns): binding not yet supported for recursive pattern forms.
+                    // PROTOTYPE(patterns2): binding not yet supported for recursive pattern forms.
                     diagnostics.Add(ErrorCode.ERR_BindToBogus, node.Location, "recursive pattern");
                     return new BoundConstantPattern(node, BadExpression(node), ConstantValue.Null, hasErrors: true);
 

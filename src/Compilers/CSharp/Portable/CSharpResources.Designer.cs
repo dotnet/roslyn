@@ -10638,6 +10638,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to recursive patterns.
+        /// </summary>
+        internal static string IDS_FeatureRecursivePatterns {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRecursivePatterns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ref extension methods.
         /// </summary>
         internal static string IDS_FeatureRefExtensionMethods {

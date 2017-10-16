@@ -325,15 +325,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return _syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken);
                     }
 
-                    return _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern, designation);
-                    // PROTOTYPE(patterns): need to check language version
+                    var node = _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern, designation);
+                    return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
                 }
 
                 if (parsePropertySubpattern())
                 {
                     parseDesignation();
-                    return _syntaxFactory.PropertyPattern(type, propertySubpattern, designation);
-                    // PROTOTYPE(patterns): need to check language version
+                    var node = _syntaxFactory.PropertyPattern(type, propertySubpattern, designation);
+                    return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
                 }
 
                 if (type != null && parseDesignation())

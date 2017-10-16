@@ -1304,7 +1304,11 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void ParenthesizedExpression_03()
         {
-            UsingStatement(@"switch (e) { case (x: ((3))): ; }");
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }",
+                // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // switch (e) { case (x: ((3))): ; }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(x: ((3)))").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19)
+                );
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -1368,7 +1372,17 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void ParenthesizedExpression_04()
         {
-            UsingStatement(@"switch (e) { case (((x: 3))): ; }");
+            UsingStatement(@"switch (e) { case (((x: 3))): ; }",
+                // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // switch (e) { case (((x: 3))): ; }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(((x: 3)))").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19),
+                // (1,20): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // switch (e) { case (((x: 3))): ; }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((x: 3))").WithArguments("recursive patterns", "patterns2").WithLocation(1, 20),
+                // (1,21): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // switch (e) { case (((x: 3))): ; }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(x: 3)").WithArguments("recursive patterns", "patterns2").WithLocation(1, 21)
+                );
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -1438,7 +1452,11 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void RecursivePattern_01()
         {
-            UsingStatement(@"switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }");
+            UsingStatement(@"switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }",
+                // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "T(X: 3, Y: 4){L: 5} p").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19)
+                );
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -1543,6 +1561,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void BrokenPattern_06()
         {
             UsingStatement(@"switch (e) { case (: ; }",
+                // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // switch (e) { case (: ; }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(: ").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19),
                 // (1,20): error CS1001: Identifier expected
                 // switch (e) { case (: ; }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 20),
@@ -1589,6 +1610,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void BrokenPattern_07()
         {
             UsingStatement(@"switch (e) { case (",
+                // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // switch (e) { case (
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19),
                 // (1,20): error CS1026: ) expected
                 // switch (e) { case (
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 20),
@@ -1604,7 +1628,11 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void ParenthesizedExpression_07()
         {
-            UsingStatement(@"switch (e) { case (): }");
+            UsingStatement(@"switch (e) { case (): }",
+                // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // switch (e) { case (): }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19)
+                );
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);

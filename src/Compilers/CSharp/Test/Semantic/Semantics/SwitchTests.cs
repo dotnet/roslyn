@@ -1163,6 +1163,15 @@ class C
                 // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case ((o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case ((o.GetType().Name.Length)):").WithArguments("pattern matching", "7.0").WithLocation(8, 13),
+                // (8,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((o.GetType().Name.Length))").WithArguments("recursive patterns", "patterns2").WithLocation(8, 18),
+                // (8,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(o.GetType().Name.Length)").WithArguments("recursive patterns", "patterns2").WithLocation(8, 19),
+                // (8,20): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o.GetType()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 20),
                 // (8,31): error CS1003: Syntax error, ',' expected
                 //             case ((o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(8, 31),
@@ -1189,6 +1198,15 @@ class C
                 // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case ((o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case ((o.GetType().Name.Length)):").WithArguments("pattern matching", "7.0").WithLocation(8, 13),
+                // (8,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((o.GetType().Name.Length))").WithArguments("recursive patterns", "patterns2").WithLocation(8, 18),
+                // (8,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(o.GetType().Name.Length)").WithArguments("recursive patterns", "patterns2").WithLocation(8, 19),
+                // (8,20): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o.GetType()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 20),
                 // (8,31): error CS1003: Syntax error, ',' expected
                 //             case ((o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(8, 31),
@@ -1212,6 +1230,15 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "M").WithLocation(9, 17)
                 );
             CreateStandardCompilation(text).VerifyDiagnostics(
+                // (8,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "((o.GetType().Name.Length))").WithArguments("recursive patterns", "patterns2").WithLocation(8, 18),
+                // (8,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(o.GetType().Name.Length)").WithArguments("recursive patterns", "patterns2").WithLocation(8, 19),
+                // (8,20): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o.GetType()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 20),
                 // (8,31): error CS1003: Syntax error, ',' expected
                 //             case ((o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(8, 31),
