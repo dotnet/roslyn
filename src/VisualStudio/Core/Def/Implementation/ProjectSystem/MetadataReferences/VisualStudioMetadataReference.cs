@@ -36,7 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Any legitimate change in a linked module will cause the assembly to change as well.
             _fileChangeTracker = new FileChangeTracker(provider.FileChangeService, filePath);
             _fileChangeTracker.UpdatedOnDisk += OnUpdatedOnDisk;
-            _fileChangeTracker.StartFileChangeListeningAsync();
+            // NOTE: We don't start the listening at this point because it hits the disk and we
+            // don't need to do that until someone actually asks us to see the contents, below.
         }
 
         public string FilePath
