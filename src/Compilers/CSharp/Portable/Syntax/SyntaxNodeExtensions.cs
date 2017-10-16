@@ -293,15 +293,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-
-        internal static Location GetLocationForDiagnostics(this SyntaxNode node)
-        {
-            if (node is LambdaExpressionSyntax lambda)
-            {
-                return Location.Create(lambda.SyntaxTree, Text.TextSpan.FromBounds(lambda.SpanStart, lambda.ArrowToken.Span.End));
-            }
-
-            return node.Location;
-        }
     }
 }
