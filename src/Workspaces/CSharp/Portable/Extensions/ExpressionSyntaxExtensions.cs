@@ -321,6 +321,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => expression.IsParentKind(SyntaxKind.RefExpression) ||
                (expression?.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword;
 
+        public static bool IsInInContext(this ExpressionSyntax expression)
+            => expression.IsParentKind(SyntaxKind.RefExpression) ||
+               (expression?.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.InKeyword;
+
         public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
         {
             if (expression.IsRightSideOfDotOrArrow())
