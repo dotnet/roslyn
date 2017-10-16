@@ -588,9 +588,9 @@ IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpre
                 Right: 
                   IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: D1, IsInvalid, IsImplicit) (Syntax: 'DeconstructMethod')
                     Target: 
-                      IMethodReferenceExpression: void C.DeconstructMethod(out System.Int32 a, out System.Int32 b) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'DeconstructMethod')
+                      IMethodReferenceExpression: void C.DeconstructMethod(out System.Int32 a, out System.Int32 b) (Static) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'DeconstructMethod')
                         Instance Receiver: 
-                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'DeconstructMethod')
+                          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.

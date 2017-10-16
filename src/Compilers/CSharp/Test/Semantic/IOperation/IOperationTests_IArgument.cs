@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2858,7 +2858,7 @@ class MyA : System.Attribute
             string expectedOperationTree = @"
 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Prop = ""test""')
   Left: 
-    IPropertyReferenceExpression: System.String MyA.Prop { get; set; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Prop')
+    IPropertyReferenceExpression: System.String MyA.Prop { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Prop')
       Instance Receiver: 
         null
   Right: 

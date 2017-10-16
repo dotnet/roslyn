@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -371,6 +372,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        [WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")]
         public void DelegateCreationExpression_ImplicitMethodBinding_InitializerBindingReturnsJustMethodReference()
         {
             string source = @"
@@ -381,14 +383,14 @@ class Program
     {
         Action a = /*<bind>*/M1/*</bind>*/;
     }
-    void M1() { }
+    static void M1() { }
 }
 ";
 
             string expectedOperationTree = @"
-IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
+IMethodReferenceExpression: void Program.M1() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -962,6 +964,70 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        [WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitStaticMethodBindingConversion_01()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action a = /*<bind>*/new Action(M1)/*</bind>*/;
+    }
+
+    static void M1()
+    { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action(M1)')
+  Target: 
+    IMethodReferenceExpression: void Program.M1() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
+      Instance Receiver: 
+        null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        [WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitStaticMethodBindingConversion_02()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action a = /*<bind>*/new Action(this.M1)/*</bind>*/;
+    }
+
+    static void M1()
+    { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(this.M1)')
+  Target: 
+    IMethodReferenceExpression: void Program.M1() (Static) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'this.M1')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'this')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (7,41): error CS0176: Member 'Program.M1()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         Action a = /*<bind>*/new Action(this.M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M1").WithArguments("Program.M1()").WithLocation(7, 41)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

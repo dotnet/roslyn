@@ -808,7 +808,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IMethodReferenceExpression CreateBoundMethodGroupSingleMethodOperation(BoundMethodGroup boundMethodGroup, IMethodSymbol methodSymbol, bool suppressVirtualCalls)
         {
             bool isVirtual = (methodSymbol.IsAbstract || methodSymbol.IsOverride || methodSymbol.IsVirtual) && !suppressVirtualCalls;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundMethodGroup.InstanceOpt));
+            BoundExpression receiverOpt = boundMethodGroup.InstanceOpt;
+
+            if (methodSymbol.IsStatic && receiverOpt != null && 
+                receiverOpt.WasCompilerGenerated && receiverOpt.Kind == BoundKind.ThisReference)
+            {
+                receiverOpt = null;
+            }
+
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(receiverOpt));
             SyntaxNode bindingSyntax = boundMethodGroup.Syntax;
             ITypeSymbol bindingType = null;
             Optional<object> bindingConstantValue = ConvertToOptional(boundMethodGroup.ConstantValue);
