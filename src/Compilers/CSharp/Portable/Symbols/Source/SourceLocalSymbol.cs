@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal virtual void SetValEscape(uint value)
         {
-            throw ExceptionUtilities.Unreachable;
+            _valEscapeScope = value;
         }
 
         public override Symbol ContainingSymbol

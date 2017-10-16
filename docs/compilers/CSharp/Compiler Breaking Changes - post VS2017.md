@@ -28,4 +28,38 @@ Consider the case where the type of `a` is `System.Func<bool>` and you write `va
 
 - https://github.com/dotnet/roslyn/issues/21582 In C# 7.1, when the default literal was introduced, it was accepted on the left-hand-side of a null-coalescing operator. For instance, in `default ?? 1`. In C# 7.2, this compiler bug was fixed to match the specification, and an error is produced instead ("Operator '??' cannot be applied to operand 'default'").
 
+- https://github.com/dotnet/roslyn/issues/21979 In C# 7.1 and previous, the compiler permitted converting a method group, in which the receiver is of type `System.TypedReference`, to a delegate type. Such code would throw `System.InvalidProgramException` at runtime. In C# 7.2 this is a compile-time error. For example, the line with the comment, below, would cause the compiler to report an error:
+``` c#
+static Func<int> M(__arglist)
+{
+    ArgIterator ai = new ArgIterator(__arglist);
+    while (ai.GetRemainingCount() > 0)
+    {
+        TypedReference tr = ai.GetNextArg();
+        return tr.GetHashCode; // delegate conversion causes a subsequent System.InvalidProgramException
+    }
+
+    return null;
+}
+```
+
 - https://github.com/dotnet/roslyn/issues/21485 In Roslyn 2.0, the `unsafe` modifier could be used on a local function without using the `/unsafe` flag on the compilation. In Roslyn 2.6 (Visual Studio 2017 verion 15.5) the compiler requires the `/unsafe` compilation flag, and produces a diagnostic if the flag is not used.
+
+- https://github.com/dotnet/roslyn/issues/20210 In C# 7.2, there are some uses of the new pattern switch construct, in which the switch expression is a constant, for which the compiler will produce warnings or errors not previously produced.
+> ``` c#
+>     switch (default(object))
+>     {
+>       case bool _:
+>       case true:  // new error: case subsumed by previous cases
+>       case false: // new error: case subsumed by previous cases
+>         break;
+>     }
+> 
+>     switch (1)
+>     {
+>       case 1 when true:
+>         break;
+>       default:
+>         break; // new warning: unreachable code
+>     }
+> ```

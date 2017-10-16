@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Parameter:
                     return !needWriteable || 
-                        ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.RefReadOnly;
+                        ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.In;
 
                 case BoundKind.Local:
                     // locals have home unless they are byval stack locals or ref-readonly
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // branch that has no home will need a temporary
                     // if both have no home, just say whole expression has no home 
                     // so we could just use one temp for the whole thing
-                    return HasHome(ternary.Consequence, needWriteable) || HasHome(ternary.Alternative, needWriteable);
+                    return HasHome(ternary.Consequence, needWriteable) && HasHome(ternary.Alternative, needWriteable);
 
                 default:
                     return false;

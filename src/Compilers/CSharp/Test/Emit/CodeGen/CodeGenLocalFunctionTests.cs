@@ -31,6 +31,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(22027, "https://github.com/dotnet/roslyn/issues/22027")]
+        public void Repro22027()
+        {
+            CompileAndVerify(@"
+class Program
+{
+static void Main(string[] args)
+{
+
+ }
+ public object TestLocalFn(object inp)
+ {
+     try
+     {
+         var sr = new object();
+         return sr;
+         void Local1()
+         {
+             var copy = inp;
+             Local2();
+         }
+         void Local2()
+         {
+
+         }
+     }
+     catch { throw; }
+ }
+}");
+        }
+
+        [Fact]
+        [WorkItem(21768, "https://github.com/dotnet/roslyn/issues/21768")]
+        public void Repro21768()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+using System.Linq;
+class C
+{
+    void Function(int someField) //necessary to have a parameter
+    {
+        using (IInterface db = null) //necessary to have this using statement
+        {
+            void LocalFunction() //necessary
+            {
+                var results =
+                    db.Query<Class1>() //need to call this method. using a constant array does not reproduce the bug.
+                    .Where(cje => cje.SomeField >= someField) //need expression tree here referencing parameter
+                    ;
+            }
+        }
+    }
+    interface IInterface : IDisposable
+    {
+        IQueryable<T> Query<T>();
+    }
+    class Class1
+    {
+        public int SomeField { get; set; }
+    }
+}", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
         [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
         public void Repro21811()
         {

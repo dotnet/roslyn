@@ -1080,7 +1080,7 @@ End Class
                 Dim textViewService = New TextBufferAssociatedViewService()
                 Dim buffers = New Collection(Of ITextBuffer)
                 buffers.Add(view.TextBuffer)
-                DirectCast(textViewService, IWpfTextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
+                DirectCast(textViewService, ITextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
 
@@ -1160,7 +1160,7 @@ End Class
                 Dim textViewService = New TextBufferAssociatedViewService()
                 Dim buffers = New Collection(Of ITextBuffer)
                 buffers.Add(view.TextBuffer)
-                DirectCast(textViewService, IWpfTextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
+                DirectCast(textViewService, ITextViewConnectionListener).SubjectBuffersConnected(view, ConnectionReason.TextViewLifetime, buffers)
 
                 Dim location = view.Caret.Position.BufferPosition.Position
                 view.Selection.Select(New SnapshotSpan(view.Caret.Position.BufferPosition, 2), False)

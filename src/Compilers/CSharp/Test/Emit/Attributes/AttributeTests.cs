@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -60,6 +59,286 @@ class C
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnStringParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+
+class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+    }
+}
+
+[Mark(b: new string[] { ""Hello"", ""World"" }, a: true)]
+[Mark(b: ""Hello"", true)]
+static class Program
+{
+}", parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (11,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [Mark(b: new string[] { "Hello", "World" }, a: true)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"Mark(b: new string[] { ""Hello"", ""World"" }, a: true)").WithLocation(11, 2),
+                // (12,7): error CS8323: Named argument 'b' is used out-of-position but is followed by an unnamed argument
+                // [Mark(b: "Hello", true)]
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(12, 7)
+                );
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnOrderedObjectParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(a: true, b: new object[] { ""Hello"", ""World"" })]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write($""B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}"");
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"B.Length=2, B[0]=Hello, B[1]=World");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(b: new object[] { ""Hello"", ""World"" }, a: true)]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write($""B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}"");
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"B.Length=2, B[0]=Hello, B[1]=World");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument2()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        A = a;
+        B = b;
+    }
+    public bool A { get; }
+    public object[] B { get; }
+}
+
+[Mark(b: ""Hello"", a: true)]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write($""A={attr.A}, B.Length={attr.B.Length}, B[0]={attr.B[0]}"");
+    }
+}", options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"A=True, B.Length=1, B[0]=Hello");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument3()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(true, new object[] { ""Hello"" }, new object[] { ""World"" })]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        var worldArray = (object[])attr.B[1];
+        Console.Write(worldArray[0]);
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"World");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument4()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(a: true, new object[] { ""Hello"" }, new object[] { ""World"" })]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        var worldArray = (object[])attr.B[1];
+        Console.Write(worldArray[0]);
+    }
+}", options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"World");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument5()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(b: null, a: true)]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write(attr.B == null);
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"True");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnNonParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+    public int A { get; }
+    public int B { get;  }
+}
+
+[Mark(b: 42, a: 1)]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write($""A={attr.A}, B={attr.B}"");
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "A=1, B=42");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
         }
 
         [WorkItem(984896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984896")]

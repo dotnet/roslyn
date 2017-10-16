@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitExpression(argument, true);
                     break;
 
-                case RefKind.RefReadOnly:
+                case RefKind.In:
                     var temp = EmitAddress(argument, AddressKind.ReadOnly);
                     AddExpressionTemp(temp);
                     break;
@@ -2336,7 +2336,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 int exprTempsBefore = _expressionTemps?.Count ?? 0;
 
-                LocalDefinition temp = EmitAddress(assignmentOperator.Right, AddressKind.Writeable);
+                // NOTE: passing "ReadOnly" here. Assuming we do not have compile errors, 
+                //       We should not get an address of a copy, even if the RHS is readonly
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, AddressKind.ReadOnly);
 
                 // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a temp in synthetic code.

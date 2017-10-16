@@ -5531,10 +5531,10 @@ public class C
 @"public delegate ref readonly int D();
 public class C
 {
-    public ref readonly int F(ref readonly int i) => ref i;
+    public ref readonly int F(in int i) => ref i;
     int _p;
     public ref readonly int P => ref _p;
-    public ref readonly int this[ref readonly int i] => ref _p;
+    public ref readonly int this[in int i] => ref _p;
 }";
             var compA = CreateStandardCompilation(sourceA);
             compA.VerifyDiagnostics();
@@ -5556,10 +5556,10 @@ public class C
 @"public delegate ref readonly int D();
 public class C
 {
-    public ref readonly int F(ref readonly int i) => ref i;
+    public ref readonly int F(in int i) => ref i;
     int _p;
     public ref readonly int P => ref _p;
-    public ref readonly int this[ref readonly int i] => ref _p;
+    public ref readonly int this[in int i] => ref _p;
 }";
             var compA = CreateStandardCompilation(sourceA);
             compA.VerifyDiagnostics();
@@ -5598,13 +5598,11 @@ public class C
             // Method without IncludeRef.
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutRef),
-                "int F(ref readonly int)",
+                "int F(in int)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -5628,13 +5626,11 @@ public class C
             // Indexer without IncludeRef.
             Verify(
                 SymbolDisplay.ToDisplayParts(indexer, formatWithoutRef),
-                "int this[ref readonly int] { get; }",
+                "int this[in int] { get; }",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -5660,7 +5656,7 @@ public class C
             // Method with IncludeRef.
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithRef),
-                "ref readonly int F(ref readonly int)",
+                "ref readonly int F(in int)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -5669,8 +5665,6 @@ public class C
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -5698,7 +5692,7 @@ public class C
             // Indexer with IncludeRef.
             Verify(
                 SymbolDisplay.ToDisplayParts(indexer, formatWithRef),
-                "ref readonly int this[ref readonly int] { get; }",
+                "ref readonly int this[in int] { get; }",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -5707,8 +5701,6 @@ public class C
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -5738,11 +5730,9 @@ public class C
             // Method without IncludeType, with IncludeRef.
             Verify(
                 SymbolDisplay.ToDisplayParts(method, formatWithoutTypeWithRef),
-                "F(ref readonly int)",
+                "F(in int)",
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -5923,7 +5913,7 @@ class C
 {
     void M()
     {
-        async unsafe Task<int> Local(ref readonly int* x, out char? c)
+        async unsafe Task<int> Local(in int* x, out char? c)
         {
         }
     }
@@ -5939,7 +5929,7 @@ class C
                 semanticModel.GetDeclaredSymbol(local));
 
             Verify(localSymbol.ToDisplayParts(SymbolDisplayFormat.TestFormat),
-                "System.Threading.Tasks.Task<System.Int32> Local(ref readonly System.Int32* x, out System.Char? c)",
+                "System.Threading.Tasks.Task<System.Int32> Local(in System.Int32* x, out System.Char? c)",
                 SymbolDisplayPartKind.NamespaceName, // System
                 SymbolDisplayPartKind.Punctuation, // .
                 SymbolDisplayPartKind.NamespaceName, // Threading
@@ -5955,9 +5945,7 @@ class C
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.MethodName, // Local
                 SymbolDisplayPartKind.Punctuation, // (
-                SymbolDisplayPartKind.Keyword, // ref
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword, // readonly
+                SymbolDisplayPartKind.Keyword, // in
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.NamespaceName, // System
                 SymbolDisplayPartKind.Punctuation, // .

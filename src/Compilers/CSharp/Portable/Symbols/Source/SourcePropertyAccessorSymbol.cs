@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _property.RefKind; }
         }

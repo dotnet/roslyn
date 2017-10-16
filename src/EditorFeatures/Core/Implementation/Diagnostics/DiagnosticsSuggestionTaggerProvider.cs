@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         [ImportingConstructor]
         public DiagnosticsSuggestionTaggerProvider(
-            IEditorFormatMapService editorFormatMapService,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)

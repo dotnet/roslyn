@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _interfaceMethod.RefKind; }
         }

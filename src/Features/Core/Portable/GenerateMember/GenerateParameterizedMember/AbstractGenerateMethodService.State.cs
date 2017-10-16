@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     accessibility: default,
                     modifiers: default,
                     returnType: expressionType,
-                    returnsByRef: false,
+                    refKind: RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: null,
                     typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,

@@ -38,9 +38,8 @@ namespace Microsoft.CodeAnalysis
         YieldBreakStatement = 0xc,
         /// <summary>Indicates an <see cref="ILockStatement"/>.</summary>
         LockStatement = 0xd,
-        // https://github.com/dotnet/roslyn/issues/22008
-        // /// <summary>Indicates an <see cref="ITryStatement"/>.</summary>
-        // TryStatement = 0xe,
+        /// <summary>Indicates an <see cref="ITryStatement"/>.</summary>
+        TryStatement = 0xe,
         /// <summary>Indicates an <see cref="IUsingStatement"/>.</summary>
         UsingStatement = 0xf,
         /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
@@ -58,12 +57,10 @@ namespace Microsoft.CodeAnalysis
 
         // Statements that occur only in Visual Basic.
 
-        // https://github.com/dotnet/roslyn/issues/21297
-        // /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
-        // StopStatement = 0x50,
-        // https://github.com/dotnet/roslyn/issues/22004
-        // /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
-        // EndStatement = 0x51,
+        /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
+        StopStatement = 0x50,
+        /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
+        EndStatement = 0x51,
         // https://github.com/dotnet/roslyn/issues/22005
         // /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
         // WithStatement = 0x52,
@@ -78,9 +75,8 @@ namespace Microsoft.CodeAnalysis
         ConversionExpression = 0x102,
         /// <summary>Indicates an <see cref="IInvocationExpression"/>.</summary>
         InvocationExpression = 0x103,
-        // https://github.com/dotnet/roslyn/issues/22006
-        // /// <summary>Indicates an <see cref="IArrayElementReferenceExpression"/>.</summary>
-        // ArrayElementReferenceExpression = 0x104,
+        /// <summary>Indicates an <see cref="IArrayElementReferenceExpression"/>.</summary>
+        ArrayElementReferenceExpression = 0x104,
         /// <summary>Indicates an <see cref="ILocalReferenceExpression"/>.</summary>
         LocalReferenceExpression = 0x105,
         /// <summary>Indicates an <see cref="IParameterReferenceExpression"/>.</summary>
@@ -207,9 +203,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IArgument"/>.</summary>
         Argument = 0x407,
 
-        // https://github.com/dotnet/roslyn/issues/22008
-        // /// <summary>Indicates an <see cref="ICatchClause"/>.</summary>
-        // CatchClause = 0x408,
+        /// <summary>Indicates an <see cref="ICatchClause"/>.</summary>
+        CatchClause = 0x408,
 
         /// <summary>Indicates an <see cref="ISwitchCase"/>.</summary>
         SwitchCase = 0x409,
