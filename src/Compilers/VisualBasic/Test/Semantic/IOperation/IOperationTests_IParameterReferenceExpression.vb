@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -806,7 +806,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Public Sub  ... End Sub')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -863,7 +863,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x Then'B ... End If')
       Children(1):
           IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Boolean)) (Syntax: 'x')
   IfTrue: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If x Then'B ... End If')
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If x Then'B ... End If')
   IfFalse: 
     null
 ]]>.Value

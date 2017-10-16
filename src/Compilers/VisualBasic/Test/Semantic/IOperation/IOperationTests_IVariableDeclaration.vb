@@ -670,7 +670,7 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Usi
               Initializer: 
                 null
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1 As ... End Using')
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Using c1 As ... End Using')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
