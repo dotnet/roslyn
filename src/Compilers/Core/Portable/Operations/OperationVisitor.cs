@@ -300,6 +300,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitDelegateCreationExpression(IDelegateCreationExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitLiteralExpression(ILiteralExpression operation)
         {
             DefaultVisit(operation);
@@ -370,6 +375,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitVariableInitializer(IVariableInitializer operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitPropertyInitializer(IPropertyInitializer operation)
         {
             DefaultVisit(operation);
@@ -391,6 +401,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitDeconstructionAssignmentExpression(IDeconstructionAssignmentExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitDeclarationExpression(IDeclarationExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -481,6 +501,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual void VisitTranslatedQueryExpression(ITranslatedQueryExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+        
+        public virtual void VisitRaiseEventStatement(IRaiseEventStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -790,6 +815,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
+        public virtual TResult VisitDelegateCreationExpression(IDelegateCreationExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
         public virtual TResult VisitLiteralExpression(ILiteralExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -860,6 +890,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
+        public virtual TResult VisitVariableInitializer(IVariableInitializer operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
         public virtual TResult VisitPropertyInitializer(IPropertyInitializer operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -881,6 +916,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDeconstructionAssignmentExpression(IDeconstructionAssignmentExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDeclarationExpression(IDeclarationExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -973,6 +1018,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         public virtual TResult VisitTranslatedQueryExpression(ITranslatedQueryExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
+        }
+        
+        public virtual TResult VisitRaiseEventStatement(IRaiseEventStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument); 
         }
     }
 }

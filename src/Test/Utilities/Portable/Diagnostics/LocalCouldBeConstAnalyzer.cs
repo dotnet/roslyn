@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                             var localType = local.Type;
                                             if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
                                             {
-                                                if (variable.Initializer != null && variable.Initializer.ConstantValue.HasValue)
+                                                if (variable.Initializer != null && variable.Initializer.Value.ConstantValue.HasValue)
                                                 {
                                                     mightBecomeConstLocals.Add(local);
                                                 }

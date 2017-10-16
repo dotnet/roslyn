@@ -231,16 +231,39 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return Nothing
         End Function
 
-        Private Function GetVariableDeclarationStatementVariables(statement As BoundDimStatement) As ImmutableArray(Of IVariableDeclaration)
+        Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclaration)
             Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
-            For Each base In statement.LocalDeclarations
+            For Each base In declarations
                 If base.Kind = BoundKind.LocalDeclaration Then
                     Dim declaration = DirectCast(base, BoundLocalDeclaration)
-                    builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), _semanticModel, declaration.Syntax))
+                    Dim initializer As IVariableInitializer = Nothing
+                    If declaration.InitializerOpt IsNot Nothing Then
+                        Debug.Assert(TypeOf declaration.Syntax Is ModifiedIdentifierSyntax)
+                        Dim initializerValue As IOperation = Create(declaration.InitializerOpt)
+                        Dim variableDeclaratorSyntax = TryCast(declaration.Syntax.Parent, VariableDeclaratorSyntax)
+                        Dim initializerSyntax As SyntaxNode = Nothing
+                        If variableDeclaratorSyntax IsNot Nothing Then
+                            initializerSyntax = If(declaration.InitializedByAsNew,
+                                DirectCast(variableDeclaratorSyntax.AsClause, SyntaxNode),
+                                variableDeclaratorSyntax.Initializer)
+                        End If
+
+                        Dim isImplicit As Boolean = False
+                        If initializerSyntax Is Nothing Then
+                            ' There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
+                            initializerSyntax = initializerValue.Syntax
+                            isImplicit = True
+                        End If
+                        initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit)
+                    End If
+                    builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, initializer, _semanticModel, declaration.Syntax))
                 ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
                     Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
                     Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
-                    builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, Create(asNewDeclarations.Initializer), _semanticModel, asNewDeclarations.Syntax))
+                    Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
+                    Dim initializerValue As IOperation = Create(asNewDeclarations.Initializer)
+                    Dim initializer As IVariableInitializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit:=False)
+                    builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, initializer, _semanticModel, asNewDeclarations.Syntax))
                 End If
             Next
 
@@ -248,12 +271,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationStatement
-            If resourceList.IsDefault Then
-                Return Nothing
-            End If
-            Dim declaration = resourceList.Select(Function(n) Create(n)).OfType(Of IVariableDeclaration).ToImmutableArray()
             Return New VariableDeclarationStatement(
-                            declaration,
+                            GetVariableDeclarationStatementVariables(resourceList),
                             _semanticModel,
                             syntax,
                             type:=Nothing,
@@ -267,6 +286,62 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentExpression(
                 eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=statement.WasCompilerGenerated)
+        End Function
+
+        Private Shared Function IsDelegateCreation(conversionKind As ConversionKind, conversionSyntax As SyntaxNode, operand As BoundNode, targetType As TypeSymbol) As Boolean
+            If Not targetType.IsDelegateType() Then
+                Return False
+            End If
+
+            ' Any of the explicit cast types, as well as New DelegateType(AddressOf Method)
+            ' Additionally, AddressOf, if the child AddressOf is the same SyntaxNode (ie, an implicit delegate creation)
+            ' In the case of AddressOf, the operand can be a BoundDelegateCreationExpression, a BoundAddressOfOperator, or
+            ' a BoundBadExpression. For simplicity, we just do a syntax check to make sure it's an AddressOfExpression so
+            ' we don't have to compare against all 3 BoundKinds
+            Dim validAddressOfConversionSyntax = operand.Syntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
+                                                 (conversionSyntax.Kind() = SyntaxKind.CTypeExpression OrElse
+                                                  conversionSyntax.Kind() = SyntaxKind.DirectCastExpression OrElse
+                                                  conversionSyntax.Kind() = SyntaxKind.TryCastExpression OrElse
+                                                  conversionSyntax.Kind() = SyntaxKind.ObjectCreationExpression OrElse
+                                                  (conversionSyntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
+                                                   conversionSyntax Is operand.Syntax))
+
+            Dim validLambdaConversionNode = operand.Kind = BoundKind.Lambda OrElse
+                                              operand.Kind = BoundKind.QueryLambda OrElse
+                                              operand.Kind = BoundKind.UnboundLambda
+
+            Return validAddressOfConversionSyntax OrElse validLambdaConversionNode
+        End Function
+
+        ''' <summary>
+        ''' Creates the Lazy IOperation from a delegate creation operand or a bound conversion operand, handling when the conversion
+        ''' is actually a delegate creation.
+        ''' </summary>
+        Private Function CreateConversionOperand(operand As BoundNode, conversionKind As ConversionKind, conversionSyntax As SyntaxNode, targetType As TypeSymbol
+                                                   ) As (MethodSymbol As MethodSymbol, Operation As Lazy(Of IOperation), IsDelegateCreation As Boolean)
+            If (conversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
+                Dim userDefinedConversion As BoundUserDefinedConversion = DirectCast(operand, BoundUserDefinedConversion)
+                Return (userDefinedConversion.Call.Method, New Lazy(Of IOperation)(Function() Create(userDefinedConversion.Operand)), IsDelegateCreation:=False)
+            ElseIf IsDelegateCreation(conversionKind, conversionSyntax, operand, targetType) Then
+                Dim methodSymbol As MethodSymbol = Nothing
+                Dim operandLazy As Lazy(Of IOperation)
+                If operand.Kind = BoundKind.DelegateCreationExpression Then
+                    ' If the child is a BoundDelegateCreationExpression, we don't want to generate a nested IDelegateCreationExpression.
+                    ' So, the operand for the conversion will be the child of the BoundDelegateCreationExpression.
+                    ' We see this in this syntax: Dim x = New Action(AddressOf M2)
+                    ' This should be semantically equivalent to: Dim x = AddressOf M2
+                    ' However, if we didn't fix this up, we would have nested IDelegateCreationExpressions here for the former case.
+                    operandLazy = New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(DirectCast(operand, BoundDelegateCreationExpression)))
+                Else
+                    ' This is either a lambda, or an AddressOf error scenario in which we have a delegate conversion, but it failed to bind correctly.
+                    ' Delegate to standard operation handling for this.
+                    operandLazy = New Lazy(Of IOperation)(Function() Create(operand))
+                End If
+                Return (methodSymbol, operandLazy, IsDelegateCreation:=True)
+            Else
+                Dim methodSymbol As MethodSymbol = Nothing
+                Return (methodSymbol, New Lazy(Of IOperation)(Function() Create(operand)), IsDelegateCreation:=False)
+            End If
         End Function
 
         Friend Class Helper

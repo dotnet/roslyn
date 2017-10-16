@@ -10,7 +10,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -74,6 +73,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 LogString(", ");
                 LogType(operation.Type);
+            }
+            else
+            {
+                // https://github.com/dotnet/roslyn/issues/22581 tracks enabling this assert
+                // Verify null type for non-Expression operations.
+                //Assert.Null(operation.Type);
             }
 
             // ConstantValue
@@ -596,8 +601,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IUsingStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Declaration, "Declaration");
-            Visit(operation.Value, "Value");
+            Visit(operation.Resources, "Resources");
             Visit(operation.Body, "Body");
         }
 
@@ -655,7 +659,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArguments(operation);
         }
 
-        private void VisitArguments(IHasArgumentsExpression operation)
+        private void VisitArguments(IHasArguments operation)
         {
             VisitArray(operation.ArgumentsInEvaluationOrder, "Arguments", logElementCount: true);
         }
@@ -815,6 +819,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(" (IsVirtual)");
             }
 
+            Assert.Null(operation.Type);
+
             VisitMemberReferenceExpressionCommon(operation);
         }
 
@@ -843,7 +849,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var kindStr = operation.Adds ? "EventAdd" : "EventRemove";
             LogString($"{nameof(IEventAssignmentExpression)} ({kindStr})");
-            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.EventReference, header: "Event Reference");
@@ -1023,6 +1028,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAnonymousFunctionExpression(operation);
         }
 
+        public override void VisitDelegateCreationExpression(IDelegateCreationExpression operation)
+        {
+            LogString(nameof(IDelegateCreationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, nameof(operation.Target));
+        }
+
         public override void VisitLiteralExpression(ILiteralExpression operation)
         {
             LogString(nameof(ILiteralExpression));
@@ -1170,6 +1183,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitFieldInitializer(operation);
         }
 
+        public override void VisitVariableInitializer(IVariableInitializer operation)
+        {
+            LogString(nameof(IVariableInitializer));
+            LogCommonPropertiesAndNewLine(operation);
+
+            base.VisitVariableInitializer(operation);
+        }
+
         public override void VisitPropertyInitializer(IPropertyInitializer operation)
         {
             LogString(nameof(IPropertyInitializer));
@@ -1215,6 +1236,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Target, "Left");
             Visit(operation.Value, "Right");
+        }
+
+        public override void VisitDeconstructionAssignmentExpression(IDeconstructionAssignmentExpression operation)
+        {
+            LogString(nameof(IDeconstructionAssignmentExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, "Left");
+            Visit(operation.Value, "Right");
+        }
+
+        public override void VisitDeclarationExpression(IDeclarationExpression operation)
+        {
+            LogString(nameof(IDeclarationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression);
         }
 
         public override void VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)
@@ -1451,6 +1489,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Expression, "Expression");
+        }
+
+        public override void VisitRaiseEventStatement(IRaiseEventStatement operation)
+        {
+            LogString(nameof(IRaiseEventStatement));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.EventReference, header: "Event Reference");
+            VisitArguments(operation);
         }
 
         #endregion

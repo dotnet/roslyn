@@ -6,46 +6,40 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 {
     internal sealed class DotnetHost
     {
-        public string ToolNameOpt { get; }
-
         public string PathToToolOpt { get; }
 
         public string CommandLineArgs { get; }
 
-        private DotnetHost(string toolNameOpt, string pathToToolOpt, string commandLineArgs)
+        /// <summary>
+        /// True if this tool is a managed executable, and will be invoked with `dotnet`.
+        /// False if this executable is being invoked directly
+        /// (it may still be a managed executable, but will be invoked directly).
+        /// </summary>
+        public bool IsManagedInvocation { get; }
+
+        private DotnetHost(string pathToToolOpt, string commandLineArgs, bool isManagedInvocation)
         {
-            ToolNameOpt = toolNameOpt;
             PathToToolOpt = pathToToolOpt;
             CommandLineArgs = commandLineArgs;
+            IsManagedInvocation = isManagedInvocation;
         }
 
-        public static DotnetHost CreateUnmanagedToolInvocation(string pathToTool, string commandLineArgs)
+        public static DotnetHost CreateNativeInvocationTool(string pathToTool, string commandLineArgs)
         {
-            return new DotnetHost(null, pathToTool, commandLineArgs);
+            return new DotnetHost(pathToTool, commandLineArgs, isManagedInvocation: false);
         }
 
-        public static DotnetHost CreateManagedToolInvocation(string toolNameWithoutExtension, string commandLineArgs)
+        public static DotnetHost CreateManagedInvocationTool(string toolName, string commandLineArgs)
         {
-            string pathToToolOpt;
-            string toolName;
-            if (IsCliHost(out string pathToDotnet))
+            var pathToToolOpt = Utilities.GenerateFullPathToTool(toolName);
+            // Desktop executes tool directly, only prepend if we're on CLI
+            if (pathToToolOpt != null && IsCliHost(out string pathToDotnet))
             {
-                toolName = $"{toolNameWithoutExtension}.dll";
-                pathToToolOpt = Utilities.GenerateFullPathToTool(toolName);
-                if (pathToToolOpt != null)
-                {
-                    commandLineArgs = PrependFileToArgs(pathToToolOpt, commandLineArgs);
-                    pathToToolOpt = pathToDotnet;
-                }
-            }
-            else
-            {
-                // Desktop executes tool directly
-                toolName = $"{toolNameWithoutExtension}.exe";
-                pathToToolOpt = Utilities.GenerateFullPathToTool(toolName);
+                commandLineArgs = PrependFileToArgs(pathToToolOpt, commandLineArgs);
+                pathToToolOpt = pathToDotnet;
             }
 
-            return new DotnetHost(toolName, pathToToolOpt, commandLineArgs);
+            return new DotnetHost(pathToToolOpt, commandLineArgs, isManagedInvocation: true);
         }
 
         private static bool IsCliHost(out string pathToDotnet)

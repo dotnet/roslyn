@@ -5018,5 +5018,32 @@ class Test
 ",
             MainDescription("Test.Test()"));
         }
+
+        [WorkItem(22450, "https://github.com/dotnet/roslyn/issues/22450")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefLikeTypesNoDeprecated()
+        {
+            var xmlString = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
+            <Document FilePath=""ReferencedDocument"">
+public ref struct TestRef
+{
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document FilePath=""SourceDocument"">
+ref struct Test
+{
+    private $$TestRef _field;
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            // There should be no [deprecated] attribute displayed.
+            await VerifyWithReferenceWorkerAsync(xmlString, MainDescription($"struct TestRef"));
+        }
     }
 }

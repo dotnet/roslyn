@@ -74,9 +74,12 @@ Microsoft.CodeAnalysis.OperationKind.ConditionalAccessInstanceExpression = 285 -
 Microsoft.CodeAnalysis.OperationKind.ConditionalExpression = 271 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ConstantPattern = 1037 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ConversionExpression = 258 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.DeclarationExpression = 522 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DeclarationPattern = 1038 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.DeconstructionAssignmentExpression = 521 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DecrementExpression = 520 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DefaultValueExpression = 512 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.DelegateCreationExpression = 304 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DynamicIndexerAccessExpression = 296 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DynamicInvocationExpression = 295 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DynamicMemberReferenceExpression = 294 -> Microsoft.CodeAnalysis.OperationKind
@@ -117,6 +120,7 @@ Microsoft.CodeAnalysis.OperationKind.ParameterReferenceExpression = 262 -> Micro
 Microsoft.CodeAnalysis.OperationKind.ParenthesizedExpression = 282 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.PropertyInitializer = 1027 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.PropertyReferenceExpression = 266 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.RaiseEventStatement = 83 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ReturnStatement = 11 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SimpleAssignmentExpression = 280 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SizeOfExpression = 514 -> Microsoft.CodeAnalysis.OperationKind
@@ -133,6 +137,7 @@ Microsoft.CodeAnalysis.OperationKind.UnaryOperatorExpression = 269 -> Microsoft.
 Microsoft.CodeAnalysis.OperationKind.UsingStatement = 15 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.VariableDeclaration = 1030 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.VariableDeclarationStatement = 3 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.VariableInitializer = 1026 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.YieldBreakStatement = 12 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.YieldReturnStatement = 16 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.RefKind.In = 3 -> Microsoft.CodeAnalysis.RefKind
@@ -270,10 +275,15 @@ Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsChecked.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsExplicitInCode.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsTryCast.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.Operand.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IDeclarationExpression
+Microsoft.CodeAnalysis.Semantics.IDeclarationExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IDeclarationPattern
 Microsoft.CodeAnalysis.Semantics.IDeclarationPattern.DeclaredSymbol.get -> Microsoft.CodeAnalysis.ISymbol
+Microsoft.CodeAnalysis.Semantics.IDeconstructionAssignmentExpression
 Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause
 Microsoft.CodeAnalysis.Semantics.IDefaultValueExpression
+Microsoft.CodeAnalysis.Semantics.IDelegateCreationExpression
+Microsoft.CodeAnalysis.Semantics.IDelegateCreationExpression.Target.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IDoLoopStatement
 Microsoft.CodeAnalysis.Semantics.IDoLoopStatement.Condition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IDoLoopStatement.DoLoopKind.get -> Microsoft.CodeAnalysis.Semantics.DoLoopKind
@@ -321,8 +331,8 @@ Microsoft.CodeAnalysis.Semantics.IForToLoopStatement.LimitValue.get -> Microsoft
 Microsoft.CodeAnalysis.Semantics.IForToLoopStatement.LoopControlVariable.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IForToLoopStatement.NextVariables.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IForToLoopStatement.StepValue.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression
-Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression.ArgumentsInEvaluationOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
+Microsoft.CodeAnalysis.Semantics.IHasArguments
+Microsoft.CodeAnalysis.Semantics.IHasArguments.ArgumentsInEvaluationOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.OperatorMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.UsesOperatorMethod.get -> bool
@@ -407,6 +417,8 @@ Microsoft.CodeAnalysis.Semantics.IPropertyInitializer
 Microsoft.CodeAnalysis.Semantics.IPropertyInitializer.InitializedProperty.get -> Microsoft.CodeAnalysis.IPropertySymbol
 Microsoft.CodeAnalysis.Semantics.IPropertyReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IPropertyReferenceExpression.Property.get -> Microsoft.CodeAnalysis.IPropertySymbol
+Microsoft.CodeAnalysis.Semantics.IRaiseEventStatement
+Microsoft.CodeAnalysis.Semantics.IRaiseEventStatement.EventReference.get -> Microsoft.CodeAnalysis.Semantics.IEventReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IRangeCaseClause
 Microsoft.CodeAnalysis.Semantics.IRangeCaseClause.MaximumValue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IRangeCaseClause.MinimumValue.get -> Microsoft.CodeAnalysis.IOperation
@@ -450,13 +462,13 @@ Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.Operand.get -> Microso
 Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.OperatorKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.IUsingStatement
 Microsoft.CodeAnalysis.Semantics.IUsingStatement.Body.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IUsingStatement.Declaration.get -> Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement
-Microsoft.CodeAnalysis.Semantics.IUsingStatement.Value.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IUsingStatement.Resources.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IVariableDeclaration
-Microsoft.CodeAnalysis.Semantics.IVariableDeclaration.Initializer.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IVariableDeclaration.Initializer.get -> Microsoft.CodeAnalysis.Semantics.IVariableInitializer
 Microsoft.CodeAnalysis.Semantics.IVariableDeclaration.Variables.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement
 Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement.Declarations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IVariableDeclaration>
+Microsoft.CodeAnalysis.Semantics.IVariableInitializer
 Microsoft.CodeAnalysis.Semantics.IWhileLoopStatement
 Microsoft.CodeAnalysis.Semantics.IWhileLoopStatement.Condition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.LoopKind
@@ -538,9 +550,12 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitConditionalAccess
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitConditionalExpression(Microsoft.CodeAnalysis.Semantics.IConditionalExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitConstantPattern(Microsoft.CodeAnalysis.Semantics.IConstantPattern operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitConversionExpression(Microsoft.CodeAnalysis.Semantics.IConversionExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDeclarationExpression(Microsoft.CodeAnalysis.Semantics.IDeclarationExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDeclarationPattern(Microsoft.CodeAnalysis.Semantics.IDeclarationPattern operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDeconstructionAssignmentExpression(Microsoft.CodeAnalysis.Semantics.IDeconstructionAssignmentExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDefaultCaseClause(Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDefaultValueExpression(Microsoft.CodeAnalysis.Semantics.IDefaultValueExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDelegateCreationExpression(Microsoft.CodeAnalysis.Semantics.IDelegateCreationExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDoLoopStatement(Microsoft.CodeAnalysis.Semantics.IDoLoopStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDynamicIndexerAccessExpression(Microsoft.CodeAnalysis.Semantics.IDynamicIndexerAccessExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDynamicInvocationExpression(Microsoft.CodeAnalysis.Semantics.IDynamicInvocationExpression operation) -> void
@@ -584,6 +599,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitParenthesizedExpr
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitPatternCaseClause(Microsoft.CodeAnalysis.Semantics.IPatternCaseClause operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitPropertyInitializer(Microsoft.CodeAnalysis.Semantics.IPropertyInitializer operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitPropertyReferenceExpression(Microsoft.CodeAnalysis.Semantics.IPropertyReferenceExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitRaiseEventStatement(Microsoft.CodeAnalysis.Semantics.IRaiseEventStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitRangeCaseClause(Microsoft.CodeAnalysis.Semantics.IRangeCaseClause operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitRelationalCaseClause(Microsoft.CodeAnalysis.Semantics.IRelationalCaseClause operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitReturnStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
@@ -603,6 +619,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitUnaryOperatorExpr
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitUsingStatement(Microsoft.CodeAnalysis.Semantics.IUsingStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitVariableDeclaration(Microsoft.CodeAnalysis.Semantics.IVariableDeclaration operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitVariableDeclarationStatement(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitVariableInitializer(Microsoft.CodeAnalysis.Semantics.IVariableInitializer operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitWhileLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileLoopStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.DefaultVisit(Microsoft.CodeAnalysis.IOperation operation, TArgument argument) -> TResult
@@ -627,9 +644,12 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitConditionalExpression(Microsoft.CodeAnalysis.Semantics.IConditionalExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitConstantPattern(Microsoft.CodeAnalysis.Semantics.IConstantPattern operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitConversionExpression(Microsoft.CodeAnalysis.Semantics.IConversionExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDeclarationExpression(Microsoft.CodeAnalysis.Semantics.IDeclarationExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDeclarationPattern(Microsoft.CodeAnalysis.Semantics.IDeclarationPattern operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDeconstructionAssignmentExpression(Microsoft.CodeAnalysis.Semantics.IDeconstructionAssignmentExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDefaultCaseClause(Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDefaultValueExpression(Microsoft.CodeAnalysis.Semantics.IDefaultValueExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDelegateCreationExpression(Microsoft.CodeAnalysis.Semantics.IDelegateCreationExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDoLoopStatement(Microsoft.CodeAnalysis.Semantics.IDoLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDynamicIndexerAccessExpression(Microsoft.CodeAnalysis.Semantics.IDynamicIndexerAccessExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDynamicInvocationExpression(Microsoft.CodeAnalysis.Semantics.IDynamicInvocationExpression operation, TArgument argument) -> TResult
@@ -673,6 +693,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitPatternCaseClause(Microsoft.CodeAnalysis.Semantics.IPatternCaseClause operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitPropertyInitializer(Microsoft.CodeAnalysis.Semantics.IPropertyInitializer operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitPropertyReferenceExpression(Microsoft.CodeAnalysis.Semantics.IPropertyReferenceExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitRaiseEventStatement(Microsoft.CodeAnalysis.Semantics.IRaiseEventStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitRangeCaseClause(Microsoft.CodeAnalysis.Semantics.IRangeCaseClause operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitRelationalCaseClause(Microsoft.CodeAnalysis.Semantics.IRelationalCaseClause operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitReturnStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation, TArgument argument) -> TResult
@@ -692,5 +713,6 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitUsingStatement(Microsoft.CodeAnalysis.Semantics.IUsingStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitVariableDeclaration(Microsoft.CodeAnalysis.Semantics.IVariableDeclaration operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitVariableDeclarationStatement(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitVariableInitializer(Microsoft.CodeAnalysis.Semantics.IVariableInitializer operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWhileLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation, TArgument argument) -> TResult

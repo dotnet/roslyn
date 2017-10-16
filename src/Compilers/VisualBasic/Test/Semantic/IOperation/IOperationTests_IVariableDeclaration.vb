@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Semantics
@@ -240,7 +240,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -264,11 +265,13 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3')
     Variables: Local_1: i3 As System.Int32
     Initializer: 
-      ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -295,10 +298,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
-        Instance Receiver: 
-          null
-        Arguments(0)
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ReturnInt()')
+        IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
+          Instance Receiver: 
+            null
+          Arguments(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -325,17 +329,19 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
-        Instance Receiver: 
-          null
-        Arguments(0)
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ReturnInt()')
+        IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
+          Instance Receiver: 
+            null
+          Arguments(0)
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
-        Instance Receiver: 
-          null
-        Arguments(0)
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ReturnInt()')
+        IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
+          Instance Receiver: 
+            null
+          Arguments(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -360,10 +366,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1')
     Variables: Local_1: p1 As Program.C
     Initializer: 
-      IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
-        Arguments(0)
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New C')
+        IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+          Arguments(0)
+          Initializer: 
+            null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -387,10 +394,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
-        Arguments(0)
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
+        IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+          Arguments(0)
+          Initializer: 
+            null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -414,8 +422,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As ?
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'New')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'New')
+          Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -443,8 +452,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As ?
       Local_2: i2 As ?
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'New')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'New')
+          Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -472,14 +482,16 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
-        Arguments(0)
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
+        IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+          Arguments(0)
+          Initializer: 
+            null
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1')
     Variables: Local_1: b1 As System.Boolean
     Initializer: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= False')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -507,10 +519,11 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
-        Arguments(0)
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
+        IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+          Arguments(0)
+          Initializer: 
+            null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -537,15 +550,16 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1(2)')
     Variables: Local_1: i1 As System.Int32()
     Initializer: 
-      IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'i1(2)')
-        Dimension Sizes(1):
-            IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
-              Left: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-              Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'i1(2)')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'i1(2)')
+          Dimension Sizes(1):
+              IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+                Left: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                Right: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
+          Initializer: 
+            null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -602,12 +616,13 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1(2)')
     Variables: Local_1: i1 As System.Int32()
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
-        Children(1):
-            IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
-              Arguments(0)
-              Initializer: 
-                null
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
+          Children(1):
+              IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
+                Arguments(0)
+                Initializer: 
+                  null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -624,9 +639,11 @@ BC30053: Arrays cannot be declared with 'New'.
 #Region "Using Statements"
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17917"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub UsingStatementDeclarationAsNew()
             Dim source = <![CDATA[
+Imports System
+
 Module Program
     Class C
         Implements IDisposable
@@ -634,23 +651,44 @@ Module Program
         End Sub
     End Class
     Sub Main(args As String())
-        Using c1 As New C'BIND:"c1 As New C"
+        Using c1 As New C'BIND:"Using c1 As New C"
             Console.WriteLine(c1)
         End Using
     End Sub
-End Module
-]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'c1 As New C')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
-    Variables: Local_1: c1 As Program.C
-    Initializer: IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Using')
+  Resources: 
+    IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1 As New C')
+      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
+        Variables: Local_1: c1 As Program.C
+        Initializer: 
+          IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New C')
+            IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
+              Arguments(0)
+              Initializer: 
+                null
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1 As ... End Using')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(c1)')
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'c1')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C) (Syntax: 'c1')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
-            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+            VerifyOperationTreeAndDiagnosticsForTest(Of UsingBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 
@@ -703,7 +741,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -734,11 +773,13 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 2')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -768,8 +809,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
+          Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -800,8 +842,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
+          Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -840,7 +883,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -867,12 +911,14 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= ')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+          Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -903,7 +949,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -931,11 +978,13 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3')
     Variables: Local_1: i3 As System.Int32
     Initializer: 
-      ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -969,12 +1018,13 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
-        Children(1):
-            IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'Int1()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Int1()')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
+          Children(1):
+              IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'Int1()')
+                Instance Receiver: 
+                  null
+                Arguments(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1005,21 +1055,23 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
-        Children(1):
-            IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'Int1()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Int1()')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
+          Children(1):
+              IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'Int1()')
+                Instance Receiver: 
+                  null
+                Arguments(0)
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
-        Children(1):
-            IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'Int1()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Int1()')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
+          Children(1):
+              IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'Int1()')
+                Instance Receiver: 
+                  null
+                Arguments(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1049,8 +1101,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As ?
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'i1')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'i1')
+          Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1081,8 +1134,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As ?
       Local_2: i2 As ?
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'i1')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'i1')
+          Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1118,12 +1172,14 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
     Variables: Local_1:  As System.Object
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid, IsImplicit) (Syntax: '')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+          Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1233,10 +1289,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
-        Arguments(0)
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
+        IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+          Arguments(0)
+          Initializer: 
+            null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1264,10 +1321,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
-        Arguments(0)
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
+        IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+          Arguments(0)
+          Initializer: 
+            null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1295,14 +1353,16 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
-        Arguments(0)
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
+        IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+          Arguments(0)
+          Initializer: 
+            null
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1')
     Variables: Local_1: b1 As System.Boolean
     Initializer: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= False')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1325,10 +1385,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '1')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1351,17 +1412,19 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '1')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '2')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 2')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1385,7 +1448,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1409,11 +1473,13 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3')
     Variables: Local_1: i3 As System.Object
     Initializer: 
-      ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1440,13 +1506,14 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Int1()')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
-            Instance Receiver: 
-              null
-            Arguments(0)
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Int1()')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
+              Instance Receiver: 
+                null
+              Arguments(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1473,23 +1540,25 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Int1()')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
-            Instance Receiver: 
-              null
-            Arguments(0)
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Int1()')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
+              Instance Receiver: 
+                null
+              Arguments(0)
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Int1()')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
-            Instance Receiver: 
-              null
-            Arguments(0)
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Int1()')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
+              Instance Receiver: 
+                null
+              Arguments(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1587,8 +1656,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '=')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+          Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1619,13 +1689,15 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '=')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+          Children(0)
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '=')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+          Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1678,6 +1750,190 @@ BC30203: Identifier expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+#End Region
+
+#Region "Initializers"
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForEqualsValueVariableInitializer()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x = 1'BIND:"= 1"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForEqualsValueVariableInitializerWithMultipleLocals()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x, y = 1'BIND:"= 1"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= 1')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'x'.
+        Dim x, y = 1'BIND:"= 1"
+            ~
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+        Dim x, y = 1'BIND:"= 1"
+            ~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForEqualsValueVariableDeclarationWithMultipleLocals()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x, y = 1'BIND:"Dim x, y = 1"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x, y = 1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'x')
+    Variables: Local_1: x As System.Object
+    Initializer: 
+      null
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'y')
+    Variables: Local_1: y As System.Int32
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= 1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'x'.
+        Dim x, y = 1'BIND:"Dim x, y = 1"
+            ~
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+        Dim x, y = 1'BIND:"Dim x, y = 1"
+            ~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForAsNewVariableInitializer()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x As New Test'BIND:"As New Test"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Test')
+  IObjectCreationExpression (Constructor: Sub Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test) (Syntax: 'New Test')
+    Arguments(0)
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForAsNewVariableDeclaration()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x As New Test'BIND:"Dim x As New Test"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x As New Test')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
+    Variables: Local_1: x As Test
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Test')
+        IObjectCreationExpression (Constructor: Sub Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test) (Syntax: 'New Test')
+          Arguments(0)
+          Initializer: 
+            null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForAsNewVariableInitializerWithMultipleLocals()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x, y As New Test'BIND:"As New Test"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Test')
+  IObjectCreationExpression (Constructor: Sub Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test) (Syntax: 'New Test')
+    Arguments(0)
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForAsNewVariableDeclarationWithMultipleLocals()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x, y As New Test'BIND:"x, y As New Test"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration) (Syntax: 'x, y As New Test')
+  Variables: Local_1: x As Test
+    Local_2: y As Test
+  Initializer: 
+    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Test')
+      IObjectCreationExpression (Constructor: Sub Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test) (Syntax: 'New Test')
+        Arguments(0)
+        Initializer: 
+          null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
 #End Region
     End Class
 End Namespace
