@@ -45,23 +45,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// C# language version 5
         /// </summary>
         /// <remarks> 
-        /// Features: async.
+        /// Features: async, caller info attributes.
         /// </remarks>
         CSharp5 = 5,
 
-        /// <summary> 
+        /// <summary>
         /// C# language version 6
         /// </summary>
         /// <remarks>
         /// <para>Features:</para>
         /// <list type="bullet">
-        /// <item><description>Using of a static class</description></item> 
-        /// <item><description>Auto-property initializers</description></item> 
-        /// <item><description>Expression-bodied methods and properties</description></item> 
-        /// <item><description>Null-propagating operator ?.</description></item> 
-        /// <item><description>Exception filters</description></item> 
-        /// </list> 
-        /// </remarks> 
+        /// <item><description>Using of a static class</description></item>
+        /// <item><description>Exception filters</description></item>
+        /// <item><description>Await in catch/finally blocks</description></item>
+        /// <item><description>Auto-property initializers</description></item>
+        /// <item><description>Expression-bodied methods and properties</description></item>
+        /// <item><description>Null-propagating operator ?.</description></item>
+        /// <item><description>String interpolation</description></item>
+        /// <item><description>nameof operator</description></item>
+        /// <item><description>Dictionary initializer</description></item>
+        /// </list>
+        /// </remarks>
         CSharp6 = 6,
 
         /// <summary>
@@ -93,7 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <list type="bullet">
         /// <item><description>Async Main</description></item>
         /// <item><description>Default literal</description></item>
-        /// <item><description>Reference assemblies</description></item>
         /// <item><description>Inferred tuple element names</description></item>
         /// <item><description>Pattern-matching with generics</description></item>
         /// </list>
