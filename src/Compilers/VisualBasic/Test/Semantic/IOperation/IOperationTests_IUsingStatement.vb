@@ -33,12 +33,12 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompilationUtils.AssertNoDiagnostics(comp)
 
             Dim tree = comp.SyntaxTrees.Single()
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
-            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
+            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperation(node), IUsingStatement)
 
             Assert.NotNull(op.Resources.Syntax)
             Assert.Same(node.UsingStatement, op.Resources.Syntax)
@@ -68,7 +68,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
                                         <expected>
 BC30201: Expression expected.
@@ -78,7 +78,7 @@ BC30201: Expression expected.
 
             Dim tree = comp.SyntaxTrees.Single()
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
-            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
+            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperation(node), IUsingStatement)
 
             Assert.Equal(OperationKind.InvalidExpression, op.Resources.Kind)
         End Sub
