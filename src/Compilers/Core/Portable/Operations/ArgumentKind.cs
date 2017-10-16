@@ -10,18 +10,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Argument value is explicitly supplied.
         /// </summary>
-        Explicit = 0x1,
+        Explicit = 0x0,
 
         /// <summary>
         /// Argument is a param array created by compilers for the matching C# params or VB ParamArray parameter. 
         /// Note, the value is a an array creation expression that encapsulates all the elements, if any.
         /// </summary>
-        ParamArray = 0x2,
+        ParamArray = 0x1,
 
         /// <summary>
         /// Argument is a default value supplied automatically by the compilers.
         /// </summary>
-        DefaultValue = 0x3
+        DefaultValue = 0x2
     }
 }
 

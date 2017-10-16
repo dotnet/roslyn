@@ -10,124 +10,124 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Represents the '+' operator.
         /// </summary>
-        Add = 0x1,
+        Add = 0x0,
 
         /// <summary>
         /// Represents the '-' operator.
         /// </summary>
-        Subtract = 0x2,
+        Subtract = 0x1,
 
         /// <summary>
         /// Represents the '*' operator.
         /// </summary>
-        Multiply = 0x3,
+        Multiply = 0x2,
 
         /// <summary>
         /// Represents the '/' operator.
         /// </summary>
-        Divide = 0x4,
+        Divide = 0x3,
 
         /// <summary>
         /// Represents the VB '\' integer divide operator.
         /// </summary>
-        IntegerDivide = 0x5,
+        IntegerDivide = 0x4,
 
         /// <summary>
         /// Represents the C# '%' operator and VB 'Mod' operator.
         /// </summary>
-        Remainder = 0x6,
+        Remainder = 0x5,
 
         /// <summary>
         /// Represents the VB '^' exponentiation operator.
         /// </summary>
-        Power = 0x7,
+        Power = 0x6,
 
         /// <summary>
         /// Represents the <![CDATA['<<']]> operator.
         /// </summary>
-        LeftShift = 0x8,
+        LeftShift = 0x7,
 
         /// <summary>
         /// Represents the <![CDATA['>>']]> operator.
         /// </summary>
-        RightShift = 0x9,
+        RightShift = 0x8,
 
         /// <summary>
         /// Represents the C# <![CDATA['&']]> operator and VB 'And' operator.
         /// </summary>
-        And = 0xa,
+        And = 0x9,
 
         /// <summary>
         /// Represents the C# <![CDATA['|']]> operator and VB 'Or' operator.
         /// </summary>
-        Or = 0xb,
+        Or = 0xa,
 
         /// <summary>
         /// Represents the C# '^' operator and VB 'Xor' operator.
         /// </summary>
-        ExclusiveOr = 0xc,
+        ExclusiveOr = 0xb,
 
         /// <summary>
         /// Represents the C# <![CDATA['&&']]> operator and VB 'AndAlso' operator.
         /// </summary>
-        ConditionalAnd = 0xd,
+        ConditionalAnd = 0xc,
 
         /// <summary>
         /// Represents the C# <![CDATA['||']]> operator and VB 'OrElse' operator.
         /// </summary>
-        ConditionalOr = 0xe,
+        ConditionalOr = 0xd,
 
         /// <summary>
         /// Represents the VB <![CDATA['&']]> operator for string concatenation.
         /// </summary>
-        Concatenate = 0xf,
+        Concatenate = 0xe,
 
         // Relational operations.
 
         /// <summary>
         /// Represents the C# '=' operator and VB 'Is' operator and '=' operator for non-object typed operands.
         /// </summary>
-        Equals = 0x10,
+        Equals = 0x0f,
 
         /// <summary>
         /// Represents the VB '=' operator for object typed operands.
         /// </summary>
-        ObjectValueEquals = 0x11,
+        ObjectValueEquals = 0x10,
 
         /// <summary>
         /// Represents the C# '!=' operator and VB 'IsNot' operator and <![CDATA['<>']]> operator for non-object typed operands.
         /// </summary>
-        NotEquals = 0x12,
+        NotEquals = 0x11,
 
         /// <summary>
         /// Represents the VB <![CDATA['<>']]> operator for object typed operands.
         /// </summary>
-        ObjectValueNotEquals = 0x13,
+        ObjectValueNotEquals = 0x12,
 
         /// <summary>
         /// Represents the <![CDATA['<']]> operator.
         /// </summary>
-        LessThan = 0x14,
+        LessThan = 0x13,
 
         /// <summary>
         /// Represents the <![CDATA['<=']]> operator.
         /// </summary>
-        LessThanOrEqual = 0x15,
+        LessThanOrEqual = 0x14,
 
         /// <summary>
         /// Represents the <![CDATA['>=']]> operator.
         /// </summary>
-        GreaterThanOrEqual = 0x16,
+        GreaterThanOrEqual = 0x15,
 
         /// <summary>
         /// Represents the <![CDATA['>']]> operator.
         /// </summary>
-        GreaterThan = 0x17,
+        GreaterThan = 0x16,
 
         /// <summary>
         /// Represents the VB 'Like' operator.
         /// </summary>
-        Like = 0x18,
+        Like = 0x17,
 
         /// <summary>
         /// Represents an invalid binary operator for error cases.

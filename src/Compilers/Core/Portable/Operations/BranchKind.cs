@@ -10,17 +10,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Represents a continue branch kind.
         /// </summary>
-        Continue = 0x1,
+        Continue = 0x0,
 
         /// <summary>
         /// Represents a break branch kind.
         /// </summary>
-        Break = 0x2,
+        Break = 0x1,
 
         /// <summary>
         /// Represents a goto branch kind.
         /// </summary>
-        GoTo = 0x3
+        GoTo = 0x2
     }
 }
 

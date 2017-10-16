@@ -10,27 +10,27 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Represents a <see cref="IDoLoopStatement"/> in C# or VB.
         /// </summary>
-        Do = 0x1,
+        Do = 0x0,
 
         /// <summary>
         /// Represents a <see cref="IWhileLoopStatement"/> in C# or VB.
         /// </summary>
-        While = 0x2,
+        While = 0x1,
         
         /// <summary>
         /// Indicates a <see cref="IForLoopStatement"/> in C#.
         /// </summary>
-        For = 0x3,
+        For = 0x2,
         
         /// <summary>
         /// Indicates a <see cref="IForToLoopStatement"/> in VB.
         /// </summary>
-        ForTo = 0x4,
+        ForTo = 0x3,
         
         /// <summary>
         /// Indicates a <see cref="IForEachLoopStatement"/> in C# or VB.
         /// </summary>
-        ForEach = 0x5
+        ForEach = 0x4
     }
 }
 
