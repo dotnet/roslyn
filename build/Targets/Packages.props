@@ -10,6 +10,7 @@
     <dotnetxunitVersion>2.3.0-beta4-build3742</dotnetxunitVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <GitLinkVersion>3.0.0</GitLinkVersion>
+    <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
     <LibGit2SharpVersion>0.22.0</LibGit2SharpVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
