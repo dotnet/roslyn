@@ -1833,7 +1833,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Type defines operator == or operator != but does not override Object.GetHashCode()</value>
   </data>
   <data name="ERR_OutAttrOnRefParam" xml:space="preserve">
-    <value>Cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither.</value>
+    <value>Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.</value>
   </data>
   <data name="ERR_OverloadRefKind" xml:space="preserve">
     <value>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</value>
@@ -5209,5 +5209,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
+  </data>
+  <data name="ERR_OutAttrOnInParam" xml:space="preserve">
+    <value>An in parameter cannot have the Out attribute.</value>
   </data>
 </root>

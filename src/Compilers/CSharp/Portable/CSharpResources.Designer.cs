@@ -7397,7 +7397,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither..
+        ///   Looks up a localized string similar to An in parameter cannot have the Out attribute..
+        /// </summary>
+        internal static string ERR_OutAttrOnInParam {
+            get {
+                return ResourceManager.GetString("ERR_OutAttrOnInParam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot specify the Out attribute on a ref parameter without also specifying the In attribute..
         /// </summary>
         internal static string ERR_OutAttrOnRefParam {
             get {
