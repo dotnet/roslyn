@@ -12199,6 +12199,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to TypeOfMany feature.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_TypeOfMany() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_TypeOfMany", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to warning directives.
         '''</summary>
         Friend ReadOnly Property FEATURE_WarningDirectives() As String

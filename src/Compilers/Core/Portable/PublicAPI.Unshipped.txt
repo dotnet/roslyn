@@ -332,6 +332,8 @@ Microsoft.CodeAnalysis.Semantics.IForToLoopStatement.NextVariables.get -> System
 Microsoft.CodeAnalysis.Semantics.IForToLoopStatement.StepValue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IHasArguments
 Microsoft.CodeAnalysis.Semantics.IHasArguments.ArgumentsInEvaluationOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
+Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression
+Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression.ArgumentsInEvaluationOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.OperatorMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.UsesOperatorMethod.get -> bool

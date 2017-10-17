@@ -193,6 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         TypeAsValueExpression
         InterpolatedStringExpression
         Interpolation
+        TypeList
     End Enum
 
 
@@ -9716,6 +9717,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    Friend NotInheritable Partial Class BoundTypeList
+        Inherits BoundExpression
+
+        Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of TypeSymbol), type As TypeSymbol, hasErrors As Boolean)
+            MyBase.New(BoundKind.TypeList, syntax, type, hasErrors)
+
+            Debug.Assert(Not (contents.IsDefault), "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+
+            Me._Contents = contents
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
+        End Sub
+
+        Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of TypeSymbol), type As TypeSymbol)
+            MyBase.New(BoundKind.TypeList, syntax, type)
+
+            Debug.Assert(Not (contents.IsDefault), "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+
+            Me._Contents = contents
+
+            Validate()
+        End Sub
+
+
+        Private ReadOnly _Contents As ImmutableArray(Of TypeSymbol)
+        Public ReadOnly Property Contents As ImmutableArray(Of TypeSymbol)
+            Get
+                Return _Contents
+            End Get
+        End Property
+
+        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+            Return visitor.VisitTypeList(Me)
+        End Function
+
+        Public Function Update(contents As ImmutableArray(Of TypeSymbol), type As TypeSymbol) As BoundTypeList
+            If contents <> Me.Contents OrElse type IsNot Me.Type Then
+                Dim result = New BoundTypeList(Me.Syntax, contents, type, Me.HasErrors)
+                
+                If Me.WasCompilerGenerated Then
+                    result.SetWasCompilerGenerated()
+                End If
+                
+                Return result
+            End If
+            Return Me
+        End Function
+    End Class
+
     Friend MustInherit Partial Class BoundTreeVisitor(Of A,R)
 
         <MethodImpl(MethodImplOptions.NoInlining)>
@@ -10071,6 +10126,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return VisitInterpolatedStringExpression(CType(node, BoundInterpolatedStringExpression), arg)
                 Case BoundKind.Interpolation: 
                     Return VisitInterpolation(CType(node, BoundInterpolation), arg)
+                Case BoundKind.TypeList: 
+                    Return VisitTypeList(CType(node, BoundTypeList), arg)
             End Select
             Return DefaultVisit(node, arg)
         End Function
@@ -10778,6 +10835,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.DefaultVisit(node, arg)
         End Function
 
+        Public Overridable Function VisitTypeList(node As BoundTypeList, arg As A) As R
+            Return Me.DefaultVisit(node, arg)
+        End Function
+
     End Class
 
     Friend MustInherit Partial Class BoundTreeVisitor
@@ -11478,6 +11539,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitInterpolation(node As BoundInterpolation) As BoundNode
+            Return Me.DefaultVisit(node)
+        End Function
+
+        Public Overridable Function VisitTypeList(node As BoundTypeList) As BoundNode
             Return Me.DefaultVisit(node)
         End Function
 
@@ -12425,6 +12490,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.Visit(node.Expression)
             Me.Visit(node.AlignmentOpt)
             Me.Visit(node.FormatStringOpt)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitTypeList(node as BoundTypeList) As BoundNode
             Return Nothing
         End Function
 
@@ -13514,6 +13583,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim alignmentOpt As BoundExpression = DirectCast(Me.Visit(node.AlignmentOpt), BoundExpression)
             Dim formatStringOpt As BoundLiteral = DirectCast(Me.Visit(node.FormatStringOpt), BoundLiteral)
             Return node.Update(expression, alignmentOpt, formatStringOpt)
+        End Function
+
+        Public Overrides Function VisitTypeList(node As BoundTypeList) As BoundNode
+            Dim type as TypeSymbol = Me.VisitType(node.Type)
+            Return node.Update(node.Contents, type)
         End Function
 
     End Class
@@ -14966,6 +15040,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
                 New TreeDumperNode("alignmentOpt", Nothing, new TreeDumperNode() { Visit(node.AlignmentOpt, Nothing) }),
                 New TreeDumperNode("formatStringOpt", Nothing, new TreeDumperNode() { Visit(node.FormatStringOpt, Nothing) })
+            })
+        End Function
+
+        Public Overrides Function VisitTypeList(node As BoundTypeList, arg As Object) As TreeDumperNode
+            Return New TreeDumperNode("typeList", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("contents", node.Contents, Nothing),
+                New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function
 

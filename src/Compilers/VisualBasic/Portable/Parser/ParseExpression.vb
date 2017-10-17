@@ -1,10 +1,15 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-'
-'============ Methods for parsing portions of executable statements ==
-'
+'-----------------------------------------------------------------------------
+' Contains the definition of the Scanner, which produces tokens from text 
+'-----------------------------------------------------------------------------
+
 Imports System.Runtime.InteropServices
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
+Imports Microsoft.CodeAnalysis.Text
+Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -954,8 +959,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 operatorToken = DirectCast(HandleUnexpectedToken(SyntaxKind.IsKeyword), KeywordSyntax)
                 ReportSyntaxError(operatorToken, ERRID.ERR_MissingIsInTypeOf)
             End If
-
-            Dim typeName = ParseGeneralType()
+            current = CurrentToken
+            Dim typeName As TypeSyntax = Nothing
+            If current.Kind = SyntaxKind.OpenBraceToken Then
+                Dim openBrace As PunctuationSyntax = Nothing
+                Dim closeBrace As PunctuationSyntax = Nothing
+                Dim types = ParseTypeList(openBrace, closeBrace)
+                typeName = SyntaxFactory.TypeList(openBrace, types, closeBrace)
+                current = CheckFeatureAvailability(Feature.TypeOfMany, current)
+            Else
+                typeName = ParseGeneralType()
+            End If
 
             Dim kind As SyntaxKind = If(operatorToken.Kind = SyntaxKind.IsNotKeyword,
                                         SyntaxKind.TypeOfIsNotExpression,
@@ -963,6 +977,80 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Return SyntaxFactory.TypeOfExpression(kind, [typeOf], exp, operatorToken, typeName)
         End Function
+
+        Private Function ParseTypeList(ByRef openBrace As PunctuationSyntax, ByRef closeBrace As PunctuationSyntax) As CoreInternalSyntax.SeparatedSyntaxList(Of TypeSyntax)
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenBraceToken, "ParseTypeList list parsing confused.")
+            TryGetTokenAndEatNewLine(SyntaxKind.OpenBraceToken, openBrace)
+
+            Dim typelist = _pool.AllocateSeparated(Of TypeSyntax)()
+
+            If CurrentToken.Kind <> SyntaxKind.CloseBraceToken Then
+
+                ' Loop through the list of parameters.
+
+                Do
+                    Dim typeName = ParseTypeName()
+
+                    ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
+                    ' typeName reported. For now keep backwards compatibility.
+                    If typeName.ContainsDiagnostics Then
+                        typeName = typeName.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken}))
+                    End If
+
+                    Dim comma As PunctuationSyntax = Nothing
+                    If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
+
+                        If CurrentToken.Kind <> SyntaxKind.CloseBraceToken AndAlso Not MustEndStatement(CurrentToken) Then
+
+                            ' Check the ')' on the next line
+                            If IsContinuableEOL() Then
+                                If PeekToken(1).Kind = SyntaxKind.CloseParenToken Then
+                                    typelist.Add(typeName)
+                                    Exit Do
+                                End If
+                            End If
+
+                            typeName = typeName.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken}), ERRID.ERR_InvalidTypeSyntax)
+
+                            If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
+                                typelist.Add(typeName)
+                                Exit Do
+                            End If
+
+                        Else
+                            typelist.Add(typeName)
+                            Exit Do
+
+                        End If
+                    End If
+
+                    typelist.Add(typeName)
+                    typelist.AddSeparator(comma)
+                Loop
+
+            End If
+
+            ' Current token is left at either tkRParen, EOS
+
+            TryEatNewLineAndGetToken(SyntaxKind.CloseBraceToken, closeBrace, createIfMissing:=True)
+
+            Dim result = typelist.ToList()
+
+            _pool.Free(typelist)
+
+            Return result
+
+        End Function
+        'Private Function Parse_TypeMany() As TypeSyntax
+        '    ' TypeMany ::= OpeningBrace TypeIdentifer ( Comma TypeIdentifier )+ ClosingBrace
+        '    Dim openingBrace = CurrentToken
+        '    Dim listOfTypeNames As Immutable.ImmutableList(Of TypeSyntax) = Immutable.ImmutableList(Of TypeSyntax).Empty
+        '    ' Consume {
+        '    GetNextToken()
+        '    Dim t = ParseTypeName()
+        '    If t.Kind =
+        '    While CurrentToken.Kind =
+        'End Function
 
         ' /*********************************************************************
         ' *

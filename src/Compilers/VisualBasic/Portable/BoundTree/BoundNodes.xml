@@ -1914,4 +1914,9 @@
     <Field Name="FormatStringOpt" Type="BoundLiteral" Null="allow"/>
   </Node>
 
+  <Node Name="BoundTypeList" Base="BoundExpression" HasValidate="true">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Contents" Type="ImmutableArray(Of TypeSymbol)"/>
+
+  </Node>
 </Tree>

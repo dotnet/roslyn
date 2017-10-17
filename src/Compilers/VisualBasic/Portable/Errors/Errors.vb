@@ -2015,5 +2015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_IOperation
         FEATURE_LeadingDigitSeparator
         FEATURE_PrivateProtected
+        FEATURE_TypeOfMany
+        ERR_InvalidTypeSyntax
     End Enum
 End Namespace
