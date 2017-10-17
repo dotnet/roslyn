@@ -69,9 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)delegateInvokeMethodOpt != null)
             {
-                var analyzedArguments = new AnalyzedArguments();
+                var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
                 var resolution = binder.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, inferWithDynamic: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                analyzedArguments.Free();
                 return resolution;
             }
             else
@@ -255,6 +256,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
+            //cannot capture span-like types.
+            if (!method.IsStatic && methodGroup.Receiver.Type.IsByRefLikeType)
+            {
+                return Conversion.NoConversion;
+            }
+
             if (method.OriginalDefinition.ContainingType.SpecialType == SpecialType.System_Nullable_T &&
                 !method.IsOverride)
             {
@@ -275,6 +282,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.ParameterCount == delegateType.DelegateInvokeMethod.ParameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
 
             return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
+        }
+
+        public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (sourceExpression.Syntax.IsVariableDeclarationInitialization())
+            {
+                Debug.Assert((object)sourceExpression.Type == null);
+                Debug.Assert(sourceExpression.ElementType != null);
+
+                var pointerConversion = default(Conversion);
+                var sourceAsPointer = new PointerTypeSymbol(sourceExpression.ElementType);
+                pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
+
+                if (pointerConversion.IsValid)
+                {
+                    // Report unsafe errors
+                    _binder.ReportUnsafeIfNotAllowed(sourceExpression.Syntax.Location, ref useSiteDiagnostics);
+
+                    return Conversion.MakeStackAllocToPointerType(pointerConversion);
+                }
+                else
+                {
+                    var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics);
+                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsByRefLikeType)
+                    {
+                        var spanType_T = spanType.Construct(sourceExpression.ElementType);
+                        var spanConversion = ClassifyImplicitConversionFromType(spanType_T, destination, ref useSiteDiagnostics);
+
+                        if (spanConversion.Exists)
+                        {
+                            // Report errors if Span ctor is missing, or using an older C# version
+                            Binder.CheckFeatureAvailability(sourceExpression.Syntax, MessageID.IDS_FeatureRefStructs, ref useSiteDiagnostics);
+                            Binder.GetWellKnownTypeMember(_binder.Compilation, WellKnownMember.System_Span_T__ctor, out DiagnosticInfo memberDiagnosticInfo);
+                            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, memberDiagnosticInfo);
+
+                            return Conversion.MakeStackAllocToSpanType(spanConversion);
+                        }
+                    }
+                }
+            }
+
+            return Conversion.NoConversion;
         }
     }
 }

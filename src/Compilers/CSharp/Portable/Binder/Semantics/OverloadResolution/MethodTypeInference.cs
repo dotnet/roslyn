@@ -290,15 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sb.Append(", ");
                 }
 
-                var refKind = GetRefKind(i);
-                if (refKind == RefKind.Out)
-                {
-                    sb.Append("out ");
-                }
-                else if (refKind == RefKind.Ref)
-                {
-                    sb.Append("ref ");
-                }
+                sb.Append(GetRefKind(i).ToParameterPrefix());
                 sb.Append(_formalParameterTypes[i]);
             }
 
@@ -579,56 +571,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
             }
-            else if (argument.Kind == BoundKind.TupleLiteral)
+            else if (argument.Kind != BoundKind.TupleLiteral ||
+                !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics))
             {
-                MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, isNullable, target, kind, ref useSiteDiagnostics);
-            }
-            else
-            {
+                // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let' try to infer from arguments's type
                 if (IsReallyAType(source))
                 {
-                    ExactOrBoundsInference(kind, TypeSymbolWithAnnotations.Create(source, isNullable), target, ref useSiteDiagnostics);
+                    if (isExactInference)
+                    {
+                        ExactInference(source, target, ref useSiteDiagnostics);
+                    }
+                    else
+                    {
+                        LowerBoundInference(source, target, ref useSiteDiagnostics);
+                    }
                 }
             }
         }
 
-        private void MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, bool? isNullable, TypeSymbolWithAnnotations target, ExactOrBoundsKind kind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // if tuple has a type we will try to match the type as a single input
-            // Example:
-            //      if   "(a: 1, b: 2)" is passed as   T arg
-            //      then T becomes (int a, int b)
-            var source = argument.Type;
-            if (IsReallyAType(source))
-            {
-                var sourceWithAnnotations = TypeSymbolWithAnnotations.Create(source, isNullable);
-
-                switch (kind)
-                {
-                    case ExactOrBoundsKind.Exact:
-                        // SPEC: * If V is one of the unfixed Xi then U is added to the set of
-                        // SPEC:   exact bounds for Xi.
-                        if (ExactTypeParameterInference(sourceWithAnnotations, target))
-                        {
-                            return;
-                        }
-                        break;
-                    case ExactOrBoundsKind.LowerBound:
-                        // SPEC: A lower-bound inference from a type U to a type V is made as follows:
-
-                        // SPEC: * If V is one of the unfixed Xi then U is added to the set of 
-                        // SPEC:   lower bounds for Xi.
-
-                        if (LowerBoundTypeParameterInference(sourceWithAnnotations, target))
-                        {
-                            return;
-                        }
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
-                }
-            }
-
             // try match up element-wise to the destination tuple (or underlying type)
             // Example:
             //      if   "(a: 1, b: "qq")" is passed as   (T, U) arg
@@ -636,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (target.Kind != SymbolKind.NamedType)
             {
                 // tuples can only match to tuples or tuple underlying types.
-                return;
+                return false;
             }
 
             var destination = (NamedTypeSymbol)target.TypeSymbol;
@@ -646,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
             {
                 // target is not a tuple of appropriate shape
-                return;
+                return false;
             }
 
             var destTypes = destination.GetElementTypesOfTupleOrCompatible();
@@ -663,6 +625,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destType = destTypes[i];
                 MakeExplicitParameterTypeInferences(binder, sourceArgument, sourceIsNullable, destType, kind, ref useSiteDiagnostics);
             }
+
+            return true;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -1639,13 +1603,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   type C<U1...Uk> then an exact inference 
             // SPEC:   is made from each Ui to the corresponding Vi.
 
-            var namedSource = source.TypeSymbol as NamedTypeSymbol;
+            var namedSource = source.TypeSymbol.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             if ((object)namedSource == null)
             {
                 return false;
             }
 
-            var namedTarget = target.TypeSymbol as NamedTypeSymbol;
+            var namedTarget = target.TypeSymbol.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             if ((object)namedTarget == null)
             {
                 return false;
@@ -1871,6 +1835,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
+
+            source = source.TupleUnderlyingTypeOrSelf();
+            target = target.TupleUnderlyingTypeOrSelf();
 
             var constructedTarget = target as NamedTypeSymbol;
             if ((object)constructedTarget == null)
@@ -2194,6 +2161,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
+            source = source.TupleUnderlyingTypeOrSelf();
+            target = target.TupleUnderlyingTypeOrSelf();
 
             var constructedSource = source.TypeSymbol as NamedTypeSymbol;
             if ((object)constructedSource == null)

@@ -630,9 +630,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.ParameterCount == args.Length);
             return new BoundCall(
                 Syntax, receiver, method, args,
-                ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
+                default(ImmutableArray<String>), default(ImmutableArray<RefKind>), false, false, false,
                 default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType.TypeSymbol,
-                hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
+                hasErrors:method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
         }
 
@@ -641,14 +641,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.ParameterCount == args.Length);
             return new BoundCall(
                 Syntax, receiver, method, args,
-                ImmutableArray<String>.Empty, refKinds, false, false, false,
+                default(ImmutableArray<String>), refKinds, false, false, false,
                 ImmutableArray<int>.Empty, LookupResultKind.Viable, null, method.ReturnType.TypeSymbol)
             { WasCompilerGenerated = true };
         }
 
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
         {
-            return new BoundConditionalOperator(Syntax, condition, consequence, alternative, default(ConstantValue), type) { WasCompilerGenerated = true };
+            return new BoundConditionalOperator(Syntax, false, condition, consequence, alternative, default(ConstantValue), type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
@@ -1270,7 +1270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            if (refKind == RefKind.Out)
+            if (refKind == RefKind.Out || refKind == RefKind.In)
             {
                 refKind = RefKind.Ref;
             }

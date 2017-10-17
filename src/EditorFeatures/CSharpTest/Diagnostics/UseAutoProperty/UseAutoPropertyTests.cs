@@ -732,7 +732,7 @@ partial class Class
         }
     }
 
-    public Goo()
+    public void Goo()
     {
         i = 1;
     }
@@ -744,7 +744,7 @@ partial class Class
     {
         get; set; }
 
-    public Goo()
+    public void Goo()
     {
         P = 1;
     }
@@ -767,7 +767,7 @@ partial class Class
         }
     }
 
-    public Goo()
+    public void Goo()
     {
         i = 1;
     }
@@ -779,7 +779,7 @@ partial class Class
     {
         get; private set; }
 
-    public Goo()
+    public void Goo()
     {
         P = 1;
     }

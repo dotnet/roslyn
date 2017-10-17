@@ -36,8 +36,9 @@ Discussion about the transition of language design to the new repos is at https:
 
 ### Download C# and Visual Basic
 
-Want to start developing in C# and Visual Basic? Download [Visual Studio 2017](https://www.visualstudio.com/downloads/), 
-which has the latest features built-in. There are also [prebuilt Azure VM images](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/category/compute?search=visual%20studio%202017) available with Visual Studio 2017 already installed.
+Want to start developing in C# and Visual Basic? Download [Visual Studio 2017](https://www.visualstudio.com/downloads/), which has the latest features built-in. There are 
+also [prebuilt Azure VM images](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/category/compute?search=visual%20studio%202017) available with 
+Visual Studio 2017 already installed.
 
 To install the latest release without Visual Studio, run one of the following [nuget](https://dist.nuget.org/index.html) command lines:
 

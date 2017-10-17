@@ -102,6 +102,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
             public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";
+            public const string CodeActionsUseDeconstruction= "CodeActions.UseDeconstruction";
             public const string CodeActionsUseDefaultLiteral = "CodeActions.UseDefaultLiteral";
             public const string CodeActionsUseInferredMemberName = "CodeActions.UseInferredMemberName";
             public const string CodeActionsUseExpressionBody = "CodeActions.UseExpressionBody";
@@ -123,6 +124,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeModelMethodXml = "CodeModel.MethodXml";
             public const string CommentSelection = nameof(CommentSelection);
             public const string Completion = nameof(Completion);
+            public const string ConvertAutoPropertyToFullProperty = nameof(ConvertAutoPropertyToFullProperty);
             public const string DebuggingBreakpoints = "Debugging.Breakpoints";
             public const string DebuggingDataTips = "Debugging.DataTips";
             public const string DebuggingIntelliSense = "Debugging.IntelliSense";

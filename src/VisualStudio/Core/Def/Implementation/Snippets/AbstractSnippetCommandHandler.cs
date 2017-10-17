@@ -20,6 +20,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract class AbstractSnippetCommandHandler :
         ForegroundThreadAffinitizedObject,
         ICommandHandler<TabKeyCommandArgs>,

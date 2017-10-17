@@ -415,21 +415,6 @@ class C
                 // (3,22): error CS1513: } expected
                 //         async public virtual M() {}
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "virtual").WithLocation(3, 22),
-                // (3,30): error CS1520: Method must have a return type
-                //         async public virtual M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(3, 30),
-                // (4,23): error CS1520: Method must have a return type
-                //         unsafe public M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(4, 23),
-                // (5,24): error CS1520: Method must have a return type
-                //         async override M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(5, 24),
-                // (6,39): error CS1520: Method must have a return type
-                //         unsafe private async override M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(6, 39),
-                // (7,39): error CS1520: Method must have a return type
-                //         async virtual override sealed M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(7, 39),
                 // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1));

@@ -231,6 +231,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         AddRefIfRequired();
                     }
+                    else if (invokeMethod.ReturnsByRefReadonly)
+                    {
+                        AddRefReadonlyIfRequired();
+                    }
 
                     if (invokeMethod.ReturnsVoid)
                     {

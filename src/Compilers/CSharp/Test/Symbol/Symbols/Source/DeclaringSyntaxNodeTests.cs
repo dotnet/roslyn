@@ -638,7 +638,7 @@ class C1
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab3", SymbolKind.Label);
             CheckDeclaringSyntax<SwitchLabelSyntax>(comp, tree, "case 4:", SymbolKind.Label);
             CheckDeclaringSyntax<SwitchLabelSyntax>(comp, tree, "case 3:", SymbolKind.Label);
-            CheckDeclaringSyntax<SwitchLabelSyntax>(comp, tree, "default:", SymbolKind.Label);
+            CheckDeclaringSyntax<SwitchLabelSyntax>(comp, tree, "default", SymbolKind.Label);
         }
 
 

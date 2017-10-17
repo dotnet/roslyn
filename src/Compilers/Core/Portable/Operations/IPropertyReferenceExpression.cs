@@ -17,6 +17,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced property.
         /// </summary>
         IPropertySymbol Property { get; }
+        /// <summary>
+        /// Arguments of the indexer property reference expression, excluding the instance argument. Arguments are in evaluation order.
+        /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
+        ImmutableArray<IArgument> Arguments { get; }
     }
 }
 

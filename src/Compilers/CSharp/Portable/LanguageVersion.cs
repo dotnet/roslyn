@@ -291,5 +291,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return self < MessageID.IDS_FeatureInferredTupleNames.RequiredVersion();
         }
+
+        internal static bool AllowNonTrailingNamedArguments(this LanguageVersion self)
+        {
+            return self >= MessageID.IDS_FeatureNonTrailingNamedArguments.RequiredVersion();
+        }
     }
 }

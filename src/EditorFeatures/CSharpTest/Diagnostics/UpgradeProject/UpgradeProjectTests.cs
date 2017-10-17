@@ -244,6 +244,23 @@ class Program
         }
 
         [Fact]
+        public async Task UpgradeProjectWithNonTrailingNamedArgumentToCSharp7_2()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void M()
+    {
+        [|M2(a: 1, 2);|]
+    }
+}",
+                LanguageVersion.CSharp7_2,
+                new CSharpParseOptions(LanguageVersion.CSharp7_1),
+                index: 1);
+        }
+
+        [Fact]
         public async Task UpgradeProjectFromCSharp7ToCSharp7_1_B()
         {
             await TestLanguageVersionUpgradedAsync(

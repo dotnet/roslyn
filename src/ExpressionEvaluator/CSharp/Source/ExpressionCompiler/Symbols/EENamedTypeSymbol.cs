@@ -305,6 +305,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal sealed override bool IsByRefLikeType
+        {
+            get { return false; }
+        }
+
+        internal sealed override bool IsReadOnly
+        {
+            get { return false; }
+        }
+
         public override bool IsSealed
         {
             get { return true; }
@@ -319,6 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             get { return false; }
         }
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

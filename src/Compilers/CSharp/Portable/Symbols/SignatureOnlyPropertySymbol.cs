@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = name;
         }
 
-        internal override RefKind RefKind { get { return _refKind; } }
+        public override RefKind RefKind { get { return _refKind; } }
 
         public override TypeSymbolWithAnnotations Type { get { return _type; } }
 

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
@@ -574,6 +575,174 @@ class C
             End Using
         End Function
 
+        <WpfFact>
+        Public Async Function TestNonTrailingNamedArgumentInCSharp7_1() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                 <Workspace>
+                     <Project Language="C#" LanguageVersion="CSharp7_1" CommonReferences="true" AssemblyName="CSProj">
+                         <Document FilePath="C.cs">
+class C
+{
+    public void M()
+    {
+        int better = 2;
+        M(a: 1, $$)
+    }
+    public void M(int a, int bar, int c) { }
+}
+                         </Document>
+                     </Project>
+                 </Workspace>)
+
+                state.SendTypeChars("b")
+                Await state.AssertSelectedCompletionItem(displayText:="bar:", isHardSelected:=True)
+                state.SendTypeChars("e")
+                Await state.AssertSelectedCompletionItem(displayText:="bar:", isSoftSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function TestNonTrailingNamedArgumentInCSharp7_2() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                 <Workspace>
+                     <Project Language="C#" LanguageVersion="CSharp7_2" CommonReferences="true" AssemblyName="CSProj">
+                         <Document FilePath="C.cs">
+class C
+{
+    public void M()
+    {
+        int better = 2;
+        M(a: 1, $$)
+    }
+    public void M(int a, int bar, int c) { }
+}
+                         </Document>
+                     </Project>
+                 </Workspace>)
+
+                state.SendTypeChars("b")
+                Await state.AssertSelectedCompletionItem(displayText:="better", isHardSelected:=True)
+                state.SendTypeChars("a")
+                Await state.AssertSelectedCompletionItem(displayText:="bar:", isHardSelected:=True)
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="better", isHardSelected:=True)
+                state.SendTypeChars(", ")
+                Assert.Contains("M(a: 1, better,", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestDefaultSwitchLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+        switch (o)
+        {
+            default:
+                goto $$
+        }
+    }
+}]]></Document>)
+
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="default", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto default;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestGotoOrdinaryLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+label1:
+        goto $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("l")
+                Await state.AssertSelectedCompletionItem(displayText:="label1", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto label1;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestEscapedDefaultLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+@default:
+        goto $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="@default", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto @default;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestEscapedDefaultLabel2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+        switch (o)
+        {
+            default:
+@default:
+                goto $$
+        }
+    }
+}]]></Document>)
+
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="default", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto default;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestEscapedDefaultLabelWithoutSwitch() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+@default:
+        goto $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="@default", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto @default;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral() As Task
@@ -759,10 +928,10 @@ class C
     }
 }]]></Document>)
 
-                state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="decimal", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("(i:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(d:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -779,10 +948,10 @@ class C
     }
 }]]></Document>)
 
-                state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="decimal", isHardSelected:=True)
                 state.SendTypeChars(" ")
-                Assert.Contains("(int ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(decimal ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -2311,7 +2480,7 @@ class C
         <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMatchWithTurkishIWorkaround1() As Task
-            Using New CultureContext("tr-TR")
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestState.CreateCSharpTestState(
                                <Document><![CDATA[
         class C
@@ -2330,7 +2499,7 @@ class C
         <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMatchWithTurkishIWorkaround2() As Task
-            Using New CultureContext("tr-TR")
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestState.CreateCSharpTestState(
                                <Document><![CDATA[
         class C
@@ -3313,6 +3482,46 @@ class C
 }", finalText)
             End Using
         End Sub
+
+        <WorkItem(296512, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=296512")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRegionDirectiveIndentation() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    $$
+}
+                              </Document>, includeFormatCommandHandler:=True)
+
+                state.SendTypeChars("#")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Assert.Equal("#", state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("reg")
+                Await state.AssertSelectedCompletionItem(displayText:="region")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("    #region", state.GetLineFromCurrentCaretPosition().GetText())
+                Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
+
+                state.SendReturn()
+                Assert.Equal("", state.GetLineFromCurrentCaretPosition().GetText())
+                state.SendTypeChars("#")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Assert.Equal("#", state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("endr")
+                Await state.AssertSelectedCompletionItem(displayText:="endregion")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("    #endregion", state.GetLineFromCurrentCaretPosition().GetText())
+                Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
+
+            End Using
+        End Function
 
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider

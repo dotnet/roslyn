@@ -16,7 +16,7 @@ $script:skipList = @()
 [string]$script:errorDirLeft = ""
 [string]$script:errorDirRight = ""
 
-function Run-Build([string]$rootDir, [string]$pathMapBuildOption, [switch]$restore = $false) {
+function Run-Build([string]$rootDir, [string]$pathMapBuildOption, [switch]$restore = $false, [string]$logFile = $null) {
     Push-Location $rootDir
     try {
 
@@ -29,8 +29,14 @@ function Run-Build([string]$rootDir, [string]$pathMapBuildOption, [switch]$resto
             Restore-Project -fileName "Roslyn.sln" -nuget (Ensure-NuGet) -msbuildDir (Split-Path -parent $msbuild)
         }
 
+        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption Roslyn.sln"
+        if ($logFile -ne $null) {
+            $logFile = Join-Path $binariesDir $logFile
+            $args += " /bl:$logFile"
+        }
+
         Write-Host "Building the Solution"
-        Exec-Console $msbuild "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption Roslyn.sln"
+        Exec-Console $msbuild $args
     }
     finally {
         Pop-Location
@@ -45,7 +51,7 @@ function Get-ObjDir([string]$rootDir) {
 # directory.
 function Get-FilesToProcess([string]$rootDir) {
     $objDir = Get-ObjDir $rootDir
-    foreach ($item in Get-ChildItem -re -in *.dll,*.exe $objDir) {
+    foreach ($item in Get-ChildItem -re -in *.dll,*.exe,*.pdb $objDir) {
         $fileFullName = $item.FullName 
         $fileName = Split-Path -leaf $fileFullName
 
@@ -111,8 +117,8 @@ function Test-MapContents($dataMap) {
     }
 }
 
-function Test-Build([string]$rootDir, $dataMap, [string]$pathMapBuildOption, [switch]$restore = $false) {
-    Run-Build $rootDir $pathMapBuildOption -restore:$restore
+function Test-Build([string]$rootDir, $dataMap, [string]$pathMapBuildOption, [string]$logFile, [switch]$restore = $false) {
+    Run-Build $rootDir $pathMapBuildOption -logFile $logFile -restore:$restore
 
     $errorList = @()
     $allGood = $true
@@ -172,12 +178,12 @@ function Run-Test() {
     Create-Directory $script:errorDirRight
 
     # Run the initial build so that we can populate the maps
-    Run-Build $repoDir 
+    Run-Build $repoDir -logFile "initial.binlog"
     $dataMap = Record-Binaries $repoDir
     Test-MapContents $dataMap
 
     # Run a test against the source in the same directory location
-    Test-Build -rootDir $repoDir -dataMap $dataMap
+    Test-Build -rootDir $repoDir -dataMap $dataMap -logFile "test1.binlog"
 
     # Run another build in a different source location and verify that path mapping 
     # allows the build to be identical.  To do this we'll copy the entire source 
@@ -186,7 +192,7 @@ function Run-Test() {
     Remove-Item -re -fo $altRootDir -ErrorAction SilentlyContinue
     & robocopy $repoDir $altRootDir /E /XD $binariesDir /XD ".git" /njh /njs /ndl /nc /ns /np /nfl
     $pathMapBuildOption = "/p:PathMap=`"$altRootDir=$repoDir`""
-    Test-Build -rootDir $altRootDir -dataMap $dataMap -pathMapBuildOption $pathMapBuildOption -restore
+    Test-Build -rootDir $altRootDir -dataMap $dataMap -pathMapBuildOption $pathMapBuildOption -logFile "test2.binlog" -restore
 }
 
 try {

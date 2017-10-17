@@ -18,7 +18,7 @@
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetVsixContainerName>Roslyn.VisualStudio.RemoteHostClientMock.vsix</TargetVsixContainerName>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
@@ -37,7 +37,6 @@
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Next\ServicesVisualStudio.Next.csproj" />
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Nerdbank.FullDuplexStream" />

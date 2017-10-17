@@ -460,6 +460,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_StaticClassInterfaceImpl, location, this, baseType);
                         }
 
+                        if (this.IsByRefLikeType)
+                        {
+                            // '{0}': ref structs cannot implement interfaces
+                            diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this, baseType);
+                        }
+
                         if (baseType.ContainsDynamic())
                         {
                             diagnostics.Add(ErrorCode.ERR_DeriveFromConstructedDynamic, location, this, baseType);

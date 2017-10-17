@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,6 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private readonly SourceAssemblySymbol _sourceAssembly;
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
+
+        private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -57,11 +64,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
 
-        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             builder.AddRange(_additionalTypes);
             GetEmbeddedAttributes(builder);
+            return builder.ToImmutableAndFree();
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+        {
+            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
+            CreateEmbeddedAttributesIfNeeded(diagnostics);
+            if ((object)_lazyEmbeddedAttribute != null)
+            {
+                builder.Add(_lazyEmbeddedAttribute);
+            }
+
+            if ((object)_lazyIsReadOnlyAttribute != null)
+            {
+                builder.Add(_lazyIsReadOnlyAttribute);
+            }
+
+            if ((object)_lazyIsByRefLikeAttribute != null)
+            {
+                builder.Add(_lazyIsByRefLikeAttribute);
+            }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -135,6 +165,93 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override string Name => _metadataName;
         public AssemblyIdentity Identity => _sourceAssembly.Identity;
         public Version AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
+
+        internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+        {
+            if ((object)_lazyEmbeddedAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyEmbeddedAttribute.Constructor,
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeEmbeddedAttribute();
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
+        {
+            if ((object)_lazyIsReadOnlyAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyIsReadOnlyAttribute.Constructor,
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeIsReadOnlyAttribute();
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
+        {
+            if ((object)_lazyIsByRefLikeAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyIsByRefLikeAttribute.Constructor,
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeIsByRefLikeAttribute();
+        }
+
+        private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
+        {
+            if (this.NeedsGeneratedIsReadOnlyAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsReadOnlyAttribute,
+                    diagnostics,
+                    AttributeDescription.IsReadOnlyAttribute);
+            }
+
+            if (this.NeedsGeneratedIsByRefLikeAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsByRefLikeAttribute,
+                    diagnostics,
+                    AttributeDescription.IsByRefLikeAttribute);
+            }
+        }
+
+        private void CreateEmbeddedAttributeItselfIfNeeded(DiagnosticBag diagnostics)
+        {
+            CreateEmbeddedAttributeIfNeeded(
+                ref _lazyEmbeddedAttribute,
+                diagnostics,
+                AttributeDescription.CodeAnalysisEmbeddedAttribute);
+        }
+
+        private void CreateEmbeddedAttributeIfNeeded(ref SynthesizedEmbeddedAttributeSymbol symbol, DiagnosticBag diagnostics, AttributeDescription description)
+        {
+            if ((object)symbol == null)
+            {
+                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+                Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+
+                if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+                {
+                    diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+                }
+
+                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, diagnostics);
+            }
+        }
     }
 
     internal sealed class PEAssemblyBuilder : PEAssemblyBuilderBase

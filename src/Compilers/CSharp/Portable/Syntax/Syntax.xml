@@ -307,6 +307,12 @@
     <Field Name="RefKeyword" Type="SyntaxToken">
       <Kind Name="RefKeyword"/>
     </Field>
+    <Field Name="ReadOnlyKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="ReadOnlyKeyword"/>
+      <PropertyComment>
+        <summary>Gets the optional "readonly" keyword.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>
   <!-- Expressions -->
@@ -1102,6 +1108,7 @@
     <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="RefKeyword"/>
       <Kind Name="OutKeyword"/>
+      <Kind Name="InKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the optional ref or out keyword.</summary>
       </PropertyComment>

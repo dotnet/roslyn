@@ -86,6 +86,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.SelectAsArray(Function(m) If(matchedMethodSymbol.OriginalDefinition Is m, matchedMethodSymbol, m))
             End If
 
+            Dim enclosingSymbol = semanticModel.GetEnclosingSymbol(position)
+            If enclosingSymbol.IsConstructor() Then
+                memberGroup = memberGroup.WhereAsArray(Function(m) Not m.Equals(enclosingSymbol))
+            End If
+
             memberGroup = memberGroup.Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart)
 
             Dim typeInfo = semanticModel.GetTypeInfo(targetExpression, cancellationToken)

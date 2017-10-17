@@ -1150,6 +1150,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show name s_uggestions.
+        /// </summary>
+        internal static string Show_name_suggestions {
+            get {
+                return ResourceManager.GetString("Show_name_suggestions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show preview for rename _tracking.
         /// </summary>
         internal static string Show_preview_for_rename_tracking {

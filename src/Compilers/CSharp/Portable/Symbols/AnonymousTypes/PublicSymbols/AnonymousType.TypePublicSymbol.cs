@@ -104,6 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
             }
 
+            internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
                 var symbols = _nameToSymbols[name];
@@ -167,6 +169,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public override bool IsAbstract
+            {
+                get { return false; }
+            }
+
+            internal sealed override bool IsByRefLikeType
+            {
+                get { return false;  }
+            }
+
+            internal sealed override bool IsReadOnly
             {
                 get { return false; }
             }

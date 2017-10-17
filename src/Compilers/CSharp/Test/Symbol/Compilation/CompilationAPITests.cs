@@ -23,6 +23,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using KeyValuePair = Roslyn.Utilities.KeyValuePair;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

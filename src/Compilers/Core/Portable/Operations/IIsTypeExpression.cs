@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
@@ -16,11 +14,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to test.
         /// </summary>
-        IOperation Operand { get; }
+        IOperation ValueOperand { get; }
+
         /// <summary>
         /// Type for which to test.
         /// </summary>
-        ITypeSymbol IsType { get; }
+        ITypeSymbol TypeOperand { get; }
+
+        /// <summary>
+        /// Flag indicating if this is an "is not" type expression.
+        /// True for VB "TypeOf ... IsNot ..." expression.
+        /// False, otherwise.
+        /// </summary>
+        bool IsNegated { get; }
     }
 }
-

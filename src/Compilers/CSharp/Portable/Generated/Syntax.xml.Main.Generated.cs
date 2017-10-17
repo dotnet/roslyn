@@ -2567,8 +2567,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode VisitRefType(RefTypeSyntax node)
     {
       var refKeyword = this.VisitToken(node.RefKeyword);
+      var readOnlyKeyword = this.VisitToken(node.ReadOnlyKeyword);
       var type = (TypeSyntax)this.Visit(node.Type);
-      return node.Update(refKeyword, type);
+      return node.Update(refKeyword, readOnlyKeyword, type);
     }
 
     public override SyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
@@ -4539,7 +4540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new RefTypeSyntax instance.</summary>
-    public static RefTypeSyntax RefType(SyntaxToken refKeyword, TypeSyntax type)
+    public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
     {
       switch (refKeyword.Kind())
       {
@@ -4548,16 +4549,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("refKeyword");
       }
+      switch (readOnlyKeyword.Kind())
+      {
+        case SyntaxKind.ReadOnlyKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException("readOnlyKeyword");
+      }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
-      return (RefTypeSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+      return (RefTypeSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)readOnlyKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new RefTypeSyntax instance.</summary>
     public static RefTypeSyntax RefType(TypeSyntax type)
     {
-      return SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), type);
+      return SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), default(SyntaxToken), type);
     }
 
     /// <summary>Creates a new ParenthesizedExpressionSyntax instance.</summary>
@@ -5597,6 +5606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       {
         case SyntaxKind.RefKeyword:
         case SyntaxKind.OutKeyword:
+        case SyntaxKind.InKeyword:
         case SyntaxKind.None:
           break;
         default:

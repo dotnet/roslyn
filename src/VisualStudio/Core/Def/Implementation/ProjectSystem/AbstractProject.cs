@@ -30,6 +30,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     // NOTE: Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptProject derives from AbstractProject.
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
     {

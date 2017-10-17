@@ -1298,6 +1298,14 @@ End If]]>.Value,
         Assert.Equal(1, errors.Count)
         Assert.Equal(30035, errors.First().Code)
         Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&H_2_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        errors = tk.Errors()
+        Assert.Equal(1, errors.Count)
+        Assert.Equal(30035, errors.First().Code)
+        Assert.Equal(0, CInt(tk.Value))
     End Sub
 
     <Fact>

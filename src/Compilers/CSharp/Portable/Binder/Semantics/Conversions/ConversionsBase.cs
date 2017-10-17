@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
+        public abstract Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
@@ -843,6 +845,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (interpolatedStringConversion.Exists)
                     {
                         return interpolatedStringConversion;
+                    }
+                    break;
+
+                case BoundKind.StackAllocArrayCreation:
+                    var stackAllocConversion = GetStackAllocConversion((BoundStackAllocArrayCreation)sourceExpression, destination, ref useSiteDiagnostics);
+                    if (stackAllocConversion.Exists)
+                    {
+                        return stackAllocConversion;
                     }
                     break;
 
@@ -3026,6 +3036,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)destination != null);
 
             if (destination.IsPointerType())
+            {
+                return false;
+            }
+
+            // Ref-like types cannot be boxed or unboxed
+            if (destination.IsRestrictedType())
             {
                 return false;
             }

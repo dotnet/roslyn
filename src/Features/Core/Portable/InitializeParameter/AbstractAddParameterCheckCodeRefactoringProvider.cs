@@ -105,10 +105,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             foreach (var coalesceNode in syntax.DescendantNodes().OfType<TBinaryExpressionSyntax>())
             {
                 var operation = GetOperation(semanticModel, coalesceNode, cancellationToken);
-                if (operation is INullCoalescingExpression coalesceExpression)
+                if (operation is ICoalesceExpression coalesceExpression)
                 {
-                    if (IsParameterReference(coalesceExpression.PrimaryOperand, parameter) &&
-                        syntaxFacts.IsThrowExpression(coalesceExpression.SecondaryOperand.Syntax))
+                    if (IsParameterReference(coalesceExpression.Expression, parameter) &&
+                        syntaxFacts.IsThrowExpression(coalesceExpression.WhenNull.Syntax))
                     {
                         return true;
                     }
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
         {
             if (condition is IInvocationExpression invocation &&
-                invocation.ArgumentsInEvaluationOrder.Length == 1 &&
-                IsParameterReference(invocation.ArgumentsInEvaluationOrder[0].Value, parameter))
+                invocation.Arguments.Length == 1 &&
+                IsParameterReference(invocation.Arguments[0].Value, parameter))
             {
                 var targetMethod = invocation.TargetMethod;
                 if (targetMethod?.Name == nameof(string.IsNullOrEmpty) ||

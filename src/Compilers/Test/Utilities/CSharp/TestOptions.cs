@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular7 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7);
         public static readonly CSharpParseOptions Regular7_1 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7_1);
         public static readonly CSharpParseOptions Regular8 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp8);
+        public static readonly CSharpParseOptions RegularLatest = Regular.WithLanguageVersion(LanguageVersion.Latest);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
@@ -59,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("strict", "true") }));
+        }
+
+        public static CSharpParseOptions WithPEVerifyCompatFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("peverify-compat", "true") }));
         }
 
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)

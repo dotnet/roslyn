@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Int32),
-                returnsByRef: false,
+                 refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: GetHashCodeName,
                 typeParameters: default,

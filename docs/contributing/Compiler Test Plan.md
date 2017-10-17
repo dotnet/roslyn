@@ -1,4 +1,4 @@
-﻿This document provides guidance for thinking about language interactions and testing compiler changes.
+This document provides guidance for thinking about language interactions and testing compiler changes.
 
 # General concerns:
 - Completeness of the specification as a guide for testing (is the spec complete enough to suggest what the compiler should do in each scenario?)
@@ -30,7 +30,7 @@
 - Performance and stress testing
  
 # Type and members
-- Access modifiers (public, protected, internal, protected internal, private), static modifier
+- Access modifiers (public, protected, internal, protected internal, private protected, private), static modifier
 - Parameter modifiers (ref, out, params)
 - Attributes (including security attribute)
 - Generics (type arguments, constraints, variance)
