@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -90,6 +90,36 @@ IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ReturnStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
+        Public Sub Return_ConstantConversions_01()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Function M() As Byte
+        Return 0.0'BIND:"Return 0.0"
+    End Function
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return 0.0')
+  ReturnedValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Byte'.
+        Return 0.0'BIND:"Return 0.0"
+               ~~~
+]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ReturnStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub

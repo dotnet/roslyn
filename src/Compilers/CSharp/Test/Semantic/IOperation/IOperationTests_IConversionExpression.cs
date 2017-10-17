@@ -264,15 +264,18 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid
   Variables: Local_1: Enum1 e1
   Initializer: 
     IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= 1')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Enum1, IsInvalid, IsImplicit) (Syntax: '1')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Enum1, Constant: 1, IsInvalid, IsImplicit) (Syntax: '1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0266: Cannot implicitly convert type 'int' to 'Program.Enum1'. An explicit conversion exists (are you missing a cast?)
+                // (5,30): error CS0266: Cannot implicitly convert type 'int' to 'Enum1'. An explicit conversion exists (are you missing a cast?)
                 //         Enum1 /*<bind>*/e1 = 1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1").WithArguments("int", "Enum1").WithLocation(5, 30)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1").WithArguments("int", "Enum1").WithLocation(5, 30),
+                // (5,25): warning CS0219: The variable 'e1' is assigned but its value is never used
+                //         Enum1 /*<bind>*/e1 = 1/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "e1").WithArguments("e1").WithLocation(5, 25)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
@@ -2671,9 +2674,12 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid
           ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 4096, IsInvalid) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0031: Constant value '4096' cannot be converted to a 'sbyte'
+                // (7,36): error CS0031: Constant value '4096' cannot be converted to a 'sbyte'
                 //         const sbyte /*<bind>*/s1 = i1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "i1").WithArguments("4096", "sbyte").WithLocation(7, 36)
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "i1").WithArguments("4096", "sbyte").WithLocation(7, 36),
+                // (7,31): warning CS0219: The variable 's1' is assigned but its value is never used
+                //         const sbyte /*<bind>*/s1 = i1/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s1").WithArguments("s1").WithLocation(7, 31)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
@@ -3485,7 +3491,7 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid
   Variables: Local_1: System.Int32 i
   Initializer: 
     IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (float)1.0')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '(float)1.0')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '(float)1.0')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 1, IsInvalid) (Syntax: '(float)1.0')
@@ -3494,9 +3500,12 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1, IsInvalid) (Syntax: '1.0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
+                // (6,27): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         int /*<bind>*/i = (float)1.0/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(float)1.0").WithArguments("float", "int").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(float)1.0").WithArguments("float", "int").WithLocation(6, 27),
+                // (6,23): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         int /*<bind>*/i = (float)1.0/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 23)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3689,7 +3698,7 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid
   Variables: Local_1: E2 e2
   Initializer: 
     IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (E2)E1.One')
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E2, Constant: null, IsInvalid) (Syntax: '(E2)E1.One')
+      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E2, IsInvalid) (Syntax: '(E2)E1.One')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IFieldReferenceExpression: E1.One (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 1000, IsInvalid) (Syntax: 'E1.One')
