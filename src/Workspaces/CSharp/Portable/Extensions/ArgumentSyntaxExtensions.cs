@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static SyntaxTokenList GenerateParameterModifiers(this ArgumentSyntax argument)
         {
-            if (argument.RefOrOutKeyword != default)
+            if (argument.RefKindKeyword != default)
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(argument.RefOrOutKeyword.Kind()));
+                return SyntaxFactory.TokenList(SyntaxFactory.Token(argument.RefKindKeyword.Kind()));
             }
 
             return default;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static RefKind GetRefKind(this ArgumentSyntax argument)
         {
-            switch(argument?.RefOrOutKeyword.Kind())
+            switch(argument?.RefKindKeyword.Kind())
             {
                 case SyntaxKind.RefKeyword:
                     return RefKind.Ref;
