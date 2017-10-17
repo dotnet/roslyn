@@ -47,200 +47,200 @@ namespace Microsoft.CodeAnalysis.Semantics
             switch (boundNode.Kind)
             {
                 case BoundKind.DeconstructValuePlaceholder:
-                return CreateBoundDeconstructValuePlaceholderOperation((BoundDeconstructValuePlaceholder)boundNode);
+                    return CreateBoundDeconstructValuePlaceholderOperation((BoundDeconstructValuePlaceholder)boundNode);
                 case BoundKind.DeconstructionAssignmentOperator:
-                return CreateBoundDeconstructionAssignmentOperator((BoundDeconstructionAssignmentOperator)boundNode);
+                    return CreateBoundDeconstructionAssignmentOperator((BoundDeconstructionAssignmentOperator)boundNode);
                 case BoundKind.Call:
-                return CreateBoundCallOperation((BoundCall)boundNode);
+                    return CreateBoundCallOperation((BoundCall)boundNode);
                 case BoundKind.Local:
-                return CreateBoundLocalOperation((BoundLocal)boundNode);
+                    return CreateBoundLocalOperation((BoundLocal)boundNode);
                 case BoundKind.FieldAccess:
-                return CreateBoundFieldAccessOperation((BoundFieldAccess)boundNode);
+                    return CreateBoundFieldAccessOperation((BoundFieldAccess)boundNode);
                 case BoundKind.PropertyAccess:
-                return CreateBoundPropertyAccessOperation((BoundPropertyAccess)boundNode);
+                    return CreateBoundPropertyAccessOperation((BoundPropertyAccess)boundNode);
                 case BoundKind.IndexerAccess:
-                return CreateBoundIndexerAccessOperation((BoundIndexerAccess)boundNode);
+                    return CreateBoundIndexerAccessOperation((BoundIndexerAccess)boundNode);
                 case BoundKind.EventAccess:
-                return CreateBoundEventAccessOperation((BoundEventAccess)boundNode);
+                    return CreateBoundEventAccessOperation((BoundEventAccess)boundNode);
                 case BoundKind.EventAssignmentOperator:
-                return CreateBoundEventAssignmentOperatorOperation((BoundEventAssignmentOperator)boundNode);
+                    return CreateBoundEventAssignmentOperatorOperation((BoundEventAssignmentOperator)boundNode);
                 case BoundKind.Parameter:
-                return CreateBoundParameterOperation((BoundParameter)boundNode);
+                    return CreateBoundParameterOperation((BoundParameter)boundNode);
                 case BoundKind.Literal:
-                return CreateBoundLiteralOperation((BoundLiteral)boundNode);
+                    return CreateBoundLiteralOperation((BoundLiteral)boundNode);
                 case BoundKind.DynamicInvocation:
-                return CreateBoundDynamicInvocationExpressionOperation((BoundDynamicInvocation)boundNode);
+                    return CreateBoundDynamicInvocationExpressionOperation((BoundDynamicInvocation)boundNode);
                 case BoundKind.DynamicIndexerAccess:
-                return CreateBoundDynamicIndexerAccessExpressionOperation((BoundDynamicIndexerAccess)boundNode);
+                    return CreateBoundDynamicIndexerAccessExpressionOperation((BoundDynamicIndexerAccess)boundNode);
                 case BoundKind.ObjectCreationExpression:
-                return CreateBoundObjectCreationExpressionOperation((BoundObjectCreationExpression)boundNode);
+                    return CreateBoundObjectCreationExpressionOperation((BoundObjectCreationExpression)boundNode);
                 case BoundKind.DynamicObjectCreationExpression:
-                return CreateBoundDynamicObjectCreationExpressionOperation((BoundDynamicObjectCreationExpression)boundNode);
+                    return CreateBoundDynamicObjectCreationExpressionOperation((BoundDynamicObjectCreationExpression)boundNode);
                 case BoundKind.ObjectInitializerExpression:
-                return CreateBoundObjectInitializerExpressionOperation((BoundObjectInitializerExpression)boundNode);
+                    return CreateBoundObjectInitializerExpressionOperation((BoundObjectInitializerExpression)boundNode);
                 case BoundKind.CollectionInitializerExpression:
-                return CreateBoundCollectionInitializerExpressionOperation((BoundCollectionInitializerExpression)boundNode);
+                    return CreateBoundCollectionInitializerExpressionOperation((BoundCollectionInitializerExpression)boundNode);
                 case BoundKind.ObjectInitializerMember:
-                return CreateBoundObjectInitializerMemberOperation((BoundObjectInitializerMember)boundNode);
+                    return CreateBoundObjectInitializerMemberOperation((BoundObjectInitializerMember)boundNode);
                 case BoundKind.CollectionElementInitializer:
-                return CreateBoundCollectionElementInitializerOperation((BoundCollectionElementInitializer)boundNode);
+                    return CreateBoundCollectionElementInitializerOperation((BoundCollectionElementInitializer)boundNode);
                 case BoundKind.DynamicMemberAccess:
-                return CreateBoundDynamicMemberAccessOperation((BoundDynamicMemberAccess)boundNode);
+                    return CreateBoundDynamicMemberAccessOperation((BoundDynamicMemberAccess)boundNode);
                 case BoundKind.DynamicCollectionElementInitializer:
-                return CreateBoundDynamicCollectionElementInitializerOperation((BoundDynamicCollectionElementInitializer)boundNode);
+                    return CreateBoundDynamicCollectionElementInitializerOperation((BoundDynamicCollectionElementInitializer)boundNode);
                 case BoundKind.UnboundLambda:
-                return CreateUnboundLambdaOperation((UnboundLambda)boundNode);
+                    return CreateUnboundLambdaOperation((UnboundLambda)boundNode);
                 case BoundKind.Lambda:
-                return CreateBoundLambdaOperation((BoundLambda)boundNode);
+                    return CreateBoundLambdaOperation((BoundLambda)boundNode);
                 case BoundKind.Conversion:
-                return CreateBoundConversionOperation((BoundConversion)boundNode);
+                    return CreateBoundConversionOperation((BoundConversion)boundNode);
                 case BoundKind.AsOperator:
-                return CreateBoundAsOperatorOperation((BoundAsOperator)boundNode);
+                    return CreateBoundAsOperatorOperation((BoundAsOperator)boundNode);
                 case BoundKind.IsOperator:
-                return CreateBoundIsOperatorOperation((BoundIsOperator)boundNode);
+                    return CreateBoundIsOperatorOperation((BoundIsOperator)boundNode);
                 case BoundKind.SizeOfOperator:
-                return CreateBoundSizeOfOperatorOperation((BoundSizeOfOperator)boundNode);
+                    return CreateBoundSizeOfOperatorOperation((BoundSizeOfOperator)boundNode);
                 case BoundKind.TypeOfOperator:
-                return CreateBoundTypeOfOperatorOperation((BoundTypeOfOperator)boundNode);
+                    return CreateBoundTypeOfOperatorOperation((BoundTypeOfOperator)boundNode);
                 case BoundKind.ArrayCreation:
-                return CreateBoundArrayCreationOperation((BoundArrayCreation)boundNode);
+                    return CreateBoundArrayCreationOperation((BoundArrayCreation)boundNode);
                 case BoundKind.ArrayInitialization:
-                return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
+                    return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
                 case BoundKind.DefaultExpression:
-                return CreateBoundDefaultExpressionOperation((BoundDefaultExpression)boundNode);
+                    return CreateBoundDefaultExpressionOperation((BoundDefaultExpression)boundNode);
                 case BoundKind.BaseReference:
-                return CreateBoundBaseReferenceOperation((BoundBaseReference)boundNode);
+                    return CreateBoundBaseReferenceOperation((BoundBaseReference)boundNode);
                 case BoundKind.ThisReference:
-                return CreateBoundThisReferenceOperation((BoundThisReference)boundNode);
+                    return CreateBoundThisReferenceOperation((BoundThisReference)boundNode);
                 case BoundKind.AssignmentOperator:
-                return CreateBoundAssignmentOperatorOrMemberInitializerOperation((BoundAssignmentOperator)boundNode);
+                    return CreateBoundAssignmentOperatorOrMemberInitializerOperation((BoundAssignmentOperator)boundNode);
                 case BoundKind.CompoundAssignmentOperator:
-                return CreateBoundCompoundAssignmentOperatorOperation((BoundCompoundAssignmentOperator)boundNode);
+                    return CreateBoundCompoundAssignmentOperatorOperation((BoundCompoundAssignmentOperator)boundNode);
                 case BoundKind.IncrementOperator:
-                return CreateBoundIncrementOperatorOperation((BoundIncrementOperator)boundNode);
+                    return CreateBoundIncrementOperatorOperation((BoundIncrementOperator)boundNode);
                 case BoundKind.BadExpression:
-                return CreateBoundBadExpressionOperation((BoundBadExpression)boundNode);
+                    return CreateBoundBadExpressionOperation((BoundBadExpression)boundNode);
                 case BoundKind.NewT:
-                return CreateBoundNewTOperation((BoundNewT)boundNode);
+                    return CreateBoundNewTOperation((BoundNewT)boundNode);
                 case BoundKind.UnaryOperator:
-                return CreateBoundUnaryOperatorOperation((BoundUnaryOperator)boundNode);
+                    return CreateBoundUnaryOperatorOperation((BoundUnaryOperator)boundNode);
                 case BoundKind.BinaryOperator:
-                return CreateBoundBinaryOperatorOperation((BoundBinaryOperator)boundNode);
+                    return CreateBoundBinaryOperatorOperation((BoundBinaryOperator)boundNode);
                 case BoundKind.ConditionalOperator:
-                return CreateBoundConditionalOperatorOperation((BoundConditionalOperator)boundNode);
+                    return CreateBoundConditionalOperatorOperation((BoundConditionalOperator)boundNode);
                 case BoundKind.NullCoalescingOperator:
-                return CreateBoundNullCoalescingOperatorOperation((BoundNullCoalescingOperator)boundNode);
+                    return CreateBoundNullCoalescingOperatorOperation((BoundNullCoalescingOperator)boundNode);
                 case BoundKind.AwaitExpression:
-                return CreateBoundAwaitExpressionOperation((BoundAwaitExpression)boundNode);
+                    return CreateBoundAwaitExpressionOperation((BoundAwaitExpression)boundNode);
                 case BoundKind.ArrayAccess:
-                return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
+                    return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
                 case BoundKind.NameOfOperator:
-                return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
+                    return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
                 case BoundKind.ThrowExpression:
-                return CreateBoundThrowExpressionOperation((BoundThrowExpression)boundNode);
+                    return CreateBoundThrowExpressionOperation((BoundThrowExpression)boundNode);
                 case BoundKind.AddressOfOperator:
-                return CreateBoundAddressOfOperatorOperation((BoundAddressOfOperator)boundNode);
+                    return CreateBoundAddressOfOperatorOperation((BoundAddressOfOperator)boundNode);
                 case BoundKind.ImplicitReceiver:
-                return CreateBoundImplicitReceiverOperation((BoundImplicitReceiver)boundNode);
+                    return CreateBoundImplicitReceiverOperation((BoundImplicitReceiver)boundNode);
                 case BoundKind.ConditionalAccess:
-                return CreateBoundConditionalAccessOperation((BoundConditionalAccess)boundNode);
+                    return CreateBoundConditionalAccessOperation((BoundConditionalAccess)boundNode);
                 case BoundKind.ConditionalReceiver:
-                return CreateBoundConditionalReceiverOperation((BoundConditionalReceiver)boundNode);
+                    return CreateBoundConditionalReceiverOperation((BoundConditionalReceiver)boundNode);
                 case BoundKind.FieldEqualsValue:
-                return CreateBoundFieldEqualsValueOperation((BoundFieldEqualsValue)boundNode);
+                    return CreateBoundFieldEqualsValueOperation((BoundFieldEqualsValue)boundNode);
                 case BoundKind.PropertyEqualsValue:
-                return CreateBoundPropertyEqualsValueOperation((BoundPropertyEqualsValue)boundNode);
+                    return CreateBoundPropertyEqualsValueOperation((BoundPropertyEqualsValue)boundNode);
                 case BoundKind.ParameterEqualsValue:
-                return CreateBoundParameterEqualsValueOperation((BoundParameterEqualsValue)boundNode);
+                    return CreateBoundParameterEqualsValueOperation((BoundParameterEqualsValue)boundNode);
                 case BoundKind.Block:
-                return CreateBoundBlockOperation((BoundBlock)boundNode);
+                    return CreateBoundBlockOperation((BoundBlock)boundNode);
                 case BoundKind.ContinueStatement:
-                return CreateBoundContinueStatementOperation((BoundContinueStatement)boundNode);
+                    return CreateBoundContinueStatementOperation((BoundContinueStatement)boundNode);
                 case BoundKind.BreakStatement:
-                return CreateBoundBreakStatementOperation((BoundBreakStatement)boundNode);
+                    return CreateBoundBreakStatementOperation((BoundBreakStatement)boundNode);
                 case BoundKind.YieldBreakStatement:
-                return CreateBoundYieldBreakStatementOperation((BoundYieldBreakStatement)boundNode);
+                    return CreateBoundYieldBreakStatementOperation((BoundYieldBreakStatement)boundNode);
                 case BoundKind.GotoStatement:
-                return CreateBoundGotoStatementOperation((BoundGotoStatement)boundNode);
+                    return CreateBoundGotoStatementOperation((BoundGotoStatement)boundNode);
                 case BoundKind.NoOpStatement:
-                return CreateBoundNoOpStatementOperation((BoundNoOpStatement)boundNode);
+                    return CreateBoundNoOpStatementOperation((BoundNoOpStatement)boundNode);
                 case BoundKind.IfStatement:
-                return CreateBoundIfStatementOperation((BoundIfStatement)boundNode);
+                    return CreateBoundIfStatementOperation((BoundIfStatement)boundNode);
                 case BoundKind.WhileStatement:
-                return CreateBoundWhileStatementOperation((BoundWhileStatement)boundNode);
+                    return CreateBoundWhileStatementOperation((BoundWhileStatement)boundNode);
                 case BoundKind.DoStatement:
-                return CreateBoundDoStatementOperation((BoundDoStatement)boundNode);
+                    return CreateBoundDoStatementOperation((BoundDoStatement)boundNode);
                 case BoundKind.ForStatement:
-                return CreateBoundForStatementOperation((BoundForStatement)boundNode);
+                    return CreateBoundForStatementOperation((BoundForStatement)boundNode);
                 case BoundKind.ForEachStatement:
-                return CreateBoundForEachStatementOperation((BoundForEachStatement)boundNode);
+                    return CreateBoundForEachStatementOperation((BoundForEachStatement)boundNode);
                 case BoundKind.SwitchStatement:
-                return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
+                    return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
                 case BoundKind.SwitchLabel:
-                return CreateBoundSwitchLabelOperation((BoundSwitchLabel)boundNode);
+                    return CreateBoundSwitchLabelOperation((BoundSwitchLabel)boundNode);
                 case BoundKind.TryStatement:
-                return CreateBoundTryStatementOperation((BoundTryStatement)boundNode);
+                    return CreateBoundTryStatementOperation((BoundTryStatement)boundNode);
                 case BoundKind.CatchBlock:
-                return CreateBoundCatchBlockOperation((BoundCatchBlock)boundNode);
+                    return CreateBoundCatchBlockOperation((BoundCatchBlock)boundNode);
                 // https://github.com/dotnet/roslyn/issues/21281
                 //case BoundKind.FixedStatement:
                 //    return CreateBoundFixedStatementOperation((BoundFixedStatement)boundNode);
                 case BoundKind.UsingStatement:
-                return CreateBoundUsingStatementOperation((BoundUsingStatement)boundNode);
+                    return CreateBoundUsingStatementOperation((BoundUsingStatement)boundNode);
                 case BoundKind.ThrowStatement:
-                return CreateBoundThrowStatementOperation((BoundThrowStatement)boundNode);
+                    return CreateBoundThrowStatementOperation((BoundThrowStatement)boundNode);
                 case BoundKind.ReturnStatement:
-                return CreateBoundReturnStatementOperation((BoundReturnStatement)boundNode);
+                    return CreateBoundReturnStatementOperation((BoundReturnStatement)boundNode);
                 case BoundKind.YieldReturnStatement:
-                return CreateBoundYieldReturnStatementOperation((BoundYieldReturnStatement)boundNode);
+                    return CreateBoundYieldReturnStatementOperation((BoundYieldReturnStatement)boundNode);
                 case BoundKind.LockStatement:
-                return CreateBoundLockStatementOperation((BoundLockStatement)boundNode);
+                    return CreateBoundLockStatementOperation((BoundLockStatement)boundNode);
                 case BoundKind.BadStatement:
-                return CreateBoundBadStatementOperation((BoundBadStatement)boundNode);
+                    return CreateBoundBadStatementOperation((BoundBadStatement)boundNode);
                 case BoundKind.LocalDeclaration:
-                return CreateBoundLocalDeclarationOperation((BoundLocalDeclaration)boundNode);
+                    return CreateBoundLocalDeclarationOperation((BoundLocalDeclaration)boundNode);
                 case BoundKind.MultipleLocalDeclarations:
-                return CreateBoundMultipleLocalDeclarationsOperation((BoundMultipleLocalDeclarations)boundNode);
+                    return CreateBoundMultipleLocalDeclarationsOperation((BoundMultipleLocalDeclarations)boundNode);
                 case BoundKind.LabelStatement:
-                return CreateBoundLabelStatementOperation((BoundLabelStatement)boundNode);
+                    return CreateBoundLabelStatementOperation((BoundLabelStatement)boundNode);
                 case BoundKind.LabeledStatement:
-                return CreateBoundLabeledStatementOperation((BoundLabeledStatement)boundNode);
+                    return CreateBoundLabeledStatementOperation((BoundLabeledStatement)boundNode);
                 case BoundKind.ExpressionStatement:
-                return CreateBoundExpressionStatementOperation((BoundExpressionStatement)boundNode);
+                    return CreateBoundExpressionStatementOperation((BoundExpressionStatement)boundNode);
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
-                return CreateBoundTupleExpressionOperation((BoundTupleExpression)boundNode);
+                    return CreateBoundTupleExpressionOperation((BoundTupleExpression)boundNode);
                 case BoundKind.InterpolatedString:
-                return CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)boundNode);
+                    return CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)boundNode);
                 case BoundKind.StringInsert:
-                return CreateBoundInterpolationOperation((BoundStringInsert)boundNode);
+                    return CreateBoundInterpolationOperation((BoundStringInsert)boundNode);
                 case BoundKind.LocalFunctionStatement:
-                return CreateBoundLocalFunctionStatementOperation((BoundLocalFunctionStatement)boundNode);
+                    return CreateBoundLocalFunctionStatementOperation((BoundLocalFunctionStatement)boundNode);
                 case BoundKind.AnonymousObjectCreationExpression:
-                return CreateBoundAnonymousObjectCreationExpressionOperation((BoundAnonymousObjectCreationExpression)boundNode);
+                    return CreateBoundAnonymousObjectCreationExpressionOperation((BoundAnonymousObjectCreationExpression)boundNode);
                 case BoundKind.AnonymousPropertyDeclaration:
-                return CreateBoundAnonymousPropertyDeclarationOperation((BoundAnonymousPropertyDeclaration)boundNode);
+                    return CreateBoundAnonymousPropertyDeclarationOperation((BoundAnonymousPropertyDeclaration)boundNode);
                 case BoundKind.ConstantPattern:
-                return CreateBoundConstantPatternOperation((BoundConstantPattern)boundNode);
+                    return CreateBoundConstantPatternOperation((BoundConstantPattern)boundNode);
                 case BoundKind.DeclarationPattern:
-                return CreateBoundDeclarationPatternOperation((BoundDeclarationPattern)boundNode);
+                    return CreateBoundDeclarationPatternOperation((BoundDeclarationPattern)boundNode);
                 case BoundKind.WildcardPattern:
-                throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.PatternSwitchStatement:
-                return CreateBoundPatternSwitchStatementOperation((BoundPatternSwitchStatement)boundNode);
+                    return CreateBoundPatternSwitchStatementOperation((BoundPatternSwitchStatement)boundNode);
                 case BoundKind.PatternSwitchLabel:
-                return CreateBoundPatternSwitchLabelOperation((BoundPatternSwitchLabel)boundNode);
+                    return CreateBoundPatternSwitchLabelOperation((BoundPatternSwitchLabel)boundNode);
                 case BoundKind.IsPatternExpression:
-                return CreateBoundIsPatternExpressionOperation((BoundIsPatternExpression)boundNode);
+                    return CreateBoundIsPatternExpressionOperation((BoundIsPatternExpression)boundNode);
                 case BoundKind.QueryClause:
-                return CreateBoundQueryClauseOperation((BoundQueryClause)boundNode);
+                    return CreateBoundQueryClauseOperation((BoundQueryClause)boundNode);
                 case BoundKind.DelegateCreationExpression:
-                return CreateBoundDelegateCreationExpressionOperation((BoundDelegateCreationExpression)boundNode);
+                    return CreateBoundDelegateCreationExpressionOperation((BoundDelegateCreationExpression)boundNode);
                 default:
-                Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
-                bool isImplicit = boundNode.WasCompilerGenerated;
+                    Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
+                    bool isImplicit = boundNode.WasCompilerGenerated;
 
-                return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode), isImplicit: isImplicit);
+                    return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode), isImplicit: isImplicit);
             }
         }
 
@@ -580,43 +580,43 @@ namespace Microsoft.CodeAnalysis.Semantics
             switch (boundObjectInitializerMember.MemberSymbol.Kind)
             {
                 case SymbolKind.Field:
-                var field = (FieldSymbol)boundObjectInitializerMember.MemberSymbol;
-                bool isDeclaration = false;
-                return new LazyFieldReferenceExpression(field, isDeclaration, instance, _semanticModel, syntax, type, constantValue, isImplicit);
+                    var field = (FieldSymbol)boundObjectInitializerMember.MemberSymbol;
+                    bool isDeclaration = false;
+                    return new LazyFieldReferenceExpression(field, isDeclaration, instance, _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Event:
-                var eventSymbol = (EventSymbol)boundObjectInitializerMember.MemberSymbol;
-                return new LazyEventReferenceExpression(eventSymbol, instance, _semanticModel, syntax, type, constantValue, isImplicit);
+                    var eventSymbol = (EventSymbol)boundObjectInitializerMember.MemberSymbol;
+                    return new LazyEventReferenceExpression(eventSymbol, instance, _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Property:
-                var property = (PropertySymbol)boundObjectInitializerMember.MemberSymbol;
-                Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder;
-                if (!boundObjectInitializerMember.Arguments.Any())
-                {
-                    // Simple property reference.
-                    argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() => ImmutableArray<IArgument>.Empty);
-                }
-                else
-                {
-                    // Indexed property reference.
-                    argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() =>
+                    var property = (PropertySymbol)boundObjectInitializerMember.MemberSymbol;
+                    Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder;
+                    if (!boundObjectInitializerMember.Arguments.Any())
                     {
-                        return DeriveArguments(
-                            boundObjectInitializerMember,
-                            boundObjectInitializerMember.BinderOpt,
-                            property,
-                            property.GetOwnOrInheritedSetMethod(),
-                            boundObjectInitializerMember.Arguments,
-                            boundObjectInitializerMember.ArgumentNamesOpt,
-                            boundObjectInitializerMember.ArgsToParamsOpt,
-                            boundObjectInitializerMember.ArgumentRefKindsOpt,
-                            property.Parameters,
-                            boundObjectInitializerMember.Expanded,
-                            boundObjectInitializerMember.Syntax);
-                    });
-                }
+                        // Simple property reference.
+                        argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() => ImmutableArray<IArgument>.Empty);
+                    }
+                    else
+                    {
+                        // Indexed property reference.
+                        argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() =>
+                        {
+                            return DeriveArguments(
+                                boundObjectInitializerMember,
+                                boundObjectInitializerMember.BinderOpt,
+                                property,
+                                property.GetOwnOrInheritedSetMethod(),
+                                boundObjectInitializerMember.Arguments,
+                                boundObjectInitializerMember.ArgumentNamesOpt,
+                                boundObjectInitializerMember.ArgsToParamsOpt,
+                                boundObjectInitializerMember.ArgumentRefKindsOpt,
+                                property.Parameters,
+                                boundObjectInitializerMember.Expanded,
+                                boundObjectInitializerMember.Syntax);
+                        });
+                    }
 
-                return new LazyPropertyReferenceExpression(property, instance, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new LazyPropertyReferenceExpression(property, instance, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
                 default:
-                throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 
