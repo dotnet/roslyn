@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitMemberReferenceExpressionCommon(IMemberReferenceExpression operation)
         {
-            if (operation.Instance == null)
+            if (operation.Member.IsStatic)
             {
                 LogString(" (Static)");
             }

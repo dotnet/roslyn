@@ -615,8 +615,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim isVirtual As Boolean = method IsNot Nothing AndAlso
                                                (method.IsAbstract OrElse method.IsOverride OrElse method.IsVirtual) AndAlso
                                                Not boundDelegateCreationExpression.SuppressVirtualCalls
-            Dim instance As Lazy(Of IOperation) =
-                        New Lazy(Of IOperation)(Function() Create(If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt)))
+
+            Dim receiverOpt As BoundExpression = If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt)
+
+            If receiverOpt IsNot Nothing AndAlso method IsNot Nothing AndAlso method.IsShared AndAlso
+               receiverOpt.WasCompilerGenerated AndAlso receiverOpt.Kind = BoundKind.MeReference Then
+                receiverOpt = Nothing
+            End If
+
+            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(receiverOpt))
+
             ' The compiler creates a BoundDelegateCreationExpression node for the AddressOf expression, and that's the node we want to use for the operand
             ' of the IDelegateCreationExpression parent
             Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
