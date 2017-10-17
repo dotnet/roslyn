@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression is BoundStackAllocArrayCreation boundStackAlloc)
             {
-                var type = new PointerTypeSymbol(boundStackAlloc.ElementType);
+                var type = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(boundStackAlloc.ElementType));
                 expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, refKind: refKind);
             }
 
@@ -1832,7 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TupleLiteral:
                     {
                         var tuple = (BoundTupleLiteral)operand;
-                        var targetElementTypes = default(ImmutableArray<TypeSymbol>);
+                        var targetElementTypes = default(ImmutableArray<TypeSymbolWithAnnotations>);
 
                         // If target is a tuple or compatible type with the same number of elements,
                         // report errors for tuple arguments that failed to convert, which would be more useful.

@@ -5,10 +5,10 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly NamedTypeSymbol _baseType;
         private readonly NamespaceSymbol _namespace;
-        private readonly ImmutableArray<Symbol> _members;
+        private readonly ImmutableArray<MethodSymbol> _constructors;
         private readonly ModuleSymbol _module;
 
         public SynthesizedEmbeddedAttributeSymbol(
             AttributeDescription description,
             CSharpCompilation compilation,
-            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<Symbol>> getMembers,
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors,
             DiagnosticBag diagnostics)
         {
             _name = description.Name;
@@ -42,7 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Report errors in case base type was missing or bad
             Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
 
-            _members = getMembers(compilation, this, diagnostics);
+            var builder = ArrayBuilder<MethodSymbol>.GetInstance();
+            builder.Add(new SynthesizedEmbeddedAttributeConstructorSymbol(this, m => ImmutableArray<ParameterSymbol>.Empty));
+            builder.AddRange(getAdditionalConstructors(compilation, this, diagnostics));
+            _constructors = builder.ToImmutableAndFree();
+            Debug.Assert(_constructors.Length == description.Signatures.Length);
+
             _module = compilation.SourceModule;
 
             _namespace = _module.GlobalNamespace;
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public SynthesizedEmbeddedAttributeConstructorSymbol Constructor { get; private set; }
+        public MethodSymbol Constructor => _constructors[0];
 
         public override int Arity => 0;
 
@@ -64,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name => _name;
 
-        public override IEnumerable<string> MemberNames => _members.Select(m => m.Name);
+        public override IEnumerable<string> MemberNames => _constructors.Select(m => m.Name);
 
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 
@@ -92,6 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSealed => true;
 
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics => throw new NotImplementedException();
+
         internal override bool MangleName => false;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
@@ -118,11 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics => throw new NotImplementedException();
+        public override ImmutableArray<Symbol> GetMembers() => _constructors.CastArray<Symbol>();
 
-        public override ImmutableArray<Symbol> GetMembers() => _members;
-
-        public override ImmutableArray<Symbol> GetMembers(string name) => name == WellKnownMemberNames.InstanceConstructorName ? _members : ImmutableArray<Symbol>.Empty;
+        public override ImmutableArray<Symbol> GetMembers(string name) => name == WellKnownMemberNames.InstanceConstructorName ? _constructors.CastArray<Symbol>() : ImmutableArray<Symbol>.Empty;
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
 
@@ -149,6 +154,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => null;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            // PROTOTYPE(NullableReferenceTypes): Handle NullableAttribute consistently with
+            // other embedded attributes. For now, skip [CompilerGenerated] and [Embedded].
+            if (Name == AttributeDescription.NullableAttribute.Name)
+            {
+                return;
+            }
+
+            AddSynthesizedAttribute(
+                ref attributes,
+                moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+
+            AddSynthesizedAttribute(
+                ref attributes,
+                moduleBuilder.SynthesizeEmbeddedAttribute());
+        }
     }
 
     internal sealed class SynthesizedEmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor
@@ -164,19 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            AddSynthesizedAttribute(
-                ref attributes,
-                moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-
-            AddSynthesizedAttribute(
-                ref attributes,
-                moduleBuilder.SynthesizeEmbeddedAttribute());
-        }
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {

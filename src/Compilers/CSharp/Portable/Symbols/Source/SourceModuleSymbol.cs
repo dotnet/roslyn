@@ -656,15 +656,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var diagnostics = new DiagnosticBag();
             var symbol = new SynthesizedEmbeddedAttributeSymbol(
+                AttributeDescription.NullableAttribute,
                 compilation,
-                AttributeDescription.NullableAttribute.Namespace,
-                AttributeDescription.NullableAttribute.Name,
-                GetNullableAttributeMembers,
+                GetAdditionalNullableAttributeConstructors,
                 diagnostics);
             return new AttributeAndDiagnostics(symbol, diagnostics);
         }
 
-        private static ImmutableArray<Symbol> GetNullableAttributeMembers(
+        private static ImmutableArray<MethodSymbol> GetAdditionalNullableAttributeConstructors(
             CSharpCompilation compilation,
             NamedTypeSymbol containingType,
             DiagnosticBag diagnostics)
@@ -675,10 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ArrayTypeSymbol.CreateSZArray(
                     boolType.ContainingAssembly,
                     TypeSymbolWithAnnotations.Create(boolType)));
-            return ImmutableArray.Create<Symbol>(
-                new SynthesizedEmbeddedAttributeConstructorSymbol(
-                    containingType,
-                    m => ImmutableArray<ParameterSymbol>.Empty),
+            return ImmutableArray.Create<MethodSymbol>(
                 new SynthesizedEmbeddedAttributeConstructorSymbol(
                     containingType,
                     m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, boolArray, 0, RefKind.None))));

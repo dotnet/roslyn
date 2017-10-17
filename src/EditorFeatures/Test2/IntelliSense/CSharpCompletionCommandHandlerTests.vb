@@ -1254,8 +1254,10 @@ class C
         <WorkItem(544293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544293")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function NoKeywordsOrSymbolsAfterNamedParameter() As Task
-            Using state = TestState.CreateCSharpTestState(
-                              <Document>
+            Using state = TestState.CreateTestStateFromWorkspace(
+                 <Workspace>
+                     <Project Language="C#" LanguageVersion="CSharp7_1" CommonReferences="true" AssemblyName="CSProj">
+                         <Document>
 class Goo
 {
     void Test()
@@ -1268,7 +1270,9 @@ class Goo
     {
     }
 }
-                              </Document>)
+                         </Document>
+                     </Project>
+                 </Workspace>)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()

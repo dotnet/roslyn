@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsDynamic() => TypeSymbol.IsDynamic();
         public bool IsObjectType() => TypeSymbol.IsObjectType();
         public bool IsArray() => TypeSymbol.IsArray();
-        public virtual bool IsRestrictedType() => TypeSymbol.IsRestrictedType();
+        public virtual bool IsRestrictedType(bool ignoreSpanLikeTypes = false) => TypeSymbol.IsRestrictedType(ignoreSpanLikeTypes);
         public bool IsPointerType() => TypeSymbol.IsPointerType();
         public bool IsErrorType() => TypeSymbol.IsErrorType();
         public bool IsUnsafe() => TypeSymbol.IsUnsafe();
@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public override bool IsRestrictedType() => _underlying.IsRestrictedType();
+            public override bool IsRestrictedType(bool ignoreSpanLikeTypes) => _underlying.IsRestrictedType(ignoreSpanLikeTypes);
 
             public override TypeSymbol AsTypeSymbolOnly()
             {

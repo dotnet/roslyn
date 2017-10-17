@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // A named argument for a params parameter is necessarily the only one for that parameter
-                    return new TypedConstant(parameter.Type, ImmutableArray.Create(constructorArgsArray[argIndex]));
+                    return new TypedConstant(parameter.Type.TypeSymbol, ImmutableArray.Create(constructorArgsArray[argIndex]));
                 }
             }
 
@@ -888,14 +888,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol argumentType = (TypeSymbol)argument.Type;
             // Easy out (i.e. don't bother classifying conversion).
-            if (argumentType == parameter.Type)
+            if (argumentType == parameter.Type.TypeSymbol)
             {
                 result = argument;
                 return true;
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-            Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type, ref useSiteDiagnostics);
+            Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type.TypeSymbol, ref useSiteDiagnostics);
 
             // NOTE: Won't always succeed, even though we've performed overload resolution.
             // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].

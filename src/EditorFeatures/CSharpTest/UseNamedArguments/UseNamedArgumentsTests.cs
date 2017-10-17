@@ -317,7 +317,7 @@ class C
 @"class C
 {
     void M(int arg1, int arg2) 
-        => M(arg1: 1 + 2, arg2: 2);
+        => M(arg1: 1 + 2, 2);
 }");
         }
 

@@ -200,6 +200,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+
+                case BoundKind.SuppressNullableWarningExpression:
+                    {
+                        var outer = (BoundSuppressNullableWarningExpression)expr;
+                        var inner = CheckValue(outer.Expression, valueKind, diagnostics);
+                        return outer.Update(inner, inner.Type);
+                    }
             }
 
             bool hasResolutionErrors = false;
@@ -299,6 +306,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
+
+                case BoundKind.SuppressNullableWarningExpression:
+                    // PROTOTYPE(NullableReferenceTypes): Are we hitting this code path?
+                    Debug.Assert(false);
+                    return CheckValueKind(node, ((BoundSuppressNullableWarningExpression)expr).Expression, valueKind, checkingReceiver, diagnostics);
             }
 
             // easy out for a very common RValue case.
@@ -1326,7 +1338,7 @@ moreArguments:
 
                         if (parameter.RefKind == RefKind.In &&
                             inParametersMatchedWithArgs?[i] != true &&
-                            parameter.Type.IsByRefLikeType == false)
+                            parameter.Type.TypeSymbol.IsByRefLikeType == false)
                         {
                             return parameter;
                         }
@@ -1645,7 +1657,7 @@ moreArguments:
                     // byval parameters can escape to method's top level.
                     // others can be escape further, unless they are ref-like.
                     // NOTE: "method" here means nearst containing method, lambda or nested method
-                    return parameter.RefKind == RefKind.None || parameter.Type?.IsByRefLikeType == true ?
+                    return parameter.RefKind == RefKind.None || parameter.Type?.TypeSymbol.IsByRefLikeType == true ?
                         Binder.TopLevelScope :
                         Binder.ExternalScope;
 

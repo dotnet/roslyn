@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static bool HaveSameParameterTypes(ImmutableArray<ParameterSymbol> params1, TypeMap typeMap1, ImmutableArray<ParameterSymbol> params2, TypeMap typeMap2,
-                                                   bool considerRefOutDifference, TypeCompareKind typeComparison)
+                                                   bool considerRefKindDifferences, TypeCompareKind typeComparison)
         {
             Debug.Assert(params1.Length == params2.Length);
 

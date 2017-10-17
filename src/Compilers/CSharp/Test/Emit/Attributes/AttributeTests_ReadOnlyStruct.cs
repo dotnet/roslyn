@@ -580,7 +580,7 @@ public readonly struct S1{}
 
                 var property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, property.Type.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, property.Type.TypeSymbol.GetAttributes(), module.ContainingAssembly.Name);
             });
 
             var code = @"
@@ -610,7 +610,7 @@ class User
 
                 var property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
-                AssertNotReferencedIsReadOnlyAttribute(property.Type.GetAttributes());
+                AssertNotReferencedIsReadOnlyAttribute(property.Type.TypeSymbol.GetAttributes());
             }
         }
 

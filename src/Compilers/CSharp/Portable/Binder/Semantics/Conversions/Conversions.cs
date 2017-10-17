@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(sourceExpression.ElementType != null);
 
                 var pointerConversion = default(Conversion);
-                var sourceAsPointer = new PointerTypeSymbol(sourceExpression.ElementType);
+                var sourceAsPointer = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(sourceExpression.ElementType));
                 pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
 
                 if (pointerConversion.IsValid)

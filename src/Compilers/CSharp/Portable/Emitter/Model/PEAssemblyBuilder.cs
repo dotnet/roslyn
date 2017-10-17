@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
                 }
 
-                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, diagnostics);
+                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, (c, t, d) => ImmutableArray<MethodSymbol>.Empty, diagnostics);
             }
         }
     }

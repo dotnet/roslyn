@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.StackAllocToPointerType:
-                    stackAllocType = new PointerTypeSymbol(elementType);
+                    stackAllocType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(elementType));
                     break;
                 case ConversionKind.StackAllocToSpanType:
                     stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);

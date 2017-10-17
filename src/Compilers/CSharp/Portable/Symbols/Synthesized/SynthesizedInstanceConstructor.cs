@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            return ReturnType.GetUseSiteDiagnostic();
+            return ReturnType.TypeSymbol.GetUseSiteDiagnostic();
         }
         #endregion
     }

@@ -2564,7 +2564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitLvalue(operand);
                 // exposing ref is a potential write
-                WriteArgument(operand, RefKind.Ref, method: null);
+                WriteArgument(operand, RefKind.Ref, method: null, parameter: null);
             }
             else
             {

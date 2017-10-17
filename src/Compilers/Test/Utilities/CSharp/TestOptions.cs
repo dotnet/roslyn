@@ -10,14 +10,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         // Disable documentation comments by default so that we don't need to
         // document every public member of every test input.
-        // PROTOTYPE(NullableReferenceTypes): Use default for LanguageVersion rather than LanguageVersion.CSharp7.
+        // PROTOTYPE(NullableReferenceTypes): Use default for LanguageVersion rather than LanguageVersion.CSharp7.2.
         public static readonly CSharpParseOptions ScriptDefault = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
-        public static readonly CSharpParseOptions Script = ScriptDefault.WithLanguageVersion(LanguageVersion.CSharp7);
+        public static readonly CSharpParseOptions Script = ScriptDefault.WithLanguageVersion(LanguageVersion.CSharp7_2);
         public static readonly CSharpParseOptions RegularDefault = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
-        public static readonly CSharpParseOptions Regular = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7);
+        public static readonly CSharpParseOptions Regular = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7_2);
         public static readonly CSharpParseOptions Regular6 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions Regular7 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7);
         public static readonly CSharpParseOptions Regular7_1 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7_1);
+        public static readonly CSharpParseOptions Regular7_2 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp7_2);
         public static readonly CSharpParseOptions Regular8 = RegularDefault.WithLanguageVersion(LanguageVersion.CSharp8);
         public static readonly CSharpParseOptions RegularLatest = Regular.WithLanguageVersion(LanguageVersion.Latest);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);

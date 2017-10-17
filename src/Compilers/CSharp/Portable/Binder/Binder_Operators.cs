@@ -3629,9 +3629,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType));
-                        Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType));
-                        type = bestType;
+                        Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType.TypeSymbol));
+                        Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType.TypeSymbol));
+                        type = bestType.TypeSymbol;
                     }
                 }
                 else

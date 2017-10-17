@@ -54,12 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var modifierType = context.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, declarationDiagnostics, syntax);
 
-                return new SourceComplexParameterSymbolWithCustomModifiers(
+                return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
                     owner,
                     ordinal,
                     parameterType,
                     refKind,
-                    ImmutableArray<CustomModifier>.Empty,
                     ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)),
                     name,
                     locations,

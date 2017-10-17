@@ -283,15 +283,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (isExplicitInterfaceImplementation)
                     {
                         TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, overriddenOrImplementedProperty, true, diagnostics);
+                    }
                 }
             }
             else if (_refKind == RefKind.RefReadOnly)
             {
                 var modifierType = bodyBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.Type);
 
-                _customModifiers = CustomModifiersTuple.Create(
-                    ImmutableArray<CustomModifier>.Empty,
-                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)));
+                _refCustomModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
             }
 
             if (!hasAccessorList)

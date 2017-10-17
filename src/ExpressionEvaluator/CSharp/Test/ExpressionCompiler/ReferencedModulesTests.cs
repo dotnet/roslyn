@@ -1003,7 +1003,7 @@ namespace System
                 _objectType = new NamespaceTypeDefinitionNoBase(objectType);
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+            internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
             {
                 var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
                 GetEmbeddedAttributes(builder);

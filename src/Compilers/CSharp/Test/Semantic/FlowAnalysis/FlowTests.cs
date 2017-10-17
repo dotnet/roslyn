@@ -2403,7 +2403,7 @@ class C
         return o is T t ? t : default(T);
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (5,21): error CS8314: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);

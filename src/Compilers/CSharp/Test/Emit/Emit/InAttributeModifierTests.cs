@@ -1632,7 +1632,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -1652,7 +1652,7 @@ abstract class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -1673,7 +1673,7 @@ class Test
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
@@ -1693,7 +1693,7 @@ abstract class Test
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
@@ -1714,7 +1714,7 @@ class Test
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
@@ -1735,7 +1735,7 @@ class Test
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
@@ -1756,7 +1756,7 @@ class Test
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -1776,7 +1776,7 @@ abstract class Test
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -1797,7 +1797,7 @@ class Test
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -1818,7 +1818,7 @@ class Test
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -1838,7 +1838,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -1858,7 +1858,7 @@ abstract class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -1879,7 +1879,7 @@ class Test
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
@@ -1899,7 +1899,7 @@ abstract class Test
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
@@ -1921,7 +1921,7 @@ class Test
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
@@ -1938,15 +1938,15 @@ class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("D");
 
                 var invokeParameter = type.DelegateInvokeMethod.Parameters.Single();
-                Assert.Empty(invokeParameter.CustomModifiers);
+                Assert.Empty(invokeParameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(invokeParameter.RefCustomModifiers);
 
                 var beginInvokeParameter = type.GetMethod("BeginInvoke").Parameters.First();
-                Assert.Empty(beginInvokeParameter.CustomModifiers);
+                Assert.Empty(beginInvokeParameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(beginInvokeParameter.RefCustomModifiers);
 
                 var endInvokeParameter = type.GetMethod("EndInvoke").Parameters.First();
-                Assert.Empty(endInvokeParameter.CustomModifiers);
+                Assert.Empty(endInvokeParameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(endInvokeParameter.RefCustomModifiers);
             };
 
@@ -1963,11 +1963,11 @@ class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("D");
 
                 var invokeMethod = type.DelegateInvokeMethod;
-                Assert.Empty(invokeMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(invokeMethod.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(invokeMethod.RefCustomModifiers);
 
                 var endInvokeMethod = type.GetMethod("EndInvoke");
-                Assert.Empty(endInvokeMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(endInvokeMethod.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(endInvokeMethod.RefCustomModifiers);
             };
 
@@ -1987,7 +1987,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
@@ -2007,7 +2007,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
@@ -2027,7 +2027,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
@@ -2047,7 +2047,7 @@ public class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("op_LogicalNot").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
@@ -2068,10 +2068,10 @@ public class Test
                 var parameters = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("op_Addition").Parameters;
                 Assert.Equal(2, parameters.Length);
 
-                Assert.Empty(parameters[0].CustomModifiers);
+                Assert.Empty(parameters[0].Type.CustomModifiers);
                 Assert.Empty(parameters[0].RefCustomModifiers);
 
-                Assert.Empty(parameters[1].CustomModifiers);
+                Assert.Empty(parameters[1].Type.CustomModifiers);
                 Assert.Empty(parameters[1].RefCustomModifiers);
             };
 
@@ -2091,7 +2091,7 @@ public class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod(".ctor").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
@@ -2478,7 +2478,7 @@ public abstract class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -2504,7 +2504,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -2526,7 +2526,7 @@ public class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -2551,7 +2551,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -2573,7 +2573,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -2599,14 +2599,14 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var implicitParameter = type.GetMethod("M").Parameters.Single();
-                Assert.Empty(implicitParameter.CustomModifiers);
+                Assert.Empty(implicitParameter.Type.CustomModifiers);
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
                 var explicitImplementation = type.GetMethod("Parent.M");
                 Assert.Equal("void Parent.M(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p)", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
                 var explicitParameter = explicitImplementation.Parameters.Single();
-                Assert.Empty(explicitParameter.CustomModifiers);
+                Assert.Empty(explicitParameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(explicitParameter.RefCustomModifiers);
             };
 
@@ -2628,7 +2628,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -2654,7 +2654,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -2676,7 +2676,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -2701,7 +2701,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("Parent.M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -2723,7 +2723,7 @@ public abstract class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var method = type.GetMethod("M");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
@@ -2746,7 +2746,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var method = type.GetMethod("M");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
@@ -2768,7 +2768,7 @@ public class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var method = type.GetMethod("M");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
@@ -2791,7 +2791,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var method = type.GetMethod("M");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
@@ -2813,7 +2813,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var method = type.GetMethod("M");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
@@ -2836,7 +2836,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var implicitMethod = type.GetMethod("M");
-                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(implicitMethod.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
@@ -2858,7 +2858,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var implicitMethod = type.GetMethod("M");
 
-                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(implicitMethod.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             });
 
@@ -2881,7 +2881,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var implicitMethod = type.GetMethod("M");
 
-                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(implicitMethod.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
@@ -2903,7 +2903,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var implicitMethod = type.GetMethod("M");
 
-                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(implicitMethod.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             });
 
@@ -2926,7 +2926,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var implicitMethod = type.GetMethod("Parent.M");
 
-                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(implicitMethod.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
@@ -2948,7 +2948,7 @@ public abstract class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
@@ -2971,7 +2971,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -2993,7 +2993,7 @@ public class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
@@ -3017,7 +3017,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -3039,7 +3039,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
@@ -3063,7 +3063,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var implicitproperty = type.GetProperty("P");
-                Assert.Empty(implicitproperty.TypeCustomModifiers);
+                Assert.Empty(implicitproperty.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitproperty.RefCustomModifiers);
             };
 
@@ -3085,7 +3085,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
@@ -3109,7 +3109,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -3131,7 +3131,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
@@ -3155,7 +3155,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("Parent.P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -3177,7 +3177,7 @@ public abstract class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3203,7 +3203,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -3225,7 +3225,7 @@ public class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3251,7 +3251,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -3273,7 +3273,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3299,14 +3299,14 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var implicitParameter = type.GetProperty("this[]").Parameters.Single();
-                Assert.Empty(implicitParameter.CustomModifiers);
+                Assert.Empty(implicitParameter.Type.CustomModifiers);
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
                 var explicitImplementation = type.GetMethod("Parent.set_Item");
                 Assert.Equal("void Parent.this[in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p].set", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
                 var explicitParameter = explicitImplementation.Parameters.First();
-                Assert.Empty(explicitParameter.CustomModifiers);
+                Assert.Empty(explicitParameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(explicitParameter.RefCustomModifiers);
             };
 
@@ -3328,7 +3328,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3354,7 +3354,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -3376,7 +3376,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3402,7 +3402,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("Parent.Item").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -3424,7 +3424,7 @@ public abstract class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
@@ -3448,7 +3448,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
@@ -3470,7 +3470,7 @@ public class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
@@ -3494,7 +3494,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
@@ -3516,7 +3516,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
@@ -3540,7 +3540,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
@@ -3562,7 +3562,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
@@ -3586,7 +3586,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
@@ -3608,7 +3608,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
@@ -3632,7 +3632,7 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("Parent.Item");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
@@ -3649,7 +3649,7 @@ public class Program
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3682,7 +3682,7 @@ public class Test
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
@@ -3721,7 +3721,7 @@ public delegate void D(in int p);");
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.Type.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3763,7 +3763,7 @@ public delegate ref readonly int D();");
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnType.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
@@ -3811,12 +3811,12 @@ public class Test : ITest
 
             var interfaceMethod = comp.GetTypeByMetadataName("ITest").GetMethod("M");
             Assert.Equal(RefKind.RefReadOnly, interfaceMethod.RefKind);
-            Assert.Empty(interfaceMethod.ReturnTypeCustomModifiers);
+            Assert.Empty(interfaceMethod.ReturnType.CustomModifiers);
             AssertSingleInAttributeRequiredModifier(interfaceMethod.RefCustomModifiers);
 
             var classMethod = comp.GetTypeByMetadataName("Test").GetMethod("M");
             Assert.Equal(RefKind.None, classMethod.RefKind);
-            Assert.Empty(classMethod.ReturnTypeCustomModifiers);
+            Assert.Empty(classMethod.ReturnType.CustomModifiers);
             Assert.Empty(classMethod.RefCustomModifiers);
         }
 
@@ -3840,12 +3840,12 @@ public class Test : ParentTest
 
             var parentMethod = comp.GetTypeByMetadataName("ParentTest").GetMethod("M");
             Assert.Equal(RefKind.RefReadOnly, parentMethod.RefKind);
-            Assert.Empty(parentMethod.ReturnTypeCustomModifiers);
+            Assert.Empty(parentMethod.ReturnType.CustomModifiers);
             AssertSingleInAttributeRequiredModifier(parentMethod.RefCustomModifiers);
 
             var classMethod = comp.GetTypeByMetadataName("Test").GetMethod("M");
             Assert.Equal(RefKind.None, classMethod.RefKind);
-            Assert.Empty(classMethod.ReturnTypeCustomModifiers);
+            Assert.Empty(classMethod.ReturnType.CustomModifiers);
             Assert.Empty(classMethod.RefCustomModifiers);
         }
 

@@ -341,9 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var modifierType = withTypeParamsBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
 
-                    _lazyCustomModifiers = CustomModifiersTuple.Create(
-                        typeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
-                        refCustomModifiers: ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)));
+                    _lazyRefCustomModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
                 }
             }
             else if ((object)_explicitInterfaceType != null)

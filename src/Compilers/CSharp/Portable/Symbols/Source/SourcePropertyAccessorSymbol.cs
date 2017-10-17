@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -291,6 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyReturnType = _lazyReturnType.Update(
                     CustomModifierUtils.CopyTypeCustomModifiers(type.TypeSymbol, _lazyReturnType.TypeSymbol, this.ContainingAssembly),
                     type.CustomModifiers);
+                _lazyRefCustomModifiers = associatedProperty.RefCustomModifiers;
             }
         }
 

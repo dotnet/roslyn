@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
 
                         SourceLocalSymbol local = this.IterationVariable;
-                        local.SetType(iterationVariableType);
+                        local.SetTypeSymbol(TypeSymbolWithAnnotations.Create(iterationVariableType));
                         local.SetValEscape(collectionEscape);
 
                         break;
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
             builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType.TypeSymbol, builder.ElementType, ref useSiteDiagnostics);
 
-            var getEnumeratorType = builder.GetEnumeratorMethod.ReturnType;
+            var getEnumeratorType = builder.GetEnumeratorMethod.ReturnType.TypeSymbol;
             // we never convert struct enumerators to object - it is done only for null-checks.
             builder.EnumeratorConversion = getEnumeratorType.IsValueType ?
                                                 Conversion.Identity :
