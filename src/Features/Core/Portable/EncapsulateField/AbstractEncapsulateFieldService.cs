@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 accessibility: ComputeAccessibility(accessibility, field.Type),
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.IsUnsafe()),
                 type: field.Type,
-                returnsByRef: false,
+                refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: propertyName,
                 parameters: ImmutableArray<IParameterSymbol>.Empty,

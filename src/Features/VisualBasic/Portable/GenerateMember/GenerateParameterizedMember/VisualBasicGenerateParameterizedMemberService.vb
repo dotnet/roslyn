@@ -1,9 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
@@ -31,8 +32,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                     Me.InvocationExpression.ArgumentList, reservedNames:=typeParametersNames, cancellationToken:=cancellationToken)
             End Function
 
-            Protected Overrides Function DetermineReturnsByRef(cancellationToken As CancellationToken) As Boolean
-                Return False
+            Protected Overrides Function DetermineRefKind(cancellationToken As CancellationToken) As RefKind
+                Return RefKind.None
             End Function
 
             Protected Overrides Function DetermineReturnTypeWorker(cancellationToken As CancellationToken) As ITypeSymbol

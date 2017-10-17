@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 
@@ -13,10 +13,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     public interface IArrayCreationExpression : IOperation
     {
-        /// <summary>
-        /// Element type of the created array instance.
-        /// </summary>
-        ITypeSymbol ElementType { get; }
         /// <summary>
         /// Sizes of the dimensions of the created array instance.
         /// </summary>

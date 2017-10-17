@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
         {
-            var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
-            if (builtInAnalyzer != null)
+            if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
             {
                 return builtInAnalyzer.OpenFileOnly(workspace);
             }

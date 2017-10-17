@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
             Dim markup = <Text><![CDATA[
 <My($$
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
 
@@ -52,7 +52,7 @@ End Class
 
             Dim markup = <Text><![CDATA[
 <My($$
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
 
@@ -81,7 +81,7 @@ End Class
 
             Dim markup = <Text><![CDATA[
 <My($$
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
 
@@ -119,7 +119,7 @@ End Class
 
             Dim markup = <Text><![CDATA[
 <My($$
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
 

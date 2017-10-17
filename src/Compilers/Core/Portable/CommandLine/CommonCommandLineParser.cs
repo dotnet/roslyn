@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis
             int colon = arg.IndexOf(':');
 
             // temporary heuristic to detect Unix-style rooted paths
-            // pattern /foo/*  or  //* will not be treated as a compiler option
+            // pattern /goo/*  or  //* will not be treated as a compiler option
             //
             // TODO: consider introducing "/s:path" to disambiguate paths starting with /
             if (arg.Length > 1)
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis
                 int separator = arg.IndexOf('/', 1);
                 if (separator > 0 && (colon < 0 || separator < colon))
                 {
-                    //   "/foo/
+                    //   "/goo/
                     //   "//
                     name = null;
                     value = null;
@@ -810,9 +811,9 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(IsScriptRunner || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
 
             // We remove all doubles quotes from a file name. So that, for example:
-            //   "Path With Spaces"\foo.cs
+            //   "Path With Spaces"\goo.cs
             // becomes
-            //   Path With Spaces\foo.cs
+            //   Path With Spaces\goo.cs
 
             string path = RemoveQuotesAndSlashes(arg);
 

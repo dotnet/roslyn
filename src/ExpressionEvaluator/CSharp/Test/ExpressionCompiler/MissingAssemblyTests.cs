@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -373,11 +374,11 @@ class C
             var comp = CreateStandardCompilation("public class C { }");
             using (var pinned = new PinnedMetadata(GetMetadataBytes(comp)))
             {
-                DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
                 {
                     uSize = (uint)pinned.Size;
                     return pinned.Pointer;
-                };
+                }
 
                 var references = ImmutableArray<MetadataBlock>.Empty;
                 var missingAssemblyIdentity = new AssemblyIdentity("A");
@@ -402,7 +403,7 @@ class C
                 var assemblyIdentity2 = comp2.Assembly.Identity;
                 Assert.NotEqual(assemblyIdentity1, assemblyIdentity2);
 
-                DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
                 {
                     if (assemblyIdentity == assemblyIdentity1)
                     {
@@ -416,10 +417,10 @@ class C
                     }
                     else
                     {
-                        Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.CORDBG_E_MISSING_METADATA));
+                        Marshal.ThrowExceptionForHR(DkmExceptionUtilities.CORDBG_E_MISSING_METADATA);
                         throw ExceptionUtilities.Unreachable;
                     }
-                };
+                }
 
                 var references = ImmutableArray.Create(default(MetadataBlock));
                 var unknownAssemblyIdentity = new AssemblyIdentity(GetUniqueName());
@@ -443,7 +444,7 @@ class C
             ShouldTryAgain_False(
                 (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
-                    Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.CORDBG_E_MISSING_METADATA));
+                    Marshal.ThrowExceptionForHR(DkmExceptionUtilities.CORDBG_E_MISSING_METADATA);
                     throw ExceptionUtilities.Unreachable;
                 });
         }
@@ -454,7 +455,7 @@ class C
             ShouldTryAgain_False(
                 (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
-                    Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.COR_E_BADIMAGEFORMAT));
+                    Marshal.ThrowExceptionForHR(DkmExceptionUtilities.COR_E_BADIMAGEFORMAT);
                     throw ExceptionUtilities.Unreachable;
                 });
         }
@@ -472,12 +473,11 @@ class C
         [Fact]
         public void ShouldTryAgain_RPC_E_DISCONNECTED()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf =
-                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-                {
-                    Marshal.ThrowExceptionForHR(unchecked((int)0x80010108));
-                    throw ExceptionUtilities.Unreachable;
-                };
+            IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
+            {
+                Marshal.ThrowExceptionForHR(unchecked((int)0x80010108));
+                throw ExceptionUtilities.Unreachable;
+            }
 
             var references = ImmutableArray<MetadataBlock>.Empty;
             var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
@@ -487,11 +487,10 @@ class C
         [Fact]
         public void ShouldTryAgain_Exception()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf =
-                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-                {
-                    throw new Exception();
-                };
+            IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
+            {
+                throw new Exception();
+            }
 
             var references = ImmutableArray<MetadataBlock>.Empty;
             var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));

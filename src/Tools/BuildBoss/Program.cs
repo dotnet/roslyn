@@ -40,7 +40,7 @@ namespace BuildBoss
                 {
                     allGood &= ProcessSolution(arg);
                 }
-                else if (Path.GetExtension(arg) == ".xml")
+                else if (string.Equals(Path.GetExtension(arg), ".buildlog", StringComparison.OrdinalIgnoreCase))
                 {
                     allGood &= ProcessStructuredLog(arg);
                 }
@@ -89,7 +89,7 @@ namespace BuildBoss
 
         private static bool ProcessStructuredLog(string logFilePath)
         {
-            var util = new StructuredLoggerCheckerUtil(XDocument.Load(logFilePath));
+            var util = new StructuredLoggerCheckerUtil(logFilePath);
             return CheckCore(util, $"Structured log {logFilePath}");
         }
 

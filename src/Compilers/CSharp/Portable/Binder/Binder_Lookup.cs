@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -805,13 +806,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var sym in tmp.Symbols)
                         {
-                            if (allMembers.Contains(sym))
+                            if (!allMembers.Add(sym))
                             {
                                 conflictingMembers.Add(sym);
-                            }
-                            else
-                            {
-                                allMembers.Add(sym);
                             }
                         }
                     }
@@ -1116,7 +1113,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
-            if (WrongArity(symbol, arity, diagnose, options, out diagInfo))
+            // Check for symbols marked with 'Microsoft.CodeAnalysis.Embedded' attribute
+            if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
+            {
+                return LookupResult.Empty();
+            }
+            else if (WrongArity(symbol, arity, diagnose, options, out diagInfo))
             {
                 return LookupResult.WrongArity(symbol, diagInfo);
             }

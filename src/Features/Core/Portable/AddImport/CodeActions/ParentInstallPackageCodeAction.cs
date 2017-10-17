@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 

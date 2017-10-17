@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var position = await SymbolCompletionItem.GetContextPositionAsync(document, item, cancellationToken).ConfigureAwait(false);
+            var position = SymbolCompletionItem.GetContextPosition(item);
 
             // What EditorBrowsable settings were we previously passed in (if it mattered)?
             bool hideAdvancedMembers = false;

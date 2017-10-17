@@ -1,52 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{BDA5D613-596D-4B61-837C-63554151C8F5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Symbol.UnitTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
-      <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
-      <Name>BasicCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
+    <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -55,15 +29,9 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
@@ -72,95 +40,6 @@
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
     <Import Include="Roslyn.Utilities" />
     <Import Include="Xunit" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AssemblyAttributes.vb" />
-    <Compile Include="DocumentationComments\ConstructorDocumentationCommentTests.vb" />
-    <Compile Include="DocumentationComments\DocCommentTests.vb" />
-    <Compile Include="DocumentationComments\EventDocumentationCommentTests.vb" />
-    <Compile Include="DocumentationComments\FieldDocumentationCommentTests.vb" />
-    <Compile Include="DocumentationComments\MethodDocumentationCommentTests.vb" />
-    <Compile Include="DocumentationComments\PropertyDocumentationCommentTests.vb" />
-    <Compile Include="DocumentationComments\TypeDocumentationCommentTests.vb" />
-    <Compile Include="StaticLocalDeclarationTests.vb" />
-    <Compile Include="SymbolDisplay\ObjectDisplayTests.vb" />
-    <Compile Include="SymbolDisplay\SymbolDisplayTests.vb" />
-    <Compile Include="SymbolsTests\AnonymousDelegates\AnonymousDelegates_CreationAndEmit.vb" />
-    <Compile Include="SymbolsTests\AnonymousTypes\AnonymousTypesEmittedSymbolsTests.vb" />
-    <Compile Include="SymbolsTests\AnonymousTypes\AnonymousTypesSemanticsTests.vb" />
-    <Compile Include="SymbolsTests\CustomModifiersTests.vb" />
-    <Compile Include="SymbolsTests\WellKnownTypeValidationTests.vb" />
-    <Compile Include="SymbolsTests\AssemblyAndNamespaceTests.vb" />
-    <Compile Include="SymbolsTests\CompilationCreationTests.vb" />
-    <Compile Include="SymbolsTests\CorLibrary\Choosing.vb" />
-    <Compile Include="SymbolsTests\CorLibrary\CorTypes.vb" />
-    <Compile Include="SymbolsTests\ExtensionMethods\AddressOf.vb" />
-    <Compile Include="SymbolsTests\ExtensionMethods\ExtensionMethodTests.vb" />
-    <Compile Include="SymbolsTests\ExtensionMethods\LookupAndInvocation.vb" />
-    <Compile Include="SymbolsTests\GenericConstraintTests.vb" />
-    <Compile Include="SymbolsTests\ImplicitClassTests.vb" />
-    <Compile Include="SymbolsTests\InaccessibleOverriding.vb" />
-    <Compile Include="SymbolsTests\InstantiatingGenerics.vb" />
-    <Compile Include="SymbolsTests\MetadataFileReferenceCompilationTests.vb" />
-    <Compile Include="SymbolsTests\Metadata\MetadataMemberTests.vb" />
-    <Compile Include="SymbolsTests\Metadata\MetadataTypeTests.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\BaseTypeResolution.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\HasUnsupportedMetadata.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\LoadCustomModifiers.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\LoadingAttributes.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\LoadingEvents.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\LoadingFields.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\LoadingGenericTypeParameters.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\LoadingMethods.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\LoadingNamespacesAndTypes.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\LoadingOperators.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\LoadingWithEvents.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\MissingTypeReferences.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\NoPia.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\NoPiaInstantiationOfGenericClassAndStruct.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\NoPiaLocalHideAndTypeSubstitutionTests.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\PEParameterSymbolTests.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\TypeAccessibility.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\TypeForwarders.vb" />
-    <Compile Include="SymbolsTests\Metadata\PE\TypeKindTests.vb" />
-    <Compile Include="SymbolsTests\Metadata\WinMdEventTest.vb" />
-    <Compile Include="SymbolsTests\Metadata\WinMdTypeTests.vb" />
-    <Compile Include="SymbolsTests\MockSymbolTests.vb" />
-    <Compile Include="SymbolsTests\MyBaseMyClassSemanticsTests.vb" />
-    <Compile Include="SymbolsTests\Retargeting\NoPia.vb" />
-    <Compile Include="SymbolsTests\Retargeting\RetargetCustomModifiers.vb" />
-    <Compile Include="SymbolsTests\Retargeting\RetargetingCustomAttributes.vb" />
-    <Compile Include="SymbolsTests\Retargeting\RetargetingTests.vb" />
-    <Compile Include="SymbolsTests\Source\BaseClassTests.vb" />
-    <Compile Include="SymbolsTests\Source\BindingsTests.vb" />
-    <Compile Include="SymbolsTests\Source\ClsComplianceTests.vb" />
-    <Compile Include="SymbolsTests\Source\ComClassTests.vb" />
-    <Compile Include="SymbolsTests\Source\DelegateTests.vb" />
-    <Compile Include="SymbolsTests\Source\EnumTests.vb" />
-    <Compile Include="SymbolsTests\Source\EventTests.vb" />
-    <Compile Include="SymbolsTests\Source\FieldTests.vb" />
-    <Compile Include="SymbolsTests\Source\GroupClassTests.vb" />
-    <Compile Include="SymbolsTests\Source\ImplementsTests.vb" />
-    <Compile Include="SymbolsTests\Source\MeMyBaseMyClassTests.vb" />
-    <Compile Include="SymbolsTests\Source\MethodTests.vb" />
-    <Compile Include="SymbolsTests\Source\NamespaceGlobalTests.vb" />
-    <Compile Include="SymbolsTests\Source\OperatorsTests.vb" />
-    <Compile Include="SymbolsTests\Source\OverridesTests.vb" />
-    <Compile Include="SymbolsTests\Source\PropertyTests.vb" />
-    <Compile Include="SymbolsTests\Source\SourceSymbolTests.vb" />
-    <Compile Include="SymbolsTests\Source\StaticLocals.vb" />
-    <Compile Include="SymbolsTests\Source\SymbolBindingErrorTests.vb" />
-    <Compile Include="SymbolsTests\Source\SyntheticEntryPoint.vb" />
-    <Compile Include="SymbolsTests\Source\TypeBindingTests.vb" />
-    <Compile Include="SymbolsTests\Source\TypeSubstitutionTests.vb" />
-    <Compile Include="SymbolsTests\Source\TypeTests.vb" />
-    <Compile Include="SymbolsTests\Source\VarianceTests.vb" />
-    <Compile Include="SymbolsTests\SymbolErrorTests.vb" />
-    <Compile Include="SymbolsTests\SymbolExtensionTests.vb" />
-    <Compile Include="SymbolsTests\TypedConstantTests.vb" />
-    <Compile Include="SymbolsTests\UnboundGenericType.vb" />
-    <Compile Include="SymbolsTests\WithStatementSymbolsTests.vb" />
-    <Compile Include="SymbolsTests\XmlLiteralsTests_UseSiteErrors.vb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SymbolsTests\Metadata\MscorlibNamespacesAndTypes.bsl" />

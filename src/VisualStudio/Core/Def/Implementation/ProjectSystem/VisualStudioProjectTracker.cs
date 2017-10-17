@@ -875,8 +875,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         targetPathsToProjectPaths);
                 }
 
-                var referencedProjectContext = referencedProject as IWorkspaceProjectContext;
-                if (referencedProjectContext != null)
+                if (referencedProject is IWorkspaceProjectContext referencedProjectContext)
                 {
                     // TODO: Can we get the properties from corresponding metadata reference in
                     // commandLineArguments?
@@ -905,7 +904,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            var addedReferencePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var metadataReferencesToAdd = new Dictionary<string, MetadataReferenceProperties>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var reference in metadataReferences)
             {
                 var path = GetReferencePath(reference);
@@ -916,10 +916,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     continue;
                 }
 
-                if (addedReferencePaths.Add(path))
+                if (metadataReferencesToAdd.TryGetValue(path, out var existingProperties))
                 {
-                    projectContext.AddMetadataReference(path, reference.Properties);
+                    // Merge existing aliases the properties that are already there
+                    var allAliases = existingProperties.Aliases.AddRange(reference.Properties.Aliases);
+
+                    // If one is empty and the other isn't, then we need to toss the global alias in too. The other cases
+                    // are they're both empty (and this was a direct duplicate) or they're both non-empty and the merge
+                    // is OK.
+                    if ((existingProperties.Aliases.IsDefaultOrEmpty && !reference.Properties.Aliases.IsDefaultOrEmpty) ||
+                        (!existingProperties.Aliases.IsDefaultOrEmpty && reference.Properties.Aliases.IsDefaultOrEmpty))
+                    {
+                        allAliases = allAliases.Add(MetadataReferenceProperties.GlobalAlias);
+                    }
+                    else
+                    {
+                        allAliases = allAliases.Distinct();
+                    }
+
+                    metadataReferencesToAdd[path] = existingProperties.WithAliases(allAliases);
                 }
+                else
+                {
+                    metadataReferencesToAdd.Add(path, reference.Properties);
+                }
+            }
+
+            foreach (var metadataReferenceToAdd in metadataReferencesToAdd)
+            {
+                projectContext.AddMetadataReference(metadataReferenceToAdd.Key, metadataReferenceToAdd.Value);
             }
 
             var addedAnalyzerPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

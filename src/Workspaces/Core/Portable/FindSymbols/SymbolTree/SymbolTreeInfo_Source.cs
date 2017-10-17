@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
             // to be ordered by Guid (which is not consistent across VS sessions).
-            var textChecksumsTasks = projectState.DocumentStates.OrderBy(d => d.Value.FilePath).Select(async d =>
+            var textChecksumsTasks = projectState.DocumentStates.OrderBy(d => d.Value.FilePath, StringComparer.Ordinal).Select(async d =>
             {
                 var documentStateChecksum = await d.Value.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 return documentStateChecksum.Text;
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, Checksum checksum, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var assembly = compilation.Assembly;
+            var assembly = compilation?.Assembly;
             if (assembly == null)
             {
                 return CreateEmpty(checksum);
@@ -182,8 +183,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static void AddSymbol(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap, Func<ISymbol, bool> useSymbol)
         {
-            var nt = symbol as INamespaceOrTypeSymbol;
-            if (nt != null)
+            if (symbol is INamespaceOrTypeSymbol nt)
             {
                 foreach (var member in nt.GetMembers())
                 {

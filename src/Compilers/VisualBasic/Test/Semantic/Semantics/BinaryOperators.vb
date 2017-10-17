@@ -2,6 +2,7 @@
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SpecialType
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Try
 
-            Dim compilationDef =
+                Dim compilationDef =
 <compilation name="VBBinaryOperators1">
     <file name="lib.vb">
         <%= My.Resources.Resource.PrintResultTestSource %>
@@ -34,17 +35,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
-            Assert.True(compilation.Options.CheckOverflow)
+                Assert.True(compilation.Options.CheckOverflow)
 
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
+                CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
+                compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
 
-            Assert.False(compilation.Options.CheckOverflow)
+                Assert.False(compilation.Options.CheckOverflow)
 
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
+                CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
 
             Catch ex As Exception
                 Assert.Null(ex)

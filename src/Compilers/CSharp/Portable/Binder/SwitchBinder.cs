@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
                         var pattern = sectionBinder.BindPattern(
-                            matchLabel.Pattern, SwitchGoverningExpression, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag, wasSwitchCase: true);
+                            matchLabel.Pattern, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag, wasSwitchCase: true);
                         break;
 
                     default:

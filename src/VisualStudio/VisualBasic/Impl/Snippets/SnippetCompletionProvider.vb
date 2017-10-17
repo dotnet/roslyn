@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -51,6 +52,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken)
+
+            If (IsInNonUserCode(syntaxTree, position, cancellationToken)) Then
+                Return
+            End If
 
             context.IsExclusive = ShouldBeExclusive(context.Options)
             context.AddItems(CreateCompletionItems(snippets, isPossibleTupleContext))

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SymbolDisplay
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -313,7 +314,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         AddKeyword(SyntaxKind.PrivateKeyword)
                     Case Accessibility.Internal
                         AddKeyword(SyntaxKind.FriendKeyword)
-                    Case Accessibility.ProtectedAndInternal, Accessibility.Protected
+                    Case Accessibility.Protected
+                        AddKeyword(SyntaxKind.ProtectedKeyword)
+                    Case Accessibility.ProtectedAndInternal
+                        AddKeyword(SyntaxKind.PrivateKeyword)
+                        AddSpace()
                         AddKeyword(SyntaxKind.ProtectedKeyword)
                     Case Accessibility.ProtectedOrInternal
                         AddKeyword(SyntaxKind.ProtectedKeyword)

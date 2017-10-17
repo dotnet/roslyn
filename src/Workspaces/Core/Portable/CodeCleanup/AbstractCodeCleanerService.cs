@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             out TextSpan span)
         {
             // Set initial value
-            span = default(TextSpan);
+            span = default;
 
             var previousToken = previousTokens.FirstOrDefault();
             var nextToken = nextTokens.FirstOrDefault();
@@ -308,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             if (CleanupWholeNode(annotations))
             {
                 // This will indicate that no annotation is needed.
-                return default((SyntaxNode, List<(SyntaxAnnotation, SyntaxAnnotation)>));
+                return default;
             }
 
             // Inject annotations
@@ -319,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Make sure annotations are positioned outside of any spans. If not, merge two adjacent spans to one.
         /// </summary>
-        private ImmutableArray<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        private ImmutableArray<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             // Create interval tree for spans
             var intervalTree = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spans);
@@ -469,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 #endif
 
                 var current = 0;
-                var count = codeCleaners.Count();
+                var count = codeCleaners.Length;
 
                 foreach (var codeCleaner in codeCleaners)
                 {
@@ -546,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 var spans = ImmutableArray<TextSpan>.Empty;
 
                 var current = 0;
-                var count = codeCleaners.Count();
+                var count = codeCleaners.Length;
 
                 foreach (var codeCleaner in codeCleaners)
                 {
@@ -598,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         private bool TryCreateTextSpan(int start, int end, out TextSpan span)
         {
-            span = default(TextSpan);
+            span = default;
 
             if (start < 0 || end < start)
             {
@@ -647,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
             public SyntaxAnnotation Annotation { get; }
 
-            public static readonly string AnnotationId = "SpanMarker";
+            public const string AnnotationId = "SpanMarker";
 
             private SpanMarker(SpanMarkerType type, SpanMarkerType oppositeMarkerType, SyntaxAnnotation annotation)
             {

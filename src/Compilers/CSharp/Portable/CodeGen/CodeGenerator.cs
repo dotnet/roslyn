@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -29,6 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly bool _emitPdbSequencePoints;
 
         private readonly HashSet<LocalSymbol> _stackLocals;
+
+        // There are scenarios where rvalues need to be passed to ref/in parameters
+        // in such cases the values must be spilled into temps and retained for the entirety of
+        // the most encompasing expression.       
+        private ArrayBuilder<LocalDefinition> _expressionTemps;
 
         // not 0 when in a protected region with a handler. 
         private int _tryNestingLevel;
@@ -123,12 +129,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _boundBody = boundBody;
             }
 
-            _methodBodySyntaxOpt = (method as SourceMethodSymbol)?.BodySyntax;
+            _methodBodySyntaxOpt = (method as SourceMemberMethodSymbol)?.BodySyntax;
         }
 
         private bool IsDebugPlus()
         {
             return _module.Compilation.Options.DebugPlusMode;
+        }
+
+        private bool EnablePEVerifyCompat()
+        {
+            return _module.Compilation.FeaturePEVerifyCompatEnabled;
         }
 
         private LocalDefinition LazyReturnTemp
@@ -266,6 +277,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _synthesizedLocalOrdinals.Free();
+
+            Debug.Assert(!(_expressionTemps?.Count > 0), "leaking expression temps?");
+            _expressionTemps?.Free();
         }
 
         private void HandleReturn()
@@ -405,6 +419,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.DefineSequencePoint(syntaxTree, span);
             return span;
+        }
+
+        private void AddExpressionTemp(LocalDefinition temp)
+        {
+            // in some cases like stack locals, there is no slot allocated.
+            if (temp == null)
+            {
+                return;
+            }
+
+            ArrayBuilder<LocalDefinition> exprTemps = _expressionTemps;
+            if (exprTemps == null)
+            {
+                exprTemps = ArrayBuilder<LocalDefinition>.GetInstance();
+                _expressionTemps = exprTemps;
+            }
+
+            Debug.Assert(!exprTemps.Contains(temp));
+            exprTemps.Add(temp);
+        }
+
+        private void ReleaseExpressionTemps()
+        {
+            if (_expressionTemps?.Count > 0)
+            {
+                // release in reverse order to keep same temps on top of the temp stack if possible
+                for(int i = _expressionTemps.Count - 1; i >= 0; i--)
+                {
+                    var temp = _expressionTemps[i];
+                    FreeTemp(temp);
+                }
+
+                _expressionTemps.Clear();
+            }
         }
     }
 }

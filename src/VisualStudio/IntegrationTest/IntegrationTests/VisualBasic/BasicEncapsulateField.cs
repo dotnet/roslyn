@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -38,7 +39,7 @@ End Module";
             dialog.VerifyClosed(encapsulateField.DialogName);
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName);
-            dialog.ClickApply(encapsulateField.DialogName);
+            dialog.ClickApplyAndWaitForFeature(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
             VisualStudio.Editor.Verify.TextContains(@"    Private _name As Integer? = 0
 
     Public Property Name As Integer?

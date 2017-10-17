@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -121,7 +122,7 @@ End Class"
 "Namespace System.Runtime.CompilerServices
     Public Class TupleElementNamesAttribute
         Inherits Attribute
-        Public Sub New(names As String())
+        Public Sub New(names() As String)
         End Sub
     End Class
 End Namespace"

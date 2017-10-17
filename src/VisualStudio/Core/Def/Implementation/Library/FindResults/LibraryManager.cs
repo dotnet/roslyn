@@ -9,6 +9,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Guid(Guids.RoslynLibraryIdString)]
     internal partial class LibraryManager : AbstractLibraryManager
     {

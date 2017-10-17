@@ -3,6 +3,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -29,7 +30,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return;
                 }
 
-                CalculateContext(nameNode, _syntaxFacts, out var name, out var arity, out var inAttributeContext, out var hasIncompleteParentMember);
+                CalculateContext(
+                    nameNode, _syntaxFacts,
+                    out var name, out var arity, out var inAttributeContext, out _, out _);
 
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: cancellationToken))
                 {

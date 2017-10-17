@@ -4,8 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// this is RAII object to automatically release pooled object when its owning pool

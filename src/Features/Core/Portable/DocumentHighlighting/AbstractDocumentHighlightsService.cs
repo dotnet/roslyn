@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -38,23 +39,23 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<(bool succeeded, ImmutableArray<DocumentHighlights> highlights)> GetDocumentHighlightsInRemoteProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
-                 RemoteFeatureOptions.DocumentHighlightingEnabled, cancellationToken).ConfigureAwait(false);
-
-            using (session)
-            {
-                if (session == null)
+            var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableDocumentHighlights>>(
+                RemoteFeatureOptions.DocumentHighlightingEnabled,
+                nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
+                new object[]
                 {
-                    return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
-                }
-
-                var result = await session.InvokeAsync<IList<SerializableDocumentHighlights>>(
-                    nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     document.Id,
                     position,
-                    documentsToSearch.Select(d => d.Id).ToArray()).ConfigureAwait(false);
-                return (true, result.SelectAsArray(h => h.Rehydrate(document.Project.Solution)));
+                    documentsToSearch.Select(d => d.Id).ToArray()
+                },
+                cancellationToken).ConfigureAwait(false);
+
+            if (result == null)
+            {
+                return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
             }
+
+            return (true, result.SelectAsArray(h => h.Rehydrate(document.Project.Solution)));
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(

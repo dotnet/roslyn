@@ -107,6 +107,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return File.ReadAllText(_path);
         }
 
+        public byte[] ReadAllBytes()
+        {
+            return File.ReadAllBytes(_path);
+        }
+
         public TempFile CopyContentFrom(string path)
         {
             return WriteAllBytes(File.ReadAllBytes(path));

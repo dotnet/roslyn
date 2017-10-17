@@ -101,11 +101,11 @@ Imports System
 Module Program
     Sub Main()
         Dim obj As Object = New cls1
-        foo(obj.p1)                     'LateSetComplex
+        goo(obj.p1)                     'LateSetComplex
         Console.WriteLine(obj.P1)
     End Sub
 
-    Sub foo(ByRef x As Object)
+    Sub goo(ByRef x As Object)
         x = 42
     End Sub
 
@@ -148,7 +148,7 @@ expectedOutput:=<![CDATA[GetSetGet42]]>).
   IL_001c:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_0021:  stloc.1
   IL_0022:  ldloca.s   V_1
-  IL_0024:  call       "Sub Program.foo(ByRef Object)"
+  IL_0024:  call       "Sub Program.goo(ByRef Object)"
   IL_0029:  ldnull
   IL_002a:  ldstr      "p1"
   IL_002f:  ldc.i4.1
@@ -188,15 +188,15 @@ Option Strict Off
 Module Program
     Sub Main()
         Dim obj As Object = "hi"
-        cls1.foo$(obj)
+        cls1.goo$(obj)
     End Sub
 
     Class cls1
-        Shared Function foo$(x As Integer)
+        Shared Function goo$(x As Integer)
             System.Console.WriteLine("int")
             Return Nothing
         End Function
-        Shared Function foo$(x As String)
+        Shared Function goo$(x As String)
             System.Console.WriteLine("str")
             Return Nothing
         End Function
@@ -219,7 +219,7 @@ expectedOutput:=<![CDATA[str]]>).
   IL_0006:  ldnull
   IL_0007:  ldtoken    "Program.cls1"
   IL_000c:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
-  IL_0011:  ldstr      "foo"
+  IL_0011:  ldstr      "goo"
   IL_0016:  ldc.i4.1
   IL_0017:  newarr     "Object"
   IL_001c:  dup
@@ -267,12 +267,12 @@ Imports System
 Module Program
     Sub Main()
         Dim obj As Object = New cls1
-        obj.Foo(Of String)()
-        Console.WriteLine(obj.Foo(Of Integer)())
+        obj.Goo(Of String)()
+        Console.WriteLine(obj.Goo(Of Integer)())
     End Sub
 
     Class cls1
-        Public Function foo(Of T)()
+        Public Function goo(Of T)()
             Console.WriteLine(GetType(T))
             Return 42
         End Function
@@ -425,7 +425,7 @@ Module Program
     Dim obj As Object = New cls1
 
     Sub Main()
-        foo(EvalObj(x:=EvalArg))                     'LateIndexSetComplex
+        goo(EvalObj(x:=EvalArg))                     'LateIndexSetComplex
         Console.WriteLine(obj(1))
     End Sub
 
@@ -439,7 +439,7 @@ Module Program
         Return obj
     End Function
 
-    Sub foo(ByRef x As Object)
+    Sub goo(ByRef x As Object)
         x = 40
     End Sub
 
@@ -490,7 +490,7 @@ expectedOutput:=<![CDATA[EvalObjEvalArgGetSetGet42]]>).
   IL_002f:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_0034:  stloc.2
   IL_0035:  ldloca.s   V_2
-  IL_0037:  call       "Sub Program.foo(ByRef Object)"
+  IL_0037:  call       "Sub Program.goo(ByRef Object)"
   IL_003c:  ldloc.0
   IL_003d:  ldc.i4.2
   IL_003e:  newarr     "Object"
@@ -966,13 +966,13 @@ Module Program
     Sub Main()
         Dim x As Object = New cls1
         Dim c As New cls1
-        x.foo(c.p)
+        x.goo(c.p)
 
         Console.WriteLine(c.p)
     End Sub
 
     Class cls1
-        Public Sub foo(ByRef x As Integer)
+        Public Sub goo(ByRef x As Integer)
             x += 1
         End Sub
 
@@ -1009,7 +1009,7 @@ Get
   IL_0005:  newobj     "Sub Program.cls1..ctor()"
   IL_000a:  stloc.0
   IL_000b:  ldnull
-  IL_000c:  ldstr      "foo"
+  IL_000c:  ldstr      "goo"
   IL_0011:  ldc.i4.1
   IL_0012:  newarr     "Object"
   IL_0017:  dup
@@ -1071,13 +1071,13 @@ Module Program
     Sub Main()
         Dim x As Object = New cls1
         Dim c As New cls1
-        x.foo(c.p)
+        x.goo(c.p)
 
         Console.WriteLine(c.p)
     End Sub
 
     Class cls1
-        Public Sub foo(ByRef x As Integer)
+        Public Sub goo(ByRef x As Integer)
             x += 1
         End Sub
 
@@ -1106,7 +1106,7 @@ Get
   IL_0005:  newobj     "Sub Program.cls1..ctor()"
   IL_000a:  stloc.0
   IL_000b:  ldnull
-  IL_000c:  ldstr      "foo"
+  IL_000c:  ldstr      "goo"
   IL_0011:  ldc.i4.1
   IL_0012:  newarr     "Object"
   IL_0017:  dup
@@ -1143,14 +1143,14 @@ Module Program
     Sub Main()
         Dim x As Object = New cls1
         Dim c As Object = New cls1
-        x.foo(c.p)
+        x.goo(c.p)
 
         Console.WriteLine(c.p)
     End Sub
 
 
     Class cls1
-        Public Sub foo(ByRef x As Integer)
+        Public Sub goo(ByRef x As Integer)
             x += 1
         End Sub
 
@@ -1187,7 +1187,7 @@ Get
   IL_0005:  newobj     "Sub Program.cls1..ctor()"
   IL_000a:  stloc.0
   IL_000b:  ldnull
-  IL_000c:  ldstr      "foo"
+  IL_000c:  ldstr      "goo"
   IL_0011:  ldc.i4.1
   IL_0012:  newarr     "Object"
   IL_0017:  dup
@@ -1269,14 +1269,14 @@ Module Program
     Sub Main()
         Dim x As Object = New cls1
         Dim c As Object = New cls1
-        x.foo(c.p)
+        x.goo(c.p)
 
         Console.WriteLine(c.p)
     End Sub
 
 
     Class cls1
-        Public Sub foo(ByRef x As Integer)
+        Public Sub goo(ByRef x As Integer)
             x += 1
         End Sub
 
@@ -1308,7 +1308,7 @@ Get
   IL_0005:  newobj     "Sub Program.cls1..ctor()"
   IL_000a:  stloc.0
   IL_000b:  ldnull
-  IL_000c:  ldstr      "foo"
+  IL_000c:  ldstr      "goo"
   IL_0011:  ldc.i4.1
   IL_0012:  newarr     "Object"
   IL_0017:  dup
@@ -1414,7 +1414,7 @@ Module Program
         Dim x As Object = New cls1
         Dim c As Object = New cls1
         Dim v As Object = 1
-        x.foo(c.p(v))
+        x.goo(c.p(v))
 
         Console.WriteLine(c.p(1))
         Console.WriteLine(v)
@@ -1422,7 +1422,7 @@ Module Program
 
 
     Class cls1
-        Public Sub foo(ByRef x As Integer)
+        Public Sub goo(ByRef x As Integer)
             x += 1
         End Sub
 
@@ -1464,7 +1464,7 @@ Module Program
         Dim x As Object = New cls1
         Dim c As Object = New cls1
         Dim v As Object = 1
-        x.foo((c.p(v)))
+        x.goo((c.p(v)))
 
         Console.WriteLine(c.p(1))
         Console.WriteLine(v)
@@ -1472,7 +1472,7 @@ Module Program
 
 
     Class cls1
-        Public Sub foo(ByRef x As Integer)
+        Public Sub goo(ByRef x As Integer)
             x += 1
         End Sub
 
@@ -1522,7 +1522,7 @@ Module Program
 
 
     Class cls1
-        Public Sub foo(ByRef x As Integer)
+        Public Sub goo(ByRef x As Integer)
             x += 1
         End Sub
 
@@ -1576,7 +1576,7 @@ Module Program
 
 
     Class cls1
-        Public Sub foo(ByRef x As Integer)
+        Public Sub goo(ByRef x As Integer)
             x += 1
         End Sub
 
@@ -1621,7 +1621,7 @@ Module Program
         Dim x As Object = New cls1
         Dim c As Object = New cls1
         Dim v As Object = 1
-        x.foo(c.foo(v))
+        x.goo(c.goo(v))
 
         Console.WriteLine(c.p(1))
         Console.WriteLine(v)
@@ -1629,8 +1629,8 @@ Module Program
 
 
     Class cls1
-        Public Sub foo(ByRef x As Integer)
-            Console.WriteLine("foo")
+        Public Sub goo(ByRef x As Integer)
+            Console.WriteLine("goo")
             x += 1
         End Sub
 
@@ -1650,8 +1650,8 @@ Module Program
 End Module
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[foo
-foo
+expectedOutput:=<![CDATA[goo
+goo
 Get
 1
 2]]>)
@@ -1674,8 +1674,8 @@ Module Program
         Dim v As Object = 1
         Dim v1 As Object = 5
 
-        x.foo(c.p(v), c.p(v))
-        x.foo(v1, v1)
+        x.goo(c.p(v), c.p(v))
+        x.goo(v1, v1)
 
         Console.WriteLine(c.p(1))
         Console.WriteLine(v)
@@ -1684,7 +1684,7 @@ Module Program
 
 
     Class cls1
-        Public Sub foo(ByRef x As Integer, ByRef y As Integer)
+        Public Sub goo(ByRef x As Integer, ByRef y As Integer)
             x += 1
             y += 1
         End Sub
@@ -1728,10 +1728,10 @@ imports system
 Module Program
     Sub Main()
         Dim obj As Object = New cls1
-        foo(obj.moo)
+        goo(obj.moo)
     End Sub
 
-    Sub foo(byref x As Integer)
+    Sub goo(byref x As Integer)
         Console.WriteLine(x)
     End Sub
 
@@ -1758,19 +1758,19 @@ Imports System
 Class Bug257437
     Shared Result As Integer
 
-    Shared Sub foo(ByVal i As Integer, ByVal b As Byte)
+    Shared Sub goo(ByVal i As Integer, ByVal b As Byte)
         Result = 1
     End Sub
 
-    Shared Sub foo(ByVal i As Integer, ByVal b As Int16)
+    Shared Sub goo(ByVal i As Integer, ByVal b As Int16)
         Result = 2
     End Sub
 
-    Shared Sub foo(ByVal i As Integer, ByVal b As Int32)
+    Shared Sub goo(ByVal i As Integer, ByVal b As Int32)
         Result = 3
     End Sub
 
-    Shared Sub foo(ByVal i As Integer, ByVal b As String, Optional ByVal x As Integer = 1)
+    Shared Sub goo(ByVal i As Integer, ByVal b As String, Optional ByVal x As Integer = 1)
         Result = 4
     End Sub
 
@@ -1780,19 +1780,19 @@ Class Bug257437
             Dim fnum
 
             Console.Write("   1) ")
-            foo(fnum, CByte(255))
+            goo(fnum, CByte(255))
             PassFail(Result = 1)
 
             Console.Write("   2) ")
-            foo(fnum, -1S)
+            goo(fnum, -1S)
             PassFail(Result = 2)
 
             Console.Write("   3) ")
-            foo(fnum, -1I)
+            goo(fnum, -1I)
             PassFail(Result = 3)
 
             Console.Write("   4) ")
-            foo(fnum, "abc")
+            goo(fnum, "abc")
             PassFail(Result = 4)
         Catch ex As Exception
             Failed(ex)
@@ -2013,13 +2013,13 @@ Module Bug302246
     Private m_ArgString As Integer
 
     Public Class Class1
-        Public Sub foo(ByVal Arg As Integer, ByVal Arg2 As Integer) ', Optional ByVal Arg2 As Long = 40)
+        Public Sub goo(ByVal Arg As Integer, ByVal Arg2 As Integer) ', Optional ByVal Arg2 As Long = 40)
             m_i = 1
             m_ArgInteger = Arg
             m_Arg2 = Arg2
         End Sub
 
-        Public Sub Foo(ByVal Arg2 As Integer, ByVal Arg As String)
+        Public Sub Goo(ByVal Arg2 As Integer, ByVal Arg As String)
             m_i = 2
             m_ArgString = Arg
             m_Arg2 = Arg2
@@ -2037,11 +2037,11 @@ Module Bug302246
             Dim o As Object = c
 
             m_i = -1
-            c.foo(40, Arg:=50)
+            c.goo(40, Arg:=50)
             iEarly = m_i
 
             m_i = -1
-            o.foo(40, Arg:=50)  'this late bound case throws an unexpected exception - BUG
+            o.goo(40, Arg:=50)  'this late bound case throws an unexpected exception - BUG
             PassFail(m_i = iEarly AndAlso m_ArgString = "50" AndAlso m_Arg2 = 40)
 
         Catch ex As Exception
@@ -2095,8 +2095,8 @@ Imports System
 
 Module Bug231364
 
-    Delegate Sub foo(ByRef x As Short, ByRef y As Long)
-    Sub foo1(ByRef x As Short, Optional ByRef y As Long = 0)
+    Delegate Sub goo(ByRef x As Short, ByRef y As Long)
+    Sub goo1(ByRef x As Short, Optional ByRef y As Long = 0)
         y = 8 / 2
     End Sub
 
@@ -2105,7 +2105,7 @@ Module Bug231364
         Try
             Dim var As Object
 
-            var = New foo(AddressOf foo1)
+            var = New goo(AddressOf goo1)
 
             var2 = 8
             var3 = 10
@@ -2195,8 +2195,8 @@ Imports System
 
 Module Program1
 
-    Delegate Sub foo(ByRef x As Short, ByRef y As Long)
-    Sub foo1(ByRef x As Short, Optional ByRef y As Long = 0)
+    Delegate Sub goo(ByRef x As Short, ByRef y As Long)
+    Sub goo1(ByRef x As Short, Optional ByRef y As Long = 0)
         y = 8 / 2
         x = -1
     End Sub
@@ -2206,7 +2206,7 @@ Module Program1
         System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Dim var As Object
-            var = New foo(AddressOf foo1)
+            var = New goo(AddressOf goo1)
 
             Dim var2 = 8
             Dim var3 As ULong = 10
@@ -2235,11 +2235,11 @@ Imports System
 Module Program
     Sub Main()
         Dim obj As Object = New cls1
-        obj.foo(, y:=obj.foo(, ))
+        obj.goo(, y:=obj.goo(, ))
     End Sub
 
     Class cls1
-        Shared Sub foo(Optional x As Integer = 1, Optional y As Integer = 2)
+        Shared Sub goo(Optional x As Integer = 1, Optional y As Integer = 2)
             Console.WriteLine(x + y)
         End Sub
     End Class
@@ -2266,7 +2266,7 @@ expectedOutput:=<![CDATA[3
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldnull
-  IL_0008:  ldstr      "foo"
+  IL_0008:  ldstr      "goo"
   IL_000d:  ldc.i4.2
   IL_000e:  newarr     "Object"
   IL_0013:  stloc.s    V_6
@@ -2280,7 +2280,7 @@ expectedOutput:=<![CDATA[3
   IL_0022:  stloc.1
   IL_0023:  ldloc.1
   IL_0024:  ldnull
-  IL_0025:  ldstr      "foo"
+  IL_0025:  ldstr      "goo"
   IL_002a:  ldc.i4.2
   IL_002b:  newarr     "Object"
   IL_0030:  dup
@@ -2327,7 +2327,7 @@ expectedOutput:=<![CDATA[3
   IL_0079:  brfalse.s  IL_00a0
   IL_007b:  ldloc.1
   IL_007c:  ldnull
-  IL_007d:  ldstr      "foo"
+  IL_007d:  ldstr      "goo"
   IL_0082:  ldc.i4.3
   IL_0083:  newarr     "Object"
   IL_0088:  dup
@@ -2374,7 +2374,7 @@ Class C
         Return x
     End Function
 
-    Sub foo(x As Integer, y As Integer)
+    Sub goo(x As Integer, y As Integer)
     End Sub
 End Class
 
@@ -2383,7 +2383,7 @@ Module Program
         Dim obj0 As Object = New C(1)
         Dim obj1 As Object = New C(2)
 
-        Dim o As Action(Of Byte, Integer) = AddressOf obj0.G(obj1).foo
+        Dim o As Action(Of Byte, Integer) = AddressOf obj0.G(obj1).goo
 
         obj1 = New C(5)
         o(1, 2)
@@ -2418,13 +2418,13 @@ Module Program
     Sub Main()
         Dim obj As Object = New cls1
 
-        Dim o As Action(Of Integer, Integer) = AddressOf obj.foo
+        Dim o As Action(Of Integer, Integer) = AddressOf obj.goo
 
         o(1, 2)
     End Sub
 
     Class cls1
-        Shared Sub foo(x As Integer, y As Integer)
+        Shared Sub goo(x As Integer, y As Integer)
             Console.WriteLine(x + y)
         End Sub
     End Class
@@ -2444,7 +2444,7 @@ expectedOutput:="3")
   IL_0000:  ldarg.0
   IL_0001:  ldfld      "Program._Closure$__0-0.$VB$Local_obj As Object"
   IL_0006:  ldnull
-  IL_0007:  ldstr      "foo"
+  IL_0007:  ldstr      "goo"
   IL_000c:  ldc.i4.2
   IL_000d:  newarr     "Object"
   IL_0012:  dup
@@ -2522,7 +2522,7 @@ Module Program
     Sub Main()
         Dim obj As Object = New cls1
 
-        Dim o As d1 = AddressOf obj.foo
+        Dim o As d1 = AddressOf obj.goo
 
         Dim l As Integer = 0
         o(l, 2)
@@ -2531,7 +2531,7 @@ Module Program
     End Sub
 
     Class cls1
-        Shared Sub foo(ByRef x As Integer, y As Integer)
+        Shared Sub goo(ByRef x As Integer, y As Integer)
             x = 42
             Console.WriteLine(x + y)
         End Sub
@@ -2607,7 +2607,7 @@ Module Module1
     End Class
     Dim c1Obj As New C1
     Class C2
-        Sub foo(Of T)(ByRef x As T)
+        Sub goo(Of T)(ByRef x As T)
             x = Nothing
         End Sub
     End Class
@@ -2615,7 +2615,7 @@ Module Module1
     Sub Main()
         Dim c2Obj As New C2
         Dim obj As Object = c2Obj
-        obj.foo(Of Integer)(c1Obj)
+        obj.goo(Of Integer)(c1Obj)
     End Sub
 End Module
 
@@ -2631,7 +2631,7 @@ expectedOutput:=<![CDATA[]]>).
   Boolean() V_1)
   IL_0000:  newobj     "Sub Module1.C2..ctor()"
   IL_0005:  ldnull
-  IL_0006:  ldstr      "foo"
+  IL_0006:  ldstr      "goo"
   IL_000b:  ldc.i4.1
   IL_000c:  newarr     "Object"
   IL_0011:  dup
@@ -2851,11 +2851,11 @@ End Module
 
 Class C
     Sub New()
-        Me.New(Foo(CObj(42)))
+        Me.New(Goo(CObj(42)))
     End Sub
 
     Sub New(a As Integer)
-        Me.New(Sub(x) Foo(x))
+        Me.New(Sub(x) Goo(x))
     End Sub
 
     Sub New(x As Action(Of Object))
@@ -2865,10 +2865,10 @@ Class C
     Sub New(x As Object)
     End Sub
 
-    Sub Foo(x As String)
+    Sub Goo(x As String)
     End Sub
 
-    Shared Sub Foo(x As Integer)
+    Shared Sub Goo(x As Integer)
         Console.WriteLine(x)
     End Sub
 End Class

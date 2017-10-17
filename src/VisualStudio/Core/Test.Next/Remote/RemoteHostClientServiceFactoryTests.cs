@@ -41,12 +41,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             service.Enable();
 
-            var enabledClient = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            var enabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
             Assert.NotNull(enabledClient);
 
             service.Disable();
 
-            var disabledClient = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            var disabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
             Assert.Null(disabledClient);
         }
 
@@ -61,9 +61,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Enable();
 
             // make sure client is ready
-            var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            var checksumService = workspace.Services.GetService<ISolutionSynchronizationService>();
+            var checksumService = workspace.Services.GetService<IRemotableDataService>();
             var asset = checksumService.GetGlobalAsset(analyzerReference, CancellationToken.None);
             Assert.NotNull(asset);
 
@@ -84,7 +84,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Enable();
 
             // make sure client is ready
-            var client = await service.GetRemoteHostClientAsync(CancellationToken.None) as InProcRemoteHostClient;
+            var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None) as InProcRemoteHostClient;
 
             Assert.Equal(1, client.AssetStorage.GetGlobalAssetsOfType<AnalyzerReference>(CancellationToken.None).Count());
 
@@ -107,7 +107,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Enable();
 
             // make sure client is ready
-            var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             // add solution
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
@@ -120,8 +120,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await listener.CreateWaitTask();
 
             // checksum should already exist
-            SolutionStateChecksums checksums;
-            Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out checksums));
+            Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out var checksums));
 
             service.Disable();
         }
@@ -133,12 +132,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             service.Enable();
 
-            var mock = new MockLogService();
-            var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
-            using (var session = await client.TryCreateServiceSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None))
-            {
-                await session.InvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), "emptySource", Path.GetTempPath());
-            }
+            var mock = new MockLogAndProgressService();
+            var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+
+            var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None);
+            var result = await session.TryInvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), new object[] { "emptySource", Path.GetTempPath() }, CancellationToken.None);
+
+            Assert.True(result);
+
+            session.Shutdown();
 
             service.Disable();
         }
@@ -150,7 +152,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var service = CreateRemoteHostClientService();
             service.Enable();
 
-            var client = (InProcRemoteHostClient)(await service.GetRemoteHostClientAsync(CancellationToken.None));
+            var client = (InProcRemoteHostClient)(await service.TryGetRemoteHostClientAsync(CancellationToken.None));
 
             // register local service
             TestService testService = null;
@@ -161,32 +163,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             });
 
             // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
-            var session = await client.TryCreateServiceSessionAsync("Test", CancellationToken.None);
-            client.ConnectionChanged += (s, connected) =>
-            {
-                if (connected)
-                {
-                    return;
-                }
-
-                // let session go, when client goes away (ex, VS shutdown)
-                session.Dispose();
-            };
+            var session = await client.TryCreateKeepAliveSessionAsync("Test", CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
-            var task = Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            {
-                await session.InvokeAsync("TestMethodAsync");
-            });
+            var task = session.TryInvokeAsync("TestMethodAsync", SpecializedCollections.EmptyReadOnlyList<object>(), CancellationToken.None);
 
             // make client to go away
             service.Disable();
 
-            // set event so that remote Rpc thread is released. this shouldn't affect
-            // host side's cancellation due to client closed
+            // let the service to return
             testService.Event.Set();
 
-            // verify session cancelled itself with cancellation token
+            // make sure task finished gracefully
             await task;
         }
 
@@ -199,8 +187,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var completionTask = new TaskCompletionSource<bool>();
 
-            var client1 = await service.GetRemoteHostClientAsync(CancellationToken.None);
-            client1.ConnectionChanged += (s, connected) =>
+            var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            client1.StatusChanged += (s, connected) =>
             {
                 // mark done
                 completionTask.SetResult(connected);
@@ -211,7 +199,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var result = await completionTask.Task;
             Assert.False(result);
 
-            var client2 = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            var client2 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             Assert.NotEqual(client1, client2);
 
@@ -278,10 +266,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        private class MockLogService : ISymbolSearchLogService
+        private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
         {
             public Task LogExceptionAsync(string exception, string text) => SpecializedTasks.EmptyTask;
             public Task LogInfoAsync(string text) => SpecializedTasks.EmptyTask;
+
+            public Task OnDownloadFullDatabaseStartedAsync(string title) => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseSucceededAsync() => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseCanceledAsync() => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseFailedAsync(string message) => SpecializedTasks.EmptyTask;
         }
     }
 }

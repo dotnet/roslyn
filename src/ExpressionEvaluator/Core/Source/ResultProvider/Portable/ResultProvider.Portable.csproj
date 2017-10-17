@@ -1,18 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{FA0E905D-EC46-466D-B7B2-3B5557F9428C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <!-- Package Microsoft.VisualStudio.Debugger.Engine 15.0.26201-gamma is not compatible with netstandard1.3 -->
-    <PackageTargetFallback>portable-net45+win8</PackageTargetFallback>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
@@ -68,19 +64,18 @@
     <Compile Include="..\..\ExpressionCompiler\ExpressionEvaluatorFatalError.cs">
       <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
     </Compile>
-    <Compile Include="Helpers\Placeholders.cs" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Compile Include="Resources.Designer.cs">
+    <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>

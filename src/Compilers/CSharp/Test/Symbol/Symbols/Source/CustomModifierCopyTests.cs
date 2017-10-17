@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -714,11 +714,11 @@ class Bug813305 : IBug813305
 {
     void IBug813305.M(dynamic x)
     {
-        x.Foo();
+        x.Goo();
         System.Console.WriteLine(""Bug813305.M"");
     }
  
-    public void Foo() {}
+    public void Goo() {}
 }
  
 class Test
@@ -992,11 +992,7 @@ class C : I
 }
 ";
             var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
-            comp2.VerifyDiagnostics(
-                // (4,24): error CS8141: The tuple element names in the signature of method 'C.I.P' must match the tuple element names of interface method 'I.P' (including on the return type).
-                //     (object, object) I.P { get; set; }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "P").WithArguments("C.I.P", "I.P").WithLocation(4, 24)
-                );
+            comp2.VerifyDiagnostics();
 
             var classProperty2 = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("I.P");
 
@@ -1159,16 +1155,7 @@ class C : Base
             comp2.VerifyDiagnostics(
                 // (5,38): error CS8139: 'C.M((object c, object d))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
                 //     public override (object, object) M((object c, object d) y) { return y; }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M((object c, object d))", "Base.M((object c, object d))").WithLocation(5, 38),
-                // (4,38): error CS8139: 'C.P': cannot change tuple element names when overriding inherited member 'Base.P'
-                //     public override (object, object) P { get; set; }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P").WithArguments("C.P", "Base.P").WithLocation(4, 38),
-                // (4,42): error CS8139: 'C.P.get': cannot change tuple element names when overriding inherited member 'Base.P.get'
-                //     public override (object, object) P { get; set; }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("C.P.get", "Base.P.get").WithLocation(4, 42),
-                // (4,47): error CS8139: 'C.P.set': cannot change tuple element names when overriding inherited member 'Base.P.set'
-                //     public override (object, object) P { get; set; }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("C.P.set", "Base.P.set").WithLocation(4, 47)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M((object c, object d))", "Base.M((object c, object d))").WithLocation(5, 38)
                 );
 
             var classProperty2 = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("P");

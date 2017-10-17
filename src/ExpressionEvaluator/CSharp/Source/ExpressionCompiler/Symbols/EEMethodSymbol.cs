@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,8 +7,10 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return this.SubstitutedSourceMethod.IsVararg; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return this.SubstitutedSourceMethod.RefKind; }
         }
@@ -634,8 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
                 foreach (var local in block.Locals)
                 {
-                    var oldLocal = local as EELocalSymbol;
-                    if (oldLocal != null)
+                    if (local is EELocalSymbol oldLocal)
                     {
                         Debug.Assert(localBuilder[oldLocal.Ordinal] == oldLocal);
                         continue;
@@ -696,9 +697,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        internal override void AddSynthesizedReturnTypeAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedReturnTypeAttributes(ref attributes);
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
 
             var compilation = this.DeclaringCompilation;
             var returnType = this.ReturnType;

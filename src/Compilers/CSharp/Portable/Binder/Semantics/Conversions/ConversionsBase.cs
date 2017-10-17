@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -25,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+
+        public abstract Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
@@ -836,6 +839,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.StackAllocArrayCreation:
+                    var stackAllocConversion = GetStackAllocConversion((BoundStackAllocArrayCreation)sourceExpression, destination, ref useSiteDiagnostics);
+                    if (stackAllocConversion.Exists)
+                    {
+                        return stackAllocConversion;
+                    }
+                    break;
+
                 case BoundKind.ThrowExpression:
                     return Conversion.ImplicitThrow;
             }
@@ -1429,22 +1440,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(conversion.Kind == ConversionKind.NoConversion);
                     return false;
             }
-        }
-
-        private enum NumericType
-        {
-            SByte,
-            Byte,
-            Short,
-            UShort,
-            Int,
-            UInt,
-            Long,
-            ULong,
-            Char,
-            Float,
-            Double,
-            Decimal
         }
 
         private const bool F = false;
@@ -3032,6 +3027,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)destination != null);
 
             if (destination.IsPointerType())
+            {
+                return false;
+            }
+
+            // Ref-like types cannot be boxed or unboxed
+            if (destination.IsRestrictedType())
             {
                 return false;
             }

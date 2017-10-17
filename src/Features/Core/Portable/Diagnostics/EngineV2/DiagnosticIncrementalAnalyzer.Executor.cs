@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                         }
 
-                        var result = await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
+                        var result = await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, existingData.Result, cancellationToken).ConfigureAwait(false);
 
                         // if project is not loaded successfully, get rid of any semantic errors from compiler analyzer
                         // * NOTE * previously when project is not loaded successfully, we actually dropped doing anything on the project, but now
@@ -148,8 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return result;
                 }
 
-                DiagnosticAnalysisResult analysisResult;
-                if (!result.TryGetValue(compilerAnalyzer, out analysisResult))
+                if (!result.TryGetValue(compilerAnalyzer, out var analysisResult))
                 {
                     // no result from compiler analyzer
                     return result;
@@ -176,8 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? spanOpt, CancellationToken cancellationToken)
             {
-                var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-                if (documentAnalyzer != null)
+                if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                 {
                     var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, kind, analyzerDriverOpt?.Compilation, cancellationToken).ConfigureAwait(false);
                     return ConvertToLocalDiagnostics(document, diagnostics);
@@ -190,8 +188,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return all diagnostics that belong to given project for the given StateSets (analyzers) by calculating them
             /// </summary>
-            public async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
+            private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
+                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, bool forcedAnalysis, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -201,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (analyzerDriverOpt != null)
                     {
                         // calculate regular diagnostic analyzers diagnostics
-                        var compilerResult = await AnalyzeAsync(analyzerDriverOpt, project, cancellationToken).ConfigureAwait(false);
+                        var compilerResult = await AnalyzeAsync(analyzerDriverOpt, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
                         result = compilerResult.AnalysisResult;
 
                         // record telemetry data
@@ -218,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets,
+                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, bool forcedAnalysis,
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, CancellationToken cancellationToken)
             {
                 try
@@ -238,12 +236,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                 null : await _owner._compilationManager.CreateAnalyzerDriverAsync(
                                         project, analyzersToRun, analyzerDriverOpt.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                        var result = await ComputeDiagnosticsAsync(analyzerDriverWithReducedSet, project, stateSets, cancellationToken).ConfigureAwait(false);
+                        var result = await ComputeDiagnosticsAsync(analyzerDriverWithReducedSet, project, stateSets, forcedAnalysis, cancellationToken).ConfigureAwait(false);
                         return MergeExistingDiagnostics(version, existing, result);
                     }
 
                     // we couldn't reduce the set.
-                    return await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
+                    return await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, forcedAnalysis, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
@@ -278,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
                 out ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
-                analyzers = default(ImmutableArray<DiagnosticAnalyzer>);
+                analyzers = default;
 
                 // we don't have analyzer driver, nothing to reduce.
                 if (analyzerDriverOpt == null)
@@ -331,8 +329,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     foreach (var analyzer in ideAnalyzers)
                     {
-                        var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-                        if (documentAnalyzer != null)
+                        if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                         {
                             foreach (var document in project.Documents)
                             {
@@ -350,8 +347,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
                         }
 
-                        var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
-                        if (projectAnalyzer != null)
+                        if (analyzer is ProjectDiagnosticAnalyzer projectAnalyzer)
                         {
                             builder.AddCompilationDiagnostics(await ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(project, projectAnalyzer, compilationOpt, cancellationToken).ConfigureAwait(false));
                         }
@@ -562,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(
-                CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+                CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
                 // quick bail out
                 if (analyzerDriver.Analyzers.Length == 0)
@@ -573,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var executor = project.Solution.Workspace.Services.GetService<ICodeAnalysisDiagnosticAnalyzerExecutor>();
-                return await executor.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+                return await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
             }
 
             private IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithCompilation(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)

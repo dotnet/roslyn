@@ -35,3 +35,16 @@ StaticAnalysis\Microsoft.VisualStudio.CodeAnalysis.Sdk.UI.dll
 VMP\Microsoft.VisualStudio.GraphModel.dll
 VMP\Microsoft.VisualStudio.Diagnostics.PerformanceProvider.dll
 VSTelemetryPackage\Microsoft.VisualStudio.Telemetry.dll
+Microsoft.VisualStudio.XmlEditor.dll
+Microsoft.XmlEditor.dll
+Microsoft.XmlEditorUI.dll
+Microsoft.XmlEditorNeutralUI.dll
+Microsoft.XslDebugger.dll
+Microsoft.VisualStudio.XsdDesigner.dll
+Microsoft.VisualStudio.XsdDesigner.Controls.Graph.dll
+Microsoft.VisualStudio.XsdDesignerPackage.dll
+Microsoft.VisualStudio.DataDesign.Common.dll
+Microsoft.VSDesigner.dll
+Microsoft.VisualStudio.XmlEditor.dll
+Microsoft.VisualStudio.VSHelp.dll
+Microsoft.VisualStudio.DataTools.Interop.dll

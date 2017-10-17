@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (ErrorHandler.Failed(hierarchy.GetProperty(itemId, propertyId, out var property)) ||
                 !(property is T))
             {
-                value = default(T);
+                value = default;
                 return false;
             }
 

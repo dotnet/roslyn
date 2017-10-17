@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
@@ -100,11 +100,11 @@ End Module
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Public Delegate Sub Foo(x As Integer)
-    Public Sub FooMeth(x As Integer)
+    Public Delegate Sub Goo(x As Integer)
+    Public Sub GooMeth(x As Integer)
     End Sub
     Public Sub void()
-        Dim {|Conflict:x|} As Foo = New Foo(AddressOf FooMeth)
+        Dim {|Conflict:x|} As Goo = New Goo(AddressOf GooMeth)
         Dim [|$$z|] As Integer = 1
         Dim y As Integer = {|Conflict:z|}
         x({|Conflict:z|})
@@ -186,7 +186,7 @@ Module C
 End Module
 
 Module E
-    ' Rename Ex To Foo
+    ' Rename Ex To Goo
     &lt;Extension()>
     Public Sub [|$$Ex|](x As Integer)
     End Sub
@@ -241,7 +241,7 @@ Module C
 End Module
 
 Module E
-    ' Rename Ex To Foo
+    ' Rename Ex To Goo
     &lt;Extension()>
     Public Sub [|$$Ex|](x As Integer)
     End Sub
@@ -304,19 +304,19 @@ Module C
 End Module
 
 Module E
-    ' Rename Ex To Foo
+    ' Rename Ex To Goo
     &lt;Extension()>
     Public Sub [|$$Ex|](x As Integer)
     End Sub
 End Module
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="foo")
+                    </Workspace>, renameTo:="goo")
                     Dim outputResult = <Code>Outer(Sub(y As String)</Code>.Value + vbCrLf +
 <Code>                  Inner(Sub(x)</Code>.Value + vbCrLf +
 <Code>                            Console.WriteLine(x)</Code>.Value + vbCrLf +
 <Code>                            Dim z = 5</Code>.Value + vbCrLf +
-<Code>                            z.foo()</Code>.Value + vbCrLf +
+<Code>                            z.goo()</Code>.Value + vbCrLf +
 <Code>                            x.Ex()</Code>.Value + vbCrLf +
 <Code>                        End Sub, y)</Code>.Value + vbCrLf +
 <Code>              End Sub, 0)</Code>.Value
@@ -405,17 +405,17 @@ Module Program
         Dim sx = Function([|$$x|] As Integer)
                      {|resolve:z|} = Nothing
                      If (True) Then
-                         Dim z As Boolean = {|conflict1:foo|}({|conflict2:x|})
+                         Dim z As Boolean = {|conflict1:goo|}({|conflict2:x|})
                      End If
                      Return True
                  End Function
     End Sub
 
-    Public Function foo(bar As Integer) As Boolean
+    Public Function goo(bar As Integer) As Boolean
         Return True
     End Function
 
-    Public Function foo(bar As Object) As Boolean
+    Public Function goo(bar As Object) As Boolean
         Return bar
     End Function
 End Module
@@ -439,7 +439,7 @@ End Module
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="Test.vb">
 Module M
-    Public Sub [|$$Foo|](Of T)(ByVal x As T) ' Rename Foo to Bar
+    Public Sub [|$$Goo|](Of T)(ByVal x As T) ' Rename Goo to Bar
     End Sub
 End Module
  
@@ -451,7 +451,7 @@ Class C
                                                  End Sub
     End Class
     Public Sub Test()
-        {|stmt1:Foo|}("1")
+        {|stmt1:Goo|}("1")
     End Sub
 End Class
                         </Document>
@@ -475,7 +475,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Class CC
-    Public Shared Sub [|$$Foo|](Of T)(x As T)
+    Public Shared Sub [|$$Goo|](Of T)(x As T)
 
     End Sub
     Public Shared Sub Bar(x As Integer)
@@ -488,7 +488,7 @@ End Class
 
 Class D
     Public Sub Baz()
-        CC.{|stmt1:Foo|}(1)
+        CC.{|stmt1:Goo|}(1)
     End Sub
 End Class
                         </Document>
@@ -576,7 +576,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Public Shared Sub [|$$Foo|](Of T)(ByVal x As T)
+    Public Shared Sub [|$$Goo|](Of T)(ByVal x As T)
 
     End Sub
     Public Shared Sub Bar(ByVal x As Integer)
@@ -590,7 +590,7 @@ Class C
 
         End Sub
         Sub Test()
-            {|stmt1:Foo|}(1)
+            {|stmt1:Goo|}(1)
         End Sub
     End Class
 End Class
@@ -611,7 +611,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Module M
-    Public Sub Foo(Of T)(ByVal x As T)
+    Public Sub Goo(Of T)(ByVal x As T)
 
     End Sub
     Public Sub [|$$Bar|](ByVal x As String)
@@ -619,15 +619,15 @@ Module M
     End Sub
     Public Sub Test()
         Dim x = "1"
-        {|stmt1:Foo|}(x)
+        {|stmt1:Goo|}(x)
     End Sub
 End Module
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Foo(Of String)(x)", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Goo(Of String)(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -639,10 +639,10 @@ End Module
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
 Class C
-    Public Sub Foo(Of T)(ByVal x As T)
+    Public Sub Goo(Of T)(ByVal x As T)
     End Sub
     ''' <summary>
-    ''' <see cref="{|stmt1:Foo|}"/>
+    ''' <see cref="{|stmt1:Goo|}"/>
     ''' </summary>
     ''' <param name="x"></param>
     Public Sub [|$$Bar|](ByVal x As Integer)
@@ -652,10 +652,10 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Foo(Of T)", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Goo(Of T)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -667,7 +667,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Module M
-    Public Sub [|$$Foo|](Of T)(ByVal x As T) ' Rename Foo to Bar
+    Public Sub [|$$Goo|](Of T)(ByVal x As T) ' Rename Goo to Bar
     End Sub
     Public Sub Bar(ByVal x As Integer)
 
@@ -682,7 +682,7 @@ Class C
                                                   End Sub
     End Class
     Public Sub Test()
-        {|stmt1:Foo|}(1)
+        {|stmt1:Goo|}(1)
     End Sub
 End Class
                             </Document>
@@ -702,7 +702,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C(Of S)
-    Public Shared Sub Foo(Of T)(ByVal x As T)
+    Public Shared Sub Goo(Of T)(ByVal x As T)
 
     End Sub
     Public Shared Sub [|$$Bar|](ByVal x As C(Of Integer))
@@ -710,15 +710,15 @@ Class C(Of S)
     End Sub
     Public Sub Test()
         Dim x As C(Of Integer) = New C(Of Integer)()
-        {|stmt1:Foo|}(x)
+        {|stmt1:Goo|}(x)
     End Sub
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Foo(Of C(Of Integer))(x)", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Goo(Of C(Of Integer))(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -730,7 +730,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Public Shared Sub Foo(Of T)(ByVal x As T)
+    Public Shared Sub Goo(Of T)(ByVal x As T)
 
     End Sub
     Public Shared Sub [|$$Bar|](ByVal x As D(Of Integer))
@@ -738,17 +738,17 @@ Class C
     End Sub
     Public Sub Test()
         Dim x As D(Of Integer) = New D(Of Integer)()
-        {|stmt1:Foo|}(x)
+        {|stmt1:Goo|}(x)
     End Sub
 End Class
 Class D(Of S)
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Foo(Of D(Of Integer))(x)", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Goo(Of D(Of Integer))(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -760,7 +760,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Public Shared Sub Foo(Of T)(ByVal x As T)
+    Public Shared Sub Goo(Of T)(ByVal x As T)
 
     End Sub
     Public Shared Sub [|$$Bar|](ByVal x As Object)
@@ -768,15 +768,15 @@ Class C
     End Sub
     Public Sub Test()
         Dim x = DirectCast(1, Object)
-        {|stmt1:Foo|}(x)
+        {|stmt1:Goo|}(x)
     End Sub
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Foo(Of Object)(x)", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Goo(Of Object)(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -788,7 +788,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Public Shared Sub Foo(Of T)(ByVal x As T)
+    Public Shared Sub Goo(Of T)(ByVal x As T)
 
     End Sub
     Public Shared Sub [|$$Bar|](Of T)(ByVal x As T())
@@ -796,16 +796,16 @@ Class C
     End Sub
     Public Sub Test()
         Dim x As Integer() = New Integer() {1, 2, 3}
-        {|stmt1:Foo|}(x)
+        {|stmt1:Goo|}(x)
     End Sub
 End Class
 
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Foo(Of Integer())(x)", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Goo(Of Integer())(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -817,7 +817,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Public Shared Sub Foo(Of T)(ByVal x As T)
+    Public Shared Sub Goo(Of T)(ByVal x As T)
 
     End Sub
     Public Shared Sub [|$$Bar|](Of T)(ByVal x As T(,))
@@ -825,16 +825,16 @@ Class C
     End Sub
     Public Sub Test()
         Dim x As Integer(,) = New Integer(,) {{1, 2}, {2, 3}, {3, 4}}
-        {|stmt1:Foo|}(x)
+        {|stmt1:Goo|}(x)
     End Sub
 End Class
 
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Foo(Of Integer(,))(x)", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Goo(Of Integer(,))(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -846,7 +846,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Public Function Foo(Of T)(ByVal x As T) As Integer
+    Public Function Goo(Of T)(ByVal x As T) As Integer
         Return 1
     End Function
     Public Function [|$$Bar|](ByVal x As Integer) As Integer
@@ -856,15 +856,15 @@ Class C
 
     End Sub
     Public Sub Test()
-        Method({|stmt1:Foo|}(1))
+        Method({|stmt1:Goo|}(1))
     End Sub
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Method(Foo(Of Integer)(1))", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Method(Goo(Of Integer)(1))", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -879,22 +879,22 @@ Class C
     Sub New(ByVal x As Integer)
 
     End Sub
-    Public Function Foo(Of T)(ByVal x As T) As Integer
+    Public Function Goo(Of T)(ByVal x As T) As Integer
         Return 1
     End Function
     Public Function [|$$Bar|](ByVal x As Integer) As Integer
         Return 1
     End Function
     Public Sub Method()
-        Dim x As New C({|stmt1:Foo|}(1))
+        Dim x As New C({|stmt1:Goo|}(1))
     End Sub
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Dim x As New C(Foo(Of Integer)(1))", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Dim x As New C(Goo(Of Integer)(1))", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -906,7 +906,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Public Function Foo(Of T)(ByVal x As T) As Integer
+    Public Function Goo(Of T)(ByVal x As T) As Integer
         Return 1
     End Function
     Public Function [|$$Bar|](ByVal x As Integer) As Integer
@@ -914,15 +914,15 @@ Class C
     End Function
     Public Sub Method()
         Dim x As New C()
-        x.{|stmt1:Foo|}(1)
+        x.{|stmt1:Goo|}(1)
     End Sub
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "x.Foo(Of Integer)(1)", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "x.Goo(Of Integer)(1)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -934,23 +934,23 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Delegate Function FooDel(Of T)(ByVal x As T) As Integer
-    Public Function Foo(Of T)(ByVal x As T) As Integer
+    Delegate Function GooDel(Of T)(ByVal x As T) As Integer
+    Public Function Goo(Of T)(ByVal x As T) As Integer
         Return 1
     End Function
     Public Function [|$$Bar|](ByVal x As String) As Integer
         Return 1
     End Function
     Public Sub Method()
-        Dim x = New FooDel(Of String)(AddressOf {|stmt1:Foo|})
+        Dim x = New GooDel(Of String)(AddressOf {|stmt1:Goo|})
     End Sub
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Dim x = New FooDel(Of String)(AddressOf Foo(Of String))", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Dim x = New GooDel(Of String)(AddressOf Goo(Of String))", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -962,23 +962,23 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Delegate Function FooDel(ByVal x As String) As Integer
-    Public Function Foo(Of T)(ByVal x As T) As Integer
+    Delegate Function GooDel(ByVal x As String) As Integer
+    Public Function Goo(Of T)(ByVal x As T) As Integer
         Return 1
     End Function
     Public Function [|$$Bar|](ByVal x As String) As Integer
         Return 1
     End Function
     Public Sub Method()
-        Dim x = New FooDel(AddressOf {|stmt1:Foo|})
+        Dim x = New GooDel(AddressOf {|stmt1:Goo|})
     End Sub
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Dim x = New FooDel(AddressOf Foo(Of String))", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Dim x = New GooDel(AddressOf Goo(Of String))", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -990,7 +990,7 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Public Shared Sub Foo(Of T, S)(ByVal x As T, ByVal y As S)
+    Public Shared Sub Goo(Of T, S)(ByVal x As T, ByVal y As S)
 
     End Sub
     Public Shared Sub [|$$Bar|](Of T, S)(ByVal x As T(), ByVal y As S)
@@ -998,15 +998,15 @@ Class C
     End Sub
     Public Sub Test()
         Dim x = New Integer() {1, 2}
-        {|stmt1:Foo|}(x, New C())
+        {|stmt1:Goo|}(x, New C())
     End Sub
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Foo(Of Integer(), C)(x, New C())", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Goo(Of Integer(), C)(x, New C())", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -1019,10 +1019,10 @@ End Class
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
 Class C
-    Public Sub Foo(Of T)(ByRef x As T)
+    Public Sub Goo(Of T)(ByRef x As T)
 
     End Sub
-    Public Sub Foo(ByRef x As String)
+    Public Sub Goo(ByRef x As String)
 
     End Sub
 End Class
@@ -1035,15 +1035,15 @@ Class D
     End Sub
     Public Sub Test()
         Dim x As String
-        {|stmt1:Foo|}(x)
+        {|stmt1:Goo|}(x)
     End Sub
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "MyBase.Foo(x)", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "MyBase.Goo(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 #End Region
@@ -1055,20 +1055,20 @@ End Class
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
-Class FooClass
-    Private foo As Integer
+Class GooClass
+    Private goo As Integer
 
     Sub Blah([|$$bar|] As Integer)
-        {|stmt2:foo|} = {|stmt1:bar|}
+        {|stmt2:goo|} = {|stmt1:bar|}
     End Sub
 End Class
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="foo")
+                    </Workspace>, renameTo:="goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "Me.foo = foo", RelatedLocationType.NoConflict)
-                    result.AssertLabeledSpansAre("stmt2", "Me.foo = foo", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Me.goo = goo", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("stmt2", "Me.goo = goo", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -1079,7 +1079,7 @@ End Class
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
-Class FooClass
+Class GooClass
     Private [if] As Integer
 
     Sub Blah({|Escape:$$bar|} As Integer)
@@ -1105,7 +1105,7 @@ End Class
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
-Class FooClass
+Class GooClass
     Private {|escape:$$bar|} As Integer
 
     Sub Blah([if] As Integer)
@@ -1128,20 +1128,20 @@ End Class
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
-Class FooClass
-    Shared foo As Integer
+Class GooClass
+    Shared goo As Integer
 
     Sub Blah([|$$bar|] As Integer)
-        {|stmt2:foo|} = {|stmt1:bar|}
+        {|stmt2:goo|} = {|stmt1:bar|}
     End Sub
 End Class
                                </Document>
                         </Project>
-                    </Workspace>, renameTo:="foo")
+                    </Workspace>, renameTo:="goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "FooClass.foo = foo", RelatedLocationType.NoConflict)
-                    result.AssertLabeledSpansAre("stmt2", "FooClass.foo = foo", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "GooClass.goo = goo", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("stmt2", "GooClass.goo = goo", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -1152,20 +1152,20 @@ End Class
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
-Module FooModule
-    Private foo As Integer
+Module GooModule
+    Private goo As Integer
 
     Sub Blah([|$$bar|] As Integer)
-        {|stmt2:foo|} = {|stmt1:bar|}
+        {|stmt2:goo|} = {|stmt1:bar|}
     End Sub
 End Module
                                </Document>
                         </Project>
-                    </Workspace>, renameTo:="foo")
+                    </Workspace>, renameTo:="goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "FooModule.foo = foo", RelatedLocationType.NoConflict)
-                    result.AssertLabeledSpansAre("stmt2", "FooModule.foo = foo", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "GooModule.goo = goo", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("stmt2", "GooModule.goo = goo", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -1242,10 +1242,10 @@ Option Strict On
 
 Class C
     Sub New
-        Dim x$ = Me.{|stmt1:$$Foo|}.ToLower
+        Dim x$ = Me.{|stmt1:$$Goo|}.ToLower
     End Sub
 
-    Function {|TypeSuffix:Foo$|}
+    Function {|TypeSuffix:Goo$|}
         Return "ABC"
     End Function
 End Class
@@ -1285,9 +1285,9 @@ Public Class Col
 End Class
                                 </Document>
                             </Project>
-                        </Workspace>, renameTo:="FooSelect")
+                        </Workspace>, renameTo:="GooSelect")
 
-                    result.AssertLabeledSpansAre("escaped", "[FooSelect]", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("escaped", "[GooSelect]", RelatedLocationType.NoConflict)
                 End Using
             End Sub
 
@@ -1304,10 +1304,10 @@ Option Strict On
 
 Class C
     Sub New
-        Dim x$ = Me.{|stmt1:$$Foo$|}.ToLower
+        Dim x$ = Me.{|stmt1:$$Goo$|}.ToLower
     End Sub
 
-    Function {|Unescaped:Foo$|}
+    Function {|Unescaped:Goo$|}
         Return "ABC"
     End Function
 End Class
@@ -1493,12 +1493,12 @@ Imports Y
 
 Module Program
     Sub Main
-        {|stmt1:Foo|} = 1
+        {|stmt1:Goo|} = 1
     End Sub
 End Module
 
 Class X
-    Public Shared [|$$Foo|]
+    Public Shared [|$$Goo|]
 End Class
 
 Class Y
@@ -1523,7 +1523,7 @@ End Class
                             <Document><![CDATA[
 Option Explicit Off
 Module Program
-    Function [|$$Foo|]
+    Function [|$$Goo|]
         {|Conflict:Bar|} = 1
     End Function
 End Module
@@ -1623,7 +1623,7 @@ End Structure
 Imports System
 
 <{|Special:Something|}()>
-Public class foo
+Public class goo
 End class
 
 Public Class [|$$SomethingAttribute|]
@@ -1647,7 +1647,7 @@ End Class]]></Document>
 Imports System
 
 <{|Special:Something|}()>
-Public class foo
+Public class goo
 End class
 
 Public Class {|Special:$$SomethingAttribute|}
@@ -1699,8 +1699,8 @@ Option Explicit Off
  
 Module Program
     Sub Main(args As String())
-        {|stmt1:$$foo|} = 23
-        {|stmt2:foo|} = 42
+        {|stmt1:$$goo|} = 23
+        {|stmt2:goo|} = 42
     End Sub
 End Module
                            </Document>
@@ -1726,17 +1726,17 @@ Module Program
     Dim [|$$bar|] As Object
  
     Sub Main(args As String())
-        {|stmt1_2:foo|} = {|stmt1:bar|}
-        {|stmt2:foo|} = 42
+        {|stmt1_2:goo|} = {|stmt1:bar|}
+        {|stmt2:goo|} = 42
     End Sub
 End Module
 
                            </Document>
                         </Project>
-                    </Workspace>, renameTo:="foo")
+                    </Workspace>, renameTo:="goo")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "foo", type:=RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("stmt1", "goo", type:=RelatedLocationType.NoConflict)
                     result.AssertLabeledSpansAre("stmt1_2", type:=RelatedLocationType.UnresolvedConflict)
                     result.AssertLabeledSpansAre("stmt2", type:=RelatedLocationType.UnresolvedConflict)
                 End Using
@@ -1819,10 +1819,10 @@ End Class
 Module Preserve
     Sub Main
         Dim Bar
-        ReDim {|stmt1:Foo|}(0)
+        ReDim {|stmt1:Goo|}(0)
     End Sub
  
-    Property [|$$Foo|]
+    Property [|$$Goo|]
 End Module
                         </Document>
                         </Project>
@@ -1870,11 +1870,11 @@ End Module
 Imports System
 Module Program
     Sub Main()
-        {|ResolvedNonReference:Foo|}(Sub(x) x.{|Resolve:Old|}())
+        {|ResolvedNonReference:Goo|}(Sub(x) x.{|Resolve:Old|}())
     End Sub
-    Sub Foo(x As Action(Of I))
+    Sub Goo(x As Action(Of I))
     End Sub
-    Sub Foo(x As Action(Of C))
+    Sub Goo(x As Action(Of C))
     End Sub
 End Module
 
@@ -1891,8 +1891,8 @@ End Class
                     </Workspace>, renameTo:="New")
 
                     result.AssertLabeledSpecialSpansAre("Escape", "[New]", RelatedLocationType.NoConflict)
-                    result.AssertLabeledSpansAre("Resolve", "Foo(Sub(x) x.New())", RelatedLocationType.ResolvedReferenceConflict)
-                    result.AssertLabeledSpansAre("ResolvedNonReference", "Foo(Sub(x) x.New())", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("Resolve", "Goo(Sub(x) x.New())", RelatedLocationType.ResolvedReferenceConflict)
+                    result.AssertLabeledSpansAre("ResolvedNonReference", "Goo(Sub(x) x.New())", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -1968,20 +1968,20 @@ class C : I
                             <Document FilePath="Test.vb">
 Imports System
 Interface I
-    Sub Foo(Optional x As Integer = 0)
+    Sub Goo(Optional x As Integer = 0)
 End Interface
 Class C
     Implements I
     Shared Sub Main()
-        DirectCast(New C(), I).Foo()
+        DirectCast(New C(), I).Goo()
     End Sub
-    Private Sub [|$$I_Foo|](Optional x As Integer = 0) Implements I.Foo
+    Private Sub [|$$I_Goo|](Optional x As Integer = 0) Implements I.Goo
         Console.WriteLine("test")
     End Sub
 End Class
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
                 End Using
@@ -2068,11 +2068,11 @@ End Module
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
                             <Document FilePath="Test.vb"><![CDATA[
-Class Foo    
-    Partial Private Sub [|Foo|]()
+Class Goo    
+    Partial Private Sub [|Goo|]()
     End Sub
 
-    Private Sub [|$$foo|]()
+    Private Sub [|$$goo|]()
     End Sub
 End Class
 ]]>
@@ -2116,8 +2116,8 @@ End Class
                             <Document FilePath="Test.vb"><![CDATA[
 Imports System
 
-<{|unreduced:Foo|}>
-Class [|$$FooAttribute|] ' Rename Foo to Attribute
+<{|unreduced:Goo|}>
+Class [|$$GooAttribute|] ' Rename Goo to Attribute
     Inherits {|resolved:Attribute|}
 End Class
 ]]>
@@ -2198,22 +2198,22 @@ End Namespace
                             <Document FilePath="Test.vb"><![CDATA[
 Imports System
 
-<{|resolved:Foo|}>
+<{|resolved:Goo|}>
 Module M
-    Class FooAttribute
+    Class GooAttribute
         Inherits Attribute
     End Class
 End Module
  
-Class [|$$X|] ' Rename X to FOOATTRIBUTE
+Class [|$$X|] ' Rename X to GOOATTRIBUTE
 End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="FOOATTRIBUTE")
+                    </Workspace>, renameTo:="GOOATTRIBUTE")
 
 
-                    result.AssertLabeledSpansAre("resolved", "M.Foo", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("resolved", "M.Goo", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -2226,8 +2226,8 @@ End Class
                             <Document FilePath="Test.vb"><![CDATA[
 Imports System
 
-<[|Foo|]>
-Class [|$$Foo|] ' Rename Foo to ATTRIBUTE
+<[|Goo|]>
+Class [|$$Goo|] ' Rename Goo to ATTRIBUTE
     Inherits {|resolved:Attribute|}
 End Class
 ]]>
@@ -2249,25 +2249,25 @@ End Class
                             <Document FilePath="Test.vb"><![CDATA[
 Module Program
     Sub Main()
-        N.{|resolved:Foo|}()
+        N.{|resolved:Goo|}()
     End Sub
 End Module
  
 Namespace N
-    Namespace [|$$Y|] ' Rename Y to Foo
+    Namespace [|$$Y|] ' Rename Y to Goo
     End Namespace
     Module X
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Module
 End Namespace
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("resolved", "N.X.Foo()", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("resolved", "N.X.Goo()", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -2345,7 +2345,7 @@ Imports System
 Module Program
     Sub Main(args As String())
         Dim {|Stmt1:$$Bar|} = Sub(x) Console.Write(x)
-        Call {|Resolve:Foo|}()
+        Call {|Resolve:Goo|}()
         {|Stmt2:Bar|}(1)
     End Sub
 End Module                   
@@ -2354,16 +2354,16 @@ End Module
                         <Project Language="Visual Basic" AssemblyName="Project2" CommonReferences="true">
                             <Document>
 Public Module M
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
-                    result.AssertLabeledSpansAre("Stmt1", "Foo", RelatedLocationType.NoConflict)
-                    result.AssertLabeledSpansAre("Stmt2", "Foo", RelatedLocationType.NoConflict)
-                    result.AssertLabeledSpansAre("Resolve", "Call M.Foo()", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("Stmt1", "Goo", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("Stmt2", "Goo", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("Resolve", "Call M.Goo()", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -2377,20 +2377,20 @@ Imports System
 Namespace N
     Module M
         Class C
-            Shared Sub Foo()
+            Shared Sub Goo()
 
             End Sub
         End Class
     End Module
     Class [|$$D|]
-        Shared Sub Foo()
+        Shared Sub Goo()
 
         End Sub
     End Class
     Module Program
         Sub Main()
-            {|Resolve:C|}.{|Resolve:Foo|}()    
-            {|Stmt1:D|}.Foo()
+            {|Resolve:C|}.{|Resolve:Goo|}()    
+            {|Stmt1:D|}.Goo()
         End Sub
     End Module 
 End Namespace
@@ -2400,7 +2400,7 @@ End Namespace
                     </Workspace>, renameTo:="C")
 
 
-                    result.AssertLabeledSpansAre("Resolve", "M.C.Foo()", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("Resolve", "M.C.Goo()", RelatedLocationType.ResolvedNonReferenceConflict)
                     result.AssertLabeledSpansAre("Stmt1", "C", RelatedLocationType.NoConflict)
 
                 End Using
@@ -2416,7 +2416,7 @@ Imports System
 Namespace N
     Namespace M
         Module K
-            Sub Foo()
+            Sub Goo()
 
             End Sub
         End Module
@@ -2429,17 +2429,17 @@ Namespace N
 End Namespace
 Module Program
     Sub Main(args As String())
-        N.M.{|Resolve1:Foo|}()
+        N.M.{|Resolve1:Goo|}()
         N.M.{|Resolve2:Bar|}()
     End Sub
 End Module                       
                              </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
-                    result.AssertLabeledSpansAre("Resolve1", "N.M.K.Foo()", RelatedLocationType.ResolvedNonReferenceConflict)
-                    result.AssertLabeledSpansAre("Resolve2", "N.M.L.Foo()", RelatedLocationType.ResolvedReferenceConflict)
+                    result.AssertLabeledSpansAre("Resolve1", "N.M.K.Goo()", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("Resolve2", "N.M.L.Goo()", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
             End Sub
 
@@ -2451,17 +2451,17 @@ End Module
                             <Document>
 Imports System
 Interface M
-    Sub foo(ByVal x As Integer)
+    Sub goo(ByVal x As Integer)
 End Interface
 Namespace N
     Module [|$$K|]
-        Sub foo(ByVal x As Integer)
+        Sub goo(ByVal x As Integer)
 
         End Sub
     End Module
     Class C
         Implements {|Resolve:M|}
-        Public Sub foo(x As Integer) Implements {|Resolve:M|}.foo
+        Public Sub goo(x As Integer) Implements {|Resolve:M|}.goo
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -2542,14 +2542,14 @@ Module C
 End Module
 
 Module E
-    ' Rename Ex To Foo
+    ' Rename Ex To Goo
     &lt;Extension()>
     Public Sub [|$$Ex|](x As Integer)
     End Sub
 End Module
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, renameTo:="Goo")
 
 
                     result.AssertLabeledSpansAre("resolved", "Outer(Sub(y As String) Inner(Sub(x) x.Ex(), y), 0)", RelatedLocationType.ResolvedNonReferenceConflict)
@@ -2623,13 +2623,13 @@ Imports System.Runtime.CompilerServices
  
 Class C
 Sub Bar(tag As Integer)
-        Me.{|resolve:Foo|}(1).{|resolve:Foo|}(2)
+        Me.{|resolve:Goo|}(1).{|resolve:Goo|}(2)
     End Sub
 End Class
  
 Module E
     &lt;Extension&gt;
-    Public Function [|$$Foo|](x As C, tag As Integer) As C
+    Public Function [|$$Goo|](x As C, tag As Integer) As C
         Return x
     End Function
 End Module
@@ -2652,7 +2652,7 @@ End Module
 Imports F = N
 Namespace N
     Interface I
-        Sub Foo()
+        Sub Goo()
     End Interface
 End Namespace
 
@@ -2660,9 +2660,9 @@ Class C
 	Private Class E
         Implements {|Resolve:F|}.I
         ''' <summary>
-        ''' This is a function <see cref="{|Resolve:F|}.I.Foo"/>
+        ''' This is a function <see cref="{|Resolve:F|}.I.Goo"/>
         ''' </summary>
-        Public Sub Foo() Implements {|Resolve:F|}.I.Foo
+        Public Sub Goo() Implements {|Resolve:F|}.I.Goo
         End Sub
     End Class
 	Private Class [|$$K|]
@@ -2693,7 +2693,7 @@ Public Class A
         ''' <summary>
         ''' <see cref=" {|Resolve:D|}"/>  
         ''' ''' </summary>
-        Shared Sub [|$$foo|]()    ' Rename foo to D 
+        Shared Sub [|$$goo|]()    ' Rename goo to D 
         End Sub
     End Class
     Public Class D

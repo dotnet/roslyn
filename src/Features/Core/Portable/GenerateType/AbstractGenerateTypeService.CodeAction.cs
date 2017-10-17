@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -181,8 +181,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 IEnumerable<CodeActionOperation> operations = null;
 
-                var generateTypeOptions = options as GenerateTypeOptionsResult;
-                if (generateTypeOptions != null && !generateTypeOptions.IsCancelled)
+                if (options is GenerateTypeOptionsResult generateTypeOptions && !generateTypeOptions.IsCancelled)
                 {
                     var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
                     var editor = new Editor(_service, semanticDocument, _state, true, generateTypeOptions, cancellationToken);

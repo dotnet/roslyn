@@ -14,18 +14,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
     {
         private readonly Dictionary<Checksum, object> _map;
 
-        public TestAssetSource(AssetStorage assetStorage, int sessionId) :
-            this(assetStorage, sessionId, new Dictionary<Checksum, object>())
+        public TestAssetSource(AssetStorage assetStorage) :
+            this(assetStorage, new Dictionary<Checksum, object>())
         {
         }
 
-        public TestAssetSource(AssetStorage assetStorage, int sessionId, Checksum checksum, object data) :
-            this(assetStorage, sessionId, new Dictionary<Checksum, object>() { { checksum, data } })
+        public TestAssetSource(AssetStorage assetStorage, Checksum checksum, object data) :
+            this(assetStorage, new Dictionary<Checksum, object>() { { checksum, data } })
         {
         }
 
-        public TestAssetSource(AssetStorage assetStorage, int sessionId, Dictionary<Checksum, object> map) :
-            base(assetStorage, sessionId)
+        public TestAssetSource(AssetStorage assetStorage, Dictionary<Checksum, object> map) :
+            base(assetStorage)
         {
             _map = map;
         }
@@ -37,8 +37,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
 
             foreach (var checksum in checksums)
             {
-                object data;
-                Assert.True(_map.TryGetValue(checksum, out data));
+                Assert.True(_map.TryGetValue(checksum, out var data));
 
                 list.Add(ValueTuple.Create(checksum, data));
             }

@@ -84,28 +84,28 @@ End Class
 <Obsolete>
 Public Delegate Function Mydeleg(x As Integer) As Integer
 
-<FooAttribute.BarAttribute.Baz>
+<GooAttribute.BarAttribute.Baz>
 <Obsolete("Blah")>
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
     Class BazAttribute
         Inherits Attribute
     End Class
     Class BarAttribute
-        Inherits FooAttribute
+        Inherits GooAttribute
     End Class
 End Class
 
-Interface IFoo(Of T)
+Interface IGoo(Of T)
 End Interface
 
 <Obsolete>
 Class SelfReferenceInBase
-    Implements IFoo(Of SelfReferenceInBase)
+    Implements IGoo(Of SelfReferenceInBase)
 End Class
 
 Class SelfReferenceInBase1
-    Implements IFoo(Of SelfReferenceInBase)
+    Implements IGoo(Of SelfReferenceInBase)
 End Class
 
 ]]>
@@ -472,13 +472,13 @@ End Class
 <compilation>
     <file name="b.vb"><![CDATA[
 Public Class Test
-    Public Shared Sub foo1(c As TestClass1)
+    Public Shared Sub goo1(c As TestClass1)
     End Sub
-    Public Shared Sub foo2(c As TestClass2)
+    Public Shared Sub goo2(c As TestClass2)
     End Sub
-    Public Shared Sub foo3(c As TestClass3)
+    Public Shared Sub goo3(c As TestClass3)
     End Sub
-    Public Shared Sub foo4(c As TestClass4)
+    Public Shared Sub goo4(c As TestClass4)
     End Sub
 
     Public Shared Sub Main()
@@ -607,14 +607,14 @@ Imports System
 Public Class SomeType
 
     Public Shared Instance As SomeType
-    Public Const Message As String = "foo"
+    Public Const Message As String = "goo"
 End Class
 
 <Obsolete>
 Module Mod1
     Dim someField As SomeType = SomeType.Instance
     Public Property someProp As SomeType
-    Sub foo(x As SomeType)
+    Sub goo(x As SomeType)
     End Sub
 End Module
 
@@ -630,7 +630,7 @@ Public Class Test
     Event someEvent As Action(Of SomeType)
 
     <Obsolete>
-    Function foo(x As SomeType) As SomeType
+    Function goo(x As SomeType) As SomeType
         Dim y As SomeType = New SomeType()
         Return x
     End Function
@@ -681,7 +681,7 @@ Public Class Test
     End Property
 
     <Obsolete>
-    Custom Event foo As MyDeleg
+    Custom Event goo As MyDeleg
         AddHandler(value As MyDeleg)
 
         End AddHandler
@@ -846,17 +846,17 @@ BC31142: 'Windows.Foundation.Metadata.DeprecatedAttribute' cannot be applied to 
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
-<Foo>
-Class Foo
+<Goo>
+Class Goo
     Inherits Base
 End Class
 
-<Foo>
+<Goo>
 class Base
     Inherits System.Attribute
 
     Public Class Nested
-        Inherits Foo
+        Inherits Goo
     End Class
 End Class
 ]]>
@@ -874,7 +874,7 @@ Imports System
 Public Class SomeType
 
     Public Shared Instance As SomeType
-    Public Const Message As String = "foo"
+    Public Const Message As String = "goo"
 End Class
 
 Public Class SomeAttr
@@ -909,7 +909,7 @@ Imports System
 <Obsolete>
 public Class C 
     <Obsolete>
-    public sub Foo() 
+    public sub Goo() 
     end sub
 end class 
 ]]>
@@ -923,7 +923,7 @@ end class
     <file name="b.vb"><![CDATA[
 Public Class A
     Sub New(o As C)
-        o.Foo()
+        o.Goo()
     end sub
 End Class
 ]]>
@@ -932,7 +932,7 @@ End Class
 
             CreateCompilationWithMscorlibAndReferences(s, {New VisualBasicCompilationReference(other)}).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "C").WithArguments("C"),
-                    Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "o.Foo()").WithArguments("Public Sub Foo()"))
+                    Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "o.Goo()").WithArguments("Public Sub Goo()"))
 
         End Sub
 
@@ -964,7 +964,7 @@ Class C1
     Sub handler2() Handles p1.XEvent
     End Sub
 
-    Custom Event foo As MyDeleg
+    Custom Event goo As MyDeleg
         AddHandler(value As MyDeleg)
 
         End AddHandler
@@ -985,7 +985,7 @@ Class C2
     Sub bar(s As String)
     End Sub
 
-    Sub foo()
+    Sub goo()
         Dim s As New C1
         s.p += "as"
         bar(s.p)
@@ -1390,7 +1390,7 @@ namespace Windows.Foundation.Metadata
 public class Test
 {
         [Deprecated("hello", DeprecationType.Deprecate, 1, typeof(int))]
-        public static void Foo()
+        public static void Goo()
         {
 
         }
@@ -1412,7 +1412,7 @@ public class Test
     <file name="test.vb"><![CDATA[
     Module Program
         Sub Main()
-            Test.Foo()
+            Test.Goo()
             Test.Bar()
         end Sub
     end module
@@ -1423,8 +1423,8 @@ public class Test
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {ref})
 
             Dim expected = <![CDATA[
-BC40000: 'Public Shared Overloads Sub Foo()' is obsolete: 'hello'.
-            Test.Foo()
+BC40000: 'Public Shared Overloads Sub Goo()' is obsolete: 'hello'.
+            Test.Goo()
             ~~~~~~~~~~
 BC40000: 'Public Shared Overloads Sub Bar()' is obsolete: 'hi'.
             Test.Bar()
@@ -1440,7 +1440,7 @@ BC40000: 'Public Shared Overloads Sub Bar()' is obsolete: 'hi'.
 
     Module Program
         <Deprecated("hello", DeprecationType.Deprecate, 1, gettype(integer))>
-        sub Foo()
+        sub Goo()
         end sub
 
         <Deprecated("hi", DeprecationType.Deprecate, 1)>
@@ -1448,7 +1448,7 @@ BC40000: 'Public Shared Overloads Sub Bar()' is obsolete: 'hi'.
         End sub
 
         Sub Main()
-            Foo()
+            Goo()
             Bar()
         end Sub
     end module
@@ -1459,14 +1459,47 @@ BC40000: 'Public Shared Overloads Sub Bar()' is obsolete: 'hi'.
             Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {ref})
 
             Dim expected2 = <![CDATA[
-BC40000: 'Public Sub Foo()' is obsolete: 'hello'.
-            Foo()
+BC40000: 'Public Sub Goo()' is obsolete: 'hello'.
+            Goo()
             ~~~~~
 BC40000: 'Public Sub Bar()' is obsolete: 'hi'.
             Bar()
             ~~~~~
 ]]>
             compilation3.AssertTheseDiagnostics(expected2)
+        End Sub
+
+        <Fact>
+        <WorkItem(22447, "https://github.com/dotnet/roslyn/issues/22447")>
+        Public Sub TestRefLikeType()
+            Dim csSource = <![CDATA[
+public ref struct S { }
+]]>
+
+            Dim csCompilation = CreateCSharpCompilation("Dll1", csSource.Value, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_2))
+            Dim ref = csCompilation.EmitToImageReference()
+
+            Dim vbSource =
+<compilation>
+    <file name="test.vb"><![CDATA[
+Module Program
+    Sub M(s As S)
+    End Sub
+End Module
+]]>
+    </file>
+</compilation>
+
+            Dim vbCompilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource, {ref})
+
+            vbCompilation.AssertTheseDiagnostics((<![CDATA[
+BC30668: 'S' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+    Sub M(s As S)
+               ~
+]]>))
+            vbCompilation.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "S").WithArguments("S", "Types with embedded references are not supported in this version of your compiler.").WithLocation(2, 16)
+                )
         End Sub
 
         <Fact(), WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
@@ -1481,57 +1514,57 @@ Public Class MainPage
     
     End Sub
     
-    Private Shared Sub TestFoo1(a As IFoo1, b As ConcreteFoo1)
-        a.Foo() ' IFoo1
-        b.Foo() ' ConcreteFoo1
+    Private Shared Sub TestGoo1(a As IGoo1, b As ConcreteGoo1)
+        a.Goo() ' IGoo1
+        b.Goo() ' ConcreteGoo1
     End Sub
 
-    Private Shared Sub TestFoo2(a As IFoo2, b As ConcreteFoo2)
-        a.Foo() ' IFoo2
-        b.Foo() ' ConcreteFoo2
+    Private Shared Sub TestGoo2(a As IGoo2, b As ConcreteGoo2)
+        a.Goo() ' IGoo2
+        b.Goo() ' ConcreteGoo2
     End Sub
 
-    Private Shared Sub TestFoo3(a As IFoo3, b As ConcreteFoo3)
-        a.Foo() ' IFoo3
-        b.Foo() ' ConcreteFoo3
+    Private Shared Sub TestGoo3(a As IGoo3, b As ConcreteGoo3)
+        a.Goo() ' IGoo3
+        b.Goo() ' ConcreteGoo3
     End Sub
 End Class
 
-Public Interface IFoo1
-    <Deprecated("IFoo1.Foo has been deprecated", DeprecationType.Deprecate, 0, Platform.Windows)>
-    Sub Foo()
+Public Interface IGoo1
+    <Deprecated("IGoo1.Goo has been deprecated", DeprecationType.Deprecate, 0, Platform.Windows)>
+    Sub Goo()
 End Interface
 
-Public NotInheritable Class ConcreteFoo1
-    Implements IFoo1
-    Public Sub Foo() Implements IFoo1.Foo
+Public NotInheritable Class ConcreteGoo1
+    Implements IGoo1
+    Public Sub Goo() Implements IGoo1.Goo
     
     End Sub
 End Class
 
-Public Interface IFoo2
-    Sub Foo()
+Public Interface IGoo2
+    Sub Goo()
 End Interface
 
-Public NotInheritable Class ConcreteFoo2
-    Implements IFoo2
+Public NotInheritable Class ConcreteGoo2
+    Implements IGoo2
     
-    <Deprecated("ConcreteFoo2.Foo has been deprecated", DeprecationType.Deprecate, 0, Platform.Windows)>
-    Public Sub Foo() Implements IFoo2.Foo
+    <Deprecated("ConcreteGoo2.Goo has been deprecated", DeprecationType.Deprecate, 0, Platform.Windows)>
+    Public Sub Goo() Implements IGoo2.Goo
     
     End Sub
 End Class
 
-Public Interface IFoo3
-    <Deprecated("IFoo3.Foo has been deprecated", DeprecationType.Deprecate, 0, Platform.Windows)>
-    Sub Foo()
+Public Interface IGoo3
+    <Deprecated("IGoo3.Goo has been deprecated", DeprecationType.Deprecate, 0, Platform.Windows)>
+    Sub Goo()
 End Interface
 
-Public NotInheritable Class ConcreteFoo3
-    Implements IFoo3
+Public NotInheritable Class ConcreteGoo3
+    Implements IGoo3
 
-    <Deprecated("ConcreteFoo3.Foo has been deprecated", DeprecationType.Deprecate, 0, Platform.Windows)>
-    Public Sub Foo() Implements IFoo3.Foo
+    <Deprecated("ConcreteGoo3.Goo has been deprecated", DeprecationType.Deprecate, 0, Platform.Windows)>
+    Public Sub Goo() Implements IGoo3.Goo
     
     End Sub
 End Class
@@ -1542,20 +1575,20 @@ End Class
             Dim compilation1 = CreateCompilationWithReferences(source1, WinRtRefs)
 
             Dim expected = <![CDATA[
-BC40000: 'Sub Foo()' is obsolete: 'IFoo1.Foo has been deprecated'.
-        a.Foo() ' IFoo1
+BC40000: 'Sub Goo()' is obsolete: 'IGoo1.Goo has been deprecated'.
+        a.Goo() ' IGoo1
         ~~~~~~~
-BC40000: 'Public Sub Foo()' is obsolete: 'ConcreteFoo2.Foo has been deprecated'.
-        b.Foo() ' ConcreteFoo2
+BC40000: 'Public Sub Goo()' is obsolete: 'ConcreteGoo2.Goo has been deprecated'.
+        b.Goo() ' ConcreteGoo2
         ~~~~~~~
-BC40000: 'Sub Foo()' is obsolete: 'IFoo3.Foo has been deprecated'.
-        a.Foo() ' IFoo3
+BC40000: 'Sub Goo()' is obsolete: 'IGoo3.Goo has been deprecated'.
+        a.Goo() ' IGoo3
         ~~~~~~~
-BC40000: 'Public Sub Foo()' is obsolete: 'ConcreteFoo3.Foo has been deprecated'.
-        b.Foo() ' ConcreteFoo3
+BC40000: 'Public Sub Goo()' is obsolete: 'ConcreteGoo3.Goo has been deprecated'.
+        b.Goo() ' ConcreteGoo3
         ~~~~~~~
-BC40000: 'Sub Foo()' is obsolete: 'IFoo1.Foo has been deprecated'.
-    Public Sub Foo() Implements IFoo1.Foo
+BC40000: 'Sub Goo()' is obsolete: 'IGoo1.Goo has been deprecated'.
+    Public Sub Goo() Implements IGoo1.Goo
                      ~~~~~~~~~~~~~~~~~~~~
 ]]>
             compilation1.AssertTheseDiagnostics(expected)
@@ -1594,7 +1627,7 @@ Imports System
 
 Class Test
     Public Sub F(i As IExceptionalInterface)
-        i.ExceptionalProp = "foo"
+        i.ExceptionalProp = "goo"
         Console.WriteLine(i.ExceptionalProp)
     End Sub
 End Class]]>
@@ -1605,7 +1638,7 @@ End Class]]>
 
             Dim expected = <![CDATA[
 BC30911: 'Set' accessor of 'Public Property ExceptionalProp As String' is obsolete: 'Changed my mind; don't put this prop.'.
-        i.ExceptionalProp = "foo"
+        i.ExceptionalProp = "goo"
         ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30911: 'Get' accessor of 'Public Property ExceptionalProp As String' is obsolete: 'Actually, don't even use the prop at all.'.
         Console.WriteLine(i.ExceptionalProp)

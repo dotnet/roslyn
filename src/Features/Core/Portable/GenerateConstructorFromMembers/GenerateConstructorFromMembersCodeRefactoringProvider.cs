@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -6,11 +6,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PickMembers;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 
@@ -163,6 +165,27 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             return result.ToImmutableAndFree();
+        }
+
+        private static async Task<Document> AddNavigationAnnotationAsync(Document document, CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var nodes = root.GetAnnotatedNodes(CodeGenerator.Annotation);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            foreach (var node in nodes)
+            {
+                var parameterList = syntaxFacts.GetParameterList(node);
+                if (parameterList != null)
+                {
+                    var closeParen = parameterList.GetLastToken();
+                    var newRoot = root.ReplaceToken(closeParen, closeParen.WithAdditionalAnnotations(NavigationAnnotation.Create()));
+                    return document.WithSyntaxRoot(newRoot);
+                }
+            }
+
+            return document;
         }
     }
 }

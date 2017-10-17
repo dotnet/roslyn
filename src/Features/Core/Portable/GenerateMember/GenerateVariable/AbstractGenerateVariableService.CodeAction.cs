@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         : CreateAccessor(DetermineMinimalAccessibility(_state), cancellationToken);
 
                     var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: DetermineMaximalAccessibility(_state),
                         modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                         type: _state.TypeMemberType,
-                        returnsByRef: _returnsByRef,
+                        refKind: _returnsByRef ? RefKind.Ref : RefKind.None,
                         explicitInterfaceImplementations: default,
                         name: _state.IdentifierToken.ValueText,
                         isIndexer: _state.IsIndexer,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 else
                 {
                     var fieldSymbol = CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: DetermineMinimalAccessibility(_state),
                         modifiers: _isConstant
                             ? new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe)
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 Accessibility accessibility, CancellationToken cancellationToken)
             {
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: accessibility,
                     statements: GenerateStatements(cancellationToken));
             }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _returnsByRef
                     ? ImmutableArray.Create(throwStatement)
-                    : default(ImmutableArray<SyntaxNode>);
+                    : default;
             }
 
             private Accessibility DetermineMaximalAccessibility(State state)
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     // NOTE(cyrusn): We only generate protected in the case of statics.  Consider
                     // the case where we're generating into one of our base types.  i.e.:
                     //
-                    // class B : A { void Foo() { A a; a.Foo(); }
+                    // class B : A { void Goo() { A a; a.Goo(); }
                     //
                     // In this case we can *not* mark the method as protected.  'B' can only
                     // access protected members of 'A' through an instance of 'B' (or a subclass
@@ -176,9 +176,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     //
                     // However, this does not apply if the method will be static.  i.e.
                     // 
-                    // class B : A { void Foo() { A.Foo(); }
+                    // class B : A { void Goo() { A.Goo(); }
                     //
-                    // B can access the protected statics of A, and so we generate 'Foo' as
+                    // B can access the protected statics of A, and so we generate 'Goo' as
                     // protected.
                     return Accessibility.Protected;
                 }

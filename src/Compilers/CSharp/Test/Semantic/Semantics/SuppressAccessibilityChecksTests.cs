@@ -79,7 +79,7 @@ class B
 
 
             SemanticModel speculativeSemanticModel;
-            var statement = SyntaxFactory.ParseStatement("var foo = new A().M();");
+            var statement = SyntaxFactory.ParseStatement("var goo = new A().M();");
 
             semanticModel.TryGetSpeculativeSemanticModel(position, statement, out speculativeSemanticModel);
             var creationExpression =

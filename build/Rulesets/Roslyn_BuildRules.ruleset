@@ -36,15 +36,15 @@
     <Rule Id="CA1720" Action="None" />
     <Rule Id="CA1721" Action="None" />
     <Rule Id="CA1724" Action="None" />
-    <Rule Id="CA1801" Action="None" /> <!-- unused parameters: broken due to https://github.com/dotnet/roslyn/issues/8884 -->
-    <Rule Id="CA1802" Action="None" /> <!-- broken due to https://github.com/dotnet/roslyn-analyzers/issues/1175 -->
-    <Rule Id="CA1804" Action="None" /> <!-- broken due to incomplete IOperation support -->
+    <Rule Id="CA1801" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/20405: Enable rule CA1801 (remove unused parameter) in Roslyn.sln once we have a fixer for it -->
+    <Rule Id="CA1802" Action="Warning" />
+    <Rule Id="CA1804" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/20406: Enable rule CA1804 (remove unused local) in Roslyn.sln once we have a fixer for it -->
     <Rule Id="CA1806" Action="None" /> <!-- "do not ignore results": we do this in many places, for example fire-and-forget async or HRESULTs we don't care about -->
     <Rule Id="CA1812" Action="None" /> <!-- disabled as we create many internal types via reflection-based mechanisms -->
     <Rule Id="CA1814" Action="None" /> <!-- prefer jagged arrays to multidimensional: a silly piece of advice -->
     <Rule Id="CA1815" Action="None" />
-    <Rule Id="CA1821" Action="None" /> <!-- broken due to https://github.com/dotnet/roslyn-analyzers/issues/1176 -->
-    <Rule Id="CA1823" Action="None" /> <!-- "avoid unused private fields": many issues including https://github.com/dotnet/roslyn-analyzers/issues/933 -->
+    <Rule Id="CA1821" Action="Warning" />
+    <Rule Id="CA1823" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/20404: Enable rule CA1823 (remove unused field) once we have a fixer for it -->
     <Rule Id="CA1824" Action="None" /> <!-- mark assemblies with NeutralResourcesLanguageAttribute -->
     <Rule Id="CA2007" Action="Warning" />
     <Rule Id="CA2211" Action="None" />
@@ -93,8 +93,8 @@
     <Rule Id="RS0026" Action="Error" />
     <Rule Id="RS0027" Action="Error" />
   </Rules>
-  <Rules AnalyzerId="System.Collections.Immutable.Analyzers" RuleNamespace="System.Collections.Immutable.Analyzers">
-    <Rule Id="RS0012" Action="None" />
+  <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.ImmutableCollections">
+    <Rule Id="RS0012" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
     <Rule Id="CA1305" Action="None" />
@@ -110,17 +110,31 @@
     <Rule Id="CA2219" Action="None" />
     <Rule Id="CA2241" Action="None" />
     <Rule Id="CA2242" Action="None" />
-    <Rule Id="RS0014" Action="None" />
+    <Rule Id="RS0014" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="System.Runtime.InteropServices.Analyzers" RuleNamespace="System.Runtime.InteropServices.Analyzers">
     <Rule Id="CA1401" Action="None" />
     <Rule Id="CA2101" Action="None" />
     <Rule Id="RS0015" Action="Warning" />
   </Rules>
-  <Rules AnalyzerId="System.Threading.Tasks.Analyzers" RuleNamespace="System.Threading.Tasks.Analyzers">
+  <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.Tasks">
     <Rule Id="RS0018" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="XmlDocumentationComments.Analyzers" RuleNamespace="XmlDocumentationComments.Analyzers">
     <Rule Id="RS0010" Action="Warning" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
+    <Rule Id="CA9999" Action="None" /> <!-- We know the analyzers will fail during a bootstrap build -->
+  </Rules>
+  <Rules AnalyzerId="xunit.analyzers" RuleNamespace="Xunit.Analyzers">
+    <Rule Id="xUnit1004" Action="None" /> <!-- allow skipped tests -->
+    <Rule Id="xUnit1024" Action="None" /> <!-- seems broken: https://github.com/xunit/xunit/issues/1361 -->
+    <Rule Id="xUnit2000" Action="None" /> <!-- "literal or constant value should be first in Assert.Equal" is a valid assert, but very noisy. Will do the refactoring later -->
+    <Rule Id="xUnit2002" Action="None" /> <!-- "do not use Assert.NonNull on struct" is a valid assert, but will require a codebase audit to turn on -->
+    <Rule Id="xUnit2003" Action="None" /> <!-- "do not use Assert.Equal for null value" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2004" Action="None" /> <!-- "do not use Assert.Equal for boolean conditions" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2006" Action="None" /> <!-- "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2007" Action="None" /> <!-- "do not use Assert.IsType(typeof...)" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2009" Action="None" /> <!-- "do not use Assert.True to check for substrings" is a valid assert, but very noisy right now -->
   </Rules>
 </RuleSet>

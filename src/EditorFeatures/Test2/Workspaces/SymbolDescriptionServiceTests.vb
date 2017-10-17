@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-            ' using GetTouchingWord instead of FindToken allows us to test scenarios where cursor is at the end of token (E.g: Foo$$)
+            ' using GetTouchingWord instead of FindToken allows us to test scenarios where cursor is at the end of token (E.g: Goo$$)
             Dim tree = Await document.GetSyntaxTreeAsync()
             Dim commonSyntaxToken = Await tree.GetTouchingWordAsync(cursorPosition, languageServiceProvider.GetService(Of ISyntaxFactsService), Nothing)
 
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-            class Foo { void M() { dyn$$amic d; } }
+            class Goo { void M() { dyn$$amic d; } }
         </Document>
     </Project>
 </Workspace>
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-            class Foo
+            class Goo
             {
                 void Method()
                 {
@@ -193,13 +193,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Public Class Foo(Of T)
+            Public Class Goo(Of T)
                 Dim x as T$$
             End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"T {FeaturesResources.in_} Foo(Of T)")
+            Await TestBasicAsync(workspace, $"T {FeaturesResources.in_} Goo(Of T)")
         End Function
 
         <Fact>
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
             Imports System
-            Public Class Foo
+            Public Class Goo
                 Dim x as Nullab$$le(Of Integer)
             End Class
         </Document>
@@ -351,19 +351,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Interface Foo
+            Interface Goo
 
             End Interface
 
             Module M1
                 Sub Main(args As String())
-                    Dim p as Foo$$
+                    Dim p as Goo$$
                 End Sub
             End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, "Interface Foo")
+            Await TestBasicAsync(workspace, "Interface Goo")
         End Function
 
         <Fact>
@@ -372,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 sub Method()
                     $$M1.M()
                 End sub
@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 sub Method()
                     Sys$$tem.Console.Write(5)
                 End sub
@@ -425,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 private field as Integer
                 sub Method()
                     fie$$ld = 5
@@ -434,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"({FeaturesResources.field}) Foo.field As Integer")
+            Await TestBasicAsync(workspace, $"({FeaturesResources.field}) Goo.field As Integer")
         End Function
 
         <Fact>
@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 sub Method()
                     Dim x as String
                     x$$ = "Hello"
@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Sub Method()
                     Dim x As String = "Hel$$lo"
                 End Sub
@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Sub Method()
                     Dim x = 4$$2
                 End Sub
@@ -495,7 +495,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Sub Method()
                        Dim d As Date
                        d = #8/23/1970 $$3:45:39 AM#
@@ -514,7 +514,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Sub Method()
                     Dim x = Nothin$$g
                 End Sub
@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Sub Method()
                     Dim x = Tr$$ue
                 End Sub
@@ -549,7 +549,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Sub Method()
                     Fu$$n()
                 End Sub
@@ -560,7 +560,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, "Function Foo.Fun() As Integer")
+            Await TestBasicAsync(workspace, "Function Goo.Fun() As Integer")
         End Function
 
         ''' <summary>
@@ -575,7 +575,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Sub Method()
                     System.Console.Writ$$e(5)
                 End Sub
@@ -597,7 +597,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Sub Method()
                 End Sub
                 Function Fun(x$$ As String) As Integer
@@ -616,7 +616,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Sub Method(x As Short, Optional y As Integer = 10)
                 End Sub
                 Sub Test
@@ -626,7 +626,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, "Sub Foo.Method(x As Short, [y As Integer = 10])")
+            Await TestBasicAsync(workspace, "Sub Goo.Method(x As Short, [y As Integer = 10])")
         End Function
 
         <Fact>
@@ -635,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Overloads Sub Method(x As Integer)
                 End Sub
 
@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, "Sub Foo.Method(x As String)")
+            Await TestBasicAsync(workspace, "Sub Goo.Method(x As String)")
         End Function
 
         <Fact>
@@ -658,7 +658,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 Overloads Sub Method(x As Integer)
                 End Sub
 
@@ -675,7 +675,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, "Sub Foo.Method(x As String)")
+            Await TestBasicAsync(workspace, "Sub Goo.Method(x As String)")
         End Function
 
         <WorkItem(527639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527639")>
@@ -857,13 +857,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         <Project Language="Visual Basic" CommonReferences="true">
             <Document>
             Imports System.Collections.Generic
-            Class Foo
+            Class Goo
                 Public Property It$$ems As New List(Of String) From {"M", "T", "W"}
             End Class
         </Document>
         </Project>
     </Workspace>
-            Await TestBasicAsync(workspace, "Property Foo.Items As List(Of String)")
+            Await TestBasicAsync(workspace, "Property Goo.Items As List(Of String)")
         End Function
 
         <WorkItem(538806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538806")>
@@ -913,7 +913,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            Class Foo
+            Class Goo
                 sub Method()
                     Const $$b = 2
                 End sub

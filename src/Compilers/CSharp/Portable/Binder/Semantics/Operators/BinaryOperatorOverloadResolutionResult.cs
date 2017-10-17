@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -27,18 +28,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public int GetValidCount()
+        public bool SingleValid()
         {
-            int count = 0;
+            bool oneValid = false;
             foreach (var result in Results)
             {
                 if (result.IsValid)
                 {
-                    count++;
+                    if (oneValid)
+                    {
+                        return false;
+                    }
+
+                    oneValid = true;
                 }
             }
 
-            return count;
+            return oneValid;
         }
 
         public BinaryOperatorAnalysisResult Best

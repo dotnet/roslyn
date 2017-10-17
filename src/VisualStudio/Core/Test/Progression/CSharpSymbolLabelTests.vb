@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.VisualStudio.GraphModel
@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
-                                class C { void $$M(params string[] foo) { } }
+                                class C { void $$M(params string[] goo) { } }
                             </Document>
                         </Project>
                     </Workspace>)
@@ -87,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
-                                class C { void $$M(out string foo, ref string bar) { } }
+                                class C { void $$M(out string goo, ref string bar) { } }
                             </Document>
                         </Project>
                     </Workspace>)
@@ -179,12 +179,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
-                                delegate void $$Foo();
+                                delegate void $$Goo();
                             </Document>
                         </Project>
                     </Workspace>)
 
-                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "Foo() : void", "Foo : void")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "Goo() : void", "Goo : void")
             End Using
         End Function
     End Class

@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -13,12 +14,14 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -141,15 +144,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            var exceptions = ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions();
+            var exceptions = Flatten(ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions());
 
-            if (exceptions.Count == 1)
+            if (exceptions.Count > 0)
             {
-                throw exceptions.Single();
-            }
-            else if (exceptions.Count > 1)
-            {
-                throw new AggregateException(exceptions);
+                var messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine(
+$@"{exceptions.Count} exception(s) were thrown during test.
+Note: exceptions may have been thrown by another test running concurrently with
+this test.  This can happen with any tests that share the same ExportProvider.
+Examining individual exception stacks may help reveal the original test and source 
+of the problem.");
+
+                messageBuilder.AppendLine();
+                for (int i = 0; i < exceptions.Count; i++)
+                {
+                    var exception = exceptions[i];
+                    messageBuilder.AppendLine($"Exception {i}:");
+                    messageBuilder.AppendLine(exception.ToString());
+                    messageBuilder.AppendLine();
+                }
+
+                var message = messageBuilder.ToString();
+                if (exceptions.Count == 1)
+                {
+                    throw new Exception(message, exceptions[0]);
+                }
+                else
+                {
+                    throw new AggregateException(message, exceptions);
+                }
             }
 
             if (SynchronizationContext.Current != null)
@@ -164,6 +188,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             base.Dispose(finalize);
         }
+
+        private static IList<Exception> Flatten(ICollection<Exception> exceptions)
+        {
+            var aggregate = new AggregateException(exceptions);
+            return aggregate.Flatten().InnerExceptions
+                .Select(UnwrapException)
+                .ToList();
+        }
+
+        private static Exception UnwrapException(Exception ex)
+            => ex is TargetInvocationException targetEx ? (targetEx.InnerException ?? targetEx) : ex;
 
         internal void AddTestSolution(TestHostSolution solution)
         {
@@ -363,22 +398,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         ///  {
         ///      public void M1()
         ///      {
-        ///          {|S1:int [|abc[|d$$ef|]|] = foo;|}
-        ///          int y = foo;
-        ///          {|S2:int [|def|] = foo;|}
+        ///          {|S1:int [|abc[|d$$ef|]|] = goo;|}
+        ///          int y = goo;
+        ///          {|S2:int [|def|] = goo;|}
         ///          int z = {|S3:123|} + {|S4:456|} + {|S5:789|};
         ///      }
         ///  }
         /// 
         /// The resulting projection buffer (with unnamed span markup preserved) would look like:
-        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = foo; [|MNOint [|def|] = foo;PQR S$$TU|] 456789123
+        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = goo; [|MNOint [|def|] = goo;PQR S$$TU|] 456789123
         /// 
         /// The union of unnamed spans from the surface buffer markup and each of the projected 
         /// spans is sorted as it would have been sorted by MarkupTestFile had it parsed the entire
         /// projection buffer as one file, which it would do in a stack-based manner. In our example,
         /// the order of the unnamed spans would be as follows:
         /// 
-        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = foo; [|MNOint [|def|] = foo;PQR S$$TU|] 456789123
+        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = goo; [|MNOint [|def|] = goo;PQR S$$TU|] 456789123
         ///       -----1       -----2            -------4                    -----6
         ///               ------------3     --------------5         --------------------------------7
         /// </summary>
@@ -452,11 +487,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             projectionBufferSpans = new List<object>();
             var projectionBufferSpanStartingPositions = new List<int>();
             mappedCaretLocation = null;
-            string inertText;
-            int? markupCaretLocation;
 
-            MarkupTestFile.GetPositionAndSpans(markup, 
-                out inertText, out markupCaretLocation, out var markupSpans);
+            MarkupTestFile.GetPositionAndSpans(markup,
+                out var inertText, out int? markupCaretLocation, out var markupSpans);
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
@@ -564,9 +597,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     foreach (var projectionSpan in projectionBufferSpans)
                     {
-                        var text = projectionSpan as string;
 
-                        if (text != null)
+                        if (projectionSpan is string text)
                         {
                             if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
                             {

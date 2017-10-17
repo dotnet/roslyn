@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
 
@@ -179,15 +180,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             // like compound assignment does (extra flag only passed when it is an expression
             // statement means that this constraint is not violated).
             // Dynamic type will be erased in emit phase. It is considered equivalent to Object in lowered bound trees.
+            // Unused deconstructions are lowered to produce a return value that isn't a tuple type.
             Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) ||
-                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
+                    IsUnusedDeconstruction(node));
 
             return visited;
+        }
+
+        private static bool IsUnusedDeconstruction(BoundExpression node)
+        {
+            return node.Kind == BoundKind.DeconstructionAssignmentOperator && !((BoundDeconstructionAssignmentOperator)node).IsUsed;
         }
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
             _sawLambdas = true;
+            CheckRefReadOnlySymbols(node.Symbol);
+
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
@@ -203,6 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             _sawLocalFunctions = true;
+            CheckRefReadOnlySymbols(node.Symbol);
+
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
@@ -563,11 +575,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     return true;
 
+                case BoundKind.ConditionalOperator:
+                    return ((BoundConditionalOperator)receiver).IsByRef;
+
                 case BoundKind.Call:
-                    return ((BoundCall)receiver).Method.RefKind != RefKind.None;
+                    return ((BoundCall)receiver).Method.RefKind == RefKind.Ref;
             }
 
             return false;
+        }
+
+        private void CheckRefReadOnlySymbols(MethodSymbol symbol)
+        {
+            var foundRefReadOnly = false;
+
+            if (symbol.ReturnsByRefReadonly)
+            {
+                foundRefReadOnly = true;
+            }
+            else
+            {
+                foreach (var parameter in symbol.Parameters)
+                {
+                    if (parameter.RefKind == RefKind.In)
+                    {
+                        foundRefReadOnly = true;
+                        break;
+                    }
+                }
+            }
+
+            if (foundRefReadOnly)
+            {
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
+            }
         }
     }
 }

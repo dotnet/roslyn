@@ -2,8 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -14,6 +12,16 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private static int s_count = 0;
         private static readonly object s_gate = new object();
+
+        /// <summary>
+        /// Used to distinguish the default instance from one created by <see cref="Boost()"/>.
+        /// </summary>
+        private bool _isBoosted;
+
+        private UserOperationBooster(bool isBoosted)
+        {
+            _isBoosted = isBoosted;
+        }
 
         public static UserOperationBooster Boost()
         {
@@ -27,12 +35,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
                 }
 
-                return new UserOperationBooster();
+                return new UserOperationBooster(isBoosted: true);
             }
         }
 
         public void Dispose()
         {
+            if (!_isBoosted)
+            {
+                // Avoid decrementing if default(UserOperationBooster).Dispose() is called.
+                return;
+            }
+
             lock (s_gate)
             {
                 s_count--;

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(
-                HandleVariableDeclaration, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement);
+                HandleVariableDeclaration, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression);
 
         protected abstract bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
         protected abstract bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan);
@@ -91,6 +92,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                     shouldAnalyze = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
                 }
             }
+            else if (declarationStatement.IsKind(SyntaxKind.DeclarationExpression))
+            {
+                var declaration = (DeclarationExpressionSyntax) declarationStatement;
+                declaredType = declaration.Type;
+
+                shouldAnalyze = ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
+
+                if (shouldAnalyze)
+                {
+                    state = State.Generate(declarationStatement, semanticModel, optionSet, isVariableDeclarationContext: false, cancellationToken: cancellationToken);
+                    shouldAnalyze = IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
+                }
+            }
             else
             {
                 Debug.Assert(false, $"called in for unregistered node kind {declarationStatement.Kind().ToString()}");
@@ -128,6 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         }
 
         protected virtual bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => true;
+
+        protected virtual bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
             => true;
     }
 }

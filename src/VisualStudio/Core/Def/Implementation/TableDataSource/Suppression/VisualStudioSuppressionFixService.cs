@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -188,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private IEnumerable<DiagnosticData> GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
         {
             var diagnosticsToFix = ImmutableHashSet<DiagnosticData>.Empty;
-            Action<IWaitContext> computeDiagnosticsToFix = context =>
+            void computeDiagnosticsToFix(IWaitContext context)
             {
                 var cancellationToken = context.CancellationToken;
 
@@ -199,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     GetAllBuildDiagnosticsAsync(shouldFixInProject, cancellationToken);
 
                 diagnosticsToFix = diagnosticsToFixTask.WaitAndGetResult(cancellationToken).ToImmutableHashSet();
-            };
+            }
 
             var title = GetFixTitle(isAddSuppression);
             var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
@@ -244,7 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var newSolution = _workspace.CurrentSolution;
             HashSet<string> languages = null;
 
-            Action<IWaitContext> computeDiagnosticsAndFix = context =>
+            void computeDiagnosticsAndFix(IWaitContext context)
             {
                 var cancellationToken = context.CancellationToken;
                 cancellationToken.ThrowIfCancellationRequested();
@@ -335,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         }
                     }
                 }
-            };
+            }
 
             var result = InvokeWithWaitDialog(computeDiagnosticsAndFix, title, waitDialogMessage);
 
@@ -366,7 +367,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             waitDialogMessage = isAddSuppression ? ServicesVSResources.Applying_suppressions_fix : ServicesVSResources.Applying_remove_suppressions_fix;
-            Action<IWaitContext> applyFix = context =>
+            void applyFix(IWaitContext context)
             {
                 var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                 var cancellationToken = context.CancellationToken;
@@ -377,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     title: title,
                     progressTracker: context.ProgressTracker,
                     cancellationToken: cancellationToken).Wait(cancellationToken);
-            };
+            }
 
             result = InvokeWithWaitDialog(applyFix, title, waitDialogMessage);
             if (result == WaitIndicatorResult.Canceled)
@@ -495,7 +496,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
         {
-            Func<DiagnosticData, bool> isDocumentDiagnostic = d => d.DataLocation != null && d.HasTextSpan;
+            bool isDocumentDiagnostic(DiagnosticData d) => d.DataLocation != null && d.HasTextSpan;
 
             var builder = ImmutableDictionary.CreateBuilder<DocumentId, List<DiagnosticData>>();
             foreach (var diagnosticData in diagnosticsToFix.Where(isDocumentDiagnostic))
@@ -576,7 +577,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
         {
-            Func<DiagnosticData, bool> isProjectDiagnostic = d => d.DataLocation == null && d.ProjectId != null;
+            bool isProjectDiagnostic(DiagnosticData d) => d.DataLocation == null && d.ProjectId != null;
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, List<DiagnosticData>>();
             foreach (var diagnosticData in diagnosticsToFix.Where(isProjectDiagnostic))
             {

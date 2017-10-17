@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Roslyn.Test.Utilities
 Imports System.Xml.Linq
@@ -32,12 +32,15 @@ end class
 
             compilation.VerifyPdb("C.M",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C" name="M">
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="19"/>
-                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="33"/>
-                <entry offset="0x8" startLine="7" startColumn="5" endLine="7" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="19" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="33" document="1"/>
+                <entry offset="0x8" startLine="7" startColumn="5" endLine="7" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <namespace name="System" importlevel="file"/>
@@ -76,6 +79,9 @@ end class
 
             c.VerifyPdb(
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C" name="M" parameterNames="a">
             <customDebugInfo>
@@ -85,9 +91,9 @@ end class
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="30"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="11" endColumn="11"/>
-                <entry offset="0x2c" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="30" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="11" endColumn="11" document="1"/>
+                <entry offset="0x2c" startLine="12" startColumn="5" endLine="12" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2d">
                 <namespace name="System" importlevel="file"/>
@@ -97,9 +103,9 @@ end class
         </method>
         <method containingType="C+_Closure$__" name="_Lambda$__1-0">
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="13" endLine="6" endColumn="18"/>
-                <entry offset="0x1" startLine="9" startColumn="17" endLine="9" endColumn="45"/>
-                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="20"/>
+                <entry offset="0x0" startLine="6" startColumn="13" endLine="6" endColumn="18" document="1"/>
+                <entry offset="0x1" startLine="9" startColumn="17" endLine="9" endColumn="45" document="1"/>
+                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="C" methodName="M" parameterNames="a"/>
@@ -160,11 +166,14 @@ End Class
 
             compilation.VerifyPdb("C.M",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C" name="M">
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="12"/>
-                <entry offset="0x1" startLine="10" startColumn="5" endLine="10" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="12" document="1"/>
+                <entry offset="0x1" startLine="10" startColumn="5" endLine="10" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <namespace name="System" importlevel="file"/>

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
@@ -202,7 +203,7 @@ using System.Collections.Generic;
 
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         List<int> list = new$$
     }
@@ -234,7 +235,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
        var ($$
     }
@@ -251,7 +252,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
        var (a, $$
     }
@@ -268,7 +269,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
        var ($$) = (1, 2);
     }
@@ -285,7 +286,7 @@ class C
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        (var a$$) = (1, 2);
     }
@@ -302,7 +303,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        (var a, var a$$) = (1, 2);
     }
@@ -319,7 +320,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        (var a, var ($$)) = (1, 2);
     }
@@ -341,7 +342,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
         $$
     }
@@ -365,7 +366,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        ($$) = (1, 2);
     }
@@ -391,7 +392,7 @@ class Variable
                   <Document><![CDATA[
 class Integer
 {
-    public void Foo()
+    public void Goo()
     {
        ($$) = (1, 2);
     }
@@ -417,7 +418,7 @@ class Integer
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        ($$
     }
@@ -450,7 +451,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        ($$)
     }
@@ -482,7 +483,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        (var as$$
     }
@@ -512,7 +513,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        (var as$$)
     }
@@ -544,7 +545,7 @@ class Variable
 using System;
 class C
 {
-    public object Foo()
+    public object Goo()
     {
         return null ?? throw new$$
     }
@@ -563,7 +564,7 @@ class C
 using System;
 class C
 {
-    public object Foo()
+    public object Goo()
     {
         throw new$$
     }
@@ -574,6 +575,174 @@ class C
             End Using
         End Function
 
+        <WpfFact>
+        Public Async Function TestNonTrailingNamedArgumentInCSharp7_1() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                 <Workspace>
+                     <Project Language="C#" LanguageVersion="CSharp7_1" CommonReferences="true" AssemblyName="CSProj">
+                         <Document FilePath="C.cs">
+class C
+{
+    public void M()
+    {
+        int better = 2;
+        M(a: 1, $$)
+    }
+    public void M(int a, int bar, int c) { }
+}
+                         </Document>
+                     </Project>
+                 </Workspace>)
+
+                state.SendTypeChars("b")
+                Await state.AssertSelectedCompletionItem(displayText:="bar:", isHardSelected:=True)
+                state.SendTypeChars("e")
+                Await state.AssertSelectedCompletionItem(displayText:="bar:", isSoftSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function TestNonTrailingNamedArgumentInCSharp7_2() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                 <Workspace>
+                     <Project Language="C#" LanguageVersion="CSharp7_2" CommonReferences="true" AssemblyName="CSProj">
+                         <Document FilePath="C.cs">
+class C
+{
+    public void M()
+    {
+        int better = 2;
+        M(a: 1, $$)
+    }
+    public void M(int a, int bar, int c) { }
+}
+                         </Document>
+                     </Project>
+                 </Workspace>)
+
+                state.SendTypeChars("b")
+                Await state.AssertSelectedCompletionItem(displayText:="better", isHardSelected:=True)
+                state.SendTypeChars("a")
+                Await state.AssertSelectedCompletionItem(displayText:="bar:", isHardSelected:=True)
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="better", isHardSelected:=True)
+                state.SendTypeChars(", ")
+                Assert.Contains("M(a: 1, better,", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestDefaultSwitchLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+        switch (o)
+        {
+            default:
+                goto $$
+        }
+    }
+}]]></Document>)
+
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="default", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto default;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestGotoOrdinaryLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+label1:
+        goto $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("l")
+                Await state.AssertSelectedCompletionItem(displayText:="label1", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto label1;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestEscapedDefaultLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+@default:
+        goto $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="@default", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto @default;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestEscapedDefaultLabel2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+        switch (o)
+        {
+            default:
+@default:
+                goto $$
+        }
+    }
+}]]></Document>)
+
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="default", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto default;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestEscapedDefaultLabelWithoutSwitch() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+@default:
+        goto $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="@default", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto @default;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral() As Task
@@ -581,14 +750,14 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Fo()
     {
         ($$)
     }
 }]]></Document>)
 
                 state.SendTypeChars("F")
-                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Fo", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("(F:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -601,14 +770,14 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Fo()
     {
         (x, $$)
     }
 }]]></Document>)
 
                 state.SendTypeChars("F")
-                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Fo", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("(x, F:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -753,16 +922,16 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         ($$)
     }
 }]]></Document>)
 
-                state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="decimal", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("(i:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(d:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -773,16 +942,16 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         ($$)
     }
 }]]></Document>)
 
-                state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="decimal", isHardSelected:=True)
                 state.SendTypeChars(" ")
-                Assert.Contains("(int ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(decimal ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -793,7 +962,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         switch(true)
         {
@@ -816,16 +985,16 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Fo()
     {
         ($$)
     }
 }]]></Document>)
 
                 state.SendTypeChars("F")
-                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Fo", isHardSelected:=True)
                 state.SendTypeChars(".")
-                Assert.Contains("(Foo.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(Fo.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -836,16 +1005,16 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo(int Alice)
+    public void Goo(int Alice)
     {
-        Foo($$)
+        Goo($$)
     }
 }]]></Document>)
 
                 state.SendTypeChars("A")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("Foo(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("Goo(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -856,16 +1025,16 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo(int Alice, int Bob)
+    public void Goo(int Alice, int Bob)
     {
-        Foo(1, $$)
+        Goo(1, $$)
     }
 }]]></Document>)
 
                 state.SendTypeChars("B")
                 Await state.AssertSelectedCompletionItem(displayText:="Bob", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("Foo(1, Bob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("Goo(1, Bob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -876,7 +1045,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Fo()
     {
         switch (1)
         {
@@ -887,9 +1056,9 @@ class C
 
                 state.SendTypeChars("F")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Fo", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("case Foo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("case Fo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -940,7 +1109,7 @@ class C
                   <Document><![CDATA[
 class @return
 {
-    void foo()
+    void goo()
     {
         $$
     }
@@ -1068,7 +1237,7 @@ class Program
                               <Document>
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = new$$
     }
@@ -1087,7 +1256,7 @@ class C
         Public Async Function NoKeywordsOrSymbolsAfterNamedParameter() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
-class Foo
+class Goo
 {
     void Test()
     {
@@ -1115,7 +1284,7 @@ class Foo
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 enum Numeros { Uno, Dos }
-class Foo
+class Goo
 {
     void Bar(int a, Numeros n) { }
     void Baz()
@@ -1138,7 +1307,7 @@ class Foo
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 enum Numeros { Uno, Dos }
-class Foo
+class Goo
 {
     void Bar(int a, Numeros? n) { }
     void Baz()
@@ -1160,7 +1329,7 @@ class Foo
             Using state = TestState.CreateCSharpTestState(
                 <Document>
 enum Numeros { Uno, Dos }
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -1187,7 +1356,7 @@ class Foo
             Using state = TestState.CreateCSharpTestState(
                 <Document>
 enum Numeros { Uno, Dos }
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -1213,9 +1382,9 @@ class Foo
                               <Document>
 class Program
 {
-    void Foo(int @int)
+    void Goo(int @int)
     {
-        Foo($$
+        Goo($$
     }
 }
                               </Document>)
@@ -1249,16 +1418,16 @@ class Program
 
 class Bar { }
 
-class Foo<T> : IFoo<T>
+class Goo<T> : IGoo<T>
 {
 }
 
-interface IFoo<T>
+interface IGoo<T>
 {
 }]]>
                               </Document>)
 
-                state.SendTypeChars("IFoo<Bar> a = new ")
+                state.SendTypeChars("IGoo<Bar> a = new ")
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
@@ -1315,10 +1484,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Foo($$)
+        Goo($$)
     }
 
-    void Foo(CancellationToken cancellationToken)
+    void Goo(CancellationToken cancellationToken)
     {
     }
 }
@@ -1327,7 +1496,7 @@ class Program
                 state.SendTypeChars("can")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("Foo(cancellationToken)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("Goo(cancellationToken)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -1367,7 +1536,7 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute($$
-public class Foo
+public class Goo
 {
 }
                             </Document>)
@@ -1389,7 +1558,7 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute($$
-public class Foo
+public class Goo
 {
 }
                             </Document>)
@@ -1410,7 +1579,7 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute($$
-public class Foo
+public class Goo
 {
 }
                             </Document>)
@@ -1427,7 +1596,7 @@ public class Foo
                 <Document><![CDATA[
 class C
 {
-    public virtual void Foo<S>(S x = default(S))
+    public virtual void Goo<S>(S x = default(S))
     {
     }
 }
@@ -1437,10 +1606,10 @@ class D : C
     override $$
 }
             ]]></Document>)
-                state.SendTypeChars(" Foo")
+                state.SendTypeChars(" Goo")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("public override void Foo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+                Assert.Contains("public override void Goo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -1451,12 +1620,12 @@ class D : C
                 <Document><![CDATA[
 class A
 {
-    public virtual void Foo(int x = 0, int[] y = null) { }
+    public virtual void Goo(int x = 0, int[] y = null) { }
 }
 
 class B : A
 {
-public override void Foo(int x = 0, params int[] y) { }
+public override void Goo(int x = 0, params int[] y) { }
 }
 
 class C : B
@@ -1464,10 +1633,10 @@ class C : B
     override$$
 }
             ]]></Document>)
-                state.SendTypeChars(" Foo")
+                state.SendTypeChars(" Goo")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("    public override void Foo(int x = 0, int[] y = null)", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+                Assert.Contains("    public override void Goo(int x = 0, int[] y = null)", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -1513,7 +1682,7 @@ class C
                 <Document><![CDATA[
 class Program
 {
-    void Foo(string s) { }
+    void Goo(string s) { }
 
     static void Main()
     {
@@ -1537,7 +1706,7 @@ class Program
                 Await state.AssertNoCompletionSession()
 
                 ' ensure we still select the named param even though 'string' is in the MRU.
-                state.SendTypeChars("Foo(s")
+                state.SendTypeChars("Goo(s")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("s:")
             End Using
@@ -1550,7 +1719,7 @@ class Program
                 <Document><![CDATA[
 class A
 {
-    void Foo()
+    void Goo()
     {
         var v = new$$
     }
@@ -1568,7 +1737,7 @@ class A
                 <Document><![CDATA[
 class A
 {
-    void Foo()
+    void Goo()
     {
         var v = new $$
     }
@@ -1913,7 +2082,7 @@ class C
     }
 }
             ]]></Document>)
-                state.SendTypeChars("var @this = ""foo""")
+                state.SendTypeChars("var @this = ""goo""")
                 state.SendReturn()
                 state.SendTypeChars("string str = this.ToString();")
                 state.SendReturn()
@@ -1946,7 +2115,7 @@ class AtAttribute : System.Attribute { }]]></Document>)
 using System;
 class C
 {
-    Exception foo() {
+    Exception goo() {
         return new $$
     }
 }]]></Document>)
@@ -1961,10 +2130,10 @@ class C
         Public Async Function CommitNameAfterAlias() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-using foo = System$$]]></Document>)
+using goo = System$$]]></Document>)
                 state.SendTypeChars(".act<")
                 Await state.WaitForAsynchronousOperationsAsync()
-                state.AssertMatchesTextStartingAtLine(1, "using foo = System.Action<")
+                state.AssertMatchesTextStartingAtLine(1, "using goo = System.Action<")
             End Using
         End Function
 
@@ -2054,7 +2223,7 @@ class C
 }]]></Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertNoCompletionSession()
-                state.SendTypeChars("foo")
+                state.SendTypeChars("goo")
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
@@ -2147,9 +2316,9 @@ class C
                 <Document><![CDATA[
 class C
 {
-    void foo()
+    void goo()
     {
-        foo($$
+        goo($$
     }
 }]]></Document>, {slowProvider})
 
@@ -2172,7 +2341,7 @@ class C
                 <Document><![CDATA[
 class C
 {
-    void foo(int x)
+    void goo(int x)
     {
        [|$$ |]
     }
@@ -2223,7 +2392,7 @@ class Program
                 <Document><![CDATA[
 class C
 {
-    void foo(int x)
+    void goo(int x)
     {
         $$]]></Document>)
                 ' Note: the caret is at the file, so the Select All command's movement
@@ -2243,7 +2412,7 @@ class C
                 <Document><![CDATA[
 class C
 {
-    void foo(int x)
+    void goo(int x)
     {
         int doodle;
 $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
@@ -2276,7 +2445,7 @@ $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.T
                 <Document><![CDATA[
 class C
 {
-    void foo(int x)
+    void goo(int x)
     {$$
         /********/
         int doodle;
@@ -2311,12 +2480,12 @@ class C
         <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMatchWithTurkishIWorkaround1() As Task
-            Using New CultureContext("tr-TR")
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestState.CreateCSharpTestState(
                                <Document><![CDATA[
         class C
         {
-            void foo(int x)
+            void goo(int x)
             {
                 string.$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                     state.SendTypeChars("is")
@@ -2330,12 +2499,12 @@ class C
         <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMatchWithTurkishIWorkaround2() As Task
-            Using New CultureContext("tr-TR")
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestState.CreateCSharpTestState(
                                <Document><![CDATA[
         class C
         {
-            void foo(int x)
+            void goo(int x)
             {
                 string.$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                     state.SendTypeChars("ı")
@@ -2477,11 +2646,11 @@ class Program
 {
     bool f;
 
-    void foo(bool x) { }
+    void goo(bool x) { }
 
     void Main(string[] args) 
     {
-        foo($$) // Not "Equals"
+        goo($$) // Not "Equals"
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
@@ -3193,7 +3362,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return $$
     }
 }]]></Document>, {provider})
@@ -3215,7 +3384,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return InsertedItem
     }
 }", finalText)
@@ -3242,7 +3411,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return InsertedItem1
     }
 }", finalText)
@@ -3258,7 +3427,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return Custom$$
     }
 }]]></Document>, {provider})
@@ -3280,7 +3449,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return InsertedItem
     }
 }", finalText)
@@ -3307,12 +3476,52 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return InsertedItem1
     }
 }", finalText)
             End Using
         End Sub
+
+        <WorkItem(296512, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=296512")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRegionDirectiveIndentation() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    $$
+}
+                              </Document>, includeFormatCommandHandler:=True)
+
+                state.SendTypeChars("#")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Assert.Equal("#", state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("reg")
+                Await state.AssertSelectedCompletionItem(displayText:="region")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("    #region", state.GetLineFromCurrentCaretPosition().GetText())
+                Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
+
+                state.SendReturn()
+                Assert.Equal("", state.GetLineFromCurrentCaretPosition().GetText())
+                state.SendTypeChars("#")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Assert.Equal("#", state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("endr")
+                Await state.AssertSelectedCompletionItem(displayText:="endregion")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("    #endregion", state.GetLineFromCurrentCaretPosition().GetText())
+                Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
+
+            End Using
+        End Function
 
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
@@ -3342,7 +3551,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return InsertedItem"
 
                 Dim change = CompletionChange.Create(

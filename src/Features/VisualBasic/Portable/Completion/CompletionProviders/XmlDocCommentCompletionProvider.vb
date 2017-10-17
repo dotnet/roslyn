@@ -1,19 +1,28 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Utilities.DocumentationCommentXmlNames
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class XmlDocCommentCompletionProvider
-        Inherits AbstractDocCommentCompletionProvider
+        Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
+
+        Public Sub New()
+            MyBase.New(s_defaultRules)
+        End Sub
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
-            Return text(characterPosition) = "<"c OrElse (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
+            Dim isStartOfTag = text(characterPosition) = "<"c
+            Dim isClosingTag = (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
+            Dim isDoubleQuote = text(characterPosition) = """"c
+
+            Return isStartOfTag OrElse isClosingTag OrElse isDoubleQuote OrElse
+                   IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
         Public Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
@@ -46,7 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlAttribute) Then
                 Dim attribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
                 Dim name = TryCast(attribute.Name, XmlNameSyntax)
-                If name IsNot Nothing AndAlso name.LocalName.ValueText = CrefAttributeName Then
+                Dim value = TryCast(attribute.Value, XmlStringSyntax)
+                If name?.LocalName.ValueText = CrefAttributeName AndAlso Not token = value?.EndQuoteToken Then
                     Return Nothing
                 End If
             End If
@@ -54,8 +64,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If token.Parent.GetAncestor(Of XmlCrefAttributeSyntax)() IsNot Nothing Then
                 Return Nothing
             End If
-
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
             Dim items = New List(Of CompletionItem)()
 
@@ -88,48 +96,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
             End If
 
-            items.AddRange(GetAlwaysVisibleItems())
-
-            Dim parentElement = token.GetAncestor(Of XmlElementSyntax)()
-            If parentElement Is Nothing Then
+            If trigger.Kind = CompletionTriggerKind.Insertion AndAlso
+                Not trigger.Character = """"c AndAlso
+                Not trigger.Character = "<"c Then
+                ' With the use of IsTriggerAfterSpaceOrStartOfWordCharacter, the code below is much
+                ' too aggressive at suggesting tags, so exit early before degrading the experience
                 Return items
             End If
 
-            Dim grandParent = parentElement.Parent
+            items.AddRange(GetAlwaysVisibleItems())
+
+            Dim parentElement = token.GetAncestor(Of XmlElementSyntax)()
+            Dim grandParent = parentElement?.Parent
 
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedTags(symbol))
+                items.AddRange(GetNestedItems(symbol))
 
-                If GetStartTagName(grandParent) = ListTagName Then
+                If GetStartTagName(grandParent) = ListElementName Then
                     items.AddRange(GetListItems())
                 End If
 
-                If GetStartTagName(grandParent) = ListHeaderTagName Then
+                If GetStartTagName(grandParent) = ListHeaderElementName Then
                     items.AddRange(GetListHeaderItems())
                 End If
-            ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedTags(symbol))
+            ElseIf token.Parent.IsKind(SyntaxKind.XmlText) Then
+                If token.Parent.IsParentKind(SyntaxKind.DocumentationCommentTrivia) Then
+                    ' Top level, without tag:
+                    '     ''' $$
+                    items.AddRange(GetTopLevelItems(symbol, parent))
+                ElseIf token.Parent.IsParentKind(SyntaxKind.XmlElement) Then
+                    items.AddRange(GetNestedItems(symbol))
 
-                If GetStartTagName(token.Parent.Parent) = ListTagName Then
-                    items.AddRange(GetListItems())
-                End If
+                    If GetStartTagName(token.Parent.Parent) = ListElementName Then
+                        items.AddRange(GetListItems())
+                    End If
 
-                If GetStartTagName(token.Parent.Parent) = ListHeaderTagName Then
-                    items.AddRange(GetListHeaderItems())
+                    If GetStartTagName(token.Parent.Parent) = ListHeaderElementName Then
+                        items.AddRange(GetListHeaderItems())
+                    End If
                 End If
             ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
-                items.AddRange(GetTagsForSymbol(symbol, parent))
-                items.AddRange(GetSingleUseTopLevelItems(parent))
-                items.AddRange(GetTopLevelRepeatableItems())
+                ' Top level, with tag:
+                '     ''' <$$
+                '     ''' <tag$$
+                items.AddRange(GetTopLevelItems(symbol, parent))
             End If
 
             If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) Then
                 If parentElement.IsParentKind(SyntaxKind.XmlElement) Then
-                    If GetStartTagName(parentElement.Parent) = ListTagName Then
+                    If GetStartTagName(parentElement.Parent) = ListElementName Then
                         items.AddRange(GetListItems())
                     End If
 
-                    If GetStartTagName(parentElement.Parent) = ListHeaderTagName Then
+                    If GetStartTagName(parentElement.Parent) = ListHeaderElementName Then
                         items.AddRange(GetListHeaderItems())
                     End If
                 End If
@@ -171,32 +190,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                      position As Integer,
                                      items As List(Of CompletionItem),
                                      symbol As ISymbol)
+            Dim tagNameSyntax As XmlNameSyntax = Nothing
+            Dim tagAttributes As SyntaxList(Of XmlNodeSyntax) = Nothing
+
             Dim startTagSyntax = token.GetAncestor(Of XmlElementStartTagSyntax)()
             If startTagSyntax IsNot Nothing Then
-                Dim targetToken = GetPreviousTokenIfTouchingText(token, position)
+                tagNameSyntax = TryCast(startTagSyntax.Name, XmlNameSyntax)
+                tagAttributes = startTagSyntax.Attributes
+            Else
 
-                If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent Is startTagSyntax.Name Then
+                Dim emptyElementSyntax = token.GetAncestor(Of XmlEmptyElementSyntax)()
+                If emptyElementSyntax IsNot Nothing Then
+                    tagNameSyntax = TryCast(emptyElementSyntax.Name, XmlNameSyntax)
+                    tagAttributes = emptyElementSyntax.Attributes
+                End If
+
+            End If
+
+            If tagNameSyntax IsNot Nothing Then
+                Dim targetToken = GetPreviousTokenIfTouchingText(token, position)
+                Dim tagName = tagNameSyntax.LocalName.ValueText
+
+                If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent Is tagNameSyntax Then
                     ' <exception |
-                    items.AddRange(GetAttributes(startTagSyntax))
+                    items.AddRange(GetAttributes(tagName, tagAttributes))
                 End If
 
                 '<exception a|
                 If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
                     ' <exception |
-                    items.AddRange(GetAttributes(startTagSyntax))
+                    items.AddRange(GetAttributes(tagName, tagAttributes))
                 End If
 
                 '<exception a=""|
-                If targetToken.IsChildToken(Function(s As XmlStringSyntax) s.EndQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
-                    items.AddRange(GetAttributes(startTagSyntax))
+                If (targetToken.IsChildToken(Function(s As XmlStringSyntax) s.EndQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute)) OrElse
+                    targetToken.IsChildToken(Function(a As XmlNameAttributeSyntax) a.EndQuoteToken) OrElse
+                    targetToken.IsChildToken(Function(a As XmlCrefAttributeSyntax) a.EndQuoteToken) Then
+                    items.AddRange(GetAttributes(tagName, tagAttributes))
                 End If
 
                 ' <param name="|"
                 If (targetToken.IsChildToken(Function(s As XmlStringSyntax) s.StartQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute)) OrElse
                     targetToken.IsChildToken(Function(a As XmlNameAttributeSyntax) a.StartQuoteToken) Then
-                    Dim name = TryCast(startTagSyntax.Name, XmlNameSyntax)
-                    Dim tagName = name.LocalName.ValueText
-
                     Dim attributeName As String
 
                     Dim xmlAttributeName = targetToken.GetAncestor(Of XmlNameAttributeSyntax)()
@@ -206,180 +241,89 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         attributeName = DirectCast(targetToken.GetAncestor(Of XmlAttributeSyntax)().Name, XmlNameSyntax).LocalName.ValueText
                     End If
 
-                    If attributeName = NameAttributeName Then
-                        If tagName = ParamTagName Then
-                            items.AddRange(symbol.GetParameters().Select(Function(s) CreateCompletionItem(s.Name)))
-                        End If
-
-                        If tagName = TypeParamTagName Then
-                            items.AddRange(symbol.GetTypeArguments().Select(Function(s) CreateCompletionItem(s.Name)))
-                        End If
-                    End If
+                    items.AddRange(GetAttributeValueItems(symbol, tagName, attributeName))
                 End If
             End If
         End Sub
 
-        Private Function GetTagsForSymbol(symbol As ISymbol,
-                                          parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
-            Dim items = New List(Of CompletionItem)()
-
-            If symbol Is Nothing Then
-                Return items
-            End If
-
-            Dim method = TryCast(symbol, IMethodSymbol)
-            If method IsNot Nothing Then
-                items.AddRange(GetTagsForMethod(method, parent))
-            End If
-
-            Dim [property] = TryCast(symbol, IPropertySymbol)
-            If [property] IsNot Nothing Then
-                items.AddRange(GetTagsForProperty([property], parent))
-            End If
-
-            Dim type = TryCast(symbol, INamedTypeSymbol)
-            If type IsNot Nothing Then
-                items.AddRange(GetTagsForType(type, parent))
-            End If
-
-            Return items
+        Protected Overrides Iterator Function GetKeywordNames() As IEnumerable(Of String)
+            Yield SyntaxFacts.GetText(SyntaxKind.NothingKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.SharedKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.OverridableKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.TrueKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.FalseKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.MustInheritKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.NotOverridableKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.AsyncKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)
         End Function
 
-        Private Function GetTagsForType(type As INamedTypeSymbol, parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
-            Dim items = New List(Of CompletionItem)
-
-            Dim typeParameters = type.GetTypeArguments().Select(Function(t) t.Name).ToSet()
-            RemoveExistingTags(parent, typeParameters, Function(e) FindName(TypeParamTagName, e))
-
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
-
-            Return items
+        Protected Overrides Function GetExistingTopLevelElementNames(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of String)
+            Return parentTrivia.Content _
+                               .Select(Function(node) GetElementNameAndAttributes(node).Name) _
+                               .WhereNotNull()
         End Function
 
-        Private Function GetTagsForProperty([property] As IPropertySymbol,
-                                            parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
-            Dim items = New List(Of CompletionItem)
+        Protected Overrides Function GetExistingTopLevelAttributeValues(syntax As DocumentationCommentTriviaSyntax, elementName As String, attributeName As String) As IEnumerable(Of String)
+            Dim attributeValues = SpecializedCollections.EmptyEnumerable(Of String)()
 
-            Dim typeParameters = [property].GetTypeArguments().Select(Function(t) t.Name).ToSet()
-            Dim value = True
-
-            For Each node In parent.ChildNodes
-                Dim element = TryCast(node, XmlElementSyntax)
-                If element IsNot Nothing AndAlso Not element.StartTag.IsMissing AndAlso Not element.EndTag.IsMissing Then
-                    Dim startTag = element.StartTag
-
-                    If startTag.ToString() = ValueTagName Then
-                        value = False
-                    End If
+            For Each node In syntax.Content
+                Dim nameAndAttributes = GetElementNameAndAttributes(node)
+                If nameAndAttributes.Name = elementName Then
+                    attributeValues = attributeValues.Concat(
+                        nameAndAttributes.Attributes _
+                                         .Where(Function(attribute) GetAttributeName(attribute) = attributeName) _
+                                         .Select(AddressOf GetAttributeValue))
                 End If
             Next
 
-            If [property].IsIndexer Then
-                Dim parameters = [property].Parameters.Select(Function(p) p.Name).ToSet()
-                RemoveExistingTags(parent, parameters, Function(e) FindName(ParamTagName, e))
-                items.AddRange(parameters.Select(Function(p) CreateCompletionItem(FormatParameter(ParamTagName, p))))
-            End If
-
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
-
-            If value Then
-                items.Add(GetItem(ValueTagName))
-            End If
-
-            Return items
+            Return attributeValues
         End Function
 
-        Private Function GetTagsForMethod(method As IMethodSymbol, parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
-            Dim items = New List(Of CompletionItem)
+        Private Function GetElementNameAndAttributes(node As XmlNodeSyntax) As (Name As String, Attributes As SyntaxList(Of XmlNodeSyntax))
+            Dim nameSyntax As XmlNameSyntax = Nothing
+            Dim attributes As SyntaxList(Of XmlNodeSyntax) = Nothing
 
-            Dim parameters = method.Parameters.Select(Function(p) p.Name).ToSet()
-            Dim typeParameters = method.TypeParameters.Select(Function(t) t.Name).ToSet()
-            Dim returns = True
-
-            RemoveExistingTags(parent, parameters, Function(e) FindName(ParamTagName, e))
-            RemoveExistingTags(parent, typeParameters, Function(e) FindName(TypeParamTagName, e))
-
-            For Each node In parent.ChildNodes
-                Dim element = TryCast(node, XmlElementSyntax)
-                If element IsNot Nothing AndAlso Not element.StartTag.IsMissing AndAlso Not element.EndTag.IsMissing Then
-                    Dim startTag = element.StartTag
-
-                    If startTag.ToString() = ReturnsTagName Then
-                        returns = False
-                    End If
-                End If
-            Next
-
-            items.AddRange(parameters.Select(Function(p) CreateCompletionItem(FormatParameter(ParamTagName, p))))
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
-
-            If returns Then
-                items.Add(GetItem(ReturnsTagName))
+            If node.IsKind(SyntaxKind.XmlEmptyElement) Then
+                Dim emptyElementSyntax = DirectCast(node, XmlEmptyElementSyntax)
+                nameSyntax = TryCast(emptyElementSyntax.Name, XmlNameSyntax)
+                attributes = emptyElementSyntax.Attributes
+            ElseIf node.IsKind(SyntaxKind.XmlElement) Then
+                Dim elementSyntax = DirectCast(node, XmlElementSyntax)
+                nameSyntax = TryCast(elementSyntax.StartTag.Name, XmlNameSyntax)
+                attributes = elementSyntax.StartTag.Attributes
             End If
 
-            Return items
+            Return (nameSyntax?.LocalName.ValueText, attributes)
         End Function
 
-        Private Function FindName(name As String, element As XmlElementSyntax) As String
-            Dim startTag = element.StartTag
-            Dim nameSyntax = TryCast(startTag.Name, XmlNameSyntax)
-
-            If nameSyntax.LocalName.ValueText = name Then
-                Return startTag.Attributes.OfType(Of XmlNameAttributeSyntax)() _
-                    .Where(Function(a) a.Name.ToString() = NameAttributeName) _
-                    .Select(Function(a) a.Reference.Identifier.ValueText) _
-                    .FirstOrDefault()
+        Private Function GetAttributeValue(attribute As XmlNodeSyntax) As String
+            If TypeOf attribute Is XmlAttributeSyntax Then
+                ' Decode any XML enities and concatentate the results
+                Return DirectCast(DirectCast(attribute, XmlAttributeSyntax).Value, XmlStringSyntax).TextTokens.GetValueText()
             End If
 
-            Return Nothing
+            Return TryCast(attribute, XmlNameAttributeSyntax)?.Reference?.Identifier.ValueText
         End Function
 
-        Private Function GetSingleUseTopLevelItems(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
-            Dim names = New HashSet(Of String)({SummaryTagName, RemarksTagName, ExceptionTagName, IncludeTagName, PermissionTagName, ExampleTagName, CompletionListTagName})
-
-            RemoveExistingTags(parentTrivia, names, Function(x) DirectCast(x.StartTag.Name, XmlNameSyntax).LocalName.ValueText)
-
-            Return names.Select(AddressOf GetItem)
+        Private Function GetAttributes(tagName As String, attributes As SyntaxList(Of XmlNodeSyntax)) As IEnumerable(Of CompletionItem)
+            Dim existingAttributeNames = attributes.Select(AddressOf GetAttributeName).WhereNotNull().ToSet()
+            Return GetAttributeItems(tagName, existingAttributeNames)
         End Function
 
-        Private Sub RemoveExistingTags(parentTrivia As DocumentationCommentTriviaSyntax, names As ISet(Of String), selector As Func(Of XmlElementSyntax, String))
-            For Each node In parentTrivia.Content
-                Dim element = TryCast(node, XmlElementSyntax)
-                If element IsNot Nothing Then
-                    names.Remove(selector(element))
-                End If
-            Next
-        End Sub
+        Private Shared Function GetAttributeName(node As XmlNodeSyntax) As String
+            Dim nameSyntax As XmlNameSyntax = node.TypeSwitch(
+                Function(attribute As XmlAttributeSyntax) TryCast(attribute.Name, XmlNameSyntax),
+                Function(attribute As XmlNameAttributeSyntax) attribute.Name,
+                Function(attribute As XmlCrefAttributeSyntax) attribute.Name)
 
-        Private Function GetAttributes(startTag As XmlElementStartTagSyntax) As IEnumerable(Of CompletionItem)
-            Dim nameSyntax = TryCast(startTag.Name, XmlNameSyntax)
-            If nameSyntax IsNot Nothing Then
-                Dim name = nameSyntax.LocalName.ValueText
-                Dim existingAttributeNames = startTag.Attributes.OfType(Of XmlAttributeSyntax).Select(Function(a) DirectCast(a.Name, XmlNameSyntax).LocalName.ValueText)
-                Return GetAttributeItem(name).Where(Function(i) Not existingAttributeNames.Contains(i.DisplayText))
-            End If
-
-            Return Nothing
+            Return nameSyntax?.LocalName.ValueText
         End Function
 
         Private Shared s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(
                 filterCharacterRules:=FilterRules,
                 enterKeyRule:=EnterKeyRule.Never)
-
-        Protected Overrides Function GetCompletionItemRules(displayText As String) As CompletionItemRules
-            Dim commitRules = s_defaultRules.CommitCharacterRules
-
-            If displayText.Contains("""") Then
-                commitRules = commitRules.Add(WithoutQuoteRule)
-            End If
-
-            If displayText.Contains(" ") Then
-                commitRules = commitRules.Add(WithoutSpaceRule)
-            End If
-
-            Return s_defaultRules.WithCommitCharacterRules(commitRules)
-        End Function
 
     End Class
 End Namespace

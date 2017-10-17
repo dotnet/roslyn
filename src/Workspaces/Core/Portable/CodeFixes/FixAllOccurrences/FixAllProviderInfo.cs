@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public static FixAllProviderInfo Create(object provider)
         {
-            var codeFixProvider = provider as CodeFixProvider;
-            if (codeFixProvider != null)
+            if (provider is CodeFixProvider codeFixProvider)
             {
                 return CreateWithCodeFixer(codeFixProvider);
             }

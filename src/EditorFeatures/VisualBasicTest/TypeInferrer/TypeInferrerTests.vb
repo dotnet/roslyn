@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -63,91 +63,91 @@ End Class</text>.Value.Replace("$", text)
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestConditional1() As Task
-            Await TestInMethodAsync("Dim q = If([|Foo()|], 1, 2)", "System.Boolean")
+            Await TestInMethodAsync("Dim q = If([|Goo()|], 1, 2)", "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestConditional2() As Task
-            Await TestInMethodAsync("Dim q = If(a, [|Foo()|], 2)", "System.Int32")
+            Await TestInMethodAsync("Dim q = If(a, [|Goo()|], 2)", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestConditional3() As Task
-            Await TestInMethodAsync("Dim q = If(a, """", [|Foo()|])", "System.String")
+            Await TestInMethodAsync("Dim q = If(a, """", [|Goo()|])", "System.String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestVariableDeclarator1() As Task
-            Await TestInMethodAsync("Dim q As Integer = [|Foo()|]", "System.Int32")
+            Await TestInMethodAsync("Dim q As Integer = [|Goo()|]", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestVariableDeclarator2() As Task
-            Await TestInMethodAsync("Dim q = [|Foo()|]", "System.Object")
+            Await TestInMethodAsync("Dim q = [|Goo()|]", "System.Object")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce1() As Task
-            Await TestInMethodAsync("Dim q = If([|Foo()|], 1)", "System.Int32?")
+            Await TestInMethodAsync("Dim q = If([|Goo()|], 1)", "System.Int32?")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce2() As Task
             Await TestInMethodAsync(<text>Dim b as Boolean?
-    Dim q = If(b, [|Foo()|])</text>.Value, "System.Boolean")
+    Dim q = If(b, [|Goo()|])</text>.Value, "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce3() As Task
             Await TestInMethodAsync(<text>Dim s As String
-    Dim q = If(s, [|Foo()|])</text>.Value, "System.String")
+    Dim q = If(s, [|Goo()|])</text>.Value, "System.String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce4() As Task
-            Await TestInMethodAsync("Dim q = If([|Foo()|], String.Empty)", "System.String")
+            Await TestInMethodAsync("Dim q = If([|Goo()|], String.Empty)", "System.String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryExpression1() As Task
             Await TestInMethodAsync(<text>Dim s As String
-    Dim q = s + [|Foo()|]</text>.Value, "System.String")
+    Dim q = s + [|Goo()|]</text>.Value, "System.String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryExpression1_1() As Task
             Await TestInMethodAsync(<text>Dim s As String
-    Dim q = s &amp; [|Foo()|]</text>.Value, "System.String")
+    Dim q = s &amp; [|Goo()|]</text>.Value, "System.String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryExpression2() As Task
             Await TestInMethodAsync(<text>Dim s
-    Dim q = s OrElse [|Foo()|]</text>.Value, "System.Boolean")
+    Dim q = s OrElse [|Goo()|]</text>.Value, "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator1() As Task
-            Await TestInMethodAsync("Dim q = x << [|Foo()|]", "System.Int32")
+            Await TestInMethodAsync("Dim q = x << [|Goo()|]", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator2() As Task
-            Await TestInMethodAsync("Dim q = x >> [|Foo()|]", "System.Int32")
+            Await TestInMethodAsync("Dim q = x >> [|Goo()|]", "System.Int32")
         End Function
 
         <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator3() As Task
-            Await TestInMethodAsync("Dim q : q <<= [|Foo()|]", "System.Int32")
+            Await TestInMethodAsync("Dim q : q <<= [|Goo()|]", "System.Int32")
         End Function
 
         <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator4() As Task
-            Await TestInMethodAsync("Dim q : q >>= [|Foo()|]", "System.Int32")
+            Await TestInMethodAsync("Dim q : q >>= [|Goo()|]", "System.Int32")
         End Function
 
         <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
@@ -162,7 +162,7 @@ End Class</text>.Value.Replace("$", text)
 
         <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestBinaryOperator7() As Task
-            Await TestInMethodAsync("Dim q As String : q >>= [|Foo()|]", "System.Int32")
+            Await TestInMethodAsync("Dim q As String : q >>= [|Goo()|]", "System.Int32")
         End Function
 
         <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192"), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
@@ -172,17 +172,17 @@ End Class</text>.Value.Replace("$", text)
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestReturn1() As Task
-            Await TestInClassAsync("Function M() As Integer : Return [|Foo()|] : End Function", "System.Int32")
+            Await TestInClassAsync("Function M() As Integer : Return [|Goo()|] : End Function", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestReturn2() As Task
-            Await TestInMethodAsync("Return [|Foo()|]", "Global.System.Void")
+            Await TestInMethodAsync("Return [|Goo()|]", "Global.System.Void")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestReturn3() As Task
-            Await TestInClassAsync("Property Prop As Integer : Get : Return [|Foo()|] : End Get : End Property", "System.Int32")
+            Await TestInClassAsync("Property Prop As Integer : Get : Return [|Goo()|] : End Get : End Property", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
@@ -195,7 +195,7 @@ End Class</text>.Value.Replace("$", text)
         <WorkItem(529479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
         Public Async Function TestReturnInLambda() As Task
             Await TestInMethodAsync(<Code>Dim F As System.Func(Of String, Integer) = Function (s)
-                                                                       Return [|Foo()|]
+                                                                       Return [|Goo()|]
                                                                    End Function</Code>.Value, "System.Int32")
         End Function
 
@@ -204,7 +204,7 @@ End Class</text>.Value.Replace("$", text)
         Public Async Function TestInsideLambda2() As Task
             Dim text = <text>Imports System
 Class A
-  Sub Foo()
+  Sub Goo()
     Dim f As Func(Of Integer, Integer) = Function(i)  [|here|]
   End Sub
 End Class</text>.Value
@@ -214,164 +214,164 @@ End Class</text>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(529479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
         Public Async Function TestLambda() As Task
-            Await TestInMethodAsync("Dim f As System.Func(Of String, Integer) = Function (s) [|Foo()|]", "System.Int32")
+            Await TestInMethodAsync("Dim f As System.Func(Of String, Integer) = Function (s) [|Goo()|]", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestThrow() As Task
-            Await TestInMethodAsync("Throw [|Foo()|]", "Global.System.Exception")
+            Await TestInMethodAsync("Throw [|Goo()|]", "Global.System.Exception")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestCatch() As Task
-            Await TestInMethodAsync("Try : Catch e As [|Foo|] : End Try", "Global.System.Exception")
+            Await TestInMethodAsync("Try : Catch e As [|Goo|] : End Try", "Global.System.Exception")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestIf() As Task
-            Await TestInMethodAsync("If [|Foo()|] : End If", "System.Boolean")
+            Await TestInMethodAsync("If [|Goo()|] : End If", "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestWhile() As Task
-            Await TestInMethodAsync("While [|Foo()|] : End While", "System.Boolean")
+            Await TestInMethodAsync("While [|Goo()|] : End While", "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestDo() As Task
-            Await TestInMethodAsync("Do : Loop While [|Foo()|]", "System.Boolean")
+            Await TestInMethodAsync("Do : Loop While [|Goo()|]", "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542835")>
         Public Async Function TestFor2() As Task
-            Await TestInMethodAsync("For i As Integer = 1 To 2 Step [|Foo|]", "System.Int32")
+            Await TestInMethodAsync("For i As Integer = 1 To 2 Step [|Goo|]", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestUsing1() As Task
-            Await TestInMethodAsync("Using [|Foo()|] : End Using", "Global.System.IDisposable")
+            Await TestInMethodAsync("Using [|Goo()|] : End Using", "Global.System.IDisposable")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestUsing2() As Task
-            Await TestInMethodAsync("Using i As Integer = [|Foo()|] : End Using", "System.Int32")
+            Await TestInMethodAsync("Using i As Integer = [|Goo()|] : End Using", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(544611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544611")>
         Public Async Function TestUsing3() As Task
-            Await TestInMethodAsync("Using v = [|Foo()|] : End Using", "Global.System.IDisposable")
+            Await TestInMethodAsync("Using v = [|Goo()|] : End Using", "Global.System.IDisposable")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542838, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542838")>
         Public Async Function TestForEach() As Task
-            Await TestInMethodAsync("For Each v As Integer in [|Foo()|] : Next", "Global.System.Collections.Generic.IEnumerable(Of System.Int32)")
+            Await TestInMethodAsync("For Each v As Integer in [|Goo()|] : Next", "Global.System.Collections.Generic.IEnumerable(Of System.Int32)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestPrefixExpression1() As Task
-            Await TestInMethodAsync("Dim q = +[|Foo()|]", "System.Int32")
+            Await TestInMethodAsync("Dim q = +[|Goo()|]", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestPrefixExpression2() As Task
-            Await TestInMethodAsync("Dim q = -[|Foo()|]", "System.Int32")
+            Await TestInMethodAsync("Dim q = -[|Goo()|]", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542839")>
         Public Async Function TestPrefixExpression3() As Task
-            Await TestInMethodAsync("Dim q = Not [|Foo()|] And 5", "System.Int32")
+            Await TestInMethodAsync("Dim q = Not [|Goo()|] And 5", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestPrefixExpression4() As Task
-            Await TestInMethodAsync("Dim q = Not [|Foo()|]", "System.Boolean")
+            Await TestInMethodAsync("Dim q = Not [|Goo()|]", "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
         Public Async Function TestArrayRankSpecifier1() As Task
-            Await TestInMethodAsync("Dim q As String() = New String([|Foo()|])", "System.Char()")
+            Await TestInMethodAsync("Dim q As String() = New String([|Goo()|])", "System.Char()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
         Public Async Function TestArrayRankSpecifier2() As Task
-            Await TestInMethodAsync("Dim q As String() = New String([|Foo()|]) { }", "System.Int32")
+            Await TestInMethodAsync("Dim q As String() = New String([|Goo()|]) { }", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestSwitch1() As Task
-            Await TestInMethodAsync("Select Case [|Foo()|] : End Select", "System.Int32")
+            Await TestInMethodAsync("Select Case [|Goo()|] : End Select", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestSwitch2() As Task
-            Await TestInMethodAsync("Select Case [|Foo()|] : Case Else: End Select", "System.Int32")
+            Await TestInMethodAsync("Select Case [|Goo()|] : Case Else: End Select", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestSwitch3() As Task
-            Await TestInMethodAsync("Select Case [|Foo()|] : Case ""a"": End Select", "System.String")
+            Await TestInMethodAsync("Select Case [|Goo()|] : Case ""a"": End Select", "System.String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestMethodCall1() As Task
-            Await TestInMethodAsync("Bar([|Foo()|])", "System.Object")
+            Await TestInMethodAsync("Bar([|Goo()|])", "System.Object")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestMethodCall2() As Task
-            Await TestInClassAsync("Sub M() : Bar([|Foo()|]) : End Sub : Sub Bar(i As Integer) : End Sub", "System.Int32")
+            Await TestInClassAsync("Sub M() : Bar([|Goo()|]) : End Sub : Sub Bar(i As Integer) : End Sub", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestMethodCall3() As Task
-            Await TestInClassAsync("Sub M() : Bar([|Foo()|]) : End Sub : Sub Bar() : End Sub", "System.Object")
+            Await TestInClassAsync("Sub M() : Bar([|Goo()|]) : End Sub : Sub Bar() : End Sub", "System.Object")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestMethodCall4() As Task
-            Await TestInClassAsync("Sub M() : Bar([|Foo()|]) : End Sub : Sub Bar(i As Integer, s As String) : End Sub", "System.Int32")
+            Await TestInClassAsync("Sub M() : Bar([|Goo()|]) : End Sub : Sub Bar(i As Integer, s As String) : End Sub", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestMethodCall5() As Task
-            Await TestInClassAsync("Sub M() : Bar(s:=[|Foo()|]) : End Sub : Sub Bar(i As Integer, s As String) : End Sub", "System.String")
+            Await TestInClassAsync("Sub M() : Bar(s:=[|Goo()|]) : End Sub : Sub Bar(i As Integer, s As String) : End Sub", "System.String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestConstructorCall1() As Task
-            Await TestInMethodAsync("Dim l = New C([|Foo()|])", "System.Object")
+            Await TestInMethodAsync("Dim l = New C([|Goo()|])", "System.Object")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestConstructorCall2() As Task
-            Await TestInClassAsync("Sub M() : Dim l = New C([|Foo()|]) : End Sub : Sub New(i As Integer) : End Sub", "System.Int32")
+            Await TestInClassAsync("Sub M() : Dim l = New C([|Goo()|]) : End Sub : Sub New(i As Integer) : End Sub", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestConstructorCall3() As Task
-            Await TestInClassAsync("Sub M() : Dim l = New C([|Foo()|]) : End Sub : Sub New() : End Sub", "System.Object")
+            Await TestInClassAsync("Sub M() : Dim l = New C([|Goo()|]) : End Sub : Sub New() : End Sub", "System.Object")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestConstructorCall4() As Task
-            Await TestInClassAsync("Sub M() : Dim l = New C([|Foo()|]) : End Sub : Sub New(i As Integer, s As String) : End Sub", "System.Int32")
+            Await TestInClassAsync("Sub M() : Dim l = New C([|Goo()|]) : End Sub : Sub New(i As Integer, s As String) : End Sub", "System.Int32")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Async Function TestConstructorCall5() As Task
-            Await TestInClassAsync("Sub M() : Dim l = New C(s:=[|Foo()|]) : End Sub : Sub New(i As Integer, s As String) : End Sub", "System.String")
+            Await TestInClassAsync("Sub M() : Dim l = New C(s:=[|Goo()|]) : End Sub : Sub New(i As Integer, s As String) : End Sub", "System.String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
         Public Async Function TestIndexAccess1() As Task
-            Await TestInMethodAsync("Dim i As String() : Dim j = i([|Foo()|])", "System.Int32")
+            Await TestInMethodAsync("Dim i As String() : Dim j = i([|Goo()|])", "System.Int32")
         End Function
 
         <Fact>
@@ -382,7 +382,7 @@ End Class</text>.Value
 
 Class C
   Sub M()
-    Dim l = New List(Of Integer)() From { [|Foo()|] }
+    Dim l = New List(Of Integer)() From { [|Goo()|] }
   End Sub
 End Class</text>.Value
             Await TestAsync(text, "System.Int32", testPosition:=False)
@@ -397,7 +397,7 @@ Imports System.Collections.Generic
 
 Class C
   Sub M()
-    Dim l = New Dictionary(Of Integer, String)() From  { { [|Foo()|], String.Empty } }
+    Dim l = New Dictionary(Of Integer, String)() From  { { [|Goo()|], String.Empty } }
   End Sub
 End Class</text>.Value
             Await TestAsync(text, "System.Int32", testPosition:=False)
@@ -412,7 +412,7 @@ Imports System.Collections.Generic
 
 Class C
   Sub M()
-    Dim l = new Dictionary(Of Integer, String)() From { { 0, [|Foo()|] } }
+    Dim l = new Dictionary(Of Integer, String)() From { { 0, [|Goo()|] } }
   End Sub
 End Class</text>.Value
             Await TestAsync(text, "System.String", testPosition:=False)
@@ -499,7 +499,7 @@ End Class</text>.Value
             ' TODO: review this
             Dim text = <text>
 Class A
-  Sub Foo()
+  Sub Goo()
         Dim x As A() = new [|C|]() { }
   End Sub
 End Class</text>.Value
@@ -511,7 +511,7 @@ End Class</text>.Value
             ' TODO: review this
             Dim text = <text>
 Class A
-  Sub Foo()
+  Sub Goo()
         Dim x As A()() = new [|C|]()() { }
   End Sub
 End Class</text>.Value
@@ -523,7 +523,7 @@ End Class</text>.Value
             ' TODO: review this
             Dim text = <text>
 Class A
-  Sub Foo()
+  Sub Goo()
         Dim x As A()() = new [|C|]() { }
   End Sub
 End Class</text>.Value
@@ -535,7 +535,7 @@ End Class</text>.Value
             Dim text = <text>
 Class C
   Sub M(i As Dynamic)
-    Dim q = i([|Foo()|]);
+    Dim q = i([|Goo()|]);
   End Sub
 End Class</text>.Value
             Await TestAsync(text, "System.Object")
@@ -549,7 +549,7 @@ Imports System.Threading.Tasks
 
 Class C
     Async Sub M()
-        Dim x As Integer = Await [|Foo()|]
+        Dim x As Integer = Await [|Goo()|]
     End Sub
 End Class</text>.Value
             Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Int32)")
@@ -563,7 +563,7 @@ Imports System.Threading.Tasks
 
 Class C
     Async Sub M()
-        Dim x As Task(Of Integer) = Await [|Foo()|]
+        Dim x As Task(Of Integer) = Await [|Goo()|]
     End Sub
 End Class</text>.Value
             Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of Global.System.Threading.Tasks.Task(Of System.Int32))")
@@ -577,7 +577,7 @@ Imports System.Threading.Tasks
 
 Class C
     Async Sub M()
-        Await [|Foo()|]
+        Await [|Goo()|]
     End Sub
 End Class</text>.Value
             Await TestAsync(text, "Global.System.Threading.Tasks.Task")
@@ -668,28 +668,28 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause() As Task
-            Dim text = "Try : Catch ex As Exception When [|foo()|]"
+            Dim text = "Try : Catch ex As Exception When [|goo()|]"
             Await TestInMethodAsync(text, "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause1() As Task
-            Dim text = "Try : Catch ex As Exception When [|foo|]"
+            Dim text = "Try : Catch ex As Exception When [|goo|]"
             Await TestInMethodAsync(text, "System.Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause2() As Task
-            Dim text = "Try : Catch ex As Exception When [|foo|].N"
+            Dim text = "Try : Catch ex As Exception When [|goo|].N"
             Await TestInMethodAsync(text, "System.Object", testPosition:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(1041260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041260")>
         Public Async Function ConditionalInvocation() As Task
-            Dim text = "Dim args As String() : args?([|foo|])"
+            Dim text = "Dim args As String() : args?([|goo|])"
             Await TestInMethodAsync(text, "System.Int32", testPosition:=True)
         End Function
 
@@ -741,7 +741,7 @@ End Class"
             Dim text =
 "imports System.Collections.Generic
 class C
-    sub Foo()
+    sub Goo()
         [|ints|].Where(function(i) i > 10)
     end sub
 end class"
@@ -753,7 +753,7 @@ end class"
             Dim text =
 "imports System.Collections.Generic
 class C
-    sub Foo()
+    sub Goo()
         [|ints|].Where(function(i)
                 return i > 10
             end function)
@@ -767,7 +767,7 @@ end class"
             Dim text =
 "imports System.Collections.Generic
 class C
-    sub Foo()
+    sub Goo()
         dim b as boolean = x.[||]
     end sub
 end class"

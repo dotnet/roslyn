@@ -1546,8 +1546,8 @@ namespace BoundTreeGenerator
         {
             string genericType = GetGenericType(typeName);
 
-            if (_valueTypes.ContainsKey(genericType))
-                return _valueTypes[genericType];
+            if (_valueTypes.TryGetValue(genericType, out bool isValueType))
+                return isValueType;
             else
                 return false;
         }
@@ -1556,8 +1556,7 @@ namespace BoundTreeGenerator
         {
             if (typeName == derivedTypeName)
                 return true;
-            string baseType;
-            if (derivedTypeName != null && _typeMap.TryGetValue(derivedTypeName, out baseType))
+            if (derivedTypeName != null && _typeMap.TryGetValue(derivedTypeName, out var baseType))
             {
                 return IsDerivedType(typeName, baseType);
             }

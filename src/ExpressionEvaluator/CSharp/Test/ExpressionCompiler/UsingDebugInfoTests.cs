@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -44,6 +44,42 @@ class C
             WithRuntimeInstance(comp, runtime =>
             {
                 GetMethodDebugInfo(runtime, "C.M").ImportRecordGroups.Verify(@"
+                {
+                    Namespace: string='System'
+                }");
+            });
+        }
+
+        [Fact, WorkItem(21386, "https://github.com/dotnet/roslyn/issues/21386")]
+        public void Gaps()
+        {
+            var source = @"
+using System;
+
+namespace N1
+{
+  namespace N2 
+  {
+    using System.Collections;
+
+    namespace N3 
+    {
+      class C { void M() { } }
+    }
+  }
+}
+";
+            var comp = CreateStandardCompilation(source);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                GetMethodDebugInfo(runtime, "N1.N2.N3.C.M").ImportRecordGroups.Verify(@"
+                {
+                }
+                {
+                    Namespace: string='System.Collections'
+                }
+                {
+                }
                 {
                     Namespace: string='System'
                 }");

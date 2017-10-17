@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             if (!this.DataCache.TryGetValue(GetCacheKey(value), out var entry))
             {
                 // we don't have data
-                return default(TData);
+                return default;
             }
 
             // we have in memory cache for the document
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             {
             }
 
-            return default(TData);
+            return default;
         }
 
         public async Task PersistAsync(TValue value, TData data, CancellationToken cancellationToken)
@@ -82,14 +82,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             // if data is for opened document or if persistence failed, 
             // we keep small cache so that we don't pay cost of deserialize/serializing data that keep changing
-            this.DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default(TData), GetCount(data));
+            this.DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default, GetCount(data));
         }
 
-        public bool Remove(TKey id)
+        public virtual bool Remove(TKey id)
         {
             // remove doesn't actually remove data from the persistent storage
             // that will be automatically managed by the service itself.
-            return this.DataCache.TryRemove(id, out var entry);
+            return this.DataCache.TryRemove(id, out _);
         }
 
         private async Task<bool> WriteToStreamAsync(TValue value, TData data, CancellationToken cancellationToken)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
                 Count = count;
             }
 
-            public bool HasCachedData => !object.Equals(Data, default(TData));
+            public bool HasCachedData => !object.Equals(Data, default);
         }
     }
 }

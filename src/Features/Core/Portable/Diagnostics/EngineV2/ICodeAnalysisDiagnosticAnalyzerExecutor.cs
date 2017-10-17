@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// </summary>
     internal interface ICodeAnalysisDiagnosticAnalyzerExecutor : IWorkspaceService
     {
-        Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken);
+        Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken);
     }
 }

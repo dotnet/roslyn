@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Roslyn.Test.Utilities
@@ -184,7 +184,7 @@ public class C
 {
     $$void M()
     {
-        int foo = 1 + 1;
+        int goo = 1 + 1;
     }
 }
             </Document>
@@ -195,7 +195,7 @@ public class C
 <Block>
     <Local line="5">
         <Type>System.Int32</Type>
-        <Name>foo</Name>
+        <Name>goo</Name>
         <Expression>
             <BinaryOperation binaryoperator="plus">
                 <Expression>
@@ -226,7 +226,7 @@ public class C
 {
     $$void M()
     {
-        int foo = 1 | 1;
+        int goo = 1 | 1;
     }
 }
             </Document>
@@ -237,7 +237,7 @@ public class C
 <Block>
     <Local line="5">
         <Type>System.Int32</Type>
-        <Name>foo</Name>
+        <Name>goo</Name>
         <Expression>
             <BinaryOperation binaryoperator="bitor">
                 <Expression>
@@ -268,7 +268,7 @@ public class C
 {
     $$void M()
     {
-        int foo = 1 &amp; 1;
+        int goo = 1 &amp; 1;
     }
 }
             </Document>
@@ -279,7 +279,7 @@ public class C
 <Block>
     <Local line="5">
         <Type>System.Int32</Type>
-        <Name>foo</Name>
+        <Name>goo</Name>
         <Expression>
             <BinaryOperation binaryoperator="bitand">
                 <Expression>
@@ -310,7 +310,7 @@ public class C
 {
     $$void M()
     {
-        long foo = (long)2;
+        long goo = (long)2;
     }
 }
             </Document>
@@ -321,7 +321,7 @@ public class C
 <Block>
     <Local line="5">
         <Type>System.Int64</Type>
-        <Name>foo</Name>
+        <Name>goo</Name>
         <Expression>
             <Cast>
                 <Type>System.Int64</Type>

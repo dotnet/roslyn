@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -369,7 +369,8 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, ' Since the CDI is not emitted to Portable PDB it won't be present in the converted Windows PDB.
+            options:=PdbValidationOptions.SkipConversionValidation)
         End Sub
 
         <Fact>
@@ -427,7 +428,9 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation)
+            ' When converting from Portable to Windows the PDB writer doesn't create an entry for the Main method 
+            ' and thus there Is no entry point record either.
         End Sub
 
         <Fact()>

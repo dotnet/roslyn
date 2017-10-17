@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1311,7 +1312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MakeDeclaredInterfacesInPart(syntaxRef.SyntaxTree, syntaxRef.GetVisualBasicSyntax(), interfaces, basesBeingResolved, diagnostics)
             Next
 
-            Return interfaces.InInsertionOrder.AsImmutable
+            Return interfaces.AsImmutable
         End Function
 
         Private Function GetInheritsLocation(base As NamedTypeSymbol) As Location
@@ -1832,10 +1833,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonTypeWellKnownAttributeData)
         End Function
 
-        Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+        Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
             Get
                 Dim data As TypeEarlyWellKnownAttributeData = GetEarlyDecodedWellKnownAttributeData()
-                Return data IsNot Nothing AndAlso data.HasEmbeddedAttribute
+                Return data IsNot Nothing AndAlso data.HasCodeAnalysisEmbeddedAttribute
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
+            Get
+                Dim data As TypeEarlyWellKnownAttributeData = GetEarlyDecodedWellKnownAttributeData()
+                Return data IsNot Nothing AndAlso data.HasVisualBasicEmbeddedAttribute
             End Get
         End Property
 
@@ -1974,12 +1982,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Handle Microsoft.VisualBasic.Embedded attribute
                 Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
                 If Not attrdata.HasErrors Then
-                    arguments.GetOrCreateData(Of TypeEarlyWellKnownAttributeData)().HasEmbeddedAttribute = True
+                    arguments.GetOrCreateData(Of TypeEarlyWellKnownAttributeData)().HasVisualBasicEmbeddedAttribute = True
                     Return If(Not hasAnyDiagnostics, attrdata, Nothing)
                 Else
                     Return Nothing
                 End If
-
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CodeAnalysisEmbeddedAttribute) Then
+                ' Handle Microsoft.CodeAnalysis.Embedded attribute
+                Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
+                If Not attrdata.HasErrors Then
+                    arguments.GetOrCreateData(Of TypeEarlyWellKnownAttributeData)().HasCodeAnalysisEmbeddedAttribute = True
+                    Return If(Not hasAnyDiagnostics, attrdata, Nothing)
+                Else
+                    Return Nothing
+                End If
             ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ComImportAttribute) Then
                 ' Handle ComImportAttribute
                 Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)

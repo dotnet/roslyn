@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -733,7 +734,7 @@ public class LocalTypes2
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void GenericsClosedOverLocalTypes2()
         {
             var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;

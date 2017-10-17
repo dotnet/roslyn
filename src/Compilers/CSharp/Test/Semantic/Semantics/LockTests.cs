@@ -245,7 +245,7 @@ struct Conv
             var source = @"
 class C
 {
-    public void foo()
+    public void goo()
     {
         int? a = null;
         lock (a)
@@ -378,31 +378,35 @@ class Test
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,26): error CS1026: ) expected
                 //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "return"),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "return").WithLocation(9, 26),
                 // (9,26): error CS1026: ) expected
                 //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "return"),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "return").WithLocation(9, 26),
                 // (9,35): error CS1002: ; expected
                 //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 35),
                 // (9,35): error CS1513: } expected
                 //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 35),
                 // (9,47): error CS1002: ; expected
                 //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 47),
                 // (9,47): error CS1513: } expected
                 //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 47),
                 // (9,20): error CS0103: The name 'yield' does not exist in the current context
                 //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "yield").WithArguments("yield"),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "yield").WithArguments("yield").WithLocation(9, 20),
                 // (9,26): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return"),
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(9, 26),
+                // (9,33): error CS0029: Cannot implicitly convert type 'int' to 'System.Collections.Generic.IEnumerable<int>'
+                //         lock ((C + yield return +D).ToString())
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "+D").WithArguments("int", "System.Collections.Generic.IEnumerable<int>").WithLocation(9, 33),
                 // (9,37): warning CS0162: Unreachable code detected
                 //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "ToString"));
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "ToString").WithLocation(9, 37)
+                );
         }
 
         [Fact]
@@ -433,7 +437,7 @@ class Test
             var source = @"
 class D
 {
-    public void foo()
+    public void goo()
     {
             lock (varnew object)
             {

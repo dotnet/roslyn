@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -181,7 +181,11 @@ public class C
   IL_004a:  ret
 }
 ");
-            v0.VerifyPdb("C.M", @"<symbols>
+            v0.VerifyPdb("C.M", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -198,26 +202,26 @@ public class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""14"" endLine=""8"" endColumn=""23"" />
-        <entry offset=""0x3"" hidden=""true"" />
-        <entry offset=""0x5"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""58"" />
-        <entry offset=""0xc"" startLine=""8"" startColumn=""32"" endLine=""8"" endColumn=""35"" />
-        <entry offset=""0x10"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" />
-        <entry offset=""0x15"" hidden=""true"" />
-        <entry offset=""0x18"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" />
-        <entry offset=""0x1a"" hidden=""true"" />
-        <entry offset=""0x1c"" startLine=""9"" startColumn=""37"" endLine=""9"" endColumn=""58"" />
-        <entry offset=""0x23"" startLine=""9"" startColumn=""32"" endLine=""9"" endColumn=""35"" />
-        <entry offset=""0x27"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""30"" />
-        <entry offset=""0x2d"" hidden=""true"" />
-        <entry offset=""0x31"" startLine=""12"" startColumn=""14"" endLine=""12"" endColumn=""19"" />
-        <entry offset=""0x33"" hidden=""true"" />
-        <entry offset=""0x35"" startLine=""12"" startColumn=""33"" endLine=""12"" endColumn=""54"" />
-        <entry offset=""0x3c"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""31"" />
-        <entry offset=""0x40"" startLine=""12"" startColumn=""21"" endLine=""12"" endColumn=""26"" />
-        <entry offset=""0x46"" hidden=""true"" />
-        <entry offset=""0x4a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""14"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x3"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""58"" document=""1"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""32"" endLine=""8"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x10"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x15"" hidden=""true"" document=""1"" />
+        <entry offset=""0x18"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x1a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""9"" startColumn=""37"" endLine=""9"" endColumn=""58"" document=""1"" />
+        <entry offset=""0x23"" startLine=""9"" startColumn=""32"" endLine=""9"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x27"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x2d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x31"" startLine=""12"" startColumn=""14"" endLine=""12"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x33"" hidden=""true"" document=""1"" />
+        <entry offset=""0x35"" startLine=""12"" startColumn=""33"" endLine=""12"" endColumn=""54"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x40"" startLine=""12"" startColumn=""21"" endLine=""12"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x46"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x4b"">
         <namespace name=""System"" />
@@ -334,6 +338,9 @@ public class C
 
             CompileAndVerify(debug).VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -345,18 +352,18 @@ public class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" />
-        <entry offset=""0x12"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""21"" />
-        <entry offset=""0x13"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" />
-        <entry offset=""0x16"" hidden=""true"" />
-        <entry offset=""0x20"" hidden=""true"" />
-        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
-        <entry offset=""0x27"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""22"" />
-        <entry offset=""0x28"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" />
-        <entry offset=""0x2b"" hidden=""true"" />
-        <entry offset=""0x35"" hidden=""true"" />
-        <entry offset=""0x36"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x12"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x13"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x16"" hidden=""true"" document=""1"" />
+        <entry offset=""0x20"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x27"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x28"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x2b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x35"" hidden=""true"" document=""1"" />
+        <entry offset=""0x36"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -364,21 +371,24 @@ public class C
 ");
             CompileAndVerify(release).VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" />
-        <entry offset=""0x10"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" />
-        <entry offset=""0x12"" hidden=""true"" />
-        <entry offset=""0x1b"" hidden=""true"" />
-        <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
-        <entry offset=""0x22"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" />
-        <entry offset=""0x24"" hidden=""true"" />
-        <entry offset=""0x2d"" hidden=""true"" />
-        <entry offset=""0x2e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x10"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x12"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x22"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x24"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -683,20 +693,20 @@ public class C
             diff1.VerifyIL("C.M",
 @"
 {
-  // Code size       80 (0x50)
+  // Code size       81 (0x51)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1,
-                pinned int& V_2, //q
+                int* V_2, //q
                 [unchanged] V_3,
                 char* V_4, //r
                 pinned string V_5,
-                int[] V_6)
+                pinned int[] V_6)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.1
   IL_0003:  ldloc.1
-  IL_0004:  conv.i
+  IL_0004:  conv.u
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  brfalse.s  IL_0011
@@ -716,35 +726,35 @@ public class C
   IL_001e:  ldc.i4.0
   IL_001f:  conv.u
   IL_0020:  stloc.2
-  IL_0021:  br.s       IL_002c
+  IL_0021:  br.s       IL_002d
   IL_0023:  ldloc.s    V_6
   IL_0025:  ldc.i4.0
   IL_0026:  ldelema    ""int""
-  IL_002b:  stloc.2
-  IL_002c:  nop
+  IL_002b:  conv.u
+  IL_002c:  stloc.2
   IL_002d:  nop
-  IL_002e:  ldc.i4.0
-  IL_002f:  conv.u
-  IL_0030:  stloc.2
-  IL_0031:  ldarg.0
-  IL_0032:  stloc.s    V_5
-  IL_0034:  ldloc.s    V_5
-  IL_0036:  conv.i
-  IL_0037:  stloc.s    V_4
-  IL_0039:  ldloc.s    V_4
-  IL_003b:  brfalse.s  IL_0047
-  IL_003d:  ldloc.s    V_4
-  IL_003f:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0044:  add
-  IL_0045:  stloc.s    V_4
-  IL_0047:  nop
+  IL_002e:  nop
+  IL_002f:  ldnull
+  IL_0030:  stloc.s    V_6
+  IL_0032:  ldarg.0
+  IL_0033:  stloc.s    V_5
+  IL_0035:  ldloc.s    V_5
+  IL_0037:  conv.u
+  IL_0038:  stloc.s    V_4
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  brfalse.s  IL_0048
+  IL_003e:  ldloc.s    V_4
+  IL_0040:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0045:  add
+  IL_0046:  stloc.s    V_4
   IL_0048:  nop
-  IL_0049:  ldnull
-  IL_004a:  stloc.s    V_5
-  IL_004c:  nop
-  IL_004d:  ldnull
-  IL_004e:  stloc.1
-  IL_004f:  ret
+  IL_0049:  nop
+  IL_004a:  ldnull
+  IL_004b:  stloc.s    V_5
+  IL_004d:  nop
+  IL_004e:  ldnull
+  IL_004f:  stloc.1
+  IL_0050:  ret
 }");
         }
 
@@ -809,7 +819,7 @@ public class C
   IL_0001:  ldarg.0
   IL_0002:  stloc.2
   IL_0003:  ldloc.2
-  IL_0004:  conv.i
+  IL_0004:  conv.u
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  brfalse.s  IL_0011
@@ -820,7 +830,7 @@ public class C
   IL_0011:  ldarg.1
   IL_0012:  stloc.3
   IL_0013:  ldloc.3
-  IL_0014:  conv.i
+  IL_0014:  conv.u
   IL_0015:  stloc.1
   IL_0016:  ldloc.1
   IL_0017:  brfalse.s  IL_0021
@@ -841,7 +851,7 @@ public class C
   IL_002b:  ldarg.0
   IL_002c:  stloc.s    V_7
   IL_002e:  ldloc.s    V_7
-  IL_0030:  conv.i
+  IL_0030:  conv.u
   IL_0031:  stloc.s    V_4
   IL_0033:  ldloc.s    V_4
   IL_0035:  brfalse.s  IL_0041
@@ -852,7 +862,7 @@ public class C
   IL_0041:  ldarg.2
   IL_0042:  stloc.s    V_8
   IL_0044:  ldloc.s    V_8
-  IL_0046:  conv.i
+  IL_0046:  conv.u
   IL_0047:  stloc.s    V_5
   IL_0049:  ldloc.s    V_5
   IL_004b:  brfalse.s  IL_0057
@@ -863,7 +873,7 @@ public class C
   IL_0057:  ldarg.3
   IL_0058:  stloc.s    V_9
   IL_005a:  ldloc.s    V_9
-  IL_005c:  conv.i
+  IL_005c:  conv.u
   IL_005d:  stloc.s    V_6
   IL_005f:  ldloc.s    V_6
   IL_0061:  brfalse.s  IL_006d
@@ -883,7 +893,7 @@ public class C
   IL_007a:  ldarg.1
   IL_007b:  stloc.s    V_11
   IL_007d:  ldloc.s    V_11
-  IL_007f:  conv.i
+  IL_007f:  conv.u
   IL_0080:  stloc.s    V_10
   IL_0082:  ldloc.s    V_10
   IL_0084:  brfalse.s  IL_0090
@@ -2292,6 +2302,9 @@ class C
             // Validate that we emit a hidden sequence point @IL_0007.
             v0.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -2301,14 +2314,14 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""21"" />
-        <entry offset=""0x7"" hidden=""true"" />
-        <entry offset=""0x13"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""49"" />
-        <entry offset=""0x1a"" startLine=""9"" startColumn=""50"" endLine=""9"" endColumn=""56"" />
-        <entry offset=""0x1c"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""49"" />
-        <entry offset=""0x23"" startLine=""10"" startColumn=""50"" endLine=""10"" endColumn=""56"" />
-        <entry offset=""0x25"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0x13"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""49"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""9"" startColumn=""50"" endLine=""9"" endColumn=""56"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""49"" document=""1"" />
+        <entry offset=""0x23"" startLine=""10"" startColumn=""50"" endLine=""10"" endColumn=""56"" document=""1"" />
+        <entry offset=""0x25"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -2381,6 +2394,9 @@ class C
 
             v0.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -2399,7 +2415,7 @@ class C
       </customDebugInfo>
     </method>
   </methods>
-</symbols>", options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints);
+</symbols>", options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints);
 
             v0.VerifyIL("C.M", @"
 {
@@ -2712,6 +2728,9 @@ class C
             // Validate presence of a hidden sequence point @IL_0007 that is required for proper function remapping.
             v0.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -2721,13 +2740,13 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""17"" />
-        <entry offset=""0x7"" hidden=""true"" />
-        <entry offset=""0xa"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0xb"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
-        <entry offset=""0x12"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x13"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x12"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x13"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -2817,6 +2836,9 @@ class C
             // Validate presence of a hidden sequence point @IL_0012 that is required for proper function remapping.
             v0.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -2826,14 +2848,14 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" hidden=""true"" />
-        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x4"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
-        <entry offset=""0xb"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0xc"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""20"" />
-        <entry offset=""0x12"" hidden=""true"" />
-        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x4"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""1"" />
+        <entry offset=""0xb"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x12"" hidden=""true"" document=""1"" />
+        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -2924,6 +2946,9 @@ class C
             // Validate presence of a hidden sequence point @IL_0010 that is required for proper function remapping.
             v0.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -2933,13 +2958,13 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
-        <entry offset=""0x9"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0xa"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""21"" />
-        <entry offset=""0x10"" hidden=""true"" />
-        <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x9"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xa"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x10"" hidden=""true"" document=""1"" />
+        <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -3147,6 +3172,157 @@ class C
             diff1.VerifyIL("C.<M>b__0", @"
 ", methodToken: diff1.UpdatedMethods.Single());
 #endif
+        }
+
+        [Fact]
+        public void SynthesizedVariablesInLambdas2()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void M()
+    {
+        var <N:0>f1</N:0> = new Action<int[], int>(<N:1>(a, _) =>
+        {
+            <N:2>foreach</N:2> (var x in a)
+            {
+                Console.WriteLine(1); // change to 10 and then to 100
+            }
+        }</N:1>);
+
+        var <N:3>f2</N:3> = new Action<int[], int>(<N:4>(a, _) =>
+        {
+            <N:5>foreach</N:5> (var x in a)
+            {
+                Console.WriteLine(20);
+            }
+        }</N:4>);
+
+        f1(new[] { 1, 2 }, 1);
+        f2(new[] { 1, 2 }, 1);
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void M()
+    {
+        var <N:0>f1</N:0> = new Action<int[], int>(<N:1>(a, _) =>
+        {
+            <N:2>foreach</N:2> (var x in a)
+            {
+                Console.WriteLine(10); // change to 10 and then to 100
+            }
+        }</N:1>);
+
+        var <N:3>f2</N:3> = new Action<int[], int>(<N:4>(a, _) =>
+        {
+            <N:5>foreach</N:5> (var x in a)
+            {
+                Console.WriteLine(20);
+            }
+        }</N:4>);
+
+        f1(new[] { 1, 2 }, 1);
+        f2(new[] { 1, 2 }, 1);
+    }
+}");
+            var source2 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void M()
+    {
+        var <N:0>f1</N:0> = new Action<int[], int>(<N:1>(a, _) =>
+        {
+            <N:2>foreach</N:2> (var x in a)
+            {
+                Console.WriteLine(100); // change to 10 and then to 100
+            }
+        }</N:1>);
+
+        var <N:3>f2</N:3> = new Action<int[], int>(<N:4>(a, _) =>
+        {
+            <N:5>foreach</N:5> (var x in a)
+            {
+                Console.WriteLine(20);
+            }
+        }</N:4>);
+
+        f1(new[] { 1, 2 }, 1);
+        f2(new[] { 1, 2 }, 1);
+    }
+}");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var m0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var m1 = compilation1.GetMember<MethodSymbol>("C.M");
+            var m2 = compilation2.GetMember<MethodSymbol>("C.M");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m1, m2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <M>b__0_0, <M>b__0_1}");
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <M>b__0_0, <M>b__0_1}");
+
+            var expectedIL = @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (int[] V_0,
+                int V_1,
+                int V_2) //x
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  stloc.1
+  IL_0006:  br.s       IL_001a
+  IL_0008:  ldloc.0
+  IL_0009:  ldloc.1
+  IL_000a:  ldelem.i4
+  IL_000b:  stloc.2
+  IL_000c:  nop
+  IL_000d:  ldc.i4.s   20
+  IL_000f:  call       ""void System.Console.WriteLine(int)""
+  IL_0014:  nop
+  IL_0015:  nop
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldlen
+  IL_001d:  conv.i4
+  IL_001e:  blt.s      IL_0008
+  IL_0020:  ret
+}";
+
+            diff1.VerifyIL(@"C.<>c.<M>b__0_1", expectedIL);
+            diff2.VerifyIL(@"C.<>c.<M>b__0_1", expectedIL);
         }
 
         [Fact]
@@ -3786,7 +3962,7 @@ class C
 
             diff1.VerifyIL("C.G", @"
 {
-  // Code size       80 (0x50)
+  // Code size       78 (0x4e)
   .maxstack  2
   .locals init ([unchanged] V_0,
                 [int] V_1,
@@ -3803,38 +3979,36 @@ class C
   IL_0007:  stloc.s    V_6
   IL_0009:  ldc.i4.0
   IL_000a:  stloc.s    V_7
- ~IL_000c:  br.s       IL_0047
+ ~IL_000c:  br.s       IL_0045
  -IL_000e:  ldloc.s    V_6
   IL_0010:  ldloc.s    V_7
   IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
   IL_0017:  dup
   IL_0018:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
   IL_001d:  stloc.s    V_8
-  IL_001f:  dup
-  IL_0020:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
-  IL_0025:  stloc.2
-  IL_0026:  ldloc.s    V_8
-  IL_0028:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
-  IL_002d:  stloc.3
-  IL_002e:  ldloc.s    V_8
-  IL_0030:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
-  IL_0035:  stloc.s    V_4
-  IL_0037:  pop
- -IL_0038:  nop
- -IL_0039:  ldloc.2
-  IL_003a:  call       ""void System.Console.WriteLine(int)""
-  IL_003f:  nop
- -IL_0040:  nop
- ~IL_0041:  ldloc.s    V_7
-  IL_0043:  ldc.i4.1
-  IL_0044:  add
-  IL_0045:  stloc.s    V_7
- -IL_0047:  ldloc.s    V_7
-  IL_0049:  ldloc.s    V_6
-  IL_004b:  ldlen
-  IL_004c:  conv.i4
-  IL_004d:  blt.s      IL_000e
- -IL_004f:  ret
+  IL_001f:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.s    V_8
+  IL_0027:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_002c:  stloc.3
+  IL_002d:  ldloc.s    V_8
+  IL_002f:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0034:  stloc.s    V_4
+ -IL_0036:  nop
+ -IL_0037:  ldloc.2
+  IL_0038:  call       ""void System.Console.WriteLine(int)""
+  IL_003d:  nop
+ -IL_003e:  nop
+ ~IL_003f:  ldloc.s    V_7
+  IL_0041:  ldc.i4.1
+  IL_0042:  add
+  IL_0043:  stloc.s    V_7
+ -IL_0045:  ldloc.s    V_7
+  IL_0047:  ldloc.s    V_6
+  IL_0049:  ldlen
+  IL_004a:  conv.i4
+  IL_004b:  blt.s      IL_000e
+ -IL_004d:  ret
 }
 ", methodToken: diff1.UpdatedMethods.Single());
         }

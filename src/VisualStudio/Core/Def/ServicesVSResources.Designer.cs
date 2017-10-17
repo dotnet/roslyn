@@ -398,6 +398,44 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed if the assembly has not been loaded..
+        /// </summary>
+        internal static string ChangesNotAllowedIFAssemblyHasNotBeenLoaded {
+            get {
+                return ResourceManager.GetString("ChangesNotAllowedIFAssemblyHasNotBeenLoaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed if the project wasn&apos;t built when debugging started..
+        /// </summary>
+        internal static string ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted {
+            get {
+                return ResourceManager.GetString("ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed if the project wasn&apos;t loaded and built when debugging started.
+        ///
+        ///&apos;Lightweight solution load&apos; is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts..
+        /// </summary>
+        internal static string ChangesNotAllowedIfProjectWasntLoadedWhileDebugging {
+            get {
+                return ResourceManager.GetString("ChangesNotAllowedIfProjectWasntLoadedWhileDebugging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed while code is running..
+        /// </summary>
+        internal static string ChangesNotAllowedWhileCodeIsRunning {
+            get {
+                return ResourceManager.GetString("ChangesNotAllowedWhileCodeIsRunning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Choose a Symbol Specification and a Naming Style..
         /// </summary>
         internal static string Choose_a_Symbol_Specification_and_a_Naming_Style {
@@ -769,11 +807,38 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to External reference found.
+        /// </summary>
+        internal static string External_reference_found {
+            get {
+                return ResourceManager.GetString("External_reference_found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extract Interface.
         /// </summary>
         internal static string Extract_Interface {
             get {
                 return ResourceManager.GetString("Extract_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fade out unreachable code.
+        /// </summary>
+        internal static string Fade_out_unreachable_code {
+            get {
+                return ResourceManager.GetString("Fade_out_unreachable_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fading.
+        /// </summary>
+        internal static string Fading {
+            get {
+                return ResourceManager.GetString("Fading", resourceCulture);
             }
         }
         
@@ -1323,6 +1388,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No references found to &apos;{0}&apos;.
+        /// </summary>
+        internal static string No_references_found_to_0 {
+            get {
+                return ResourceManager.GetString("No_references_found_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not a valid value.
         /// </summary>
         internal static string Not_a_valid_value {
@@ -1539,6 +1613,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer deconstructed variable declaration.
+        /// </summary>
+        internal static string Prefer_deconstructed_variable_declaration {
+            get {
+                return ResourceManager.GetString("Prefer_deconstructed_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer explicit tuple name.
         /// </summary>
         internal static string Prefer_explicit_tuple_name {
@@ -1557,11 +1640,38 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer inferred anonymous type member names.
+        /// </summary>
+        internal static string Prefer_inferred_anonymous_type_member_names {
+            get {
+                return ResourceManager.GetString("Prefer_inferred_anonymous_type_member_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer inferred tuple element names.
+        /// </summary>
+        internal static string Prefer_inferred_tuple_names {
+            get {
+                return ResourceManager.GetString("Prefer_inferred_tuple_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer inlined variable declaration.
         /// </summary>
         internal static string Prefer_inlined_variable_declaration {
             get {
                 return ResourceManager.GetString("Prefer_inlined_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefere local function over anonymous function.
+        /// </summary>
+        internal static string Prefer_local_function_over_anonymous_function {
+            get {
+                return ResourceManager.GetString("Prefer_local_function_over_anonymous_function", resourceCulture);
             }
         }
         
@@ -1905,6 +2015,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search found no results.
+        /// </summary>
+        internal static string Search_found_no_results {
+            get {
+                return ResourceManager.GetString("Search_found_no_results", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Select All.
         /// </summary>
         internal static string Select_All {
@@ -2183,7 +2302,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         ///2. Open a Visual Studio Developer Command Prompt
         ///3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
         ///4. Delete .vs directory/.suo file
-        ///5. Restart VS from the command prompt you set the environment varaible (devenv)
+        ///5. Restart VS from the command prompt you set the environment variable (devenv)
         ///6. Open the solution
         ///7. Check &apos;{0}&apos; and look for the failed tasks (FAILED).
         /// </summary>

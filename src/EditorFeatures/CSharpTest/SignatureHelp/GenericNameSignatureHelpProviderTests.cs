@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -33,7 +33,7 @@ class G<T> { };
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         G<G<int>$$>
     }
@@ -53,7 +53,7 @@ class G<T> { };
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -73,7 +73,7 @@ class G<S, T> { };
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -93,7 +93,7 @@ class G<S, T> { };
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<int, $$|]>
     }
@@ -118,7 +118,7 @@ class G<S, T> { };
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -146,7 +146,7 @@ class G<S, T> { };
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<int, $$|]>
     }
@@ -171,7 +171,7 @@ class G<S> where S : struct
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -192,7 +192,7 @@ class G<S> where S : class
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -213,7 +213,7 @@ class G<S> where S : new()
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -236,7 +236,7 @@ class G<S> where S : Base
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -259,7 +259,7 @@ class G<S> where S : Base<S>
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -282,7 +282,7 @@ class G<S> where S : Base<int>
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -305,7 +305,7 @@ class G<S> where S : Base<Base<int>>
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -326,7 +326,7 @@ class G<S, T> where S : T
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -349,16 +349,16 @@ class C
 /// <typeparam name=""T"">SummaryT</typeparam>
 class G<S, T>
     where S : Base, new()
-    where T : class, S, IFoo, new()
+    where T : class, S, IGoo, new()
 { };
 
-internal interface IFoo { }
+internal interface IGoo { }
 
 internal class Base { }
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<$$|]>
     }
@@ -381,23 +381,23 @@ class C
 /// <typeparam name=""T"">SummaryT</typeparam>
 class G<S, T>
     where S : Base, new()
-    where T : class, S, IFoo, new()
+    where T : class, S, IGoo, new()
 { };
 
-internal interface IFoo { }
+internal interface IGoo { }
 
 internal class Base { }
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|G<bar, $$|]>
     }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("G<S, T> where T : class, S, IFoo, new()", "Summary1", "SummaryT", currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("G<S, T> where T : class, S, IGoo, new()", "Summary1", "SummaryT", currentParameterIndex: 1));
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -412,16 +412,16 @@ class C
             var markup = @"
 class C
 {
-    void Foo<T>() { }
+    void Goo<T>() { }
 
     void Bar()
     {
-        [|Foo<$$|]>
+        [|Goo<$$|]>
     }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo<T>()", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Goo<T>()", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -440,16 +440,16 @@ class C
     /// <typeparam name=""T"">type param T. </typeparam>
     /// <param name=""s"">parameter s</param>
     /// <param name=""t"">parameter t</param>
-    void Foo<S, T>(S s, T t) { }
+    void Goo<S, T>(S s, T t) { }
 
     void Bar()
     {
-        [|Foo<$$|]>
+        [|Goo<$$|]>
     }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo<S, T>(S s, T t)",
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Goo<S, T>(S s, T t)",
                     "Method summary", "type param S. see T", currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems);
@@ -462,16 +462,16 @@ class C
             var markup = @"
 class C
 {
-    void Foo<S, T>(S s, T t) { }
+    void Goo<S, T>(S s, T t) { }
 
     void Bar()
     {
-        [|Foo<int, $$|]>
+        [|Goo<int, $$|]>
     }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo<S, T>(S s, T t)", string.Empty, string.Empty, currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Goo<S, T>(S s, T t)", string.Empty, string.Empty, currentParameterIndex: 1));
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -484,20 +484,20 @@ class C
 class C
 {
     /// <summary>
-    /// SummaryForFoo
+    /// SummaryForGoo
     /// </summary>
     /// <typeparam name=""S"">SummaryForS</typeparam>
     /// <typeparam name=""T"">SummaryForT</typeparam>
-    void Foo<S, T>(S s, T t) { }
+    void Goo<S, T>(S s, T t) { }
 
     void Bar()
     {
-        [|Foo<$$|]>
+        [|Goo<$$|]>
     }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo<S, T>(S s, T t)", "SummaryForFoo", "SummaryForS", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Goo<S, T>(S s, T t)", "SummaryForGoo", "SummaryForS", currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -510,20 +510,20 @@ class C
 class C
 {
     /// <summary>
-    /// SummaryForFoo
+    /// SummaryForGoo
     /// </summary>
     /// <typeparam name=""S"">SummaryForS</typeparam>
     /// <typeparam name=""T"">SummaryForT</typeparam>
-    void Foo<S, T>(S s, T t) { }
+    void Goo<S, T>(S s, T t) { }
 
     void Bar()
     {
-        [|Foo<int, $$|]>
+        [|Goo<int, $$|]>
     }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo<S, T>(S s, T t)", "SummaryForFoo", "SummaryForT", currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Goo<S, T>(S s, T t)", "SummaryForGoo", "SummaryForT", currentParameterIndex: 1));
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -540,17 +540,17 @@ class C
     void Bar()
     {
         G g = null;
-        g.[|Foo<$$|]>
+        g.[|Goo<$$|]>
     }
 }
 
-static class FooClass
+static class GooClass
 {
-    public static void Foo<T>(this G g) { }
+    public static void Goo<T>(this G g) { }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void G.Foo<T>()", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void G.Goo<T>()", string.Empty, string.Empty, currentParameterIndex: 0));
 
             // TODO: Enable the script case when we have support for extension methods in scripts
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false, sourceCodeKind: Microsoft.CodeAnalysis.SourceCodeKind.Regular);
@@ -566,28 +566,28 @@ static class FooClass
         {
             var markup = @"
 class Base { }
-interface IFoo { }
+interface IGoo { }
 
 class C
 {
     /// <summary>
-    /// FooSummary
+    /// GooSummary
     /// </summary>
     /// <typeparam name=""S"">ParamS</typeparam>
     /// <typeparam name=""T"">ParamT</typeparam>
-    S Foo<S, T>(S s, T t)
+    S Goo<S, T>(S s, T t)
         where S : Base, new()
-        where T : class, S, IFoo, new()
+        where T : class, S, IGoo, new()
     { return null; }
 
     void Bar()
     {
-        [|Foo<$$|]>
+        [|Goo<$$|]>
     }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("S C.Foo<S, T>(S s, T t) where S : Base, new()", "FooSummary", "ParamS", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("S C.Goo<S, T>(S s, T t) where S : Base, new()", "GooSummary", "ParamS", currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -598,28 +598,28 @@ class C
         {
             var markup = @"
 class Base { }
-interface IFoo { }
+interface IGoo { }
 
 class C
 {
     /// <summary>
-    /// FooSummary
+    /// GooSummary
     /// </summary>
     /// <typeparam name=""S"">ParamS</typeparam>
     /// <typeparam name=""T"">ParamT</typeparam>
-    S Foo<S, T>(S s, T t)
+    S Goo<S, T>(S s, T t)
         where S : Base, new()
-        where T : class, S, IFoo, new()
+        where T : class, S, IGoo, new()
     { return null; }
 
     void Bar()
     {
-        [|Foo<Base, $$|]>
+        [|Goo<Base, $$|]>
     }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("S C.Foo<S, T>(S s, T t) where T : class, S, IFoo, new()", "FooSummary", "ParamT", currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("S C.Goo<S, T>(S s, T t) where T : class, S, IGoo, new()", "GooSummary", "ParamT", currentParameterIndex: 1));
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -641,16 +641,16 @@ class C
         public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     class D<T>
     {
     }
 #endif
-    void foo()
+    void goo()
     {
         var x = new D<$$
     }
@@ -670,18 +670,18 @@ class C
         public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO,BAR"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO,BAR"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     class D<T>
     {
     }
 #endif
 
 #if BAR
-    void foo()
+    void goo()
     {
         var x = new D<$$
     }
@@ -815,7 +815,7 @@ class G<T> { };
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         G{$$>
     }

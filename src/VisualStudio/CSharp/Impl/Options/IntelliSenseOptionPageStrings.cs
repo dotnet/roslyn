@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -59,5 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier =>
             CSharpVSResources.Include_snippets_when_Tab_is_typed_after_an_identifier;
+
+        public static string Option_Show_name_suggestions => 
+            CSharpVSResources.Show_name_suggestions;
     }
 }

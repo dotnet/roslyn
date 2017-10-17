@@ -1,101 +1,43 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{DD317BE1-42A1-4795-B1D4-F370C40D649A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.FunctionResolver.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
-      <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
-      <Name>CSharpCompilerTestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
-      <Name>CSharpCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
-      <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
-      <Name>BasicCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Source\FunctionResolver\FunctionResolver.csproj">
-      <Project>{6FC8E6F5-659C-424D-AEB5-331B95883E29}</Project>
-      <Name>FunctionResolver</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Source\FunctionResolver\FunctionResolver.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Compile Include="CSharpFunctionResolverTests.cs" />
-    <Compile Include="CSharpParsingTests.cs" />
-    <Compile Include="FunctionResolverTestBase.cs" />
-    <Compile Include="Module.cs" />
-    <Compile Include="NameComparer.cs" />
-    <Compile Include="ParameterComparer.cs" />
-    <Compile Include="ParsingTestBase.cs" />
-    <Compile Include="Process.cs" />
-    <Compile Include="Request.cs" />
-    <Compile Include="Resolver.cs" />
-    <Compile Include="TypeComparer.cs" />
-    <Compile Include="VisualBasicFunctionResolverTests.cs" />
-    <Compile Include="VisualBasicParsingTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine">
-      <Version>$(MicrosoftVisualStudioDebuggerEngineVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

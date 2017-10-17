@@ -126,13 +126,13 @@ public class C
         public async void WordBreaking4()
         {
             var markup = @"
-interface IFoo {}
+interface IGoo {}
 public class C
 {
-    IFoo $$
+    IGoo $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "Foo");
+            await VerifyItemExistsAsync(markup, "Goo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -163,7 +163,7 @@ public class C
 using System.Threading;
 public class C
 {
-    void Foo(CancellationToken $$
+    void Goo(CancellationToken $$
 }
 ";
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
@@ -176,7 +176,7 @@ public class C
 using System.Threading;
 public class C
 {
-    void Foo(int x, CancellationToken c$$
+    void Goo(int x, CancellationToken c$$
 }
 ";
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
@@ -190,10 +190,76 @@ public class C
 using System.Threading;
 public class C
 {
-    void Foo(CancellationToken c$$) {}
+    void Goo(CancellationToken c$$) {}
 }
 ";
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void EscapeKeywords1()
+        {
+            var markup = @"
+using System.Text;
+public class C
+{
+    void Goo(StringBuilder $$) {}
+}
+";
+            await VerifyItemExistsAsync(markup, "stringBuilder", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "@string", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "builder", glyph: (int)Glyph.Parameter);
+        }
+
+        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void EscapeKeywords2()
+        {
+            var markup = @"
+class For { }
+public class C
+{
+    void Goo(For $$) {}
+}
+";
+            await VerifyItemExistsAsync(markup, "@for", glyph: (int)Glyph.Parameter);
+        }
+
+        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void EscapeKeywords3()
+        {
+            var markup = @"
+class For { }
+public class C
+{
+    void goo()
+    {
+        For $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "@for");
+        }
+
+        [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void EscapeKeywords4()
+        {
+            var markup = @"
+using System.Text;
+public class C
+{
+    void goo()
+    {
+        StringBuilder $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "stringBuilder");
+            await VerifyItemExistsAsync(markup, "@string");
+            await VerifyItemExistsAsync(markup, "builder");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -433,7 +499,7 @@ public class C
             var markup = @"
 public class C
 {
-    void foo()
+    void goo()
     {
         var $$
     }
@@ -452,6 +518,138 @@ public class MyClass
 }
 ";
             await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(20273, "https://github.com/dotnet/roslyn/issues/20273")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void Alias1()
+        {
+            var markup = @"
+using MyType = System.String;
+public class C
+{
+    MyType $$
+}
+";
+            await VerifyItemExistsAsync(markup, "my");
+            await VerifyItemExistsAsync(markup, "type");
+            await VerifyItemExistsAsync(markup, "myType");
+        }
+        [WorkItem(20273, "https://github.com/dotnet/roslyn/issues/20273")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void AliasWithInterfacePattern()
+        {
+            var markup = @"
+using IMyType = System.String;
+public class C
+{
+    MyType $$
+}
+";
+            await VerifyItemExistsAsync(markup, "my");
+            await VerifyItemExistsAsync(markup, "type");
+            await VerifyItemExistsAsync(markup, "myType");
+        }
+
+        [WorkItem(20016, "https://github.com/dotnet/roslyn/issues/20016")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void NotAfterExistingName1()
+        {
+            var markup = @"
+using IMyType = System.String;
+public class C
+{
+    MyType myType $$
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(20016, "https://github.com/dotnet/roslyn/issues/20016")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void NotAfterExistingName2()
+        {
+            var markup = @"
+using IMyType = System.String;
+public class C
+{
+    MyType myType, MyType $$
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutVarArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do(out Test goo)
+    {
+        Do(out var $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+        }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do(out Test goo)
+    {
+        Do(out Test $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+        }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutGenericArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do<T>(out T goo)
+    {
+        Do(out Test $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void DisabledByOption()
+        {
+            var workspace = WorkspaceFixture.GetWorkspace();
+            var originalOptions = WorkspaceFixture.GetWorkspace().Options;
+            try
+            {
+                workspace.Options = originalOptions.
+                    WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false);
+
+                var markup = @"
+class Test
+{
+    Test $$
+}
+";
+                await VerifyNoItemsExistAsync(markup);
+            }
+            finally
+            {
+                workspace.Options = originalOptions;
+            }
+
         }
     }
 }

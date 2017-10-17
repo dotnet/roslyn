@@ -203,6 +203,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_VBCHelp, Culture))
         End Sub
 
+        Public Overrides Sub PrintLangVersions(consoleOutput As TextWriter)
+            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LangVersions, Culture))
+            Dim defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion()
+            Dim latestVersion = LanguageVersion.Latest.MapSpecifiedToEffectiveVersion()
+            For Each v As LanguageVersion In System.Enum.GetValues(GetType(LanguageVersion))
+                If v = defaultVersion Then
+                    consoleOutput.WriteLine($"{v.ToDisplayString()} (default)")
+                ElseIf v = latestVersion Then
+                    consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)")
+                Else
+                    consoleOutput.WriteLine(v.ToDisplayString())
+                End If
+            Next
+            consoleOutput.WriteLine()
+        End Sub
+
         Protected Overrides Function TryGetCompilerDiagnosticCode(diagnosticId As String, ByRef code As UInteger) As Boolean
             Return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "BC", code)
         End Function

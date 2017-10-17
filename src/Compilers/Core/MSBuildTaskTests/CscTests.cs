@@ -6,6 +6,7 @@ using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.BuildTasks;
 using Xunit;
 using Moq;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -88,6 +89,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.RuntimeMetadataVersion = null;
             Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void LangVersionFlag()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.LangVersion = "iso-1";
+            Assert.Equal("/out:test.exe /langversion:iso-1 test.cs", csc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -303,6 +313,62 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.RefOnly = true;
             Assert.Equal("/out:test.exe /refonly test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void SharedCompilationId()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.UseSharedCompilation = true;
+            csc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.UseSharedCompilation = false;
+            csc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void EmptyCscToolPath()
+        {
+            var csc = new Csc();
+            csc.ToolPath = "";
+            csc.ToolExe = Path.Combine("path", "to", "custom_csc");
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal(Path.Combine("path", "to", "custom_csc"), csc.GeneratePathToTool());
+
+            csc = new Csc();
+            csc.ToolExe = Path.Combine("path", "to", "custom_csc");
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal(Path.Combine("path", "to", "custom_csc"), csc.GeneratePathToTool());
+        }
+
+        [Fact]
+        public void EmptyCscToolExe()
+        {
+            var csc = new Csc();
+            csc.ToolPath = Path.Combine("path", "to", "custom_csc");
+            csc.ToolExe = "";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("", csc.GenerateCommandLine());
+            // StartsWith because it can be csc.exe or csc.dll
+            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+
+            csc = new Csc();
+            csc.ToolPath = Path.Combine("path", "to", "custom_csc");
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
         }
     }
 }

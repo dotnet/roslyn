@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isPossibleEventHandlerOperation)
             {
-                // IsEvent("Foo", dyn) ? InvokeMember("{add|remove}_Foo", dyn, RHS) : rewrittenAssignment
+                // IsEvent("Goo", dyn) ? InvokeMember("{add|remove}_Goo", dyn, RHS) : rewrittenAssignment
                 var memberAccess = (BoundDynamicMemberAccess)transformedLHS;
 
                 var isEventCondition = _dynamicFactory.MakeDynamicIsEventTest(memberAccess.Name, memberAccess.Receiver);
@@ -279,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, argsToParamsOpt, argumentRefKinds, rewrittenArguments, actualArguments, refKinds, storesToTemps);
+            BuildStoresToTemps(expanded, argsToParamsOpt, parameters, argumentRefKinds, rewrittenArguments, actualArguments, refKinds, storesToTemps);
 
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
@@ -549,6 +550,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(((BoundCall)originalLHS).Method.RefKind != RefKind.None);
                     break;
 
+                case BoundKind.ConditionalOperator:
+                    Debug.Assert(((BoundConditionalOperator)originalLHS).IsByRef);
+                    break;
+
                 case BoundKind.AssignmentOperator:
                     Debug.Assert(((BoundAssignmentOperator)originalLHS).RefKind != RefKind.None);
                     break;
@@ -647,9 +652,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// are not captured.
         /// 
         /// Example:
-        ///        l += foo(ref l);
+        ///        l += goo(ref l);
         /// 
-        /// even though l is a local, we must access it via a temp since "foo(ref l)" may change it
+        /// even though l is a local, we must access it via a temp since "goo(ref l)" may change it
         /// on between accesses. 
         /// </summary>
         internal static bool CanChangeValueBetweenReads(

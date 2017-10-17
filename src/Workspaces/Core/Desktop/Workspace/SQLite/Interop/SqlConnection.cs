@@ -207,7 +207,14 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         private Stream ReadBlob_InTransaction(string tableName, string columnName, long rowId)
         {
             const int ReadOnlyFlags = 0;
-            ThrowIfNotOk(raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob));
+            var result = raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob);
+            if (result == raw.SQLITE_ERROR)
+            {
+                // can happen when rowId points to a row that hasn't been written to yet.
+                return null;
+            }
+
+            ThrowIfNotOk(result);
             try
             {
                 return ReadBlob(blob);

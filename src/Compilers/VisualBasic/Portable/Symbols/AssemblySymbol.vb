@@ -387,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks></remarks>
         Friend Function GetSpecialType(type As SpecialType) As NamedTypeSymbol
             If type <= SpecialType.None OrElse type > SpecialType.Count Then
-                Throw New ArgumentOutOfRangeException()
+                Throw New ArgumentOutOfRangeException(NameOf(type), $"Unexpected SpecialType: '{CType(type, Integer)}'.")
             End If
 
             Return CorLibrary.GetDeclaredSpecialType(type)
@@ -519,7 +519,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         candidate = Nothing
                     End If
 
-                    If IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso Not candidate.IsHiddenByEmbeddedAttribute() AndAlso candidate <> result Then
+                    If IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso
+                        Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
+                        Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute() AndAlso
+                        candidate <> result Then
                         If (result IsNot Nothing) Then
                             ' Ambiguity
                             If ignoreCorLibraryDuplicatedTypes Then

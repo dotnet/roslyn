@@ -45,9 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     compilationContext.RegisterOperationBlockStartAction(
                         (operationBlockContext) =>
                         {
-                            IMethodSymbol containingMethod = operationBlockContext.OwningSymbol as IMethodSymbol;
-
-                            if (containingMethod != null)
+                            if (operationBlockContext.OwningSymbol is IMethodSymbol containingMethod)
                             {
                                 Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes = new Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>>();
 
@@ -55,10 +53,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 operationBlockContext.RegisterOperationAction(
                                    (operationContext) =>
                                    {
-                                       IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
-                                       AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
+                                       if (operationContext.Operation is IAssignmentExpression assignment)
+                                       {
+                                           AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
+                                       }
+                                       else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
+                                       {
+                                           SyntaxNode syntax = increment.Syntax;
+                                           ITypeSymbol type = increment.Type;
+                                           Optional<object> constantValue = new Optional<object>(1);
+                                           bool isImplicit = increment.IsImplicit;
+                                           var value = new LiteralExpression(operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
+
+                                           AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
+                                       }
+                                       else
+                                       {
+                                           throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
+                                       }
                                    },
-                                   OperationKind.AssignmentExpression,
+                                   OperationKind.SimpleAssignmentExpression,
                                    OperationKind.CompoundAssignmentExpression,
                                    OperationKind.IncrementExpression);
 
@@ -81,19 +95,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
-                                        IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
-                                        foreach (IVariableDeclaration variable in declaration.Declarations)
+                                        IVariableInitializer initializer = (IVariableInitializer)operationContext.Operation;
+                                        if (initializer.Parent is IVariableDeclaration variableDeclaration)
                                         {
-                                            foreach (ILocalSymbol local in variable.Variables)
+                                            foreach (ILocalSymbol local in variableDeclaration.Variables)
                                             {
-                                                if (variable.Initializer != null)
-                                                {
-                                                    AssignTo(local, local.Type, localsSourceTypes, variable.Initializer);
-                                                }
+                                                AssignTo(local, local.Type, localsSourceTypes, initializer.Value);
                                             }
                                         }
                                     },
-                                    OperationKind.VariableDeclarationStatement);
+                                    OperationKind.VariableInitializer);
 
                                 // Report locals that could have more specific types.
                                 operationBlockContext.RegisterOperationBlockEndAction(
@@ -101,8 +112,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     {
                                         foreach (ILocalSymbol local in localsSourceTypes.Keys)
                                         {
-                                            INamedTypeSymbol mostSpecificSourceType;
-                                            if (HasMoreSpecificSourceType(local, local.Type, localsSourceTypes, out mostSpecificSourceType))
+                                            if (HasMoreSpecificSourceType(local, local.Type, localsSourceTypes, out var mostSpecificSourceType))
                                             {
                                                 Report(operationBlockEndContext, local, mostSpecificSourceType, LocalCouldHaveMoreSpecificTypeDescriptor);
                                             }
@@ -121,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 AssignTo(initializedField, initializedField.Type, fieldsSourceTypes, initializer.Value);
                             }
                         },
-                        OperationKind.FieldInitializerAtDeclaration);
+                        OperationKind.FieldInitializer);
 
                     // Report fields that could have more specific types.
                     compilationContext.RegisterCompilationEndAction(
@@ -129,8 +139,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             foreach (IFieldSymbol field in fieldsSourceTypes.Keys)
                             {
-                                INamedTypeSymbol mostSpecificSourceType;
-                                if (HasMoreSpecificSourceType(field, field.Type, fieldsSourceTypes, out mostSpecificSourceType))
+                                if (HasMoreSpecificSourceType(field, field.Type, fieldsSourceTypes, out var mostSpecificSourceType))
                                 {
                                     Report(compilationEndContext, field, mostSpecificSourceType, FieldCouldHaveMoreSpecificTypeDescriptor);
                                 }
@@ -141,8 +150,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static bool HasMoreSpecificSourceType<SymbolType>(SymbolType symbol, ITypeSymbol symbolType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> symbolsSourceTypes, out INamedTypeSymbol commonSourceType)
         {
-            HashSet<INamedTypeSymbol> sourceTypes;
-            if (symbolsSourceTypes.TryGetValue(symbol, out sourceTypes))
+            if (symbolsSourceTypes.TryGetValue(symbol, out var sourceTypes))
             {
                 commonSourceType = CommonType(sourceTypes);
                 if (commonSourceType != null && DerivesFrom(commonSourceType, (INamedTypeSymbol)symbolType))
@@ -239,7 +247,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (sourceType != null && targetType != null)
             {
-                HashSet<INamedTypeSymbol> symbolSourceTypes;
                 TypeKind targetTypeKind = targetType.TypeKind;
                 TypeKind sourceTypeKind = sourceType.TypeKind;
 
@@ -247,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if ((targetTypeKind == sourceTypeKind && (targetTypeKind == TypeKind.Class || targetTypeKind == TypeKind.Interface)) ||
                     (targetTypeKind == TypeKind.Class && (sourceTypeKind == TypeKind.Structure || sourceTypeKind == TypeKind.Interface) && targetType.SpecialType == SpecialType.System_Object))
                 {
-                    if (!sourceTypes.TryGetValue(target, out symbolSourceTypes))
+                    if (!sourceTypes.TryGetValue(target, out var symbolSourceTypes))
                     {
                         symbolSourceTypes = new HashSet<INamedTypeSymbol>();
                         sourceTypes[target] = symbolSourceTypes;
@@ -263,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (value.Kind == OperationKind.ConversionExpression)
             {
                 IConversionExpression conversion = (IConversionExpression)value;
-                if (!conversion.IsExplicit)
+                if (!conversion.IsExplicitInCode)
                 {
                     return conversion.Operand.Type;
                 }

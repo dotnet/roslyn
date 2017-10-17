@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -38,14 +39,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IMethodSymbol CreateEqualsMethod(this Compilation compilation, ImmutableArray<SyntaxNode> statements)
         {
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
-                returnsByRef: false,
+                refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: EqualsName,
-                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                typeParameters: default,
                 parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object), ObjName)),
                 statements: statements);
         }
@@ -283,15 +284,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return statements.ToImmutableAndFree();
         }
 
-        public static string GetLocalName(this INamedTypeSymbol containingType)
+        public static string GetLocalName(this ITypeSymbol containingType)
         {
-            var parts = StringBreaker.BreakIntoWordParts(containingType.Name);
-            for (var i = parts.GetCount() - 1; i >= 0; i--)
+            var name = containingType.Name;
+            if (name.Length > 0)
             {
-                var p = parts[i];
-                if (char.IsLetter(containingType.Name[p.Start]))
+                var parts = StringBreaker.GetWordParts(name);
+                for (var i = parts.Count - 1; i >= 0; i--)
                 {
-                    return containingType.Name.Substring(p.Start, p.Length).ToCamelCase();
+                    var p = parts[i];
+                    if (p.Length > 0 && char.IsLetter(name[p.Start]))
+                    {
+                        return name.Substring(p.Start, p.Length).ToCamelCase();
+                    }
                 }
             }
 

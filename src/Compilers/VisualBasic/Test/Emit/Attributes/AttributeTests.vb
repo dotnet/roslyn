@@ -63,6 +63,54 @@ End Class
             CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
+        <Fact>
+        <WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")>
+        Public Sub TestNamedArgumentOnStringParamsArgument()
+            Dim source =
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Imports System
+
+Class MarkAttribute
+    Inherits Attribute
+
+    Public Sub New(ByVal otherArg As Boolean, ParamArray args As Object())
+    End Sub
+End Class
+
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+Module Program
+
+    Private Sub Test(ByVal otherArg As Boolean, ParamArray args As Object())
+    End Sub
+
+    Sub Main()
+        Console.WriteLine("Method call")
+        Test(args:=New String() {"Hello", "World"}, otherArg:=True)
+    End Sub
+End Module
+]]>
+                    </file>
+                </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30455: Argument not specified for parameter 'otherArg' of 'Public Sub New(otherArg As Boolean, ParamArray args As Object())'.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+ ~~~~
+BC30661: Field or property 'args' is not found.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+      ~~~~
+BC30661: Field or property 'otherArg' is not found.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+                                             ~~~~~~~~
+BC30587: Named argument cannot match a ParamArray parameter.
+        Test(args:=New String() {"Hello", "World"}, otherArg:=True)
+             ~~~~
+                                        ]]></errors>)
+        End Sub
+
         ''' <summary>
         ''' This function is the same as PEParameterSymbolParamArray
         ''' except that we check attributes first (to check for race
@@ -292,8 +340,8 @@ Imports System.Runtime.CompilerServices
             Dim compilation = CreateCompilationWithMscorlib(
                 <compilation>
                     <file name="a.vb"><![CDATA[
-                        <Attr(Foo.p)>
-                        Class Foo
+                        <Attr(Goo.p)>
+                        Class Goo
                             Friend Const p As Object = 2 + 2
                         End Class
                         Friend Class AttrAttribute
@@ -303,7 +351,7 @@ Imports System.Runtime.CompilerServices
                     </file>
                 </compilation>)
 
-            Dim attrs = compilation.SourceModule.GlobalNamespace.GetMember("Foo").GetAttributes()
+            Dim attrs = compilation.SourceModule.GlobalNamespace.GetMember("Goo").GetAttributes()
             Assert.Equal(1, attrs.Length)
             attrs(0).VerifyValue(0, TypedConstantKind.Primitive, 4)
         End Sub
@@ -684,7 +732,7 @@ Imports AN = CustomAttribute.AttrName
 
 Namespace AttributeTest
 
-    Public Interface IFoo
+    Public Interface IGoo
 
         Class NestedClass
             ' enum as object
@@ -734,7 +782,7 @@ End Namespace
                         End If
 
                         Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
-                        Dim top = DirectCast(ns.GetMember("IFoo"), NamedTypeSymbol)
+                        Dim top = DirectCast(ns.GetMember("IGoo"), NamedTypeSymbol)
                         Dim type = top.GetMember(Of NamedTypeSymbol)("NestedClass")
 
                         Dim field = type.GetMember(Of FieldSymbol)("Field")
@@ -780,7 +828,7 @@ Imports CustomAttribute
 
 Namespace AttributeTest
 
-    Public Interface IFoo
+    Public Interface IGoo
 
         <AllInheritMultiple(New Object() {0, "", Nothing}, 255, -127 - 1, AryProp:=New Object() {New Object() {"", GetType(IList(Of String))}})>
         Delegate Sub NestedSubDele(<AllInheritMultiple()> <Derived(GetType(String(,,)))> p As String)
@@ -797,7 +845,7 @@ End Namespace
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
-                                         Dim type = DirectCast(ns.GetMember("IFoo"), NamedTypeSymbol)
+                                         Dim type = DirectCast(ns.GetMember("IGoo"), NamedTypeSymbol)
 
                                          Dim dele = DirectCast(type.GetTypeMember("NestedSubDele"), NamedTypeSymbol)
                                          Dim attrs = dele.GetAttributes()
@@ -833,7 +881,7 @@ Imports System
 
 Namespace AttributeTest
 
-    Public Interface IFoo
+    Public Interface IGoo
 
         <CustomAttribute.Derived(New Object() {1, Nothing, "Hi"}, ObjectField:=2)>
         Function F(p As Integer) As Integer
@@ -850,7 +898,7 @@ End Namespace
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
-                                         Dim type = DirectCast(ns.GetMember("IFoo"), NamedTypeSymbol)
+                                         Dim type = DirectCast(ns.GetMember("IGoo"), NamedTypeSymbol)
                                          Dim attrs = type.GetMember(Of MethodSymbol)("F").GetAttributes()
 
                                          Assert.Equal("CustomAttribute.DerivedAttribute", attrs(0).AttributeClass.ToDisplayString)
@@ -874,7 +922,7 @@ Imports CustomAttribute
 Namespace AttributeTest
 
     <AllInheritMultiple(New Char() {" "c, Nothing}, "")>
-    Public Interface IFoo
+    Public Interface IGoo
     End Interface
 End Namespace
                    ]]></file>
@@ -887,7 +935,7 @@ End Namespace
 
             Dim sourceAttributeValidator = Sub(m As ModuleSymbol)
                                                Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
-                                               Dim type = DirectCast(ns.GetMember("IFoo"), NamedTypeSymbol)
+                                               Dim type = DirectCast(ns.GetMember("IGoo"), NamedTypeSymbol)
                                                Dim attrs = type.GetAttributes()
                                                attrs(0).VerifyValue(Of Char())(0, TypedConstantKind.Array, New Char() {" "c, Nothing})
                                                attrs(0).VerifyValue(Of String())(1, TypedConstantKind.Array, New String() {""})
@@ -898,7 +946,7 @@ End Namespace
 
             Dim mdAttributeValidator = Sub(m As ModuleSymbol)
                                            Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
-                                           Dim type = DirectCast(ns.GetMember("IFoo"), NamedTypeSymbol)
+                                           Dim type = DirectCast(ns.GetMember("IGoo"), NamedTypeSymbol)
                                            Dim attrs = type.GetAttributes()
                                            attrs(0).VerifyValue(Of Char())(0, TypedConstantKind.Array, New Char() {" "c, Nothing})
                                            attrs(0).VerifyValue(Of String())(1, TypedConstantKind.Array, New String() {""})
@@ -927,7 +975,7 @@ Namespace AttributeTest
             End Sub
     End Class
 
-    Public Interface IFoo
+    Public Interface IGoo
         Function F1(i as integer) as <X("f1 return type")> string
 
         Property P1 as <X("p1 return type")> string
@@ -957,13 +1005,13 @@ End Namespace
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim ns = DirectCast(m.GlobalNamespace.GetMember("AttributeTest"), NamespaceSymbol)
-                                         Dim iFoo = DirectCast(ns.GetMember("IFoo"), NamedTypeSymbol)
+                                         Dim iGoo = DirectCast(ns.GetMember("IGoo"), NamedTypeSymbol)
 
-                                         Dim f1 = DirectCast(iFoo.GetMember("F1"), MethodSymbol)
+                                         Dim f1 = DirectCast(iGoo.GetMember("F1"), MethodSymbol)
                                          Dim attrs = f1.GetReturnTypeAttributes()
                                          attrs(0).VerifyValue(Of Object)(0, TypedConstantKind.Primitive, "f1 return type")
 
-                                         Dim p1 = DirectCast(iFoo.GetMember("P1"), PropertySymbol)
+                                         Dim p1 = DirectCast(iGoo.GetMember("P1"), PropertySymbol)
                                          attrs = p1.GetMethod.GetReturnTypeAttributes()
                                          attrs(0).VerifyValue(Of Object)(0, TypedConstantKind.Primitive, "p1 return type")
 
@@ -1067,7 +1115,7 @@ End Class
 Class scen1
 End Class
 Module M1
-    Sub foo()
+    Sub goo()
         <Z()> _
         Static x1 As Object
     End Sub
@@ -1832,7 +1880,7 @@ End Class
             Dim ref1 = MetadataReference.CreateFromImage(metadata1)
 
             Dim metadata2 = VisualBasicCompilation.Create(
-                                "foo.dll",
+                                "goo.dll",
                                 references:={MscorlibRef, ref1},
                                 syntaxTrees:={
                                     VisualBasicSyntaxTree.ParseText(<![CDATA[
@@ -1841,15 +1889,15 @@ End Class
                                             End Sub
                                         End Class
                                         <Ca(Bar.Baz)>
-                                        Public Class Foo
+                                        Public Class Goo
                                         End Class]]>.Value)}).EmitToArray(options:=New EmitOptions(metadataOnly:=True))
 
             Dim ref2 = MetadataReference.CreateFromImage(metadata2)
 
             Dim comp = VisualBasicCompilation.Create("moo.dll", references:={MscorlibRef, ref1, ref2})
 
-            Dim foo = comp.GetTypeByMetadataName("Foo")
-            Dim ca = foo.GetAttributes().First().CommonConstructorArguments.First()
+            Dim goo = comp.GetTypeByMetadataName("Goo")
+            Dim ca = goo.GetAttributes().First().CommonConstructorArguments.First()
 
             Assert.Equal("Bar", ca.Type.Name)
         End Sub
@@ -2047,7 +2095,7 @@ Class c1
     end class
 
     <MyAttribute(A + B + 3)>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class"]]>.Value)
             Dim expr = tree.GetRoot().DescendantNodes().OfType(Of BinaryExpressionSyntax).First()
@@ -2369,14 +2417,14 @@ Class A
   End Sub
 End Class
 
-<B("foo")>
+<B("goo")>
 Class B
   Inherits Attribute
   Protected Sub New()
   End Sub
 End Class
 
-<C("foo")>
+<C("goo")>
 Class C
   Inherits Attribute
   Protected Sub New()
@@ -2407,10 +2455,10 @@ BC30517: Overload resolution failed because no 'New' is accessible.
 <A()>
  ~~~
 BC30517: Overload resolution failed because no 'New' is accessible.
-<B("foo")>
+<B("goo")>
  ~~~~~~~~
 BC30517: Overload resolution failed because no 'New' is accessible.
-<C("foo")>
+<C("goo")>
  ~~~~~~~~
 BC30517: Overload resolution failed because no 'New' is accessible.
 <D(1S)>
@@ -2439,7 +2487,7 @@ Module AttributeMod
 
     <Derived("Q"c)>
     <Derived("C"c)>
-    Public Class Foo
+    Public Class Goo
 
     End Class
 
@@ -2457,7 +2505,7 @@ End Module
 BC30663: Attribute 'BaseAttribute' cannot be applied multiple times.
 <Base("SOS")>
  ~~~~~~~~~~~
-BC30662: Attribute 'DerivedAttribute' cannot be applied to 'Foo' because the attribute is not valid on this declaration type.
+BC30662: Attribute 'DerivedAttribute' cannot be applied to 'Goo' because the attribute is not valid on this declaration type.
     <Derived("Q"c)>
      ~~~~~~~
 BC30663: Attribute 'DerivedAttribute' cannot be applied multiple times.
@@ -2484,7 +2532,7 @@ Imports System
 
     ' C1 should not be visible without qualification
     <clscompliant(C1)>
-    Public Class CFoo
+    Public Class CGoo
         Public Const C1 as Boolean = true
 
         <clscompliant(c1)>
@@ -2494,7 +2542,7 @@ Imports System
 
     ' C1 should not be visible without qualification
     <clscompliant(C1)>
-    Public Structure SFoo
+    Public Structure SGoo
         Public Const C1 as Boolean = true
 
         <clscompliant(c1)>
@@ -2504,14 +2552,14 @@ Imports System
 
     ' s should not be visible without qualification
     <clscompliant(s.GetType() isnot nothing)>
-    Public Interface IFoo
+    Public Interface IGoo
         Sub s()
     End Interface
 
 
     ' C1 should not be visible without qualification
     <clscompliant(a = 1)>
-    Public Enum EFoo
+    Public Enum EGoo
         A = 1
     End Enum
 
@@ -2570,7 +2618,7 @@ End Class
             <![CDATA[ 
 Imports System
 
-<foo(Type.EmptyTypes)>
+<goo(Type.EmptyTypes)>
 Module Program
     Sub Main(args As String())
 
@@ -2582,11 +2630,11 @@ End Module
 
             Dim expectedErrors = <errors>
                                      <![CDATA[
-BC30002: Type 'foo' is not defined.
-<foo(Type.EmptyTypes)>
+BC30002: Type 'goo' is not defined.
+<goo(Type.EmptyTypes)>
  ~~~
 BC30059: Constant expression is required.
-<foo(Type.EmptyTypes)>
+<goo(Type.EmptyTypes)>
      ~~~~~~~~~~~~~~~
                                ]]></errors>
 
@@ -2693,11 +2741,11 @@ End Class
 
 Partial Class C
     <A>
-    Private Partial Sub Foo()
+    Private Partial Sub Goo()
     End Sub
 
     <B>
-    Private Sub Foo()
+    Private Sub Goo()
     End Sub
 End Class
 ]]>
@@ -2707,9 +2755,9 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=
                 Sub(moduleSymbol)
                     Dim c = DirectCast(moduleSymbol.GlobalNamespace.GetMembers("C").Single(), NamedTypeSymbol)
-                    Dim foo = DirectCast(c.GetMembers("Foo").Single(), MethodSymbol)
+                    Dim goo = DirectCast(c.GetMembers("Goo").Single(), MethodSymbol)
 
-                    Dim attrs = foo.GetAttributes()
+                    Dim attrs = goo.GetAttributes()
                     Assert.Equal(2, attrs.Length)
                     Assert.Equal("A", attrs(0).AttributeClass.Name)
                     Assert.Equal("B", attrs(1).AttributeClass.Name)
@@ -2763,7 +2811,7 @@ Imports System
 
 Module M
     <T>
-    Sub Foo(Of T)
+    Sub Goo(Of T)
     End Sub
 
     Class T : Inherits Attribute
@@ -3744,7 +3792,7 @@ End Structure
 {
 }
 
-.class public abstract auto ansi sealed Library1.Foo
+.class public abstract auto ansi sealed Library1.Goo
        extends [mscorlib]System.Object
 {
   .custom instance void [FSharp.Core]Microsoft.FSharp.Core.CompilationMappingAttribute::.ctor(valuetype [FSharp.Core]Microsoft.FSharp.Core.SourceConstructFlags) = ( 01 00 07 00 00 00 00 00 ) 
@@ -3757,9 +3805,9 @@ End Structure
     IL_0002:  ldc.i4.1
     IL_0003:  add
     IL_0004:  ret
-  } // end of method Foo::inc
+  } // end of method Goo::inc
 
-} // end of class Library1.Foo
+} // end of class Library1.Goo
 ]]>
 
 
@@ -3769,7 +3817,7 @@ End Structure
     </file>
 </compilation>, customIL.Value, appendDefaultHeader:=False)
 
-            Dim type = compilation.GetTypeByMetadataName("Library1.Foo")
+            Dim type = compilation.GetTypeByMetadataName("Library1.Goo")
             Assert.Equal(0, type.GetAttributes()(0).ConstructorArguments.Count)
 
         End Sub
@@ -4335,6 +4383,238 @@ BC30002: Type 'xyz' is not defined.
 <DiagnosticAnalyzer(LanguageNames.CSharp)>
                     ~~~~~~~~~~~~~~~~~~~~
 ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Internal()
+
+            Dim reference =
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Source")>
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace TestReference
+    <Microsoft.CodeAnalysis.Embedded>
+    Friend Class TestType1
+    End Class
+    <Microsoft.CodeAnalysis.EmbeddedAttribute>
+    Friend Class TestType2
+    End Class
+    Friend Class TestType3
+    End Class
+End Namespace
+]]>
+    </file>
+</compilation>
+
+            Dim referenceCompilation = CreateCompilationWithMscorlib(reference).ToMetadataReference()
+
+            Dim code = "
+Public Class Program
+    Public Shared Sub Main()
+        Dim obj1 = New TestReference.TestType1()
+        Dim obj2 = New TestReference.TestType2()
+        Dim obj3 = New TestReference.TestType3() ' This should be fine
+    End Sub
+End Class"
+
+            Dim compilation = CreateCompilationWithMscorlib(code, references:={referenceCompilation}, assemblyName:="Source")
+
+            AssertTheseDiagnostics(compilation, <![CDATA[
+BC30002: Type 'TestReference.TestType1' is not defined.
+        Dim obj1 = New TestReference.TestType1()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'TestReference.TestType2' is not defined.
+        Dim obj2 = New TestReference.TestType2()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Public()
+
+            Dim reference =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace TestReference
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestType1
+    End Class
+    <Microsoft.CodeAnalysis.EmbeddedAttribute>
+    Public Class TestType2
+    End Class
+    Public Class TestType3
+    End Class
+End Namespace
+]]>
+    </file>
+</compilation>
+
+            Dim referenceCompilation = CreateCompilationWithMscorlib(reference).ToMetadataReference()
+
+            Dim code = "
+Public Class Program
+    Public Shared Sub Main()
+        Dim obj1 = New TestReference.TestType1()
+        Dim obj2 = New TestReference.TestType2()
+        Dim obj3 = New TestReference.TestType3() ' This should be fine
+    End Sub
+End Class"
+
+            Dim compilation = CreateCompilationWithMscorlib(code, references:={referenceCompilation})
+
+            AssertTheseDiagnostics(compilation, <![CDATA[
+BC30002: Type 'TestReference.TestType1' is not defined.
+        Dim obj1 = New TestReference.TestType1()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'TestReference.TestType2' is not defined.
+        Dim obj2 = New TestReference.TestType2()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Module()
+
+            Dim moduleCode = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseModule, source:="
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace TestReference
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestType1
+    End Class
+    <Microsoft.CodeAnalysis.EmbeddedAttribute>
+    Public Class TestType2
+    End Class
+    Public Class TestType3
+    End Class
+End Namespace")
+
+            Dim reference = ModuleMetadata.CreateFromImage(moduleCode.EmitToArray()).GetReference()
+
+            Dim code = "
+Public Class Program
+    Public Shared Sub Main()
+        Dim obj1 = New TestReference.TestType1()
+        Dim obj2 = New TestReference.TestType2()
+        Dim obj3 = New TestReference.TestType3() ' This should be fine
+    End Sub
+End Class"
+
+            Dim compilation = CreateCompilationWithMscorlib(code, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <![CDATA[
+BC30002: Type 'TestReference.TestType1' is not defined.
+        Dim obj1 = New TestReference.TestType1()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'TestReference.TestType2' is not defined.
+        Dim obj2 = New TestReference.TestType2()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferencingEmbeddedAttributesFromTheSameAssemblySucceeds()
+
+            Dim compilation = CreateCompilationWithMscorlib(source:="
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace TestReference
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestType1
+    End Class
+    <Microsoft.CodeAnalysis.EmbeddedAttribute>
+    Public Class TestType2
+    End Class
+    Public Class TestType3
+    End Class
+End Namespace
+Public Class Program
+    Public Shared Sub Main()
+        Dim obj1 = New TestReference.TestType1()
+        Dim obj2 = New TestReference.TestType2()
+        Dim obj3 = New TestReference.TestType3()
+    End Sub
+End Class")
+
+            AssertTheseEmitDiagnostics(compilation)
+
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedAttributeInSourceIsAllowedIfCompilerDoesNotNeedToGenerateOne()
+
+            Dim compilation = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseExe, sources:=
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace OtherNamespace
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestReference
+        Public Shared Function GetValue() As Integer
+            Return 3
+        End Function
+    End Class
+End Namespace
+Public Class Program
+    Public Shared Sub Main()
+        ' This should be fine, as the compiler doesn't need to use an embedded attribute for this compilation
+        System.Console.Write(OtherNamespace.TestReference.GetValue())
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>)
+
+            CompileAndVerify(compilation, expectedOutput:="3")
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedTypesInAnAssemblyAreNotExposedExternally()
+
+            Dim compilation1 = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseDll, sources:=
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+<Microsoft.CodeAnalysis.Embedded>
+Public Class TestReference1
+End Class
+Public Class TestReference2
+End Class
+]]>
+    </file>
+</compilation>)
+
+            Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference1"))
+            Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference2"))
+
+            Dim compilation2 = CreateCompilationWithMscorlib("", references:={compilation1.EmitToImageReference()})
+
+            Assert.Null(compilation2.GetTypeByMetadataName("TestReference1"))
+            Assert.NotNull(compilation2.GetTypeByMetadataName("TestReference2"))
         End Sub
 
     End Class

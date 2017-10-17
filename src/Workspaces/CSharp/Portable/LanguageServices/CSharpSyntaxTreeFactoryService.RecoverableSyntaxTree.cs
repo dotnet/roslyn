@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return status;
                 }
 
-                public override CSharpSyntaxNode GetRoot(CancellationToken cancellationToken = default(CancellationToken))
+                public override CSharpSyntaxNode GetRoot(CancellationToken cancellationToken = default)
                 {
                     return CacheRootNode(_recoverableRoot.GetValue(cancellationToken));
                 }

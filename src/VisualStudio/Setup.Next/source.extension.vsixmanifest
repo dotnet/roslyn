@@ -2,8 +2,8 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="58293943-56F1-4734-82FC-0411DCF49DE1" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>Roslyn Language Services for Visual Studio 15</DisplayName>
-    <Description>C# and VB.NET language services for Visual Studio 15.</Description>
+    <DisplayName>Roslyn Language Services (Local Placeholder)</DisplayName>
+    <Description>C# and VB.NET language services (Local Placeholder).</Description>
     <PackageId>Microsoft.CodeAnalysis.VisualStudio.Setup.Next</PackageId>
   </Metadata>
   <Installation Experimental="true">
@@ -17,14 +17,8 @@
     <Dependency Version="[|VisualStudioSetup;GetBuildVersion|,]" DisplayName="Roslyn Language Services" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
   </Dependencies>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="EditorFeatures.Next" Path="|EditorFeatures.Next|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="ServicesVisualStudio.Next" Path="|ServicesVisualStudio.Next|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
-    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteHostService.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="snapshotService.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="codeAnalysisService.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteSymbolSearchUpdateEngine.servicehub.service.json" />
+    <!-- This VSIX now contains no contents, but is a placeholder to ensure that F5 locally works by preventing loads from the base-installed
+         extension. The actual contents are all in VisualStudioSetup -->
   </Assets>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />

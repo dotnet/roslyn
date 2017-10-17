@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -324,7 +324,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -357,7 +356,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -395,7 +393,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -438,7 +435,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -527,7 +523,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -570,7 +565,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -636,7 +630,7 @@ class D
     {
         return 1; // Comment
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -645,7 +639,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Foo
+    int [||]Goo
     {
         get
         {
@@ -660,7 +654,7 @@ class D
 }",
 @"class C
 {
-    private int GetFoo()
+    private int GetGoo()
     {
         int count;
         foreach (var x in y)
@@ -669,8 +663,7 @@ class D
         }
         return count;
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -688,7 +681,7 @@ ignoreTrivia: false);
         /* return 42 */
         return 42;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1005,7 +998,7 @@ ignoreTrivia: false);
 
         SetProp(GetProp() + 1);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1041,7 +1034,7 @@ ignoreTrivia: false);
         /* Leading */
         SetProp(GetProp() + 1); /* Trailing */
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1077,7 +1070,7 @@ ignoreTrivia: false);
         /* Leading */
         SetProp(GetProp() + 1 /* Trailing */ );
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1153,17 +1146,17 @@ ignoreTrivia: false);
         public async Task TestWithConditionalBinding1()
         {
             await TestInRegularAndScriptAsync(
-@"public class Foo
+@"public class Goo
 {
     public bool [||]Any { get; } // Replace 'Any' with method
 
     public static void Bar()
     {
-        var foo = new Foo();
-        bool f = foo?.Any == true;
+        var goo = new Goo();
+        bool f = goo?.Any == true;
     }
 }",
-@"public class Foo
+@"public class Goo
 {
     private readonly bool any;
 
@@ -1174,8 +1167,8 @@ ignoreTrivia: false);
 
     public static void Bar()
     {
-        var foo = new Foo();
-        bool f = foo?.GetAny() == true;
+        var goo = new Goo();
+        bool f = goo?.GetAny() == true;
     }
 }");
         }
@@ -1198,7 +1191,7 @@ ignoreTrivia: false);
 @"class C
 {
     private int GetProp() => 0;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1225,7 +1218,7 @@ ignoreTrivia: false);
 {
     private int GetProp() => 0;
     private void SetProp(int value) => throw e;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1246,7 +1239,7 @@ ignoreTrivia: false);
 {
     private int GetProp() => 0;
     private void SetProp(int value) => throw e;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1261,7 +1254,7 @@ ignoreTrivia: false);
 @"class C
 {
     private int GetProp() => 0;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1278,7 +1271,7 @@ ignoreTrivia: false);
     private readonly int prop;
 
     private int GetProp() => prop;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1296,7 +1289,7 @@ ignoreTrivia: false);
 
     private int GetProp() => prop;
     private void SetProp(int value) => prop = value;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1322,7 +1315,7 @@ ignoreTrivia: false);
         A();
         return B();
     }
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1352,7 +1345,7 @@ ignoreTrivia: false);
     ///     An value that provides access to the language service for the active configured project.
     /// </returns>
     object GetActiveProjectContext();
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1382,7 +1375,7 @@ ignoreTrivia: false);
     ///     An value that provides access to the language service for the active configured project.
     /// </param>
     void SetActiveProjectContext(object value);
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1420,7 +1413,7 @@ ignoreTrivia: false);
     ///     An value that provides access to the language service for the active configured project.
     /// </param>
     void SetActiveProjectContext(object value);
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1456,7 +1449,7 @@ internal struct AStruct
 {
     /// <seealso cref=""ILanguageServiceHost.SetActiveProjectContext(object)""/>
     private int x;
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1498,7 +1491,7 @@ internal struct AStruct
 {
     /// <seealso cref=""ILanguageServiceHost.GetActiveProjectContext()""/>
     private int x;
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
@@ -1528,7 +1521,7 @@ internal struct AStruct
 {
     /// <seealso cref=""ISomeInterface{T}.SetContext(ISomeInterface{T})""/>
     private int x;
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
@@ -1560,7 +1553,7 @@ internal struct AStruct
             return 1;
 #endif
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
@@ -1590,7 +1583,7 @@ internal struct AStruct
 #else
             return 1;
 #endif
-}", ignoreTrivia: false,
+}",
     options: PreferExpressionBodiedMethods);
         }
 
@@ -1616,7 +1609,7 @@ internal struct AStruct
 #else
         1;
 #endif
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
@@ -1641,7 +1634,7 @@ internal struct AStruct
 #else
         1;
 #endif
-}", ignoreTrivia: false,
+}",
     options: PreferExpressionBodiedMethods);
         }
 
@@ -1650,14 +1643,14 @@ internal struct AStruct
         public async Task TestExplicitInterfaceImplementation()
         {
             await TestInRegularAndScriptAsync(
-@"interface IFoo
+@"interface IGoo
 {
-    int [||]Foo { get; set; }
+    int [||]Goo { get; set; }
 }
 
-class C : IFoo
+class C : IGoo
 {
-    int IFoo.Foo
+    int IGoo.Goo
     {
         get
         {
@@ -1670,19 +1663,19 @@ class C : IFoo
         }
     }
 }",
-@"interface IFoo
+@"interface IGoo
 {
-    int GetFoo();
-    void SetFoo(int value);
+    int GetGoo();
+    void SetGoo(int value);
 }
 
-class C : IFoo
+class C : IGoo
 {
-    int IFoo.GetFoo()
+    int IGoo.GetGoo()
     {
         throw new System.NotImplementedException();
     }
-    void IFoo.SetFoo(int value)
+    void IGoo.SetGoo(int value)
     {
         throw new System.NotImplementedException();
     }

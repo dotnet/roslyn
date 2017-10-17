@@ -1,58 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{4462B57A-7245-4146-B504-D46FDE762948}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Emit.UnitTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
-      <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
-      <Name>CSharpCompilerTestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
-      <Name>CSharpCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -60,116 +31,7 @@
     <Compile Include="..\..\..\Core\MSBuildTask\MvidReader.cs">
       <Link>Emit\MvidReader.cs</Link>
     </Compile>
-    <Compile Include="Attributes\AttributeTests.cs" />
-    <Compile Include="Attributes\AttributeTests_Assembly.cs" />
-    <Compile Include="Attributes\AttributeTests_CallerInfoAttributes.cs" />
-    <Compile Include="Attributes\AttributeTests_Conditional.cs" />
-    <Compile Include="Attributes\AttributeTests_Dynamic.cs" />
-    <Compile Include="Attributes\AttributeTests_Experimental.cs" />
-    <Compile Include="Attributes\AttributeTests_Locations.cs" />
-    <Compile Include="Attributes\AttributeTests_MarshalAs.cs" />
-    <Compile Include="Attributes\AttributeTests_Security.cs" />
-    <Compile Include="Attributes\AttributeTests_StructLayout.cs" />
-    <Compile Include="Attributes\AttributeTests_Synthesized.cs" />
-    <Compile Include="Attributes\AttributeTests_Tuples.cs" />
-    <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
-    <Compile Include="CodeGen\CodeGenAsyncMainTests.cs" />
-    <Compile Include="CodeGen\CodeGenCapturing.cs" />
-    <Compile Include="CodeGen\PatternTests.cs" />
-    <Compile Include="Emit\BinaryCompatibility.cs" />
-    <Compile Include="Emit\DesktopStrongNameProviderTests.cs" />
-    <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.cs" />
-    <Compile Include="Attributes\WellKnownAttributesTestBase.cs" />
-    <Compile Include="BreakingChanges.cs" />
-    <Compile Include="CodeGen\CodeGenAsyncEHTests.cs" />
-    <Compile Include="CodeGen\CodeGenAsyncLocalsTests.cs" />
-    <Compile Include="CodeGen\CodeGenAsyncSpillTests.cs" />
-    <Compile Include="CodeGen\CodeGenAsyncTests.cs" />
-    <Compile Include="CodeGen\CodeGenCheckedTests.cs" />
-    <Compile Include="CodeGen\CodeGenClosureLambdaTests.cs" />
-    <Compile Include="CodeGen\CodeGenConditionalOperatorTests.cs" />
-    <Compile Include="CodeGen\CodeGenConstructorInitTests.cs" />
-    <Compile Include="CodeGen\CodeGenConversionTests.cs" />
-    <Compile Include="CodeGen\CodeGenDeconstructTests.cs" />
-    <Compile Include="CodeGen\CodeGenDynamicTests.cs" />
-    <Compile Include="CodeGen\CodeGenExplicitImplementationTests.cs" />
-    <Compile Include="CodeGen\CodeGenExprLambdaTests.cs" />
-    <Compile Include="CodeGen\CodeGenFieldInitTests.cs" />
-    <Compile Include="CodeGen\CodeGenForEachTests.cs" />
-    <Compile Include="CodeGen\CodeGenImplicitImplementationTests.cs" />
-    <Compile Include="CodeGen\CodeGenImplicitlyTypeArraysTests.cs" />
-    <Compile Include="CodeGen\CodeGenIncrementTests.cs" />
-    <Compile Include="CodeGen\CodeGenInterfaceImplementation.cs" />
-    <Compile Include="CodeGen\CodeGenIterators.cs" />
-    <Compile Include="CodeGen\CodeGenLocalFunctionTests.cs" />
-    <Compile Include="CodeGen\CodeGenMscorlib.cs" />
-    <Compile Include="CodeGen\CodeGenOperators.cs" />
-    <Compile Include="CodeGen\CodeGenOptimizedNullableOperators.cs" />
-    <Compile Include="CodeGen\CodeGenOverridingAndHiding.cs" />
-    <Compile Include="CodeGen\CodeGenRefLocalTests.cs" />
-    <Compile Include="CodeGen\CodeGenRefOutTests.cs" />
-    <Compile Include="CodeGen\CodeGenRefReturnTests.cs" />
-    <Compile Include="CodeGen\CodeGenShortCircuitOperatorTests.cs" />
-    <Compile Include="CodeGen\CodeGenStringConcat.cs" />
-    <Compile Include="CodeGen\CodeGenStructsAndEnum.cs" />
-    <Compile Include="CodeGen\CodeGenTests.cs" />
-    <Compile Include="CodeGen\CodeGenThrowTests.cs" />
-    <Compile Include="CodeGen\CodeGenTryFinally.cs" />
-    <Compile Include="CodeGen\CodeGenTupleTest.cs" />
-    <Compile Include="CodeGen\CodeGenTypeofTests.cs" />
-    <Compile Include="CodeGen\CodeGenUsingStatementTests.cs" />
-    <Compile Include="CodeGen\CompoundAssignmentForDelegate.cs" />
-    <Compile Include="CodeGen\DestructorTests.cs" />
-    <Compile Include="CodeGen\EventTests.cs" />
-    <Compile Include="CodeGen\FixedSizeBufferTests.cs" />
-    <Compile Include="CodeGen\ForeachTest.cs" />
-    <Compile Include="CodeGen\ForLoopsTests.cs" />
-    <Compile Include="CodeGen\GotoTest.cs" />
-    <Compile Include="CodeGen\IndexerTests.cs" />
-    <Compile Include="CodeGen\CodeGenLockTests.cs" />
-    <Compile Include="CodeGen\ObjectAndCollectionInitializerTests.cs" />
-    <Compile Include="CodeGen\PropertyTests.cs" />
-    <Compile Include="CodeGen\SwitchTests.cs" />
-    <Compile Include="CodeGen\UnsafeTests.cs" />
-    <Compile Include="CodeGen\WinMdDelegateTests.cs" />
-    <Compile Include="Emit\DynamicAnalysis\DynamicAnalysisResourceTests.cs" />
-    <Compile Include="Emit\CompilationEmitTests.cs" />
-    <Compile Include="Emit\DeterministicTests.cs" />
-    <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.cs" />
-    <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />
-    <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.cs" />
-    <Compile Include="Emit\EditAndContinue\EditAndContinuePdbTests.cs" />
-    <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.cs" />
-    <Compile Include="Emit\EditAndContinue\EditAndContinueTests.cs" />
-    <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.cs" />
-    <Compile Include="Emit\EditAndContinue\SymbolMatcherTests.cs" />
-    <Compile Include="Emit\EditAndContinue\LocalSlotMappingTests.cs" />
-    <Compile Include="Emit\EmitCustomModifiers.cs" />
-    <Compile Include="Emit\EmitErrorTests.cs" />
-    <Compile Include="Emit\EmitMetadataTests.cs" />
-    <Compile Include="Emit\EmitMetadataTestBase.cs" />
-    <Compile Include="Attributes\EmitTestStrongNameProvider.cs" />
-    <Compile Include="Emit\EndToEndTests.cs" />
-    <Compile Include="Emit\EntryPointTests.cs" />
-    <Compile Include="Emit\NoPiaEmbedTypes.cs" />
-    <Compile Include="Emit\OptionalArgumentsTests.cs" />
-    <Compile Include="Emit\ResourceTests.cs" />
-    <Compile Include="CodeGen\CodeGenScriptTests.cs" />
-    <Compile Include="PDB\CheckSumTest.cs" />
-    <Compile Include="PDB\PDBAsyncTests.cs" />
-    <Compile Include="PDB\PDBConstantTests.cs" />
-    <Compile Include="PDB\PDBDynamicLocalsTests.cs" />
-    <Compile Include="PDB\CSharpPDBTestBase.cs" />
-    <Compile Include="PDB\PDBIteratorTests.cs" />
-    <Compile Include="PDB\PDBLambdaTests.cs" />
-    <Compile Include="PDB\PDBSourceLinkTests.cs" />
-    <Compile Include="PDB\PDBTests.cs" />
-    <Compile Include="PDB\PDBTupleTests.cs" />
-    <Compile Include="PDB\PDBUsingTests.cs" />
-    <Compile Include="PDB\PDBWinMdExpTests.cs" />
-    <Compile Include="PDB\PortablePdbTests.cs" />
-    <Compile Include="Perf.cs" />
-    <Compile Include="Resources.Designer.cs">
+    <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
@@ -183,21 +45,13 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="Microsoft.DiaSymReader">
-      <Version>$(MicrosoftDiaSymReaderVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>

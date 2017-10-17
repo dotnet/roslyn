@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -133,6 +133,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
         Friend Overloads Sub SendEscape()
             SendEscape(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("EscapePassedThrough!"))
+        End Sub
+
+        Public Overloads Sub SendTypeChars(typeChars As String)
+            Dim handler = DirectCast(_completionCommandHandler, ICommandHandler(Of TypeCharCommandArgs))
+            MyBase.SendTypeChars(typeChars, AddressOf handler.ExecuteCommand)
         End Sub
 
         Private Class MockOrderableContentTypeMetadata

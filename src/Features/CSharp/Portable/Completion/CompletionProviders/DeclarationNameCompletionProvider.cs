@@ -2,15 +2,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -29,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = completionContext.CancellationToken;
             var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
 
+            if (!completionContext.Options.GetOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp))
+            {
+                return;
+            }
+
             var context = CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
             if (context.IsInNonUserCode)
             {
@@ -36,14 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var nameInfo = await NameDeclarationInfo.GetDeclarationInfo(document, position, cancellationToken).ConfigureAwait(false);
-
-            if (!IsValidType(nameInfo.Type))
+            var baseNames = GetBaseNames(semanticModel, nameInfo);
+            if (baseNames == default)
             {
                 return;
             }
 
-            var type = UnwrapType(nameInfo.Type, semanticModel.Compilation);
-            var baseNames = NameGenerator.GetBaseNames(type);
             var recommendedNames = await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, cancellationToken).ConfigureAwait(false);
             int sortValue = 0;
             foreach (var (name, kind) in recommendedNames)
@@ -54,6 +60,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
+        }
+
+        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel,  NameDeclarationInfo nameInfo)
+        {
+            if (nameInfo.Alias != null)
+            {
+                return NameGenerator.GetBaseNames(nameInfo.Alias);
+            }
+
+            if (!IsValidType(nameInfo.Type))
+            {
+                return default;
+            }
+
+            var type = UnwrapType(nameInfo.Type, semanticModel.Compilation);
+            var baseNames = NameGenerator.GetBaseNames(type);
+            return baseNames;
         }
 
         private bool IsValidType(ITypeSymbol type)
@@ -155,8 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return type;
         }
 
-        private async Task<IEnumerable<(string, SymbolKind)>> GetRecommendedNamesAsync(
-            IEnumerable<IEnumerable<string>> baseNames,
+        private async Task<ImmutableArray<(string, SymbolKind)>> GetRecommendedNamesAsync(
+            ImmutableArray<ImmutableArray<string>> baseNames,
             NameDeclarationInfo declarationInfo,
             CSharpSyntaxContext context,
             Document document,
@@ -176,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     {
                         foreach (var baseName in baseNames)
                         {
-                            var name = rule.NamingStyle.CreateName(baseName);
+                            var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
                             if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
                             {
                                 result.Add(name, symbolKind);
@@ -186,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            return result.Select(kvp => (kvp.Key, kvp.Value));
+            return result.Select(kvp => (kvp.Key, kvp.Value)).ToImmutableArray();
         }
 
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)

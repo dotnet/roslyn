@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -172,12 +174,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Indicates whether or not the method returns by reference
         /// </summary>
-        public bool ReturnsByRef { get { return this.RefKind != RefKind.None; } }
+        public bool ReturnsByRef
+        {
+            get
+            {
+                return this.RefKind == RefKind.Ref;
+            }
+        }
+
+        /// <summary>
+        /// Indicates whether or not the method returns by ref readonly
+        /// </summary>
+        public bool ReturnsByRefReadonly
+        {
+            get
+            {
+                Debug.Assert(this.RefKind != RefKind.Out);
+                return this.RefKind == RefKind.RefReadOnly;
+            }
+        }
 
         /// <summary>
         /// Gets the ref kind of the method's return value
         /// </summary>
-        internal abstract RefKind RefKind { get; }
+        public abstract RefKind RefKind { get; }
 
         /// <summary>
         /// Gets the return type of the method
@@ -1133,8 +1153,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Build and add synthesized return type attributes for this method symbol.
         /// </summary>
-        internal virtual void AddSynthesizedReturnTypeAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal virtual void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
+            if (this.ReturnsByRefReadonly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
         }
 
         IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] arguments)

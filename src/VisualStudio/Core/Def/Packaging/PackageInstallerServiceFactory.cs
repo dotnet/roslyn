@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -28,6 +28,8 @@ using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// Free threaded wrapper around the NuGet.VisualStudio STA package installer interfaces.
     /// We want to be able to make queries about packages from any thread.  For example, the

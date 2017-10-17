@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -477,8 +478,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim singleLineLambdaSyntax = DirectCast(lambdaSyntax, SingleLineLambdaExpressionSyntax)
                     Dim statement = DirectCast(singleLineLambdaSyntax.Body, StatementSyntax)
 
-                    Dim boundStatement As BoundStatement
-
                     If statement.Kind = SyntaxKind.LocalDeclarationStatement Then
                         ' A local declaration is not allowed in a single line lambda as the top level statement.  Report the error here because it is legal
                         ' to have a single line if which contains a local declaration.  If the error reporting is done in BindStatement then all local 
@@ -486,18 +485,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' Bind local declaration, discard diagnostics
                         Dim ignoredDiagnostics = DiagnosticBag.GetInstance()
-                        boundStatement = bodyBinder.BindBlock(lambdaSyntax, singleLineLambdaSyntax.Statements, ignoredDiagnostics).MakeCompilerGenerated()
+                        block = bodyBinder.BindBlock(lambdaSyntax, singleLineLambdaSyntax.Statements, ignoredDiagnostics).MakeCompilerGenerated()
                         ignoredDiagnostics.Free()
 
                         ' Generate a diagnostic and a bad statement node
                         ReportDiagnostic(diagnostics, statement, ERRID.ERR_SubDisallowsStatement)
-                        boundStatement = New BoundBadStatement(statement, ImmutableArray.Create(Of BoundNode)(boundStatement), hasErrors:=True)
                     Else
-                        boundStatement = bodyBinder.BindBlock(lambdaSyntax, singleLineLambdaSyntax.Statements, diagnostics).MakeCompilerGenerated()
+                        block = bodyBinder.BindBlock(lambdaSyntax, singleLineLambdaSyntax.Statements, diagnostics).MakeCompilerGenerated()
                     End If
-
-                    block = New BoundBlock(lambdaSyntax, Nothing, ImmutableArray(Of LocalSymbol).Empty,
-                                           ImmutableArray.Create(boundStatement), boundStatement.HasErrors).MakeCompilerGenerated()
 
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression
