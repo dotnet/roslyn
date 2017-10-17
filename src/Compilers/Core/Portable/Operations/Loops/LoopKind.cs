@@ -7,6 +7,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum LoopKind
     {
+        /// <summary>
+        /// Represents unknown loop kind.
+        /// </summary>
         None = 0x0,
 
         /// <summary>

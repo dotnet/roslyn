@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
@@ -11,16 +9,22 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IUnaryOperatorExpression : IHasOperatorMethodExpression
+    public interface IUnaryOperatorExpression : IOperation
     {
         /// <summary>
         /// Kind of unary operation.
         /// </summary>
         UnaryOperatorKind OperatorKind { get; }
+
         /// <summary>
         /// Single operand.
         /// </summary>
         IOperation Operand { get; }
+
+        /// <summary>
+        /// Operator method used by the operation, null if the operation does not use an operator method.
+        /// </summary>
+        IMethodSymbol OperatorMethod { get; }
 
         /// <summary>
         /// <code>true</code> if this is a 'lifted' unary operator.  When there is an 

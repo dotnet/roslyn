@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IBinaryOperatorExpression : IHasOperatorMethodExpression
+    public interface IBinaryOperatorExpression : IOperation
     {
         /// <summary>
         /// Kind of binary operation.
@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Right operand.
         /// </summary>
         IOperation RightOperand { get; }
+        /// <summary>
+        /// Operator method used by the operation, null if the operation does not use an operator method.
+        /// </summary>
+        IMethodSymbol OperatorMethod { get; }
         /// <summary>
         /// <code>true</code> if this is a 'lifted' binary operator.  When there is an 
         /// operator that is defined to work on a value type, 'lifted' operators are 

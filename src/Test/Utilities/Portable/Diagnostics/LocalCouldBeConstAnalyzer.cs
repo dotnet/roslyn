@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             (operationContext) =>
                             {
                                 IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
-                                foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
+                                foreach (IArgument argument in invocation.Arguments)
                                 {
                                     if (argument.Parameter.RefKind == RefKind.Out || argument.Parameter.RefKind == RefKind.Ref)
                                     {

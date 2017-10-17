@@ -837,10 +837,10 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
           Target: 
             IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub(i As In ... End Sub')
               IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub(i As In ... End Sub')
-                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
                   Statement: 
                     null
-                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
                   ReturnedValue: 
                     null
 ]]>.Value
@@ -867,10 +867,10 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub(i As In ... End Sub')
   IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub(i As In ... End Sub')
-    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
       Statement: 
         null
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
       ReturnedValue: 
         null
 ]]>.Value
@@ -903,10 +903,10 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
           Target: 
             IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
               IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
                   Statement: 
                     null
-                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
                   ReturnedValue: 
                     null
 ]]>.Value
@@ -940,10 +940,10 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
           Target: 
             IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
               IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... End Sub')
-                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'End Sub')
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'End Sub')
                   Statement: 
                     null
-                IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'End Sub')
+                IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'End Sub')
                   ReturnedValue: 
                     null
 ]]>.Value
@@ -986,12 +986,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
                   ReturnedValue: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
                   Statement: 
                     null
-                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
                   ReturnedValue: 
-                    ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
+                    ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1028,12 +1028,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
                   ReturnedValue: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
                   Statement: 
                     null
-                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
                   ReturnedValue: 
-                    ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
+                    ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1065,10 +1065,10 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
           Target: 
             IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
               IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'End Sub')
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid, IsImplicit) (Syntax: 'End Sub')
                   Statement: 
                     null
-                IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'End Sub')
+                IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'End Sub')
                   ReturnedValue: 
                     null
 ]]>.Value
@@ -1105,9 +1105,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf M2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M2')
           Target: 
-            IMethodReferenceExpression: Sub Program.M2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+            IMethodReferenceExpression: Sub Program.M2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1137,9 +1137,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf M2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'AddressOf M2')
           Target: 
-            IMethodReferenceExpression: Sub Program.M2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+            IMethodReferenceExpression: Sub Program.M2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1252,9 +1252,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf M2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M2')
           Target: 
-            IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+            IMethodReferenceExpression: Function Program.M2() As System.Int32 (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+                null
 ]]>.Value
             Dim expectedDiagnostics = String.Empty
 
@@ -1278,9 +1278,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+IMethodReferenceExpression: Function Program.M2() As System.Int32 (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1313,9 +1313,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf M2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int64), IsImplicit) (Syntax: 'AddressOf M2')
           Target: 
-            IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+            IMethodReferenceExpression: Function Program.M2() As System.Int32 (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
