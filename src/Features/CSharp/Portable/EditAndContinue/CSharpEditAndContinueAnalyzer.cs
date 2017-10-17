@@ -528,10 +528,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 SyntaxNode GetMatchingRoot(SyntaxNode body)
                 {
-                    var root = body.Parent;
+                    var parent = body.Parent;
                     // We could apply this change across all ArrowExpressionClause consistently not just for ones with LocalFunctionStatement parents
-                    // but it would require an essential refactoring, and not reasonable for now. 
-                    return root.IsKind(SyntaxKind.ArrowExpressionClause) && root.Parent.IsKind(SyntaxKind.LocalFunctionStatement) ? root.Parent : root;
+                    // but it would require an essential refactoring. 
+                    return parent.IsKind(SyntaxKind.ArrowExpressionClause) && parent.Parent.IsKind(SyntaxKind.LocalFunctionStatement) ? parent.Parent : parent;
                 }
 
                 return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);

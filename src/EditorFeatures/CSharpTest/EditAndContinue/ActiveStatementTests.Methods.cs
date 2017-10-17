@@ -474,7 +474,7 @@ class C
         }
 
         [Fact]
-        public void Property_ExpressionBodyToBlockBody_NoLeaf()
+        public void Property_ExpressionBodyToBlockBody_NonLeaf()
         {
             var src1 = @"
 class C 
