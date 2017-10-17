@@ -4545,10 +4545,9 @@ checkNullable:
 
                     ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
                     ' being reported. For now keep backwards compatibility.
-                    If param.ContainsDiagnostics Then
+                    If param.ContainsDiagnostics OrElse CheckFeatureAvailability(Feature.OptionalParameterDefault) Then
                         param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
                     End If
-
                     Dim comma As PunctuationSyntax = Nothing
                     If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
 
@@ -4688,7 +4687,7 @@ checkNullable:
                 ' we are still on the same parameter. Otherwise, don't resync
                 ' and allow the caller to decide how to recover.
 
-                If PeekAheadFor(SyntaxKind.AsKeyword, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken) = SyntaxKind.AsKeyword Then
+                If PeekAheadFor(SyntaxKind.AsKeyword, SyntaxKind.EqualsToken, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken) = SyntaxKind.AsKeyword Then
                     paramName = ResyncAt(paramName, SyntaxKind.AsKeyword)
                 End If
             End If
@@ -4720,22 +4719,24 @@ checkNullable:
 
                 value = ParseExpressionCore()
 
+
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-
-                equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                value = ParseExpressionCore()
-
+                If CheckFeatureAvailability(Feature.OptionalParameterDefault) = False Then
+                    equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                    value = ParseExpressionCore()
+                End If
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing
 
-            If value IsNot Nothing Then
+            If value IsNot Nothing AndAlso (Not equals.IsMissing) Then
 
                 If value.ContainsDiagnostics Then
                     value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
                 End If
 
                 initializer = SyntaxFactory.EqualsValue(equals, value)
+
             End If
 
             Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)

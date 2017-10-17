@@ -684,10 +684,11 @@ Property Scen4(
 p1 as vb$anonymous1
 ) a
 ]]>,
-            Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1"),
             Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
 p1 as vb$anonymous1
-)]]>.Value))
+)]]>.Value).WithLocation(2, 15),
+        Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1").WithLocation(3, 10))
+
     End Sub
 
     <Fact>

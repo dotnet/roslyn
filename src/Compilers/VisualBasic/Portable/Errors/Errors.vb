@@ -2015,5 +2015,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_IOperation
         FEATURE_LeadingDigitSeparator
         FEATURE_PrivateProtected
-    End Enum
+        FEATURE_OptionalParameterDefault
+     End Enum
 End Namespace
