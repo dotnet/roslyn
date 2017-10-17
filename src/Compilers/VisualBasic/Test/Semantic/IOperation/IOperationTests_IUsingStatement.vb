@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -878,7 +878,7 @@ End Module]]>.Value
         Public Sub IUsingStatement_UsingStatementSyntax_Expression()
             Dim source = <![CDATA[
 Option Strict On
-Imports Syste
+Imports System
 
 Module Program
     Sub Main(args As String())
