@@ -146,23 +146,27 @@ namespace Microsoft.CodeAnalysis.Semantics
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
 
-        private IInvalidExpression CreateInvalidExpressionForHasArgumentsExpression(BoundNode ReceiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression AdditionalNodeOpt, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        private IInvalidExpression CreateInvalidExpressionForHasArgumentsExpression(BoundNode receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression additionalNodeOpt, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
         {
             Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(
                       () =>
                       {
                           ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance();
 
-                          if (ReceiverOpt != null && !ReceiverOpt.WasCompilerGenerated)
+                          if (receiverOpt != null 
+                             && (!receiverOpt.WasCompilerGenerated 
+                                 || (receiverOpt.Kind != BoundKind.ThisReference 
+                                    && receiverOpt.Kind != BoundKind.BaseReference 
+                                    && receiverOpt.Kind != BoundKind.ImplicitReceiver)))
                           {
-                              builder.Add(Create(ReceiverOpt));
+                              builder.Add(Create(receiverOpt));
                           }
 
                           builder.AddRange(arguments.Select(a => Create(a)));
 
-                          if (AdditionalNodeOpt != null)
+                          if (additionalNodeOpt != null)
                           {
-                              builder.Add(Create(AdditionalNodeOpt));
+                              builder.Add(Create(additionalNodeOpt));
                           }
 
                           return builder.ToImmutableAndFree();

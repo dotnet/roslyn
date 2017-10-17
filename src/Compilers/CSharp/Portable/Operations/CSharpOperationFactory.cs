@@ -616,13 +616,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                         var accessor = property.GetOwnOrInheritedSetMethod();
                         if (accessor == null || boundObjectInitializerMember.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor.OriginalDefinition is ErrorMethodSymbol)
                         {
-                            Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(
-                                 () =>
-                                 {
-                                     var builder = ArrayBuilder<IOperation>.GetInstance(boundObjectInitializerMember.Arguments.Length);
-                                     builder.AddRange(boundObjectInitializerMember.Arguments.Select(a => Create(a)));
-                                     return builder.ToImmutableAndFree();
-                                 });
+                            Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(() =>
+                                boundObjectInitializerMember.Arguments.SelectAsArray(a => Create(a)));
                             return new LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit);
                         }
                         // Indexed property reference.
