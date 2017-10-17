@@ -7,6 +7,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum ArgumentKind
     {
+        /// <summary>
+        /// Represents unknown argument kind.
+        /// </summary>
         None = 0x0,
 
         /// <summary>

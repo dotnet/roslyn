@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -31,7 +31,7 @@ IWithStatement (OperationKind.None) (Syntax: 'With c'BIND ... End With')
   Value: 
     IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   Body: 
-    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'With c'BIND ... End With')
+    IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'With c'BIND ... End With')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.I = 0')
         Expression: 
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.I = 0')
@@ -81,7 +81,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Private 
     Value: 
       IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
     Body: 
-      IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'With c ... End With')
+      IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'With c ... End With')
         IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.I = 0')
           Expression: 
             ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.I = 0')
@@ -100,10 +100,10 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Private 
                     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'c')
               Right: 
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value

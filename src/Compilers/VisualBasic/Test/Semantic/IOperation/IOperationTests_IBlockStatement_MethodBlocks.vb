@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -30,13 +30,13 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub Meth
         Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
       null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -67,13 +67,13 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub New(
         Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
       null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -107,18 +107,18 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
         Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
       null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return True')
     ReturnedValue: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
     ReturnedValue: 
-      ILocalReferenceExpression: Method (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'End Function')
+      ILocalReferenceExpression: Method (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -150,15 +150,15 @@ IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
         Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
       null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Get')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Get')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Get')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Get')
     ReturnedValue: 
-      ILocalReferenceExpression: Prop (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Get')
+      ILocalReferenceExpression: Prop (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'End Get')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -193,13 +193,13 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Set(Valu
         Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
       null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Set')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Set')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Set')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Set')
     ReturnedValue: 
       null
 ]]>.Value
@@ -240,13 +240,13 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'AddHandl
         Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
       null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End AddHandler')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End AddHandler')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End AddHandler')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End AddHandler')
     ReturnedValue: 
       null
 ]]>.Value
@@ -287,13 +287,13 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RemoveHa
         Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
       null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End RemoveHandler')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End RemoveHandler')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End RemoveHandler')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End RemoveHandler')
     ReturnedValue: 
       null
 ]]>.Value
@@ -334,13 +334,13 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RaiseEve
         Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
       null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End RaiseEvent')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End RaiseEvent')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End RaiseEvent')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End RaiseEvent')
     ReturnedValue: 
       null
 ]]>.Value
@@ -374,18 +374,18 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
         Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
       null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 0')
     ReturnedValue: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Operator')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Operator')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Operator')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Operator')
     ReturnedValue: 
-      ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Operator')
+      ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'End Operator')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

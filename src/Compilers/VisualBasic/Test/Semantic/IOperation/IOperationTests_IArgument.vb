@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -1091,7 +1091,7 @@ End Class]]>.Value
                                                                    End Function, SymbolFilter.Member).Single()
 
             Dim invocation = CType(result.operation, IInvocationExpression)
-            Dim argument = invocation.ArgumentsInEvaluationOrder(0)
+            Dim argument = invocation.Arguments(0)
 
             Dim inConversion = argument.GetInConversion()
             Assert.Same(exptectedInMethod, inConversion.MethodSymbol)

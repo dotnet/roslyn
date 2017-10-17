@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -1860,7 +1860,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x AndAls ... End If')
           Right: 
             ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'y')
   IfTrue: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If x AndAls ... End If')
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If x AndAls ... End If')
   IfFalse: 
     null
 ]]>.Value
@@ -1913,7 +1913,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x OrElse ... End If')
           Right: 
             ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'y')
   IfTrue: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If x OrElse ... End If')
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If x OrElse ... End If')
   IfFalse: 
     null
 ]]>.Value
