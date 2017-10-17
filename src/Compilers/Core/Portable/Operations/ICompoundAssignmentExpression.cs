@@ -9,12 +9,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ICompoundAssignmentExpression : IAssignmentExpression, IHasOperatorMethodExpression
+    public interface ICompoundAssignmentExpression : IAssignmentExpression
     {
         /// <summary>
         /// Kind of binary operation.
         /// </summary>
         BinaryOperatorKind OperatorKind { get; }
+
+        /// <summary>
+        /// Operator method used by the operation, null if the operation does not use an operator method.
+        /// </summary>
+        IMethodSymbol OperatorMethod { get; }
 
         /// <summary>
         /// <code>true</code> if this assignment contains a 'lifted' binary operation.

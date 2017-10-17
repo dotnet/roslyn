@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IObjectCreationExpression : IHasArguments
+    public interface IObjectCreationExpression : IOperation
     {
         /// <summary>
         /// Constructor to be invoked on the created instance.
@@ -21,6 +21,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Object or collection initializer, if any.
         /// </summary>
         IObjectOrCollectionInitializerExpression Initializer { get; }
+        /// <summary>
+        /// Arguments of the object creation, excluding the instance argument. Arguments are in evaluation order.
+        /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
+        ImmutableArray<IArgument> Arguments { get; }
     }
 }
 

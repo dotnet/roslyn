@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.Semantics
     Partial Friend NotInheritable Class VisualBasicOperationFactory
         Private Shared Function ConvertToOptional(value As ConstantValue) As [Optional](Of Object)
-            Return If(value Is Nothing, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))
+            Return If(value Is Nothing OrElse value.IsBad, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))
         End Function
 
         Private Shared Function GetAssignmentKind(value As BoundAssignmentOperator) As OperationKind
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Case VisualBasic.UnaryOperatorKind.IsFalse
                         Return UnaryOperatorKind.False
                     Case Else
-                        Return UnaryOperatorKind.Invalid
+                        Return UnaryOperatorKind.None
                 End Select
             End Function
 
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Case VisualBasic.BinaryOperatorKind.Concatenate
                         Return BinaryOperatorKind.Concatenate
                     Case Else
-                        Return BinaryOperatorKind.Invalid
+                        Return BinaryOperatorKind.None
                 End Select
             End Function
         End Class

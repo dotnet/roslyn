@@ -63,7 +63,6 @@ End Module
             Assert.Equal(assignment1.Value.Kind, OperationKind.BinaryOperatorExpression)
             Dim add1 As IBinaryOperatorExpression = DirectCast(assignment1.Value, IBinaryOperatorExpression)
             Assert.Equal(add1.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
-            Assert.False(add1.UsesOperatorMethod)
             Assert.Null(add1.OperatorMethod)
             Dim left1 As IOperation = add1.LeftOperand
             Assert.Equal(left1.Kind, OperationKind.LocalReferenceExpression)
@@ -97,7 +96,6 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
             Assert.Equal(assignment2.Value.Kind, OperationKind.BinaryOperatorExpression)
             Dim add2 As IBinaryOperatorExpression = DirectCast(assignment2.Value, IBinaryOperatorExpression)
             Assert.Equal(add2.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
-            Assert.True(add2.UsesOperatorMethod)
             Assert.NotNull(add2.OperatorMethod)
             Assert.Equal(add2.OperatorMethod.Name, "op_Addition")
             Dim left2 As IOperation = add2.LeftOperand
@@ -131,7 +129,6 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
             Assert.Equal(assignment3.Value.Kind, OperationKind.UnaryOperatorExpression)
             Dim negate3 As IUnaryOperatorExpression = DirectCast(assignment3.Value, IUnaryOperatorExpression)
             Assert.Equal(negate3.OperatorKind, CodeAnalysis.Semantics.UnaryOperatorKind.Minus)
-            Assert.False(negate3.UsesOperatorMethod)
             Assert.Null(negate3.OperatorMethod)
             Dim operand3 As IOperation = negate3.Operand
             Assert.Equal(operand3.Kind, OperationKind.LocalReferenceExpression)
@@ -195,7 +192,6 @@ End Module
             Assert.NotNull(value1)
             Assert.Equal(value1.Local.Name, "y")
             Assert.Equal(assignment1.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
-            Assert.False(assignment1.UsesOperatorMethod)
             Assert.Null(assignment1.OperatorMethod)
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
@@ -222,7 +218,6 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
             Assert.NotNull(value2)
             Assert.Equal(value2.Local.Name, "b")
             Assert.Equal(assignment2.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
-            Assert.True(assignment2.UsesOperatorMethod)
             Assert.NotNull(assignment2.OperatorMethod)
             Assert.Equal(assignment2.OperatorMethod.Name, "op_Addition")
 
@@ -446,7 +441,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .a = AddressOf c1.S')
         Left: 
-          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
             Instance Receiver: 
               null
         Right: 

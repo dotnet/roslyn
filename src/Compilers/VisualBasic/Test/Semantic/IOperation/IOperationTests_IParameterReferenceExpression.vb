@@ -54,14 +54,14 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'Key .Amount = x')
         Left: 
-          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Amount As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Amount')
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Amount As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Amount')
             Instance Receiver: 
               null
         Right: 
           IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Key .Messag ... "Hello" + y')
         Left: 
-          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Message As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Message')
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Message As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Message')
             Instance Receiver: 
               null
         Right: 

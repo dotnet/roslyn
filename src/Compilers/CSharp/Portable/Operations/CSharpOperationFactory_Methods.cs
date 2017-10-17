@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private static Optional<object> ConvertToOptional(ConstantValue value)
         {
-            return value != null ? new Optional<object>(value.Value) : default(Optional<object>);
+            return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
         }
 
         private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                         return UnaryOperatorKind.False;
                 }
 
-                return UnaryOperatorKind.Invalid;
+                return UnaryOperatorKind.None;
             }
 
             internal static BinaryOperatorKind DeriveBinaryOperatorKind(CSharp.BinaryOperatorKind operatorKind)
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                         return BinaryOperatorKind.GreaterThan;
                 }
 
-                return BinaryOperatorKind.Invalid;
+                return BinaryOperatorKind.None;
             }
         }
     }

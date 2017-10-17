@@ -4,17 +4,24 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
     /// Represents an increment (<see cref="OperationKind.IncrementExpression"/>) or decrement (<see cref="OperationKind.DecrementExpression"/>) expression in C#.
+    /// Note that this operation is different from an <see cref="IUnaryOperatorExpression"/> as it mutates the <see cref="Target"/>,
+    /// while unary operator expression does not mutate it's operand.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IIncrementOrDecrementExpression : IOperation, IHasOperatorMethodExpression
+    public interface IIncrementOrDecrementExpression : IOperation
     {
         /// <summary>
         /// Target of the assignment.
         /// </summary>
         IOperation Target { get; }
+
+        /// <summary>
+        /// Operator method used by the operation, null if the operation does not use an operator method.
+        /// </summary>
+        IMethodSymbol OperatorMethod { get; }
 
         /// <summary>
         /// <code>true</code> if this is a postfix expression.

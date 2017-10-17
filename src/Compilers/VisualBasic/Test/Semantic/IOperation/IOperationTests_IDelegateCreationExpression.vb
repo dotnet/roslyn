@@ -718,9 +718,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'CType(Addre ... M1, Action)')
   Target: 
-    IMethodReferenceExpression: Sub Program.M1() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M1')
+    IMethodReferenceExpression: Sub Program.M1() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M1')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -758,9 +758,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
           Operand: 
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Addre ... f Integer))')
               Target: 
-                IMethodReferenceExpression: Sub Program.M1(i As System.Int32) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf M1')
+                IMethodReferenceExpression: Sub Program.M1(i As System.Int32) (Static) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf M1')
                   Instance Receiver: 
-                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+                    null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1782,9 +1782,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf Method2')
           Target: 
-            IMethodReferenceExpression: Sub M1.Method2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
+            IMethodReferenceExpression: Sub M1.Method2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1808,9 +1808,9 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IMethodReferenceExpression: Sub M1.Method2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
+IMethodReferenceExpression: Sub M1.Method2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1955,9 +1955,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
           Target: 
-            IMethodReferenceExpression: Function M1.Method2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf Method2')
+            IMethodReferenceExpression: Function M1.Method2() As System.Int32 (Static) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf Method2')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2039,9 +2039,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf Method2')
           Target: 
-            IMethodReferenceExpression: Function M1.Method2() As System.Object (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
+            IMethodReferenceExpression: Function M1.Method2() As System.Object (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2072,9 +2072,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'AddressOf Method2')
           Target: 
-            IMethodReferenceExpression: Sub M1.Method2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
+            IMethodReferenceExpression: Sub M1.Method2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2146,9 +2146,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'CType(Addre ... M1, Action)')
   Target: 
-    IMethodReferenceExpression: Sub Program.M1() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M1')
+    IMethodReferenceExpression: Sub Program.M1() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M1')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2315,9 +2315,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Addre ... f Integer))')
   Target: 
-    IMethodReferenceExpression: Sub Program.M2(i As System.Int32) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Sub Program.M2(i As System.Int32) (Static) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2351,9 +2351,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'CType(Addre ... M2, Action)')
   Target: 
-    IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Function Program.M2() As System.Int32 (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2382,9 +2382,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String)) (Syntax: 'CType(Addre ... Of String))')
   Target: 
-    IMethodReferenceExpression: Sub Program.M2(o As System.Object) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Sub Program.M2(o As System.Object) (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2413,9 +2413,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'DirectCast( ... M2, Action)')
   Target: 
-    IMethodReferenceExpression: Sub Program.M2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Sub Program.M2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2625,9 +2625,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
   Target: 
-    IMethodReferenceExpression: Sub Program.M2(s As System.String) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Sub Program.M2(s As System.String) (Static) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2660,9 +2660,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String)) (Syntax: 'DirectCast( ... Of String))')
   Target: 
-    IMethodReferenceExpression: Sub Program.M2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Sub Program.M2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2692,9 +2692,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'DirectCast( ... M2, Action)')
   Target: 
-    IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Function Program.M2() As System.Int32 (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2723,9 +2723,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'TryCast(Add ... M2, Action)')
   Target: 
-    IMethodReferenceExpression: Sub Program.M2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Sub Program.M2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2935,9 +2935,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'TryCast(Add ... Of String))')
   Target: 
-    IMethodReferenceExpression: Sub Program.M2(s As System.String) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Sub Program.M2(s As System.String) (Static) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2970,9 +2970,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String)) (Syntax: 'TryCast(Add ... Of String))')
   Target: 
-    IMethodReferenceExpression: Sub Program.M2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Sub Program.M2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -3002,9 +3002,9 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'TryCast(Add ... M2, Action)')
   Target: 
-    IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
+    IMethodReferenceExpression: Function Program.M2() As System.Int32 (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -3014,6 +3014,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
+        <WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")>
         Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument()
             Dim source = <![CDATA[
 Option Strict On
@@ -3030,12 +3031,74 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
   Target: 
+    IMethodReferenceExpression: Sub M1.Method2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
+      Instance Receiver: 
+        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        <WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")>
+        Public Sub DelegateCreationExpression_DelegateCreationInstanceAddressOfArgument()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Class M1
+    Sub Method1()
+        Dim a As Action = New Action(AddressOf Method2)'BIND:"New Action(AddressOf Method2)"
+    End Sub
+
+    Sub Method2()
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
+  Target: 
     IMethodReferenceExpression: Sub M1.Method2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
       Instance Receiver: 
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        <WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")>
+        Public Sub DelegateCreationExpression_DelegateCreationSharedAddressOfArgument()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Class M1
+    Sub Method1()
+        Dim a As Action = New Action(AddressOf Me.Method2)'BIND:"New Action(AddressOf Me.Method2)"
+    End Sub
+
+    Shared Sub Method2()
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'New Action( ... Me.Method2)')
+  Target: 
+    IMethodReferenceExpression: Sub M1.Method2() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Me.Method2')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Me')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        Dim a As Action = New Action(AddressOf Me.Method2)'BIND:"New Action(AddressOf Me.Method2)"
+                                     ~~~~~~~~~~~~~~~~~~~~
+]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
@@ -3101,9 +3164,9 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
   Target: 
-    IMethodReferenceExpression: Function M1.Method2() As System.Object (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
+    IMethodReferenceExpression: Function M1.Method2() As System.Object (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -3129,9 +3192,9 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32)) (Syntax: 'New Action( ... Of Method2)')
   Target: 
-    IMethodReferenceExpression: Sub M1.Method2(o As System.Object) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
+    IMethodReferenceExpression: Sub M1.Method2(o As System.Object) (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Method2')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsImplicit) (Syntax: 'Method2')
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

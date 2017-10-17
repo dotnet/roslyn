@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                      isChecked,
                      target,
                      value,
-                     operatorMethod != null,
                      operatorMethod,
                      semanticModel,
                      syntax,
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new BinaryOperatorExpression(
                 operatorKind, left, right,
                 isLifted: isLifted, isChecked: isChecked,
-                isCompareText: isCompareText, usesOperatorMethod: false, operatorMethod: null,
+                isCompareText: isCompareText, operatorMethod: null,
                 semanticModel: semanticModel, syntax: syntax, type: resultType, constantValue: default, isImplicit: isImplicit);
         }
 

@@ -6391,7 +6391,13 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"((long c, string d))(1, ""hello"")").WithArguments("(long c, string d)", "(short a, string b)").WithLocation(13, 34),
                 // (7,25): warning CS0219: The variable 'x1' is assigned but its value is never used
                 //         (short, string) x1 = (1, "hello");
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 25)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 25),
+                // (10,25): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         (short, string) x2 = ((long, string))(1, "hello");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(10, 25),
+                // (13,29): warning CS0219: The variable 'x3' is assigned but its value is never used
+                //         (short a, string b) x3 = ((long c, string d))(1, "hello");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3").WithLocation(13, 29)
             );
         }
 
@@ -7454,7 +7460,13 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((int c, int d))(e: 1, f:2)").WithArguments("(int c, int d)", "(short a, short b)").WithLocation(9, 33),
                 // (12,56): error CS0030: Cannot convert type 'string' to 'long'
                 //         (int a, int b) x3 = ((long c, long d))(e: 1, f:"qq");
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"""qq""").WithArguments("string", "long").WithLocation(12, 56)
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"""qq""").WithArguments("string", "long").WithLocation(12, 56),
+                // (7,24): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 24),
+                // (9,28): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(9, 28)
             );
         }
 
@@ -23664,7 +23676,7 @@ class C
 
         [Fact]
         [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
-        public void TypelessTupleWithNoImplicitConversion()
+        public void TypelessTupleWithNoImplicitConversion_01()
         {
             var source = @"
 class C
@@ -23684,27 +23696,58 @@ class C
                 //         (int, string) y = (e, null);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("int?", "int").WithLocation(7, 28)
                 );
+
+            VerifySemanticModelTypelessTupleWithNoImplicitConversion(comp);
+        }
+
+        private static void VerifySemanticModelTypelessTupleWithNoImplicitConversion(CSharpCompilation comp)
+        {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             Assert.Null(model.GetTypeInfo(tuple).Type);
             Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(tuple).Kind);
 
             var first = tuple.Arguments[0].Expression;
             Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
-            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+            Assert.Equal("System.Int32", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(first).Kind);
 
             var second = tuple.Arguments[1].Expression;
             Assert.Null(model.GetTypeInfo(second).Type);
-            Assert.Null(model.GetTypeInfo(second).ConvertedType);
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+            Assert.Equal("System.String", model.GetTypeInfo(second).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(second).Kind);
         }
 
         [Fact]
         [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
-        public void TypelessTupleWithNoImplicitConversion2()
+        public void TypelessTupleWithNoImplicitConversion_02()
+        {
+            var source = @"
+class C
+{
+    (int, string) M()
+    {
+        int? e = 5;
+        return (e, null); // the only conversion we find is an explicit conversion
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,17): error CS0029: Cannot implicitly convert type 'int?' to 'int'
+                //         return (e, null); // the only conversion we find is an explicit conversion
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("int?", "int").WithLocation(7, 17)
+                );
+
+            VerifySemanticModelTypelessTupleWithNoImplicitConversion(comp);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion2_01()
         {
             var source = @"
 class C
@@ -23724,22 +23767,53 @@ class C
                 //         (int, string)? y = (e, null); // the only conversion we find is an explicit conversion
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(e, null)").WithArguments("2", "(int, string)?").WithLocation(7, 28)
                 );
+
+            VerifySemanticModelTypelessTupleWithNoImplicitConversion2(comp);
+        }
+
+        private static void VerifySemanticModelTypelessTupleWithNoImplicitConversion2(CSharpCompilation comp)
+        {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             Assert.Null(model.GetTypeInfo(tuple).Type);
             Assert.Equal("(System.Int32, System.String)?", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(tuple).Kind);
 
             var first = tuple.Arguments[0].Expression;
             Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
-            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+            Assert.Equal("System.Int32", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(first).Kind);
 
             var second = tuple.Arguments[1].Expression;
             Assert.Null(model.GetTypeInfo(second).Type);
-            Assert.Null(model.GetTypeInfo(second).ConvertedType);
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+            Assert.Equal("System.String", model.GetTypeInfo(second).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion2_02()
+        {
+            var source = @"
+class C
+{
+    (int, string)? M()
+    {
+        int? e = 5;
+        return (e, null); // the only conversion we find is an explicit conversion
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,16): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string)?'.
+                //         return (e, null); // the only conversion we find is an explicit conversion
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(e, null)").WithArguments("2", "(int, string)?").WithLocation(7, 16)
+                );
+
+            VerifySemanticModelTypelessTupleWithNoImplicitConversion2(comp);
         }
 
         [Fact]

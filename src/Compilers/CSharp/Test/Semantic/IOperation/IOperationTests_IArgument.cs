@@ -1377,7 +1377,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) (Op
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: null) (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2772,7 +2772,7 @@ class P
             var (operation, syntaxNode) = GetOperationAndSyntaxForTest<InvocationExpressionSyntax>(compilation);
 
             var invocation = (IInvocationExpression)operation;
-            var argument = invocation.ArgumentsInEvaluationOrder[0];
+            var argument = invocation.Arguments[0];
 
             // We are calling VB extension methods on IArgument in C# code, therefore exception is expected here.
             Assert.Throws<ArgumentException>(() => argument.GetInConversion());
@@ -3278,7 +3278,7 @@ class MyA : System.Attribute
             string expectedOperationTree = @"
 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Prop = ""test""')
   Left: 
-    IPropertyReferenceExpression: System.String MyA.Prop { get; set; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Prop')
+    IPropertyReferenceExpression: System.String MyA.Prop { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Prop')
       Instance Receiver: 
         null
   Right: 
@@ -3725,14 +3725,14 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax
 
             public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
             {
-                if (operation.HasErrors(_compilation) || operation.ArgumentsInEvaluationOrder.Length == 0)
+                if (operation.HasErrors(_compilation) || operation.Arguments.Length == 0)
                 {
                     return;
                 }
 
                 // Check if the parameter symbol for argument is corresponding to indexer instead of accessor.
                 var indexerSymbol = operation.Property;
-                foreach (var argument in operation.ArgumentsInEvaluationOrder)
+                foreach (var argument in operation.Arguments)
                 {
                     if (!argument.HasErrors(_compilation))
                     {

@@ -912,5 +912,36 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.St
 
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        public void SimpleArrayCreation_ConstantConversion()
+        {
+            string source = @"
+class C
+{
+    public void F()
+    {
+        var a = /*<bind>*/new string[0.0]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[0.0]')
+  Dimension Sizes(1):
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (6,27): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         var a = /*<bind>*/new string[0.0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new string[0.0]").WithArguments("double", "int").WithLocation(6, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
