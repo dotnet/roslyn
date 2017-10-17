@@ -2714,7 +2714,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             condition = BindBooleanExpression(node.Condition, diagnostics)
             consequence = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
             If node.ElseClause IsNot Nothing Then
-                alternative = BindBlock(node.ElseClause, node.ElseClause.Statements, diagnostics).MakeCompilerGenerated()
+                alternative = BindBlock(node.ElseClause, node.ElseClause.Statements, diagnostics)
             End If
 
             Return New BoundIfStatement(node, condition, consequence, alternative)
@@ -2741,7 +2741,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim currentAlternative As BoundStatement = Nothing
 
             If node.ElseBlock IsNot Nothing Then
-                currentAlternative = BindBlock(node.ElseBlock, node.ElseBlock.Statements, diagnostics).MakeCompilerGenerated()
+                currentAlternative = BindBlock(node.ElseBlock, node.ElseBlock.Statements, diagnostics)
             End If
 
             For i = conditions.Count - 1 To 0 Step -1

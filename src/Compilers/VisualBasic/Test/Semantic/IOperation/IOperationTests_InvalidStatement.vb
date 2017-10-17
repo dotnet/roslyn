@@ -198,7 +198,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If Then'BIN ... El
                 Children(1):
                     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
       IfFalse: 
-        IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Else')
+        IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Else')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
