@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private static Optional<object> ConvertToOptional(ConstantValue value)
         {
-            return value != null ? new Optional<object>(value.Value) : default(Optional<object>);
+            return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
         }
 
         private ImmutableArray<IOperation> ToStatements(BoundStatement statement)

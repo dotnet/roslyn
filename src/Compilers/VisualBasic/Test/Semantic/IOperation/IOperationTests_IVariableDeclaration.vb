@@ -659,7 +659,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Using')
-  Declaration: 
+  Resources: 
     IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Using c1 As New C')
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1')
         Variables: Local_1: c1 As Program.C
@@ -669,8 +669,6 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'Using c1 As ... End Usi
               Arguments(0)
               Initializer: 
                 null
-  Value: 
-    null
   Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Using c1 As ... End Using')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(c1)')

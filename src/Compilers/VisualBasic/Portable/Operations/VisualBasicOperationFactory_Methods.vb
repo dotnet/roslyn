@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.Semantics
     Partial Friend NotInheritable Class VisualBasicOperationFactory
         Private Shared Function ConvertToOptional(value As ConstantValue) As [Optional](Of Object)
-            Return If(value Is Nothing, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))
+            Return If(value Is Nothing OrElse value.IsBad, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))
         End Function
 
         Private Shared Function GetAssignmentKind(value As BoundAssignmentOperator) As OperationKind
@@ -271,10 +271,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationStatement
-            If resourceList.IsDefault Then
-                Return Nothing
-            End If
-
             Return New VariableDeclarationStatement(
                             GetVariableDeclarationStatementVariables(resourceList),
                             _semanticModel,
