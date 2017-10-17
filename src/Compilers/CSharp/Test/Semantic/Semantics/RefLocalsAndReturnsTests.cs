@@ -277,7 +277,7 @@ class C
 {
     void M()
     {
-        void L(ref int x, ref readonly int y)
+        void L(ref int x, in int y)
         {
             L(ref x, y);
             L(ref y, x);
@@ -291,9 +291,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (9,19): error CS8329: Cannot use variable 'ref readonly int' as a ref or out value because it is a readonly variable
+                // (9,19): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
                 //             L(ref y, x);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "ref readonly int").WithLocation(9, 19),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(9, 19),
                 // (10,26): error CS1615: Argument 2 may not be passed with the 'ref' keyword
                 //             L(ref x, ref x);
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("2", "ref").WithLocation(10, 26),
@@ -2695,6 +2695,78 @@ class TestClass
                     //         inst[1, 2] = await Task.FromResult(1);
                     Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(1)").WithArguments("TestClass.this[int, int].get").WithLocation(36, 22)
             );
+        }
+
+        [Fact]
+        public void RefReadOnlyInAsyncMethodDisallowed()
+        {
+            CreateCompilationWithMscorlib45(@"
+using System.Threading.Tasks;
+class Test
+{
+    async Task Method(in int p)
+    {
+        await Task.FromResult(0);
+    }
+}").VerifyDiagnostics(
+                // (5,30): error CS1988: Async methods cannot have ref or out parameters
+                //     async Task Method(in int p)
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "p").WithLocation(5, 30));
+        }
+
+        [Fact]
+        public void RefReadOnlyInIteratorMethodsDisallowed()
+        {
+            CreateCompilationWithMscorlib45(@"
+using System.Collections.Generic;
+class Test
+{
+    IEnumerable<int> Method(in int p)
+    {
+        yield return 0;
+        yield return 1;
+        yield return 2;
+    }
+}").VerifyDiagnostics(
+                // (5,36): error CS1623: Iterators cannot have ref or out parameters
+                //     IEnumerable<int> Method(in int p)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 36));
+        }
+
+        [Fact]
+        public void RefReadOnlyInEnumeratorMethodsDisallowed()
+        {
+            CreateStandardCompilation(@"
+using System.Collections.Generic;
+class Test
+{
+    public IEnumerator<int> GetEnumerator(in int p)
+    {
+        yield return 0;
+    }
+}").VerifyDiagnostics(
+                // (5,50): error CS1623: Iterators cannot have ref or out parameters
+                //     public IEnumerator<int> GetEnumerator(in int p)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 50));
+        }
+
+        [Fact]
+        public void CannotCallRefReadOnlyMethodsUsingDiscardParameter()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+	void M(in int p)
+    {
+    }
+    void N()
+    {
+        M(_);
+    }
+}").VerifyDiagnostics(
+                // (9,11): error CS0103: The name '_' does not exist in the current context
+                //         M(_);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 11));
         }
     }
 }

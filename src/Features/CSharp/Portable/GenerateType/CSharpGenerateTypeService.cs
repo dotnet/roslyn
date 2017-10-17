@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 explicitInterfaceImplementations: default,
                 name: propertyName.Identifier.ValueText,
                 type: propertyType,
-                returnsByRef: false,
+                refKind: RefKind.None,
                 parameters: default,
                 getMethod: s_accessor,
                 setMethod: s_accessor,

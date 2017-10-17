@@ -242,15 +242,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot take the address of a read-only local variable.
-        /// </summary>
-        internal static string ERR_AddrOnReadOnlyLocal {
-            get {
-                return ResourceManager.GetString("ERR_AddrOnReadOnlyLocal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Agnostic assembly cannot have a processor specific module &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_AgnosticToMachineModule {
@@ -4526,15 +4517,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is experimental and unsupported; use &apos;/features:{1}&apos; to enable..
-        /// </summary>
-        internal static string ERR_FeatureIsExperimental {
-            get {
-                return ResourceManager.GetString("ERR_FeatureIsExperimental", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not implemented in this compiler..
         /// </summary>
         internal static string ERR_FeatureIsUnimplemented {
@@ -5413,6 +5395,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InExpected {
             get {
                 return ResourceManager.GetString("ERR_InExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first parameter of an &apos;in&apos; extension method &apos;{0}&apos; must be a value type..
+        /// </summary>
+        internal static string ERR_InExtensionMustBeValueType {
+            get {
+                return ResourceManager.GetString("ERR_InExtensionMustBeValueType", resourceCulture);
             }
         }
         
@@ -8279,7 +8270,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first parameter of the reference extension method &apos;{0}&apos; must be a value type or a generic type constrained to struct..
+        ///   Looks up a localized string similar to The first parameter of a &apos;ref&apos; extension method &apos;{0}&apos; must be a value type or a generic type constrained to struct..
         /// </summary>
         internal static string ERR_RefExtensionMustBeValueTypeOrConstrainedToOne {
             get {
@@ -8347,15 +8338,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefReadonly2 {
             get {
                 return ResourceManager.GetString("ERR_RefReadonly2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The first parameter of the readonly reference extension method &apos;{0}&apos; must be a value type..
-        /// </summary>
-        internal static string ERR_RefReadOnlyExtensionMustBeValueType {
-            get {
-                return ResourceManager.GetString("ERR_RefReadOnlyExtensionMustBeValueType", resourceCulture);
             }
         }
         
@@ -8459,7 +8441,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression cannot be used in this context because it may not be returned by reference.
+        ///   Looks up a localized string similar to An expression cannot be used in this context because it may not be passed or returned by reference.
         /// </summary>
         internal static string ERR_RefReturnLvalueExpected {
             get {
@@ -8493,18 +8475,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_RefReturnNonreturnableLocal2", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Cannot return a parameter by reference &apos;{0}&apos; because it is not a ref or out parameter.
         /// </summary>
-        internal static string ERR_RefReturnParameter
-        {
-            get
-            {
+        internal static string ERR_RefReturnParameter {
+            get {
                 return ResourceManager.GetString("ERR_RefReturnParameter", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Cannot return by reference a member of parameter &apos;{0}&apos; because it is not a ref or out parameter.
         /// </summary>

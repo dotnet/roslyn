@@ -42,29 +42,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private RoslynServices _lazyRoslynServices;
 
-        [Obsolete("For backward compatibility. this will be removed once all callers moved to new ctor")]
-        protected ServiceHubServiceBase(Stream stream, IServiceProvider serviceProvider)
-        {
-            InstanceId = Interlocked.Add(ref s_instanceId, 1);
-
-            // in unit test, service provider will return asset storage, otherwise, use the default one
-            AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
-
-            Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
-            Logger.TraceInformation($"{DebugInstanceString} Service instance created");
-
-            _shutdownCancellationSource = new CancellationTokenSource();
-            ShutdownCancellationToken = _shutdownCancellationSource.Token;
-
-            Rpc = JsonRpc.Attach(stream, this);
-            Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
-
-            Rpc.Disconnected += OnRpcDisconnected;
-        }
+        private bool _disposed;
 
         protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
+            _disposed = false;
 
             // in unit test, service provider will return asset storage, otherwise, use the default one
             AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
@@ -130,10 +113,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void Dispose()
         {
+            if (_disposed)
+            {
+                // guard us from double disposing. this can happen in unit test
+                // due to how we create test mock service hub stream that tied to
+                // remote host service
+                return;
+            }
+
+            _disposed = true;
             Rpc.Dispose();
             _shutdownCancellationSource.Dispose();
 
-            Dispose(false);
+            Dispose(disposing: true);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
         }

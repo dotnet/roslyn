@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConWithValCon = 456,
         ERR_AmbigUDConv = 457,
         WRN_AlwaysNull = 458,
-        ERR_AddrOnReadOnlyLocal = 459,
+        // ERR_AddrOnReadOnlyLocal = 459, // no longer an error
         ERR_OverrideWithConstraints = 460,
         ERR_AmbigOverride = 462,
         ERR_DecConstError = 463,
@@ -1294,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncodinglessSyntaxTree = 8055,
         // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
-        ERR_FeatureIsExperimental = 8058,
+        //ERR_FeatureIsExperimental = 8058, No experimental feature
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8062-8069
         ERR_SwitchFallOut = 8070,
@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitReservedAttr = 8335,
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
-        ERR_RefReadOnlyExtensionMustBeValueType = 8338,
+        ERR_InExtensionMustBeValueType = 8338,
         ERR_BadParameterModifiersOrder = 8339,
 
         ERR_FieldsInRoStruct = 8340,

@@ -6391,7 +6391,13 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"((long c, string d))(1, ""hello"")").WithArguments("(long c, string d)", "(short a, string b)").WithLocation(13, 34),
                 // (7,25): warning CS0219: The variable 'x1' is assigned but its value is never used
                 //         (short, string) x1 = (1, "hello");
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 25)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 25),
+                // (10,25): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         (short, string) x2 = ((long, string))(1, "hello");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(10, 25),
+                // (13,29): warning CS0219: The variable 'x3' is assigned but its value is never used
+                //         (short a, string b) x3 = ((long c, string d))(1, "hello");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3").WithLocation(13, 29)
             );
         }
 
@@ -7454,7 +7460,13 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((int c, int d))(e: 1, f:2)").WithArguments("(int c, int d)", "(short a, short b)").WithLocation(9, 33),
                 // (12,56): error CS0030: Cannot convert type 'string' to 'long'
                 //         (int a, int b) x3 = ((long c, long d))(e: 1, f:"qq");
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"""qq""").WithArguments("string", "long").WithLocation(12, 56)
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"""qq""").WithArguments("string", "long").WithLocation(12, 56),
+                // (7,24): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 24),
+                // (9,28): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(9, 28)
             );
         }
 
@@ -9376,6 +9388,7 @@ class C
     static void Main()
     {
         Test1(Nullable((a: 1, b: (a: 1, b: 2))), (a: 1, b: (object)1));
+        Test1((a: 1, b: (a: 1, b: 2)), Nullable((a: 1, b: (object)1)));
     }
 
     static T? Nullable<T>(T x) where T : struct
@@ -9395,7 +9408,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,15): error CS1503: Argument 1: cannot convert from '(int a, (int a, int b) b)?' to '(int, object)'
                 //         Test1(Nullable((a: 1, b: (a: 1, b: 2))), (a: 1, b: (object)1));
-                Diagnostic(ErrorCode.ERR_BadArgType, "Nullable((a: 1, b: (a: 1, b: 2)))").WithArguments("1", "(int a, (int a, int b) b)?", "(int, object)").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_BadArgType, "Nullable((a: 1, b: (a: 1, b: 2)))").WithArguments("1", "(int a, (int a, int b) b)?", "(int, object)").WithLocation(6, 15),
+                // (7,40): error CS1503: Argument 2: cannot convert from '(int a, object b)?' to '(int, (int a, int b))'
+                //         Test1((a: 1, b: (a: 1, b: 2)), Nullable((a: 1, b: (object)1)));
+                Diagnostic(ErrorCode.ERR_BadArgType, "Nullable((a: 1, b: (object)1))").WithArguments("2", "(int a, object b)?", "(int, (int a, int b))").WithLocation(7, 40)
                 );
         }
 
@@ -23660,7 +23676,7 @@ class C
 
         [Fact]
         [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
-        public void TypelessTupleWithNoImplicitConversion()
+        public void TypelessTupleWithNoImplicitConversion_01()
         {
             var source = @"
 class C
@@ -23680,27 +23696,58 @@ class C
                 //         (int, string) y = (e, null);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("int?", "int").WithLocation(7, 28)
                 );
+
+            VerifySemanticModelTypelessTupleWithNoImplicitConversion(comp);
+        }
+
+        private static void VerifySemanticModelTypelessTupleWithNoImplicitConversion(CSharpCompilation comp)
+        {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             Assert.Null(model.GetTypeInfo(tuple).Type);
             Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(tuple).Kind);
 
             var first = tuple.Arguments[0].Expression;
             Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
-            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+            Assert.Equal("System.Int32", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(first).Kind);
 
             var second = tuple.Arguments[1].Expression;
             Assert.Null(model.GetTypeInfo(second).Type);
-            Assert.Null(model.GetTypeInfo(second).ConvertedType);
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+            Assert.Equal("System.String", model.GetTypeInfo(second).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(second).Kind);
         }
 
         [Fact]
         [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
-        public void TypelessTupleWithNoImplicitConversion2()
+        public void TypelessTupleWithNoImplicitConversion_02()
+        {
+            var source = @"
+class C
+{
+    (int, string) M()
+    {
+        int? e = 5;
+        return (e, null); // the only conversion we find is an explicit conversion
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,17): error CS0029: Cannot implicitly convert type 'int?' to 'int'
+                //         return (e, null); // the only conversion we find is an explicit conversion
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("int?", "int").WithLocation(7, 17)
+                );
+
+            VerifySemanticModelTypelessTupleWithNoImplicitConversion(comp);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion2_01()
         {
             var source = @"
 class C
@@ -23720,22 +23767,53 @@ class C
                 //         (int, string)? y = (e, null); // the only conversion we find is an explicit conversion
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(e, null)").WithArguments("2", "(int, string)?").WithLocation(7, 28)
                 );
+
+            VerifySemanticModelTypelessTupleWithNoImplicitConversion2(comp);
+        }
+
+        private static void VerifySemanticModelTypelessTupleWithNoImplicitConversion2(CSharpCompilation comp)
+        {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             Assert.Null(model.GetTypeInfo(tuple).Type);
             Assert.Equal("(System.Int32, System.String)?", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(tuple).Kind);
 
             var first = tuple.Arguments[0].Expression;
             Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
-            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+            Assert.Equal("System.Int32", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(first).Kind);
 
             var second = tuple.Arguments[1].Expression;
             Assert.Null(model.GetTypeInfo(second).Type);
-            Assert.Null(model.GetTypeInfo(second).ConvertedType);
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+            Assert.Equal("System.String", model.GetTypeInfo(second).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion2_02()
+        {
+            var source = @"
+class C
+{
+    (int, string)? M()
+    {
+        int? e = 5;
+        return (e, null); // the only conversion we find is an explicit conversion
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,16): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string)?'.
+                //         return (e, null); // the only conversion we find is an explicit conversion
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(e, null)").WithArguments("2", "(int, string)?").WithLocation(7, 16)
+                );
+
+            VerifySemanticModelTypelessTupleWithNoImplicitConversion2(comp);
         }
 
         [Fact]
@@ -23886,10 +23964,10 @@ public class C
             var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "4");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20583")]
+        [Fact]
         [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
         [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
-        public void MoreGenericTieBreaker_02()
+        public void MoreGenericTieBreaker_02a1()
         {
             var source =
 @"using System;
@@ -23912,7 +23990,156 @@ public class C
                 expectedOutput: @"12");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20583")]
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a2()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        // var b = (1, 2, 3, 4, 5, 6, 7, 8);
+        var b = new ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>(1, 2, 3, 4, 5, 6, 7, new ValueTuple<int>(8));
+        M1(ref b);
+        M2(ref b); // ok, should select M2<T1, T2, T3, T4, T5, T6, T7, T8>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> a)
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ref ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(ref ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ref ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
+}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a3()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        I<ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>> b = null;
+        M1(b);
+        M2(b); 
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>> a) where TRest : struct { Console.Write(3); }
+}
+
+public interface I<in T>{}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a4()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        I<ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>> b = null;
+        M1(b);
+        M2(b); 
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>> a) where TRest : struct { Console.Write(3); }
+}
+
+public interface I<out T>{}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a5()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        M1((1, 2, 3, 4, 5, 6, 7, 8));
+        M2((1, 2, 3, 4, 5, 6, 7, 8));
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
+}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a6()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        M2((()=>1, ()=>2, ()=>3, ()=>4, ()=>5, ()=>6, ()=>7, ()=>8));
+    }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, ValueTuple<Func<T8>>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, TRest> a) where TRest : struct { Console.Write(3); }
+}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"2");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a7()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        M1((()=>1, ()=>2, ()=>3, ()=>4, ()=>5, ()=>6, ()=>7, ()=>8));
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, TRest> a) where TRest : struct { Console.Write(1); }
+}
+";
+            CreateStandardCompilation(source, references: s_valueTupleRefs).VerifyDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'C.M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, TRest>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1((()=>1, ()=>2, ()=>3, ()=>4, ()=>5, ()=>6, ()=>7, ()=>8));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T1, T2, T3, T4, T5, T6, T7, TRest>(System.ValueTuple<System.Func<T1>, System.Func<T2>, System.Func<T3>, System.Func<T4>, System.Func<T5>, System.Func<T6>, System.Func<T7>, TRest>)").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
         [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
         [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
         public void MoreGenericTieBreaker_02b()

@@ -38,9 +38,8 @@ namespace Microsoft.CodeAnalysis
         YieldBreakStatement = 0xc,
         /// <summary>Indicates an <see cref="ILockStatement"/>.</summary>
         LockStatement = 0xd,
-        // https://github.com/dotnet/roslyn/issues/22008
-        // /// <summary>Indicates an <see cref="ITryStatement"/>.</summary>
-        // TryStatement = 0xe,
+        /// <summary>Indicates an <see cref="ITryStatement"/>.</summary>
+        TryStatement = 0xe,
         /// <summary>Indicates an <see cref="IUsingStatement"/>.</summary>
         UsingStatement = 0xf,
         /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
@@ -58,15 +57,15 @@ namespace Microsoft.CodeAnalysis
 
         // Statements that occur only in Visual Basic.
 
-        // https://github.com/dotnet/roslyn/issues/21297
-        // /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
-        // StopStatement = 0x50,
-        // https://github.com/dotnet/roslyn/issues/22004
-        // /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
-        // EndStatement = 0x51,
+        /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
+        StopStatement = 0x50,
+        /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
+        EndStatement = 0x51,
         // https://github.com/dotnet/roslyn/issues/22005
         // /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
         // WithStatement = 0x52,
+        /// <summary>Indicates an <see cref="IRaiseEventStatement"/>.</summary>
+        RaiseEventStatement = 0x53,
 
         // Expressions
 
@@ -78,9 +77,8 @@ namespace Microsoft.CodeAnalysis
         ConversionExpression = 0x102,
         /// <summary>Indicates an <see cref="IInvocationExpression"/>.</summary>
         InvocationExpression = 0x103,
-        // https://github.com/dotnet/roslyn/issues/22006
-        // /// <summary>Indicates an <see cref="IArrayElementReferenceExpression"/>.</summary>
-        // ArrayElementReferenceExpression = 0x104,
+        /// <summary>Indicates an <see cref="IArrayElementReferenceExpression"/>.</summary>
+        ArrayElementReferenceExpression = 0x104,
         /// <summary>Indicates an <see cref="ILocalReferenceExpression"/>.</summary>
         LocalReferenceExpression = 0x105,
         /// <summary>Indicates an <see cref="IParameterReferenceExpression"/>.</summary>
@@ -114,9 +112,8 @@ namespace Microsoft.CodeAnalysis
         InstanceReferenceExpression = 0x115,
         /// <summary>Indicates an <see cref="IIsTypeExpression"/>.</summary>
         IsTypeExpression = 0x116,
-        // https://github.com/dotnet/roslyn/issues/22007
-        // /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
-        // AwaitExpression = 0x117,
+        /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
+        AwaitExpression = 0x117,
         /// <summary>Indicates an <see cref="ISimpleAssignmentExpression"/>.</summary>
         SimpleAssignmentExpression = 0x118,
         /// <summary>Indicates an <see cref="ICompoundAssignmentExpression"/>.</summary>
@@ -153,6 +150,8 @@ namespace Microsoft.CodeAnalysis
         DynamicIndexerAccessExpression = 0x128,
         /// <summary>Indicates an <see cref="ITranslatedQueryExpression"/>.</summary>
         TranslatedQueryExpression = 0x129,
+        /// <summary>Indicates a <see cref="IDelegateCreationExpression"/>.</summary>
+        DelegateCreationExpression = 0x130,
 
         // Expressions that occur only in C#.
 
@@ -176,14 +175,18 @@ namespace Microsoft.CodeAnalysis
         ThrowExpression = 0x207,
         /// <summary>Indicates an <see cref="IIncrementOrDecrementExpression"/> for decrement operator.</summary>
         DecrementExpression = 0x208,
+        /// <summary>Indicates an <see cref="IDeconstructionAssignmentExpression"/>.</summary>
+        DeconstructionAssignmentExpression = 0x209,
+        /// <summary>Indicates an <see cref="IDeclarationExpression"/>.</summary>
+        DeclarationExpression = 0x20a,
 
         // Expressions that occur only in Visual Basic.
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x300,
 
-        // 0x301 was removed, and is available for use.
-
+        // Unused 0x301
+        
         // https://github.com/dotnet/roslyn/issues/21294
         // /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
         // PlaceholderExpression = 0x302,
@@ -191,10 +194,12 @@ namespace Microsoft.CodeAnalysis
         // Operations that are constituents of statements, expressions, or declarations.
 
 
-        // Unused 0x400 and 0x402
+        // Unused 0x400
 
         /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
         FieldInitializer = 0x401,
+        /// <summary>Indicates an <see cref="IVariableInitializer"/>.</summary>
+        VariableInitializer = 0x402,
         /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
         PropertyInitializer = 0x403,
         /// <summary>Indicates an <see cref="IParameterInitializer"/>.</summary>
@@ -208,9 +213,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IArgument"/>.</summary>
         Argument = 0x407,
 
-        // https://github.com/dotnet/roslyn/issues/22008
-        // /// <summary>Indicates an <see cref="ICatchClause"/>.</summary>
-        // CatchClause = 0x408,
+        /// <summary>Indicates an <see cref="ICatchClause"/>.</summary>
+        CatchClause = 0x408,
 
         /// <summary>Indicates an <see cref="ISwitchCase"/>.</summary>
         SwitchCase = 0x409,

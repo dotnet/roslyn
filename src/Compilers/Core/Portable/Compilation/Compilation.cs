@@ -2418,6 +2418,10 @@ namespace Microsoft.CodeAnalysis
             {
                 pePdbFilePath = pePdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb");
             }
+            else
+            {
+                pePdbFilePath = null;
+            }
 
             if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded && !string.IsNullOrEmpty(pePdbFilePath))
             {
@@ -2929,8 +2933,6 @@ namespace Microsoft.CodeAnalysis
         {
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }
-        
-        internal abstract bool IsIOperationFeatureEnabled();
 
         /// <summary>
         /// Given a <see cref="Diagnostic"/> reporting unreferenced <see cref="AssemblyIdentity"/>s, returns

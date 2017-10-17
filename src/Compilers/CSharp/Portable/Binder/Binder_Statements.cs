@@ -200,6 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node)
                 : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
+
             if (!argument.HasAnyErrors)
             {
                 argument = binder.GenerateConversionForAssignment(elementType, argument, diagnostics);
@@ -1516,23 +1518,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
                 }
 
-                if (conversion.IsTupleLiteralConversion ||
-                     (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
-                {
-                    // Follow-up issue https://github.com/dotnet/roslyn/issues/19878
-                    // How should we represent the tuple or nullable+tuple conversion in this case?
-                    conversion = Conversion.NoConversion;
-                }
-
-                return new BoundConversion(
-                    expression.Syntax,
-                    expression,
-                    conversion,
-                    @checked: CheckOverflowAtRuntime,
-                    explicitCastInCode: false,
-                    constantValueOpt: ConstantValue.NotAvailable,
-                    type: targetType,
-                    hasErrors: true);
+                // Suppress any additional diagnostics
+                diagnostics = new DiagnosticBag();
             }
 
             return CreateConversion(expression.Syntax, expression, conversion, false, targetType, diagnostics);
@@ -1710,7 +1697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Parameter {0} is declared as type '{1}{2}' but should be '{3}{4}'
                         Error(diagnostics, ErrorCode.ERR_BadParamType, lambdaParameterLocation,
-                            i + 1, lambdaRefKind.ToPrefix(), distinguisher.First, delegateRefKind.ToPrefix(), distinguisher.Second);
+                            i + 1, lambdaRefKind.ToParameterPrefix(), distinguisher.First, delegateRefKind.ToParameterPrefix(), distinguisher.Second);
                     }
                     else if (lambdaRefKind != delegateRefKind)
                     {

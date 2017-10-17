@@ -1,27 +1,31 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
     internal static class OperationFactory
     {
-        public static IVariableDeclaration CreateVariableDeclaration(ILocalSymbol variable, IOperation initialValue, SemanticModel semanticModel, SyntaxNode syntax)
+        public static IVariableDeclaration CreateVariableDeclaration(ILocalSymbol variable, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax)
         {
-            return CreateVariableDeclaration(ImmutableArray.Create(variable), initialValue, semanticModel, syntax);
+            return CreateVariableDeclaration(ImmutableArray.Create(variable), initializer, semanticModel, syntax);
         }
 
-        public static VariableDeclaration CreateVariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, SemanticModel semanticModel, SyntaxNode syntax)
+        public static VariableDeclaration CreateVariableDeclaration(ImmutableArray<ILocalSymbol> variables, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax)
         {
             return new VariableDeclaration(
                 variables,
-                initialValue,
+                initializer,
                 semanticModel,
                 syntax,
                 type: null,
                 constantValue: default(Optional<object>),
                 isImplicit: false); // variable declaration is always explicit
+        }
+
+        public static IVariableInitializer CreateVariableInitializer(SyntaxNode syntax, IOperation initializerValue, SemanticModel semanticModel, bool isImplicit)
+        {
+            return new VariableInitializer(initializerValue, semanticModel, syntax, type: null, constantValue: default, isImplicit: isImplicit);
         }
 
         public static IConditionalExpression CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
@@ -81,21 +85,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isLifted: isLifted, isChecked: isChecked,
                 isCompareText: isCompareText, usesOperatorMethod: false, operatorMethod: null,
                 semanticModel: semanticModel, syntax: syntax, type: resultType, constantValue: default, isImplicit: isImplicit);
-        }
-
-        public static IArrayCreationExpression CreateArrayCreationExpression(
-            IArrayTypeSymbol arrayType, ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
-        {
-            var initializer = new ArrayInitializer(elementValues, semanticModel, syntax, arrayType, default(Optional<object>), isImplicit);
-            return new ArrayCreationExpression(
-                arrayType.ElementType,
-                ImmutableArray.Create<IOperation>(CreateLiteralExpression(elementValues.Count(), resultType: null, semanticModel: semanticModel, syntax: syntax, isImplicit: isImplicit)),
-                initializer,
-                semanticModel,
-                syntax,
-                arrayType,
-                default(Optional<object>),
-                isImplicit);
         }
 
         public static IInvalidExpression CreateInvalidExpression(SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)

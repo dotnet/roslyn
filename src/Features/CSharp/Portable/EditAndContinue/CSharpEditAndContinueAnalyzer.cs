@@ -1908,7 +1908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.DelegateDeclaration:
                         var delegateDeclaration = (DelegateDeclarationSyntax)node;
                         ClassifyPossibleReadOnlyRefAttributesForType(delegateDeclaration, delegateDeclaration.ReturnType);
-                        ClassifyPossibleReadOnlyRefAttributesForParameters(delegateDeclaration.ParameterList);
+                        ClassifyPossibleInModifierForParameters(delegateDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.PropertyDeclaration:
@@ -1920,7 +1920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         var indexerDeclaration = (IndexerDeclarationSyntax)node;
                         ClassifyModifiedMemberInsert(indexerDeclaration.Modifiers);
                         ClassifyPossibleReadOnlyRefAttributesForType(indexerDeclaration, indexerDeclaration.Type);
-                        ClassifyPossibleReadOnlyRefAttributesForParameters(indexerDeclaration.ParameterList);
+                        ClassifyPossibleInModifierForParameters(indexerDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.ConversionOperatorDeclaration:
@@ -1949,7 +1949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         }
 
                         ClassifyModifiedMemberInsert(method.Modifiers);
-                        ClassifyPossibleReadOnlyRefAttributesForParameters(method.ParameterList);
+                        ClassifyPossibleInModifierForParameters(method.ParameterList);
                         return;
 
                     case SyntaxKind.GetAccessorDeclaration:
@@ -2030,28 +2030,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
             }
 
-            private void ClassifyPossibleReadOnlyRefAttributesForParameters(BaseParameterListSyntax list)
+            private void ClassifyPossibleInModifierForParameters(BaseParameterListSyntax list)
             {
                 foreach (var parameter in list.Parameters)
                 {
-                    bool foundRef = false, foundReadonly = false;
-
                     foreach (var modifier in parameter.Modifiers)
                     {
-                        switch (modifier.Kind())
+                        if (modifier.IsKind(SyntaxKind.InKeyword))
                         {
-                            case SyntaxKind.RefKeyword:
-                                foundRef = true;
-                                break;
-                            case SyntaxKind.ReadOnlyKeyword:
-                                foundReadonly = true;
-                                break;
+                            ReportError(RudeEditKind.ReadOnlyReferences, parameter, parameter);
+                            return;
                         }
-                    }
-
-                    if (foundRef && foundReadonly)
-                    {
-                        ReportError(RudeEditKind.ReadOnlyReferences, parameter, parameter);
                     }
                 }
             }
@@ -2104,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 ClassifyPossibleReadOnlyRefAttributesForType(method, method.ReturnType);
-                ClassifyPossibleReadOnlyRefAttributesForParameters(method.ParameterList);
+                ClassifyPossibleInModifierForParameters(method.ParameterList);
             }
 
             private void ClassifyAccessorInsert(AccessorDeclarationSyntax accessor)
@@ -2876,7 +2865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         case SyntaxKind.LocalFunctionStatement:
                             var localFunction = (LocalFunctionStatementSyntax)node;
                             ClassifyPossibleReadOnlyRefAttributesForType(localFunction, localFunction.ReturnType);
-                            ClassifyPossibleReadOnlyRefAttributesForParameters(localFunction.ParameterList);
+                            ClassifyPossibleInModifierForParameters(localFunction.ParameterList);
                             break;
                     }
                 }

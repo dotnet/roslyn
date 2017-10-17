@@ -541,7 +541,7 @@ class C
 class C
 {
     int field = 0;
-    public ref readonly int this[ref readonly int arg] => ref field;
+    public ref readonly int this[in int arg] => ref field;
 }");
             comp.VerifyDiagnostics();
 
@@ -554,7 +554,7 @@ class C
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
             Assert.True(p.IsExpressionBodied);
             Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.Parameters[0].RefKind);
+            Assert.Equal(RefKind.In, p.GetMethod.Parameters[0].RefKind);
             Assert.False(p.ReturnsByRef);
             Assert.False(p.GetMethod.ReturnsByRef);
             Assert.True(p.ReturnsByRefReadonly);
@@ -569,7 +569,7 @@ class C
 class C
 {
     int field = 0;
-    public ref readonly int this[ref readonly int arg] => ref field;
+    public ref readonly int this[in int arg] => ref field;
 }");
             comp.VerifyDiagnostics();
 
@@ -582,7 +582,7 @@ class C
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
             Assert.True(p.IsExpressionBodied);
             Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.Parameters[0].RefKind);
+            Assert.Equal(RefKind.In, p.GetMethod.Parameters[0].RefKind);
             Assert.False(p.ReturnsByRef);
             Assert.False(p.GetMethod.ReturnsByRef);
             Assert.True(p.ReturnsByRefReadonly);

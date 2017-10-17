@@ -2677,11 +2677,6 @@ baddate:
         End Function
 
         Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
-            Dim featureFlag = feature.GetFeatureFlag()
-            If featureFlag IsNot Nothing Then
-                Return parseOptions.Features.ContainsKey(featureFlag)
-            End If
-
             Dim required = feature.GetLanguageVersion()
             Dim actual = parseOptions.LanguageVersion
             Return CInt(required) <= CInt(actual)
