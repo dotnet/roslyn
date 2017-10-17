@@ -495,11 +495,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 IOperation current;
-                if ((current = Value) != null)
+                if ((current = Target) != null)
                 {
                     yield return current;
                 }
-                if ((current = Target) != null)
+                if ((current = Value) != null)
                 {
                     yield return current;
                 }
@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class BinaryOperatorExpression : BaseBinaryOperatorExpression, IBinaryOperatorExpression
     {
         public BinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, isCompareText,operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LeftOperandImpl = leftOperand;
             RightOperandImpl = rightOperand;
@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyRightOperand;
 
         public LazyBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, isCompareText,operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
             _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
@@ -1530,11 +1530,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 IOperation current;
-                if ((current = HandlerValue) != null)
+                if ((current = EventReference) != null)
                 {
                     yield return current;
                 }
-                if ((current = EventReference) != null)
+                if ((current = HandlerValue) != null)
                 {
                     yield return current;
                 }
@@ -2232,11 +2232,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 IOperation current;
-                if ((current = InitialValue) != null)
+                if ((current = LoopControlVariable) != null)
                 {
                     yield return current;
                 }
-                if ((current = LoopControlVariable) != null)
+                if ((current = InitialValue) != null)
                 {
                     yield return current;
                 }
@@ -2244,11 +2244,11 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return current;
                 }
-                if ((current = Body) != null)
+                if ((current = StepValue) != null)
                 {
                     yield return current;
                 }
-                if ((current = StepValue) != null)
+                if ((current = Body) != null)
                 {
                     yield return current;
                 }
@@ -2902,7 +2902,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         protected override ImmutableArray<IOperation> ChildrenImpl => _lazyChildren.Value;
     }
-    
+
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
@@ -3052,7 +3052,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class RaiseEventStatement : BaseRaiseEventStatement, IRaiseEventStatement
     {
-        public RaiseEventStatement(IEventReferenceExpression eventReference, ImmutableArray<IArgument> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public RaiseEventStatement(IEventReferenceExpression eventReference, ImmutableArray<IArgument> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             EventReferenceImpl = eventReference;
@@ -3072,7 +3072,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IEventReferenceExpression> _lazyEventReference;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArguments;
 
-        public LazyRaiseEventStatement(Lazy<IEventReferenceExpression> eventReference, Lazy<ImmutableArray<IArgument>> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public LazyRaiseEventStatement(Lazy<IEventReferenceExpression> eventReference, Lazy<ImmutableArray<IArgument>> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyEventReference = eventReference;
@@ -5530,7 +5530,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyOperand;
 
         public LazyUnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, Lazy<IOperation> operand, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(unaryOperationKind, isLifted, isChecked,operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+            base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
@@ -5779,14 +5779,31 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 IOperation current;
-                if ((current = Condition) != null)
+
+                if (DoLoopKind == DoLoopKind.DoWhileTopLoop ||
+                    DoLoopKind == DoLoopKind.DoUntilTopLoop ||
+                    DoLoopKind == DoLoopKind.None)
                 {
-                    yield return current;
+                    if ((current = Condition) != null)
+                    {
+                        yield return current;
+                    }
                 }
+
                 if ((current = Body) != null)
                 {
                     yield return current;
                 }
+
+                if (DoLoopKind == DoLoopKind.DoWhileBottomLoop ||
+                    DoLoopKind == DoLoopKind.DoUntilBottomLoop)
+                {
+                    if ((current = Condition) != null)
+                    {
+                        yield return current;
+                    }
+                }
+
                 if ((current = IgnoredCondition) != null)
                 {
                     yield return current;
@@ -6424,11 +6441,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 IOperation current;
-                if ((current = Initializer) != null)
+                if ((current = InitializedMember) != null)
                 {
                     yield return current;
                 }
-                if ((current = InitializedMember) != null)
+                if ((current = Initializer) != null)
                 {
                     yield return current;
                 }
