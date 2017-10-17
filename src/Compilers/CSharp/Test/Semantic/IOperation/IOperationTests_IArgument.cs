@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2352,7 +2352,7 @@ class P
             var (operation, syntaxNode) = GetOperationAndSyntaxForTest<InvocationExpressionSyntax>(compilation);
 
             var invocation = (IInvocationExpression)operation;
-            var argument = invocation.ArgumentsInEvaluationOrder[0];
+            var argument = invocation.Arguments[0];
 
             // We are calling VB extension methods on IArgument in C# code, therefore exception is expected here.
             Assert.Throws<ArgumentException>(() => argument.GetInConversion());
@@ -2908,14 +2908,14 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: i2) (OperationKind.Argumen
 
             public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
             {
-                if (operation.HasErrors(_compilation) || operation.ArgumentsInEvaluationOrder.Length == 0)
+                if (operation.HasErrors(_compilation) || operation.Arguments.Length == 0)
                 {
                     return;
                 }
 
                 // Check if the parameter symbol for argument is corresponding to indexer instead of accessor.
                 var indexerSymbol = operation.Property;
-                foreach (var argument in operation.ArgumentsInEvaluationOrder)
+                foreach (var argument in operation.Arguments)
                 {
                     if (!argument.HasErrors(_compilation))
                     {

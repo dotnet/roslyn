@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                         return UnaryOperatorKind.False;
                 }
 
-                return UnaryOperatorKind.Invalid;
+                return UnaryOperatorKind.None;
             }
 
             internal static BinaryOperatorKind DeriveBinaryOperatorKind(CSharp.BinaryOperatorKind operatorKind)
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                         return BinaryOperatorKind.GreaterThan;
                 }
 
-                return BinaryOperatorKind.Invalid;
+                return BinaryOperatorKind.None;
             }
         }
     }

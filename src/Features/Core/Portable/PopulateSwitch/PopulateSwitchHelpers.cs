@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     switch (clause.CaseKind)
                     {
                         default:
+                        case CaseKind.None:
                         case CaseKind.Relational:
                         case CaseKind.Range:
                             // This was some sort of complex switch.  For now just ignore

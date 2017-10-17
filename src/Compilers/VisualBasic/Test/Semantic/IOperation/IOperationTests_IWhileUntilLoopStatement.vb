@@ -1405,7 +1405,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDoLoopStatement (DoLoopKind: Invalid) (LoopKind.Do) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'Do While i  ... ntil i <= 0')
+IDoLoopStatement (DoLoopKind: None) (LoopKind.Do) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'Do While i  ... ntil i <= 0')
   Condition: 
     IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
       Left: 

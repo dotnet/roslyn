@@ -10,25 +10,34 @@ namespace Microsoft.CodeAnalysis.Semantics
     public enum CaseKind
     {
         /// <summary>
+        /// Represents unknown case kind.
+        /// </summary>
+        None = 0x0,
+
+        /// <summary>
         /// Indicates case x in C# or Case x in VB.
         /// </summary>
-        SingleValue = 0x0,
+        SingleValue = 0x1,
+
         /// <summary>
         /// Indicates Case Is op x in VB.
         /// </summary>
-        Relational = 0x1,
+        Relational = 0x2,
+
         /// <summary>
         /// Indicates Case x To Y in VB.
         /// </summary>
-        Range = 0x2,
+        Range = 0x3,
+
         /// <summary>
         /// Indicates default in C# or Case Else in VB.
         /// </summary>
-        Default = 0x3,
+        Default = 0x4,
+
         /// <summary>
         /// Indicates pattern case in C#.
         /// </summary>
-        Pattern = 0x4
+        Pattern = 0x5
     }
 }
 
