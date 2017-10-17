@@ -71,6 +71,16 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IOperation GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (!this.Compilation.IsIOperationFeatureEnabled())
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
+            }
+
+            return GetOperationInternal(node, cancellationToken);
+        }
+
+        internal IOperation GetOperationInternal(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
+        {
             try
             {
                 return GetOperationCore(node, cancellationToken);

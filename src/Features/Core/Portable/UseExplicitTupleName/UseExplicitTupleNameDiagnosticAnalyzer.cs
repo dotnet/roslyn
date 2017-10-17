@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
     {
         public const string ElementName = nameof(ElementName);
 
+        private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
+
         public UseExplicitTupleNameDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_explicitly_provided_tuple_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
@@ -27,7 +29,11 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReferenceExpression);
+            => s_registerMethod.Invoke(context, new object[]
+               {
+                   new Action<OperationAnalysisContext>(AnalyzeOperation),
+                   ImmutableArray.Create(OperationKind.FieldReferenceExpression)
+               });
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {

@@ -798,7 +798,7 @@ Public MustInherit Class BasicTestBaseBase
 
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
         Dim semanticModel = compilation.GetSemanticModel(tree)
-        Dim operation = semanticModel.GetOperation(node)
+        Dim operation = semanticModel.GetOperationInternal(node)
         If operation IsNot Nothing Then
             Return (OperationTreeVerifier.GetOperationTree(compilation, operation), node, operation)
         Else
@@ -892,7 +892,7 @@ Public MustInherit Class BasicTestBaseBase
         End If
         
         Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
-        Dim operation = semanticModel.GetOperation(node)
+        Dim operation = semanticModel.GetOperationInternal(node)
         Return (operation, node)
     End Function
 

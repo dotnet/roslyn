@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             foreach (var child in node.ChildNodes())
             {
-                var operation = model.GetOperation(child);
+                var operation = model.GetOperationInternal(child);
                 if (operation != null)
                 {
                     // found top operation
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             foreach (var node in model.SyntaxTree.GetRoot().DescendantNodes())
             {
-                var operation = model.GetOperation(node);
+                var operation = model.GetOperationInternal(node);
                 if (operation == null)
                 {
                     continue;
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             while (node != semanticModel.Root)
             {
-                var operation = semanticModel.GetOperation(node);
+                var operation = semanticModel.GetOperationInternal(node);
                 if (operation != null)
                 {
                     Assert.True(set.Contains(operation));

@@ -1097,7 +1097,7 @@ public class Cls
                 return;
             }
 
-            Assert.Equal(expectedType, model.GetOperation(decl)?.Type);
+            Assert.Equal(expectedType, model.GetOperationInternal(decl)?.Type);
         }
 
         private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)

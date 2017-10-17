@@ -28,8 +28,14 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         public override bool OpenFileOnly(Workspace workspace) => false;
 
+        private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
+
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.SwitchStatement);
+            => s_registerMethod.Invoke(context, new object[]
+               {
+                   new Action<OperationAnalysisContext>(AnalyzeOperation),
+                   ImmutableArray.Create(OperationKind.SwitchStatement)
+               });
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {

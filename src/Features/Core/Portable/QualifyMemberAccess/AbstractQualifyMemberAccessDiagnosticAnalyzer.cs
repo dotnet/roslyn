@@ -47,8 +47,14 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
 
+        private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
+
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodReferenceExpression);
+            => s_registerMethod.Invoke(context, new object[]
+               {
+                   new Action<OperationAnalysisContext>(AnalyzeOperation),
+                   ImmutableArray.Create(OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodReferenceExpression)
+               });
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 

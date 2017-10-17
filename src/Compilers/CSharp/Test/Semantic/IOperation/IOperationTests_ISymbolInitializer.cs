@@ -32,7 +32,7 @@ class C
             var semanticModel = compilation.GetSemanticModel(tree);
             foreach (var node in nodes)
             {
-                Assert.Null(semanticModel.GetOperation(node));
+                Assert.Null(semanticModel.GetOperationInternal(node));
             }
         }
 

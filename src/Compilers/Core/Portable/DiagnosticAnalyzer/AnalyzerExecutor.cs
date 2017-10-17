@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </remarks>
         public void ExecuteInitializeMethod(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope)
         {
-            var context = new AnalyzerAnalysisContext(analyzer, sessionScope);
+            var context = new AnalyzerAnalysisContext(analyzer, sessionScope, _compilation.IsIOperationFeatureEnabled());
 
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
             ExecuteAndCatchIfThrows(
