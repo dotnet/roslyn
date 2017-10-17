@@ -2529,6 +2529,32 @@ class C
                 );
         }
 
+        [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
+        public void DelegateSquigglesArea()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        System.Func<bool, System.Action<bool>> x = x1 => delegate(bool x2)
+        {
+            error();
+        };
+    }
+}
+";
+            var comp = CreateStandardCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'error' does not exist in the current context
+                //             error();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
+                // (6,58): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         System.Func<bool, System.Action<bool>> x = x1 => delegate(bool x2)
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "delegate(bool x2)").WithArguments("lambda expression").WithLocation(6, 58)
+                );
+        }
+
         [Fact]
         public void ThrowExpression_Lambda()
         {

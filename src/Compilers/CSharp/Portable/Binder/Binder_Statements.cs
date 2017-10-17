@@ -2676,7 +2676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = this.ContainingMemberOrLambda as LambdaSymbol;
             if ((object)lambda != null)
             {
-                Location location = GetLocationForDiagnostics(syntax);
+                Location location = getLocationForDiagnostics(syntax);
                 if (IsInAsyncMethod())
                 {
                     // Cannot convert async {0} to intended delegate type. An async {0} may return void, Task or Task<T>, none of which are convertible to '{1}'.
@@ -2692,16 +2692,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lambda.MessageID.Localize());
                 }
             }
-        }
 
-        private static Location GetLocationForDiagnostics(SyntaxNode node)
-        {
-            if (node is LambdaExpressionSyntax lambda)
+            Location getLocationForDiagnostics(SyntaxNode node)
             {
-                return Location.Create(lambda.SyntaxTree, Text.TextSpan.FromBounds(lambda.SpanStart, lambda.ArrowToken.Span.End));
-            }
+                if (node is LambdaExpressionSyntax lambdaSyntax)
+                {
+                    return Location.Create(lambdaSyntax.SyntaxTree,
+                        Text.TextSpan.FromBounds(lambdaSyntax.SpanStart, lambdaSyntax.ArrowToken.Span.End));
+                }
+                else if (node is AnonymousMethodExpressionSyntax anonymousMethodSyntax)
+                {
+                    return Location.Create(anonymousMethodSyntax.SyntaxTree,
+                        Text.TextSpan.FromBounds(anonymousMethodSyntax.SpanStart, anonymousMethodSyntax.ParameterList.Span.End));
+                }
 
-            return node.Location;
+                return node.Location;
+            }
         }
 
         private static bool IsValidStatementExpression(SyntaxNode syntax, BoundExpression expression)
