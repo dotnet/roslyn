@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private const string Analyzer = nameof(Analyzer);
         private const string ProjectCount = nameof(ProjectCount);
         private const string DocumentCount = nameof(DocumentCount);
-        private const string Offender = nameof(Offender);
         private const string Languages = nameof(Languages);
         private const string HighPriority = nameof(HighPriority);
         private const string Enabled = nameof(Enabled);
@@ -80,7 +79,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 m[DocumentCount] = projectOrDocumentIds?.OfType<DocumentId>().Count() ?? 0;
                 m[HighPriority] = highPriority;
                 m[Languages] = GetLanguages(solution, projectOrDocumentIds);
-                m[Offender] = GetOffender();
             }));
         }
 
@@ -369,50 +367,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 return string.Join(",", pool.Object);
-            }
-        }
-
-        // we are seeing this get called several hundred times per second which shouldn't happen.
-        // there seems bad consumer of Reanalyze API among our partners. adding some diagnostic info
-        // to figure that out
-        // if this get called more than 30 times within 10 second, we will log callstack to find out who
-        // is calling us.
-        private const int MAX_CONTINUOUS_CALL = 30;
-        private static readonly TimeSpan s_interval = TimeSpan.FromSeconds(10);
-
-        private static int s_continousCall = 0;
-        private static DateTime s_lastTimeCalled = DateTime.MinValue;
-
-        public static string GetOffender()
-        {
-            var current = DateTime.UtcNow;
-
-            // reset data on every s_interval
-            if (current - s_lastTimeCalled > s_interval)
-            {
-                s_lastTimeCalled = current;
-                s_continousCall = 0;
-
-                return string.Empty;
-            }
-            else
-            {
-                var result = string.Empty;
-                if (s_continousCall == MAX_CONTINUOUS_CALL)
-                {
-                    // report callstack only for MAX case.
-                    try
-                    {
-                        throw new Exception();
-                    }
-                    catch (Exception e)
-                    {
-                        result = e.StackTrace;
-                    }
-                }
-
-                s_continousCall++;
-                return result;
             }
         }
     }

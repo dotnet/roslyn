@@ -440,10 +440,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             var document = solution.GetDocument(documentId);
                             if (document != null)
                             {
-                                break;
+                                await EnqueueWorkItemAsync(analyzer, document, invocationReasons).ConfigureAwait(false);
                             }
-
-                            await EnqueueWorkItemAsync(analyzer, document, invocationReasons).ConfigureAwait(false);
                             break;
                         }
                     }
