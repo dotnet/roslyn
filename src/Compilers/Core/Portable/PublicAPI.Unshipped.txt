@@ -177,7 +177,7 @@ Microsoft.CodeAnalysis.Semantics.BranchKind
 Microsoft.CodeAnalysis.Semantics.BranchKind.Break = 2 -> Microsoft.CodeAnalysis.Semantics.BranchKind
 Microsoft.CodeAnalysis.Semantics.BranchKind.Continue = 1 -> Microsoft.CodeAnalysis.Semantics.BranchKind
 Microsoft.CodeAnalysis.Semantics.BranchKind.GoTo = 3 -> Microsoft.CodeAnalysis.Semantics.BranchKind
-Microsoft.CodeAnalysis.Semantics.BranchKind.None = 1 -> Microsoft.CodeAnalysis.Semantics.BranchKind
+Microsoft.CodeAnalysis.Semantics.BranchKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.BranchKind
 Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.Default = 4 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.CaseKind

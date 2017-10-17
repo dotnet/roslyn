@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Represents unknown branch kind.
         /// </summary>
-        None = 0x1,
+        None = 0x0,
 
         /// <summary>
         /// Represents a continue branch kind.
