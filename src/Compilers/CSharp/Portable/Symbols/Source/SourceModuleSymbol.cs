@@ -46,19 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to be complete after a call to GetAttributes(). 
         private ConcurrentDictionary<string, ConcurrentSet<ImmutableArray<byte>>> _lazyNullableOptOutForAssemblyMap;
 
-        private sealed class AttributeAndDiagnostics
-        {
-            internal AttributeAndDiagnostics(NamedTypeSymbol attribute, DiagnosticBag diagnostics)
-            {
-                Attribute = attribute;
-                Diagnostics = diagnostics;
-            }
-            internal readonly NamedTypeSymbol Attribute;
-            internal readonly DiagnosticBag Diagnostics;
-        }
-
-        private AttributeAndDiagnostics _lazyNullableAttribute;
-
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
             DeclarationTable declarations,
@@ -625,66 +612,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor));
                 }
             }
-
-            if (UtilizesNullableReferenceTypes)
-            {
-                // PROTOTYPE(NullableReferenceTypes): Support NetModule.
-                if (compilation.Options.OutputKind != OutputKind.NetModule)
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor));
-                }
-            }
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Handle NullableAttribute
-        // consistently with other embedded attributes.
-        internal NamedTypeSymbol GetNullableAttribute(DiagnosticBag diagnostics)
-        {
-            if (!UtilizesNullableReferenceTypes)
-            {
-                return null;
-            }
-            if ((object)_lazyNullableAttribute == null)
-            {
-                Interlocked.CompareExchange(ref _lazyNullableAttribute, GetNullableAttributeAndDiagnostics(_assemblySymbol.DeclaringCompilation), null);
-            }
-            diagnostics.AddRange(_lazyNullableAttribute.Diagnostics);
-            return _lazyNullableAttribute.Attribute;
-        }
-
-        private static AttributeAndDiagnostics GetNullableAttributeAndDiagnostics(CSharpCompilation compilation)
-        {
-            var diagnostics = new DiagnosticBag();
-            var symbol = new SynthesizedEmbeddedAttributeSymbol(
-                AttributeDescription.NullableAttribute,
-                compilation,
-                GetAdditionalNullableAttributeConstructors,
-                diagnostics);
-            return new AttributeAndDiagnostics(symbol, diagnostics);
-        }
-
-        private static ImmutableArray<MethodSymbol> GetAdditionalNullableAttributeConstructors(
-            CSharpCompilation compilation,
-            NamedTypeSymbol containingType,
-            DiagnosticBag diagnostics)
-        {
-            var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-            Binder.ReportUseSiteDiagnostics(boolType, diagnostics, Location.None);
-            var boolArray = TypeSymbolWithAnnotations.Create(
-                ArrayTypeSymbol.CreateSZArray(
-                    boolType.ContainingAssembly,
-                    TypeSymbolWithAnnotations.Create(boolType)));
-            return ImmutableArray.Create<MethodSymbol>(
-                new SynthesizedEmbeddedAttributeConstructorSymbol(
-                    containingType,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, boolArray, 0, RefKind.None))));
         }
 
         internal override bool UtilizesNullableReferenceTypes
         {
             get
             {
-                // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
                 return _assemblySymbol.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
             }
         }

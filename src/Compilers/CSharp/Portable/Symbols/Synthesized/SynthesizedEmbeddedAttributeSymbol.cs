@@ -44,7 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var builder = ArrayBuilder<MethodSymbol>.GetInstance();
             builder.Add(new SynthesizedEmbeddedAttributeConstructorSymbol(this, m => ImmutableArray<ParameterSymbol>.Empty));
-            builder.AddRange(getAdditionalConstructors(compilation, this, diagnostics));
+            if (getAdditionalConstructors != null)
+            {
+                builder.AddRange(getAdditionalConstructors(compilation, this, diagnostics));
+            }
             _constructors = builder.ToImmutableAndFree();
             Debug.Assert(_constructors.Length == description.Signatures.Length);
 
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public MethodSymbol Constructor => _constructors[0];
+        public new ImmutableArray<MethodSymbol> Constructors => _constructors;
 
         public override int Arity => 0;
 
@@ -158,13 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            // PROTOTYPE(NullableReferenceTypes): Handle NullableAttribute consistently with
-            // other embedded attributes. For now, skip [CompilerGenerated] and [Embedded].
-            if (Name == AttributeDescription.NullableAttribute.Name)
-            {
-                return;
-            }
 
             AddSynthesizedAttribute(
                 ref attributes,

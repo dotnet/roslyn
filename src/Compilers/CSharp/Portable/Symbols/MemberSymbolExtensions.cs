@@ -517,5 +517,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 member.IsExplicitInterfaceImplementation() ? ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member.Name) :
                 member.Name;
         }
+
+        internal static void EnsureNullableAttributeExistsIfNecessary(this Symbol symbol, TypeSymbolWithAnnotations type, DiagnosticBag diagnostics)
+        {
+            if (type.ContainsNullableReferenceTypes())
+            {
+                symbol.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, symbol.Locations[0], modifyCompilationForNullable: true);
+            }
+        }
     }
 }

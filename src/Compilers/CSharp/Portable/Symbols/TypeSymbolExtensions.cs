@@ -1547,6 +1547,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (type.ContainsNullableReferenceTypes())
+            {
+                // PROTOTYPE(NullableReferenceTypes): Create attribute
+                // with PEModuleBuilder.SynthesizeNullableAttribute().
+                // See AttributeTests_Nullable.EmitAttribute_Interface.
+            }
+
             return new Cci.TypeReferenceWithAttributes(typeRef);
         }
 

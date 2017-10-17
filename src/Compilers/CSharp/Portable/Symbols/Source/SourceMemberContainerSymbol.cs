@@ -1393,6 +1393,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilationForRefReadOnly: true);
             }
+
+            if (this.BaseTypeNoUseSiteDiagnostics?.ContainsNullableReferenceTypes() == true)
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, Locations[0], modifyCompilationForNullable: true);
+            }
         }
 
         private void CheckMemberNamesDistinctFromType(DiagnosticBag diagnostics)

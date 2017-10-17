@@ -172,6 +172,13 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public static string GetCustomAttributeName(this MetadataReader reader, CustomAttributeRow row)
+        {
+            var constructor = reader.GetMemberReference((MemberReferenceHandle)row.ConstructorToken);
+            var strHandle = reader.GetName(constructor.Parent);
+            return reader.GetString(strHandle);
+        }
+
         public static bool IsIncluded(this ImmutableArray<byte> metadata, string str)
         {
             var builder = ArrayBuilder<byte>.GetInstance();

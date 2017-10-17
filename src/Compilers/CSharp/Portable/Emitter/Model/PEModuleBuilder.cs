@@ -70,6 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+        internal bool NeedsGeneratedNullableAttribute
+        {
+            get
+            {
+                return Compilation.NeedsGeneratedNullableAttribute;
+            }
+        }
+
         internal PEModuleBuilder(
             SourceModuleSymbol sourceModule,
             EmitOptions emitOptions,
@@ -449,15 +457,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
-        }
-
-        internal void GetEmbeddedAttributes(ArrayBuilder<NamedTypeSymbol> builder)
-        {
-            // PROTOTYPE(NullableReferenceTypes): Handle NullableAttribute consistently
-            // with other embedded attributes. For now, we include the type explicitly.
-            var diagnostics = DiagnosticBag.GetInstance();
-            builder.AddIfNotNull(SourceModule.GetNullableAttribute(diagnostics));
-            diagnostics.Free();
         }
 
         private static void GetExportedTypes(NamespaceOrTypeSymbol symbol, int parentIndex, ArrayBuilder<Cci.ExportedType> builder)
@@ -1436,11 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
         }
 
-        internal virtual SynthesizedAttributeData SynthesizeEmbeddedAttribute()
-        {
-            // Embedded attributes should never be synthesized in modules.
-            throw ExceptionUtilities.Unreachable;
-        }
+        internal abstract SynthesizedAttributeData SynthesizeEmbeddedAttribute();
 
         internal SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
         {
@@ -1464,6 +1459,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeIsByRefLikeAttribute();
         }
 
+        /// <summary>
+        /// Given a type <paramref name="type"/>, which is either a nullable reference type OR 
+        /// is a constructed type with a nullable reference type present in its type argument tree,
+        /// returns a synthesized NullableAttribute with encoded nullable transforms array.
+        /// </summary>
+        internal SynthesizedAttributeData SynthesizeNullableAttribute(Symbol symbol, TypeSymbolWithAnnotations type)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            var flagsBuilder = ArrayBuilder<bool>.GetInstance();
+            type.AddNullableTransforms(flagsBuilder);
+
+            Debug.Assert(flagsBuilder.Any());
+            Debug.Assert(flagsBuilder.Contains(true));
+
+            WellKnownMember constructor;
+            ImmutableArray<TypedConstant> arguments;
+
+            if (flagsBuilder.Count == 1 && flagsBuilder[0])
+            {
+                constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor;
+                arguments = ImmutableArray<TypedConstant>.Empty;
+            }
+            else
+            {
+                NamedTypeSymbol booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
+                Debug.Assert((object)booleanType != null);
+                var constantsBuilder = ArrayBuilder<TypedConstant>.GetInstance(flagsBuilder.Count);
+
+                foreach (bool flag in flagsBuilder)
+                {
+                    constantsBuilder.Add(new TypedConstant(booleanType, TypedConstantKind.Primitive, flag));
+                }
+
+                var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeSymbolWithAnnotations.Create(booleanType));
+                constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags;
+                arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, constantsBuilder.ToImmutableAndFree()));
+            }
+
+            flagsBuilder.Free();
+            return SynthesizeNullableAttribute(constructor, arguments);
+        }
+
+        protected virtual SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(member, arguments);
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
@@ -1474,6 +1522,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
+        }
+
+        protected virtual MethodSymbol GetSynthesizedAttributeConstructor(WellKnownMember constructor)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return (MethodSymbol)Binder.GetWellKnownTypeMember(Compilation, constructor, out var diagnosticInfo);
         }
 
         internal void EnsureIsReadOnlyAttributeExists()

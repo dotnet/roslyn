@@ -34,9 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
         private bool _needsGeneratedIsByRefLikeAttribute_Value;
+        private bool _needsGeneratedNullableAttribute_Value;
 
         private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
         private bool _needsGeneratedIsByRefLikeAttribute_IsFrozen;
+        private bool _needsGeneratedNullableAttribute_IsFrozen;
 
         /// <summary>
         /// Returns a value indicating whether this compilation has a member that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -63,6 +65,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _needsGeneratedIsByRefLikeAttribute_IsFrozen = true;
                 return _needsGeneratedIsByRefLikeAttribute_Value;
+            }
+        }
+
+        internal bool NeedsGeneratedNullableAttribute
+        {
+            get
+            {
+                _needsGeneratedNullableAttribute_IsFrozen = true;
+                return _needsGeneratedNullableAttribute_Value;
             }
         }
 
@@ -138,13 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsTypeMissing(type))
                 {
                     result = null;
-                }
-                else if (type == WellKnownType.System_Runtime_CompilerServices_NullableAttribute)
-                {
-                    // PROTOTYPE(NullableReferenceTypes): Handle consistently with other embedded attributes.
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    result = ((SourceModuleSymbol)SourceModule).GetNullableAttribute(diagnostics);
-                    diagnostics.Free();
                 }
                 else
                 {
@@ -482,6 +486,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal void EnsureNullableAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForNullable)
+        {
+            Debug.Assert(!modifyCompilationForNullable || !_needsGeneratedNullableAttribute_IsFrozen);
+
+            var isNeeded = CheckIfNullableAttributeShouldBeEmbedded(diagnostics, location);
+
+            if (isNeeded && modifyCompilationForNullable)
+            {
+                _needsGeneratedNullableAttribute_Value = true;
+            }
+        }
+
         internal bool CheckIfIsReadOnlyAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
         {
             return CheckIfAttributeShouldBeEmbedded(
@@ -498,6 +514,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locationOpt, 
                 WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, 
                 WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
+        }
+
+        internal bool CheckIfNullableAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
+        {
+            return CheckIfAttributeShouldBeEmbedded(
+                diagnosticsOpt,
+                locationOpt,
+                WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
+                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor);
         }
 
         private bool CheckIfAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt, WellKnownType attributeType, WellKnownMember attributeCtor)
@@ -811,44 +836,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     transformFlagsBuilder.Add(false);
                 }
             }
-        }
-
-        /// <summary>
-        /// Given a type <paramref name="type"/>, which is either a nullable reference type OR 
-        /// is a constructed type with a nullable reference type present in it's type argument tree,
-        /// returns a synthesized NullableAttribute with encoded nullable transforms array.
-        /// </summary>
-        internal SynthesizedAttributeData SynthesizeNullableAttribute(TypeSymbolWithAnnotations type)
-        {
-            Debug.Assert((object)type != null);
-
-            var flagsBuilder = ArrayBuilder<bool>.GetInstance();
-
-            type.AddNullableTransforms(flagsBuilder);
-
-            Debug.Assert(flagsBuilder.Any());
-            Debug.Assert(flagsBuilder.Contains(true));
-
-            if (flagsBuilder.Count == 1 && flagsBuilder[0])
-            {
-                flagsBuilder.Free();
-                return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor);
-            }
-
-            NamedTypeSymbol booleanType = GetSpecialType(SpecialType.System_Boolean);
-            Debug.Assert((object)booleanType != null);
-            var constantsBuilder = ArrayBuilder<TypedConstant>.GetInstance(flagsBuilder.Count);
-
-            foreach (bool flag in flagsBuilder)
-            {
-                constantsBuilder.Add(new TypedConstant(booleanType, TypedConstantKind.Primitive, flag));
-            }
-
-            flagsBuilder.Free();
-
-            var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeSymbolWithAnnotations.Create(booleanType));
-            var arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, constantsBuilder.ToImmutableAndFree()));
-            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags, arguments);
         }
 
         internal class SpecialMembersSignatureComparer : SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol>

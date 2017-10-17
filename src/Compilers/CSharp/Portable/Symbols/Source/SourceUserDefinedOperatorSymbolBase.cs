@@ -650,6 +650,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+
+            this.EnsureNullableAttributeExistsIfNecessary(ReturnType, diagnostics);
+            ParameterHelpers.EnsureNullableAttributeExistsIfNecessary(Parameters, diagnostics);
         }
     }
 }

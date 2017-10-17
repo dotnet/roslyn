@@ -725,6 +725,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+
+            this.EnsureNullableAttributeExistsIfNecessary(this.Type, diagnostics);
+            ParameterHelpers.EnsureNullableAttributeExistsIfNecessary(this.Parameters, diagnostics);
         }
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)
@@ -1122,8 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (type.ContainsNullableReferenceTypes())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
 
             if (this.ReturnsByRefReadonly)

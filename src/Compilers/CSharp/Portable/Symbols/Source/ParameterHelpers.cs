@@ -131,6 +131,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static void EnsureNullableAttributeExistsIfNecessary(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        {
+            foreach (var parameter in parameters)
+            {
+                parameter.EnsureNullableAttributeExistsIfNecessary(parameter.Type, diagnostics);
+            }
+        }
+
         private static void CheckParameterModifiers(
             ParameterSyntax parameter, DiagnosticBag diagnostics)
         {

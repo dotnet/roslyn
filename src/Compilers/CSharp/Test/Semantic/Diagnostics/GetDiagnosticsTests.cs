@@ -306,13 +306,10 @@ namespace N1
             Assert.True(compilation.EventQueue.IsCompleted);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
-        private static readonly CSharpParseOptions DefaultParseOptions = new CSharpParseOptions(LanguageVersion.CSharp7);
-
         [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: DefaultParseOptions.WithPreprocessorSymbols(new[] { "1" }));
+            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
 
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
@@ -324,7 +321,7 @@ namespace N1
         public void CompilingCodeWithInvalidSourceCodeKindShouldProvideDiagnostics()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            var compilation = CreateCompilationWithMscorlib45(string.Empty, parseOptions: DefaultParseOptions.WithKind(SourceCodeKind.Interactive));
+            var compilation = CreateCompilationWithMscorlib45(string.Empty, parseOptions: new CSharpParseOptions().WithKind(SourceCodeKind.Interactive));
 #pragma warning restore CS0618 // Type or member is obsolete
 
             compilation.VerifyDiagnostics(
@@ -340,17 +337,13 @@ namespace N1
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8192: Provided language version is unsupported or invalid: '10000'.
                 // 
-                Diagnostic(ErrorCode.ERR_BadLanguageVersion, "").WithArguments("10000").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
-                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_BadLanguageVersion, "").WithArguments("10000").WithLocation(1, 1));
         }
 
         [Fact]
         public void CompilingCodeWithInvalidDocumentationModeShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: DefaultParseOptions.WithDocumentationMode(unchecked((DocumentationMode)100)));
+            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8191: Provided documentation mode is unsupported or invalid: '100'.
                 // 
@@ -360,9 +353,9 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidParseOptionsInMultipleSyntaxTreesShouldReportThemAll()
         {
-            var syntaxTree1 = Parse(string.Empty, options: DefaultParseOptions.WithPreprocessorSymbols(new[] { "1" }));
-            var syntaxTree2 = Parse(string.Empty, options: DefaultParseOptions.WithPreprocessorSymbols(new[] { "2" }));
-            var syntaxTree3 = Parse(string.Empty, options: DefaultParseOptions.WithPreprocessorSymbols(new[] { "3" }));
+            var syntaxTree1 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
+            var syntaxTree2 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" }));
+            var syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "3" }));
 
             var compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
             var diagnostics = compilation.GetDiagnostics();
@@ -386,8 +379,8 @@ namespace N1
         [Fact]
         public void CompilingCodeWithSameParseOptionsInMultipleSyntaxTreesShouldReportOnlyNonDuplicates()
         {
-            var parseOptions1 = DefaultParseOptions.WithPreprocessorSymbols(new[] { "1" });
-            var parseOptions2 = DefaultParseOptions.WithPreprocessorSymbols(new[] { "2" });
+            var parseOptions1 = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" });
+            var parseOptions2 = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" });
 
             var syntaxTree1 = Parse(string.Empty, options: parseOptions1);
             var syntaxTree2 = Parse(string.Empty, options: parseOptions2);
