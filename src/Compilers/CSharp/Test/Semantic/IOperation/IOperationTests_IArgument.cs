@@ -2546,7 +2546,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [S s = null])) (OperationKind.I
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: S, Constant: null) (Syntax: 'M2(1)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: S) (Syntax: 'M2(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2588,7 +2588,7 @@ IObjectCreationExpression (Constructor: P..ctor(System.Int32 x, [S s = null])) (
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'new P(1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: S, Constant: null) (Syntax: 'new P(1)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: S) (Syntax: 'new P(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Initializer: 
@@ -2637,7 +2637,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index, [S s = nul
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'this[0]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: S, Constant: null) (Syntax: 'this[0]')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: S) (Syntax: 'this[0]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3660,7 +3660,7 @@ IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreation
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: '[0]')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: S, Constant: null) (Syntax: '[0]')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: S) (Syntax: '[0]')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Right: 
