@@ -308,9 +308,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateBoundCallInstanceOperation(boundCall));
-            bool isVirtual = (object)boundCall.Method != null &&
+            bool isVirtual = (object)targetMethod != null &&
                         boundCall.ReceiverOpt != null &&
-                        (boundCall.Method.IsVirtual || boundCall.Method.IsAbstract || boundCall.Method.IsOverride) &&
+                        (targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride) &&
                         !boundCall.ReceiverOpt.SuppressVirtualCalls;
 
             Lazy<ImmutableArray<IArgument>> arguments = new Lazy<ImmutableArray<IArgument>>(() =>
@@ -318,15 +318,15 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return DeriveArguments(
                     boundCall,
                     boundCall.BinderOpt,
-                    boundCall.Method,
-                    boundCall.Method,
+                    targetMethod,
+                    targetMethod,
                     boundCall.Arguments,
                     boundCall.ArgumentNamesOpt,
                     boundCall.ArgsToParamsOpt,
                     boundCall.ArgumentRefKindsOpt,
                     boundCall.Method.Parameters,
                     boundCall.Expanded,
-                    boundCall.Syntax,
+                    syntax,
                     boundCall.InvokedAsExtensionMethod);
             });
             return new LazyInvocationExpression(targetMethod, instance, isVirtual, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                     boundIndexerAccess.ArgumentRefKindsOpt,
                     property.Parameters,
                     boundIndexerAccess.Expanded,
-                    boundIndexerAccess.Syntax));
+                    syntax));
             return new LazyPropertyReferenceExpression(property, instance, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -498,15 +498,15 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return DeriveArguments(
                     boundObjectCreationExpression,
                     boundObjectCreationExpression.BinderOpt,
-                    boundObjectCreationExpression.Constructor,
-                    boundObjectCreationExpression.Constructor,
+                    constructor,
+                    constructor,
                     boundObjectCreationExpression.Arguments,
                     boundObjectCreationExpression.ArgumentNamesOpt,
                     boundObjectCreationExpression.ArgsToParamsOpt,
                     boundObjectCreationExpression.ArgumentRefKindsOpt,
-                    boundObjectCreationExpression.Constructor.Parameters,
+                    constructor.Parameters,
                     boundObjectCreationExpression.Expanded,
-                    boundObjectCreationExpression.Syntax);
+                    syntax);
             });
             return new LazyObjectCreationExpression(constructor, initializer, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
