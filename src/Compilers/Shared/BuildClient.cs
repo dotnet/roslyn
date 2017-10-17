@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     out sessionKey,
                     out errorMessage))
             {
-                Console.Out.WriteLine(errorMessage);
+                textWriter.WriteLine(errorMessage);
                 return RunCompilationResult.Failed;
             }
 
@@ -191,7 +191,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
+#if NET46
             return true;
+#else
+            // (Not NET46 -> on CoreCLR)
+            // The native invoke ends up giving us both CoreRun and the exe file.
+            // Need to find a good way to remove the host as well as the EXE argument.
+            // https://github.com/dotnet/roslyn/issues/6677
+            return false;
+#endif
         }
 
         /// <summary>
