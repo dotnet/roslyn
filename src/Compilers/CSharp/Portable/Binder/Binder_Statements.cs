@@ -2695,15 +2695,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Location getLocationForDiagnostics(SyntaxNode node)
             {
-                if (node is LambdaExpressionSyntax lambdaSyntax)
+                switch (node)
                 {
-                    return Location.Create(lambdaSyntax.SyntaxTree,
-                        Text.TextSpan.FromBounds(lambdaSyntax.SpanStart, lambdaSyntax.ArrowToken.Span.End));
-                }
-                else if (node is AnonymousMethodExpressionSyntax anonymousMethodSyntax)
-                {
-                    return Location.Create(anonymousMethodSyntax.SyntaxTree,
-                        Text.TextSpan.FromBounds(anonymousMethodSyntax.SpanStart, anonymousMethodSyntax.ParameterList.Span.End));
+                    case LambdaExpressionSyntax lambdaSyntax:
+                        return Location.Create(lambdaSyntax.SyntaxTree,
+                            Text.TextSpan.FromBounds(lambdaSyntax.SpanStart, lambdaSyntax.ArrowToken.Span.End));
+
+                    case AnonymousMethodExpressionSyntax anonymousMethodSyntax:
+                        return Location.Create(anonymousMethodSyntax.SyntaxTree,
+                            Text.TextSpan.FromBounds(anonymousMethodSyntax.SpanStart,
+                                anonymousMethodSyntax.ParameterList?.Span.End ?? anonymousMethodSyntax.DelegateKeyword.Span.End));
                 }
 
                 return node.Location;
