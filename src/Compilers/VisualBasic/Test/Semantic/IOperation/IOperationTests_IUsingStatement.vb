@@ -813,7 +813,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
                              <file Name="a.vb">
                                  <![CDATA[
 Option Strict On
-Imports System
+Imports Syste
 
 Module Program
     Sub Main(args As String())
@@ -833,7 +833,7 @@ End Module]]>
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompilationUtils.AssertNoDiagnostics(comp)
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -861,7 +861,7 @@ Module Program
         Public Sub Dispose() Implements IDisposable.Dispose
         End Sub
     End Class
-End Module]]>.Value
+End Module]]>.Valu
 
             ' This should be returning a variable declaration, but the associated variable declarator operation has a
             ' ModifiedIdentifierSyntax as the associated syntax node. Fixing is tracked by
@@ -870,7 +870,6 @@ End Module]]>.Value
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
-
             VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
@@ -879,7 +878,7 @@ End Module]]>.Value
         Public Sub IUsingStatement_UsingStatementSyntax_Expression()
             Dim source = <![CDATA[
 Option Strict On
-Imports System
+Imports Syste
 
 Module Program
     Sub Main(args As String())
@@ -888,7 +887,6 @@ Module Program
             Console.WriteLine()
         End Using
     End Sub
-
     Class C
         Implements IDisposable
 
@@ -897,7 +895,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA
 ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C) (Syntax: 'c1')
 ]]>.Value
 
@@ -906,7 +904,7 @@ ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Pro
             VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation)
         <Fact()>
         Public Sub IUsingStatement_UsingBlockSyntax_StatementsSyntax()
             Dim source = <![CDATA[
@@ -915,7 +913,7 @@ Imports System
 
 Module Program
     Sub Main(args As String())
-        Using c1 = New C, c2 = New C
+        Using c1 = New C, c2 = New 
             Console.WriteLine()'BIND:"Console.WriteLine()"
         End Using
     End Sub
@@ -942,4 +940,4 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write
             VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
-End Namespace
+End Namespa
