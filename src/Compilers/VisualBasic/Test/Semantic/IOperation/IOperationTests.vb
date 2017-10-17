@@ -253,7 +253,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If x <> 0 T ... End If')
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If x <> 0 T ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(x)')
         Expression: 
           IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(x)')
@@ -295,12 +295,12 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i = 0 T ... Next')
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For i = 0 T ... Next')
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'For i = 0 T ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(i)')
         Expression: 
           IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(i)')
@@ -584,7 +584,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If i = 0 Th ... End If')
       IEndStatement (OperationKind.EndStatement) (Syntax: 'End')
   IfFalse: 
     null
@@ -641,7 +641,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If i = 0 Th ... End If')
       IStopStatement (OperationKind.StopStatement) (Syntax: 'Stop')
   IfFalse: 
     null
@@ -689,7 +689,7 @@ ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syn
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
   Handler: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Catch ex As ...  Is Nothing')
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Catch ex As ...  Is Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -788,12 +788,12 @@ IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKin
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
       ReturnedValue: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
       Statement: 
         null
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
       ReturnedValue: 
-        ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
+        ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -821,10 +821,10 @@ IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionEx
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
       ReturnedValue: 
         null
-    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
       Statement: 
         null
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
       ReturnedValue: 
         null
 ]]>.Value

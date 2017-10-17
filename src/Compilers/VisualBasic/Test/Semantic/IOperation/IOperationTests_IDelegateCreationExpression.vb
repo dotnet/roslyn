@@ -3373,10 +3373,10 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
           Target: 
             IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
               IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
                   Statement: 
                     null
-                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
                   ReturnedValue: 
                     null
 ]]>.Value
@@ -3402,10 +3402,10 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
   IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
       Statement: 
         null
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
       ReturnedValue: 
         null
 ]]>.Value

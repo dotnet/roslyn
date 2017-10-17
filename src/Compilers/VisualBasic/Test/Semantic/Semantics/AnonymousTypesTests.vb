@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -160,10 +160,10 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                                   IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{tr}')
                                     Element Values(1):
                                         IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -734,10 +734,10 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
           IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')
             Initializers(1):
                 IOperation:  (OperationKind.None) (Syntax: '<a/>.<__>')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -977,12 +977,12 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                 Instance Receiver: 
                                   null
                             Arguments(0)
-                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsImplicit) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1040,12 +1040,12 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                             Children(1):
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a')
                                                   Children(0)
-                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsImplicit) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1103,12 +1103,12 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                             Children(1):
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x')
                                                   Children(0)
-                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsImplicit) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1177,19 +1177,19 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                                             Children(1):
                                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x')
                                                                   Children(0)
-                                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
                                         Statement: 
                                           null
-                                      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+                                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
                                         ReturnedValue: 
-                                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsImplicit) (Syntax: 'End Function')
                             Arguments(0)
-                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsImplicit) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 

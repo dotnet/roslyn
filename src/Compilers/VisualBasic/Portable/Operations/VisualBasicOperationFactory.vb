@@ -1218,8 +1218,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundReturnStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Dim isImplicit As Boolean = boundReturnStatement.WasCompilerGenerated
+            Dim isImplicit As Boolean = boundReturnStatement.WasCompilerGenerated OrElse IsEndSubOrFunctionStatement(syntax)
+
             Return New LazyReturnStatement(OperationKind.ReturnStatement, returnedValue, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Shared Function IsEndSubOrFunctionStatement(syntax As SyntaxNode) As Boolean
+            Return TryCast(syntax.Parent, MethodBlockBaseSyntax)?.EndBlockStatement Is syntax OrElse
+                   TryCast(syntax.Parent, MultiLineLambdaExpressionSyntax)?.EndSubOrFunctionStatement Is syntax
         End Function
 
         Private Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IExpressionStatement
@@ -1268,7 +1274,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundLabelStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Dim isImplicit As Boolean = boundLabelStatement.WasCompilerGenerated
+            Dim isImplicit As Boolean = boundLabelStatement.WasCompilerGenerated OrElse IsEndSubOrFunctionStatement(syntax)
             Return New LazyLabeledStatement(label, statement, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
