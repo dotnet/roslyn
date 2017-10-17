@@ -656,12 +656,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             VisitInstanceExpression(operation.Instance);
-            VisitArguments(operation);
+            VisitArguments(operation.Arguments);
         }
 
-        private void VisitArguments(IHasArguments operation)
+        private void VisitArguments(ImmutableArray<IArgument> arguments)
         {
-            VisitArray(operation.ArgumentsInEvaluationOrder, "Arguments", logElementCount: true);
+            VisitArray(arguments, "Arguments", logElementCount: true);
         }
 
         private void VisitDynamicArguments(HasDynamicArgumentsExpression operation)
@@ -831,9 +831,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             VisitMemberReferenceExpressionCommon(operation);
 
-            if (operation.ArgumentsInEvaluationOrder.Length > 0)
+            if (operation.Arguments.Length > 0)
             {
-                VisitArguments(operation);
+                VisitArguments(operation.Arguments);
             }
         }
 
@@ -892,7 +892,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             LogString($" ({kindStr})");
-            LogHasOperatorMethodExpressionCommon(operation);
+            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Operand, "Operand");
@@ -919,24 +919,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             LogString($" ({kindStr})");
-            LogHasOperatorMethodExpressionCommon(operation);
+            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.LeftOperand, "Left");
             Visit(operation.RightOperand, "Right");
         }
 
-        private void LogHasOperatorMethodExpressionCommon(IHasOperatorMethodExpression operation)
+        private void LogHasOperatorMethodExpressionCommon(IMethodSymbol operatorMethodOpt)
         {
-            Assert.Equal(operation.UsesOperatorMethod, operation.OperatorMethod != null);
-
-            if (!operation.UsesOperatorMethod)
+            if (operatorMethodOpt != null)
             {
-                return;
+                LogSymbol(operatorMethodOpt, header: " (OperatorMethod");
+                LogString(")");
             }
-
-            LogSymbol(operation.OperatorMethod, header: " (OperatorMethod");
-            LogString(")");
         }
 
         public override void VisitConversionExpression(IConversionExpression operation)
@@ -948,7 +944,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isChecked = operation.IsChecked ? "Checked" : "Unchecked";
             LogString($" ({isExplicitStr}, {isTryCast}, {isChecked})");
 
-            LogHasOperatorMethodExpressionCommon(operation);
+            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
             LogCommonPropertiesAndNewLine(operation);
             Indent();
             LogConversion(operation.Conversion);
@@ -980,17 +976,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
         {
             LogString(nameof(IIsTypeExpression));
-            if (operation.IsNotTypeExpression)
+            if (operation.IsNegated)
             {
                 LogString(" (IsNotExpression)");
             }
 
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Operand, "Operand");
+            Visit(operation.ValueOperand, "Operand");
 
             Indent();
-            LogType(operation.IsType, "IsType");
+            LogType(operation.TypeOperand, "IsType");
             LogNewLine();
             Unindent();
         }
@@ -1080,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" (Constructor: {operation.Constructor.ToTestDisplayString()})");
             LogCommonPropertiesAndNewLine(operation);
 
-            VisitArguments(operation);
+            VisitArguments(operation.Arguments);
             Visit(operation.Initializer, "Initializer");
         }
 
@@ -1271,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             LogString($" ({kindStr})");
-            LogHasOperatorMethodExpressionCommon(operation);
+            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Target, "Left");
@@ -1294,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             LogString($" ({kindStr})");
-            LogHasOperatorMethodExpressionCommon(operation);
+            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Target, "Target");
@@ -1497,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.EventReference, header: "Event Reference");
-            VisitArguments(operation);
+            VisitArguments(operation.Arguments);
         }
 
         #endregion

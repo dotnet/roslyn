@@ -7,6 +7,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum UnaryOperatorKind
     {
+        /// <summary>
+        /// Represents unknown or error operator kind.
+        /// </summary>
         None = 0x0,
 
         /// <summary>
@@ -37,12 +40,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Represents the C# 'false' operator and VB 'IsFalse' operator.
         /// </summary>
-        False = 0x6,
-
-        /// <summary>
-        /// Represents an invalid unary operator for error cases.
-        /// </summary>
-        Invalid = 0xff
+        False = 0x6
     }
 }
 
