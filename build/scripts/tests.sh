@@ -39,7 +39,7 @@ mkdir -p "${log_dir}"
 for test_path in "${unittest_dir}"/*/"${target_framework}"
 do
     publish_test_path="${test_path}"/"${runtime_id}"/publish
-    if [ -d "${publish_test_path}" ]
+    if [[ -d "${publish_test_path}" ]]
     then
         test_path="${publish_test_path}"
     fi
@@ -48,6 +48,15 @@ do
     log_file="${log_dir}"/"$(basename "${file_name%.*}.xml")"
     deps_json="${file_name%.*}".deps.json
     runtimeconfig_json="${file_name%.*}".runtimeconfig.json
+
+    # If the user specifies a test on the command line, only run that one
+    # "${2:-}" => take second arg, empty string if unset (regex always matches if empty)
+    if [[ ! "${file_name}" =~ "${2:-}" ]]
+    then
+        echo "Skipping ${file_name}"
+        continue
+    fi
+
     echo Running "${file_name[@]}"
     dotnet exec --depsfile "${deps_json}" --runtimeconfig "${runtimeconfig_json}" "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
     if [[ $? -ne 0 ]]; then
