@@ -3645,11 +3645,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>SyntaxToken representing the optional ref or out keyword.</summary>
-    public SyntaxToken RefOrOutKeyword 
+    public SyntaxToken RefKindKeyword 
     {
         get
         {
-            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ArgumentSyntax)this.Green).refOrOutKeyword;
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ArgumentSyntax)this.Green).refKindKeyword;
             if (slot != null)
                 return new SyntaxToken(this, slot, this.GetChildPosition(1), this.GetChildIndex(1));
 
@@ -3695,11 +3695,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitArgument(this);
     }
 
-    public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
+    public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
     {
-        if (nameColon != this.NameColon || refOrOutKeyword != this.RefOrOutKeyword || expression != this.Expression)
+        if (nameColon != this.NameColon || refKindKeyword != this.RefKindKeyword || expression != this.Expression)
         {
-            var newNode = SyntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
+            var newNode = SyntaxFactory.Argument(nameColon, refKindKeyword, expression);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -3711,17 +3711,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public ArgumentSyntax WithNameColon(NameColonSyntax nameColon)
     {
-        return this.Update(nameColon, this.RefOrOutKeyword, this.Expression);
+        return this.Update(nameColon, this.RefKindKeyword, this.Expression);
     }
 
-    public ArgumentSyntax WithRefOrOutKeyword(SyntaxToken refOrOutKeyword)
+    public ArgumentSyntax WithRefKindKeyword(SyntaxToken refKindKeyword)
     {
-        return this.Update(this.NameColon, refOrOutKeyword, this.Expression);
+        return this.Update(this.NameColon, refKindKeyword, this.Expression);
     }
 
     public ArgumentSyntax WithExpression(ExpressionSyntax expression)
     {
-        return this.Update(this.NameColon, this.RefOrOutKeyword, expression);
+        return this.Update(this.NameColon, this.RefKindKeyword, expression);
     }
   }
 
