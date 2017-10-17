@@ -2585,22 +2585,28 @@ namespace Microsoft.CodeAnalysis
             return portablePdbStream;
         }
 
-        (Stream peStream, Stream signingStream, Stream retStream) GetPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider peStreamProvider, bool metadataOnly)
+        /// <summary>
+        /// Returns a tripple of streams where 
+        /// * `peStream` is a stream which will carry the output PE bits
+        /// * `signingStream` is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
+        /// * `selectedStream` is an alais of either peStream or signingStream, and is the stream that will be written to by the emitter.
+        /// </summary>
+        (Stream peStream, Stream signingStream, Stream selectedStream) GetPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider peStreamProvider, bool metadataOnly)
         {
             Stream peStream = null;
             Stream signingStream = null;
-            Stream retStream = null;
+            Stream selectedStream = null;
 
             if (metadataDiagnostics.HasAnyErrors())
             {
-                return (peStream, signingStream, retStream);
+                return (peStream, signingStream, selectedStream);
             }
 
             peStream = peStreamProvider.GetOrCreateStream(metadataDiagnostics);
             if (peStream == null)
             {
                 Debug.Assert(metadataDiagnostics.HasAnyErrors());
-                return (peStream, signingStream, retStream);
+                return (peStream, signingStream, selectedStream);
             }
 
             // If the current strong name provider is the Desktop version, signing can only be done to on-disk files. 
@@ -2620,15 +2626,15 @@ namespace Microsoft.CodeAnalysis
                     throw new Cci.PeWritingException(e);
                 }
 
-                retStream = signingStream;
+                selectedStream = signingStream;
             }
             else
             {
                 signingStream = null;
-                retStream = peStream;
+                selectedStream = peStream;
             }
 
-            return (peStream, signingStream, retStream);
+            return (peStream, signingStream, selectedStream);
         }
 
         internal static bool SerializePeToStream(
