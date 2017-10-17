@@ -813,7 +813,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
                              <file Name="a.vb">
                                  <![CDATA[
 Option Strict On
-Imports Syste
+Imports System
 
 Module Program
     Sub Main(args As String())
@@ -861,7 +861,7 @@ Module Program
         Public Sub Dispose() Implements IDisposable.Dispose
         End Sub
     End Class
-End Module]]>.Valu
+End Module]]>.Value
 
             ' This should be returning a variable declaration, but the associated variable declarator operation has a
             ' ModifiedIdentifierSyntax as the associated syntax node. Fixing is tracked by
@@ -895,7 +895,7 @@ Module Program
     End Class
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA
+            Dim expectedOperationTree = <![CDATA[
 ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C) (Syntax: 'c1')
 ]]>.Value
 
@@ -904,7 +904,7 @@ ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Pro
             VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IUsingStatement_UsingBlockSyntax_StatementsSyntax()
             Dim source = <![CDATA[
@@ -913,7 +913,7 @@ Imports System
 
 Module Program
     Sub Main(args As String())
-        Using c1 = New C, c2 = New 
+        Using c1 = New C, c2 = New C
             Console.WriteLine()'BIND:"Console.WriteLine()"
         End Using
     End Sub
@@ -940,4 +940,4 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write
             VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
-End Namespa
+End Namespace
