@@ -73,7 +73,7 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                       Left: 
                         IFieldReferenceExpression: System.Int32 F.Field (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                           Instance Receiver: 
-                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'Field')
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'Field')
                       Right: 
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var x3 = ne ... ty1 = """" };')
@@ -90,7 +90,7 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                       Left: 
                         IPropertyReferenceExpression: System.String F.Property1 { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Property1')
                           Instance Receiver: 
-                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'Property1')
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'Property1')
                       Right: 
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: '""""')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var x4 = ne ... ield = 2 };')
@@ -107,14 +107,14 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                       Left: 
                         IPropertyReferenceExpression: System.String F.Property1 { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Property1')
                           Instance Receiver: 
-                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'Property1')
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'Property1')
                       Right: 
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: '""""')
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'Field = 2')
                       Left: 
                         IFieldReferenceExpression: System.Int32 F.Field (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                           Instance Receiver: 
-                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'Field')
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'Field')
                       Right: 
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var x5 = ne ... = true } };')
@@ -131,7 +131,7 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                       Left: 
                         IPropertyReferenceExpression: B F.Property2 { get; set; } (OperationKind.PropertyReferenceExpression, Type: B) (Syntax: 'Property2')
                           Instance Receiver: 
-                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'Property2')
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'Property2')
                       Right: 
                         IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B) (Syntax: 'new B { Field = true }')
                           Arguments(0)
@@ -142,7 +142,7 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                                     Left: 
                                       IFieldReferenceExpression: System.Boolean B.Field (OperationKind.FieldReferenceExpression, Type: System.Boolean) (Syntax: 'Field')
                                         Instance Receiver: 
-                                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: B) (Syntax: 'Field')
+                                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: B, IsImplicit) (Syntax: 'Field')
                                     Right: 
                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var e1 = ne ... rty2 = 1 };')
@@ -159,7 +159,7 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                       Left: 
                         IPropertyReferenceExpression: B F.Property2 { get; set; } (OperationKind.PropertyReferenceExpression, Type: B) (Syntax: 'Property2')
                           Instance Receiver: 
-                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'Property2')
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'Property2')
                       Right: 
                         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid, IsImplicit) (Syntax: '1')
                           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -338,14 +338,14 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
             Left: 
               IPropertyReferenceExpression: System.Int32 Class.X { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'X')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'X')
             Right: 
               IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y = { x, y, 3 }')
             InitializedMember: 
               IPropertyReferenceExpression: System.Collections.Generic.List<System.Int32> Class.Y { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'Y')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'Y')
             Initializer: 
               IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ x, y, 3 }')
                 Initializers(3):
@@ -362,7 +362,7 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
             InitializedMember: 
               IPropertyReferenceExpression: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Class.Z { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'Z')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'Z')
             Initializer: 
               IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: '{ { x, y } }')
                 Initializers(1):
@@ -374,7 +374,7 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
             InitializedMember: 
               IPropertyReferenceExpression: Class Class.C { get; set; } (OperationKind.PropertyReferenceExpression, Type: Class) (Syntax: 'C')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'C')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'C')
             Initializer: 
               IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Class) (Syntax: '{ X = field }')
                 Initializers(1):
@@ -382,7 +382,7 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
                       Left: 
                         IPropertyReferenceExpression: System.Int32 Class.X { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
                           Instance Receiver: 
-                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'X')
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'X')
                       Right: 
                         IFieldReferenceExpression: System.Int32 Class.field (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'field')
                           Instance Receiver: 
@@ -418,7 +418,7 @@ IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreation
             InitializedMember: 
               IFieldReferenceExpression: System.Int32[] C.a (OperationKind.FieldReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'a')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'a')
             Initializer: 
               IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32[]) (Syntax: '{ [0] = 1, [1] = 2 }')
                 Initializers(2):

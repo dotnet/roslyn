@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -22,7 +23,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Reference;
+                if (Reference != null)
+                {
+                    yield return Reference;
+                }
             }
         }
         /// <summary>
@@ -81,7 +85,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Argument;
+                if (Argument != null)
+                {
+                    yield return Argument;
+                }
             }
         }
         /// <summary>
@@ -141,7 +148,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
             }
         }
         /// <summary>
@@ -212,7 +222,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
         /// <summary>
@@ -246,9 +259,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var dimensionSize in DimensionSizes)
                 {
-                    yield return dimensionSize;
+                    if (dimensionSize != null)
+                    {
+                        yield return dimensionSize;
+                    }
                 }
-                yield return Initializer;
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
         /// <summary>
@@ -321,10 +340,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return ArrayReference;
+                if (ArrayReference != null)
+                {
+                    yield return ArrayReference;
+                }
+
                 foreach (var index in Indices)
                 {
-                    yield return index;
+                    if (index != null)
+                    {
+                        yield return index;
+                    }
                 }
             }
         }
@@ -398,7 +424,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var elementValue in ElementValues)
                 {
-                    yield return elementValue;
+                    if (elementValue != null)
+                    {
+                        yield return elementValue;
+                    }
                 }
             }
         }
@@ -458,8 +487,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Target;
-                yield return Value;
+                if (Target != null)
+                {
+                    yield return Target;
+                }
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
         protected abstract IOperation TargetImpl { get; }
@@ -596,7 +631,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
             }
         }
         /// <summary>
@@ -667,7 +705,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
             }
         }
         /// <summary>
@@ -756,8 +797,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return LeftOperand;
-                yield return RightOperand;
+                if (LeftOperand != null)
+                {
+                    yield return LeftOperand;
+                }
+                if (RightOperand != null)
+                {
+                    yield return RightOperand;
+                }
             }
         }
         /// <summary>
@@ -784,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class BinaryOperatorExpression : BaseBinaryOperatorExpression, IBinaryOperatorExpression
     {
         public BinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, isCompareText,operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LeftOperandImpl = leftOperand;
             RightOperandImpl = rightOperand;
@@ -803,7 +850,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyRightOperand;
 
         public LazyBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, isCompareText,operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
             _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
@@ -836,7 +883,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var statement in Statements)
                 {
-                    yield return statement;
+                    if (statement != null)
+                    {
+                        yield return statement;
+                    }
                 }
             }
         }
@@ -961,9 +1011,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return ExceptionDeclarationOrExpression;
-                yield return Filter;
-                yield return Handler;
+                if (ExceptionDeclarationOrExpression != null)
+                {
+                    yield return ExceptionDeclarationOrExpression;
+                }
+                if (Filter != null)
+                {
+                    yield return Filter;
+                }
+                if (Handler != null)
+                {
+                    yield return Handler;
+                }
             }
         }
         /// <summary>
@@ -1122,8 +1181,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
-                yield return WhenNotNull;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+                if (WhenNotNull != null)
+                {
+                    yield return WhenNotNull;
+                }
             }
         }
         /// <summary>
@@ -1221,9 +1286,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Condition;
-                yield return WhenTrue;
-                yield return WhenFalse;
+                if (Condition != null)
+                {
+                    yield return Condition;
+                }
+                if (WhenTrue != null)
+                {
+                    yield return WhenTrue;
+                }
+                if (WhenFalse != null)
+                {
+                    yield return WhenFalse;
+                }
             }
         }
         /// <summary>
@@ -1312,7 +1386,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Operand;
+                if (Operand != null)
+                {
+                    yield return Operand;
+                }
             }
         }
         /// <summary>
@@ -1437,8 +1514,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return EventReference;
-                yield return HandlerValue;
+                if (EventReference != null)
+                {
+                    yield return EventReference;
+                }
+                if (HandlerValue != null)
+                {
+                    yield return HandlerValue;
+                }
             }
         }
 
@@ -1515,7 +1598,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Instance;
+                if (Instance != null)
+                {
+                    yield return Instance;
+                }
             }
         }
 
@@ -1572,7 +1658,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
             }
         }
         /// <summary>
@@ -1631,7 +1720,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
 
@@ -1691,7 +1783,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
 
@@ -1752,7 +1847,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Instance;
+                if (Instance != null)
+                {
+                    yield return Instance;
+                }
             }
         }
 
@@ -1812,8 +1910,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Variables;
-                yield return Body;
+                if (Variables != null)
+                {
+                    yield return Variables;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         /// <summary>
@@ -1885,15 +1989,24 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
+                if (Collection != null)
+                {
+                    yield return Collection;
+                }
                 if (LoopControlVariable != null)
                 {
                     yield return LoopControlVariable;
                 }
-                yield return Collection;
-                yield return Body;
+                if (Body != null)
+                {
+                    yield return Body;
+                }
                 foreach (var expression in NextVariables)
                 {
-                    yield return expression;
+                    if (expression != null)
+                    {
+                        yield return expression;
+                    }
                 }
             }
         }
@@ -1985,14 +2098,26 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var before in Before)
                 {
-                    yield return before;
+                    if (before != null)
+                    {
+                        yield return before;
+                    }
                 }
-                yield return Condition;
+                if (Condition != null)
+                {
+                    yield return Condition;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
                 foreach (var atLoopBottom in AtLoopBottom)
                 {
-                    yield return atLoopBottom;
+                    if (atLoopBottom != null)
+                    {
+                        yield return atLoopBottom;
+                    }
                 }
-                yield return Body;
             }
         }
         /// <summary>
@@ -2086,13 +2211,28 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return LoopControlVariable;
                 }
-                yield return InitialValue;
-                yield return LimitValue;
-                yield return StepValue;
-                yield return Body;
+                if (InitialValue != null)
+                {
+                    yield return InitialValue;
+                }
+                if (LimitValue != null)
+                {
+                    yield return LimitValue;
+                }
+                if (StepValue != null)
+                {
+                    yield return StepValue;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
                 foreach (var expression in NextVariables)
                 {
-                    yield return expression;
+                    if (expression != null)
+                    {
+                        yield return expression;
+                    }
                 }
             }
         }
@@ -2203,9 +2343,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Condition;
-                yield return IfTrueStatement;
-                yield return IfFalseStatement;
+                if (Condition != null)
+                {
+                    yield return Condition;
+                }
+                if (IfTrueStatement != null)
+                {
+                    yield return IfTrueStatement;
+                }
+                if (IfFalseStatement != null)
+                {
+                    yield return IfFalseStatement;
+                }
             }
         }
         /// <summary>
@@ -2309,7 +2458,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Target;
+                if (Target != null)
+                {
+                    yield return Target;
+                }
             }
         }
         /// <summary>
@@ -2400,7 +2552,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var part in Parts)
                 {
-                    yield return part;
+                    if (part != null)
+                    {
+                        yield return part;
+                    }
                 }
             }
         }
@@ -2462,7 +2617,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Text;
+                if (Text != null)
+                {
+                    yield return Text;
+                }
             }
         }
         /// <summary>
@@ -2525,9 +2683,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
-                yield return Alignment;
-                yield return FormatString;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+                if (Alignment != null)
+                {
+                    yield return Alignment;
+                }
+                if (FormatString != null)
+                {
+                    yield return FormatString;
+                }
             }
         }
         /// <summary>
@@ -2628,6 +2795,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public InvalidExpression(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            // we don't allow null children.
+            Debug.Assert(children.All(o => o != null));
             ChildrenImpl = children;
         }
         protected override ImmutableArray<IOperation> ChildrenImpl { get; }
@@ -2643,6 +2812,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyInvalidExpression(Lazy<ImmutableArray<IOperation>> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            // we don't allow null children.
+            Debug.Assert(children.Value.All(o => o != null));
             _lazyChildren = children;
         }
         protected override ImmutableArray<IOperation> ChildrenImpl => _lazyChildren.Value;
@@ -2680,6 +2851,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public InvalidStatement(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            // we don't allow null children.
+            Debug.Assert(children.All(o => o != null));
             ChildrenImpl = children;
         }
         protected override ImmutableArray<IOperation> ChildrenImpl { get; }
@@ -2694,11 +2867,13 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyInvalidStatement(Lazy<ImmutableArray<IOperation>> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            // we don't allow null children.
+            Debug.Assert(children.Value.All(o => o != null));
             _lazyChildren = children;
         }
         protected override ImmutableArray<IOperation> ChildrenImpl => _lazyChildren.Value;
     }
-    
+
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
@@ -2724,10 +2899,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Instance;
-                foreach (var arguments in Arguments)
+                if (Instance != null)
                 {
-                    yield return arguments;
+                    yield return Instance;
+                }
+                foreach (var argument in Arguments)
+                {
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -2805,10 +2986,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return EventReference;
-                foreach (var arguments in Arguments)
+                if (EventReference != null)
                 {
-                    yield return arguments;
+                    yield return EventReference;
+                }
+                foreach (var argument in Arguments)
+                {
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -2834,7 +3021,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class RaiseEventStatement : BaseRaiseEventStatement, IRaiseEventStatement
     {
-        public RaiseEventStatement(IEventReferenceExpression eventReference, ImmutableArray<IArgument> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public RaiseEventStatement(IEventReferenceExpression eventReference, ImmutableArray<IArgument> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             EventReferenceImpl = eventReference;
@@ -2854,7 +3041,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IEventReferenceExpression> _lazyEventReference;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArguments;
 
-        public LazyRaiseEventStatement(Lazy<IEventReferenceExpression> eventReference, Lazy<ImmutableArray<IArgument>> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public LazyRaiseEventStatement(Lazy<IEventReferenceExpression> eventReference, Lazy<ImmutableArray<IArgument>> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyEventReference = eventReference;
@@ -2893,7 +3080,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return ValueOperand;
+                if (ValueOperand != null)
+                {
+                    yield return ValueOperand;
+                }
             }
         }
         /// <summary>
@@ -2958,7 +3148,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Statement;
+                if (Statement != null)
+                {
+                    yield return Statement;
+                }
             }
         }
         /// <summary>
@@ -3017,7 +3210,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Body;
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         public IBlockStatement Body => Operation.SetParentOperation(BodyImpl, this);
@@ -3066,7 +3262,13 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IEnumerable<IOperation> Children
         {
-            get { yield return Target; }
+            get
+            {
+                if (Target != null)
+                {
+                    yield return Target;
+                }
+            }
         }
         public override void Accept(OperationVisitor visitor)
         {
@@ -3133,7 +3335,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Instance;
+                if (Instance != null)
+                {
+                    yield return Instance;
+                }
             }
         }
         /// <summary>
@@ -3256,8 +3461,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
-                yield return Body;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         /// <summary>
@@ -3385,7 +3596,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Instance;
+                if (Instance != null)
+                {
+                    yield return Instance;
+                }
             }
         }
 
@@ -3446,8 +3660,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
-                yield return WhenNull;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+                if (WhenNull != null)
+                {
+                    yield return WhenNull;
+                }
             }
         }
         /// <summary>
@@ -3523,11 +3743,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                foreach (var arguments in Arguments)
+                foreach (var argument in Arguments)
                 {
-                    yield return arguments;
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
-                yield return Initializer;
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
         /// <summary>
@@ -3605,7 +3831,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var initializer in Initializers)
                 {
-                    yield return initializer;
+                    if (initializer != null)
+                    {
+                        yield return initializer;
+                    }
                 }
             }
         }
@@ -3697,7 +3926,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
 
@@ -3785,7 +4017,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Operand;
+                if (Operand != null)
+                {
+                    yield return Operand;
+                }
             }
         }
         /// <summary>
@@ -3877,7 +4112,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Pointer;
+                if (Pointer != null)
+                {
+                    yield return Pointer;
+                }
             }
         }
         /// <summary>
@@ -3941,7 +4179,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
 
@@ -4001,10 +4242,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Instance;
-                foreach (var arguments in Arguments)
+                if (Instance != null)
                 {
-                    yield return arguments;
+                    yield return Instance;
+                }
+                foreach (var argument in Arguments)
+                {
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -4095,8 +4342,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return MinimumValue;
-                yield return MaximumValue;
+                if (MinimumValue != null)
+                {
+                    yield return MinimumValue;
+                }
+                if (MaximumValue != null)
+                {
+                    yield return MaximumValue;
+                }
             }
         }
         /// <summary>
@@ -4174,7 +4427,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
         /// <summary>
@@ -4240,7 +4496,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return ReturnedValue;
+                if (ReturnedValue != null)
+                {
+                    yield return ReturnedValue;
+                }
             }
         }
         /// <summary>
@@ -4315,7 +4574,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
         /// <summary>
@@ -4464,11 +4726,17 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var clause in Clauses)
                 {
-                    yield return clause;
+                    if (clause != null)
+                    {
+                        yield return clause;
+                    }
                 }
                 foreach (var body in Body)
                 {
-                    yield return body;
+                    if (body != null)
+                    {
+                        yield return body;
+                    }
                 }
             }
         }
@@ -4541,10 +4809,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
                 foreach (var @case in Cases)
                 {
-                    yield return @case;
+                    if (@case != null)
+                    {
+                        yield return @case;
+                    }
                 }
             }
         }
@@ -4631,12 +4905,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Body;
-                foreach (var catche in Catches)
+                if (Body != null)
                 {
-                    yield return catche;
+                    yield return Body;
                 }
-                yield return Finally;
+                foreach (var @catch in Catches)
+                {
+                    if (@catch != null)
+                    {
+                        yield return @catch;
+                    }
+                }
+                if (Finally != null)
+                {
+                    yield return Finally;
+                }
             }
         }
         /// <summary>
@@ -4719,7 +5002,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var element in Elements)
                 {
-                    yield return element;
+                    if (element != null)
+                    {
+                        yield return element;
+                    }
                 }
             }
         }
@@ -4812,7 +5098,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Initializer;
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
         /// <summary>
@@ -4901,9 +5190,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var argument in Arguments)
                 {
-                    yield return argument;
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
-                yield return Initializer;
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
         /// <summary>
@@ -4967,10 +5262,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
                 foreach (var argument in Arguments)
                 {
-                    yield return argument;
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -5035,10 +5336,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
                 foreach (var argument in Arguments)
                 {
-                    yield return argument;
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -5125,7 +5432,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Operand;
+                if (Operand != null)
+                {
+                    yield return Operand;
+                }
             }
         }
         /// <summary>
@@ -5164,7 +5474,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyOperand;
 
         public LazyUnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, Lazy<IOperation> operand, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(unaryOperationKind, isLifted, isChecked,operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+            base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
@@ -5188,8 +5498,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Resources;
-                yield return Body;
+                if (Resources != null)
+                {
+                    yield return Resources;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
 
@@ -5267,7 +5583,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Initializer;
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
 
@@ -5331,7 +5650,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var declaration in Declarations)
                 {
-                    yield return declaration;
+                    if (declaration != null)
+                    {
+                        yield return declaration;
+                    }
                 }
             }
         }
@@ -5398,8 +5720,27 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Condition;
-                yield return Body;
+                if (DoLoopKind == DoLoopKind.DoWhileTopLoop ||
+                    DoLoopKind == DoLoopKind.DoUntilTopLoop ||
+                    DoLoopKind == DoLoopKind.None)
+                {
+                    if (Condition != null)
+                    {
+                        yield return Condition;
+                    }
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
+                if (DoLoopKind == DoLoopKind.DoWhileBottomLoop ||
+                    DoLoopKind == DoLoopKind.DoUntilBottomLoop)
+                {
+                    if (Condition != null)
+                    {
+                        yield return Condition;
+                    }
+                }
                 if (IgnoredCondition != null)
                 {
                     yield return IgnoredCondition;
@@ -5479,8 +5820,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Condition;
-                yield return Body;
+                if (Condition != null)
+                {
+                    yield return Condition;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         /// <summary>
@@ -5548,8 +5895,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
-                yield return Body;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         /// <summary>
@@ -5624,7 +5977,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Body;
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         /// <summary>
@@ -5686,7 +6042,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
         /// <summary>
@@ -5784,8 +6143,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Pattern;
-                yield return GuardExpression;
+                if (Pattern != null)
+                {
+                    yield return Pattern;
+                }
+                if (GuardExpression != null)
+                {
+                    yield return GuardExpression;
+                }
             }
         }
         /// <summary>
@@ -5858,8 +6223,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
-                yield return Pattern;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+                if (Pattern != null)
+                {
+                    yield return Pattern;
+                }
             }
         }
         /// <summary>
@@ -5933,7 +6304,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var initializer in Initializers)
                 {
-                    yield return initializer;
+                    if (initializer != null)
+                    {
+                        yield return initializer;
+                    }
                 }
             }
         }
@@ -5997,8 +6371,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return InitializedMember;
-                yield return Initializer;
+                if (InitializedMember != null)
+                {
+                    yield return InitializedMember;
+                }
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
         /// <summary>
@@ -6082,7 +6462,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var argument in Arguments)
                 {
-                    yield return argument;
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -6153,7 +6536,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
             }
         }
         public override void Accept(OperationVisitor visitor)
