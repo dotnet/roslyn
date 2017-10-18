@@ -31,6 +31,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
+        public void Repro481125()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+using System.Linq;
+
+public class C
+{
+    static void Main()
+    { }
+
+    public void M(int salesOrderId)
+    {
+        using (var uow = new D())
+        {
+            Local();
+
+            void Local()
+            {
+                var orderInfo = uow.ES.Where(so => so.Id == salesOrderId);
+            }
+        }
+    }
+}
+
+internal class D : IDisposable
+{
+    public IQueryable<E> ES { get; internal set; }
+
+    public void Dispose() => throw new NotImplementedException();
+}
+
+public class E
+{
+    public int Id;
+}
+", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
         [WorkItem(22027, "https://github.com/dotnet/roslyn/issues/22027")]
         public void Repro22027()
         {
