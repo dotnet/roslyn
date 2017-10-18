@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared ReadOnly s_compilerId As New DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.VB)
 
-        Friend Sub New()
+        Public Sub New()
             MyBase.New(New VisualBasicFrameDecoder(), New VisualBasicLanguageInstructionDecoder())
         End Sub
 
