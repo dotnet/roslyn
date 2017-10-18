@@ -2068,8 +2068,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                ' If there are no attributes then this symbol is not Obsolete.
-                If Not GetAttributeDeclarations().Any() Then
+                ' If there are no attributes then this symbol is not Obsolete. Only apply this optimization for cases
+                ' where we know the syntax tree is loaded, or we could force a complete tree deserialization (and thus
+                ' no longer be an early return optimization).
+                If Not IsPartial AndAlso Not GetAttributeDeclarations().Any() Then
                     Return Nothing
                 End If
 
