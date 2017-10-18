@@ -294,34 +294,41 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyDeconstructionAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IInvocationExpression CreateBoundCallOperation(BoundCall boundCall)
+        private IOperation CreateBoundCallOperation(BoundCall boundCall)
         {
-            IMethodSymbol targetMethod = boundCall.Method;
+            MethodSymbol targetMethod = boundCall.Method;
+            SyntaxNode syntax = boundCall.Syntax;
+            ITypeSymbol type = boundCall.Type;
+            Optional<object> constantValue = ConvertToOptional(boundCall.ConstantValue);
+            bool isImplicit = boundCall.WasCompilerGenerated;
+            
+            if (!boundCall.OriginalMethodsOpt.IsDefault || boundCall.ResultKind == LookupResultKind.OverloadResolutionFailure || targetMethod == null || targetMethod.OriginalDefinition is ErrorMethodSymbol)
+            {
+                return CreateInvalidExpressionForHasArgumentsExpression(boundCall.ReceiverOpt, boundCall.Arguments, null, syntax, type, constantValue, isImplicit);
+            }
+
             Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateBoundCallInstanceOperation(boundCall));
-            bool isVirtual = (object)boundCall.Method != null &&
+            bool isVirtual = (object)targetMethod != null &&
                         boundCall.ReceiverOpt != null &&
-                        (boundCall.Method.IsVirtual || boundCall.Method.IsAbstract || boundCall.Method.IsOverride) &&
+                        (targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride) &&
                         !boundCall.ReceiverOpt.SuppressVirtualCalls;
+
             Lazy<ImmutableArray<IArgument>> arguments = new Lazy<ImmutableArray<IArgument>>(() =>
             {
                 return DeriveArguments(
                     boundCall,
                     boundCall.BinderOpt,
-                    boundCall.Method,
-                    boundCall.Method,
+                    targetMethod,
+                    targetMethod,
                     boundCall.Arguments,
                     boundCall.ArgumentNamesOpt,
                     boundCall.ArgsToParamsOpt,
                     boundCall.ArgumentRefKindsOpt,
                     boundCall.Method.Parameters,
                     boundCall.Expanded,
-                    boundCall.Syntax,
+                    syntax,
                     boundCall.InvokedAsExtensionMethod);
             });
-            SyntaxNode syntax = boundCall.Syntax;
-            ITypeSymbol type = boundCall.Type;
-            Optional<object> constantValue = ConvertToOptional(boundCall.ConstantValue);
-            bool isImplicit = boundCall.WasCompilerGenerated;
             return new LazyInvocationExpression(targetMethod, instance, isVirtual, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -374,33 +381,37 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyPropertyReferenceExpression(property, instance, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IPropertyReferenceExpression CreateBoundIndexerAccessOperation(BoundIndexerAccess boundIndexerAccess)
+        private IOperation CreateBoundIndexerAccessOperation(BoundIndexerAccess boundIndexerAccess)
         {
-            IPropertySymbol property = boundIndexerAccess.Indexer;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundIndexerAccess.Indexer.IsStatic ? null : boundIndexerAccess.ReceiverOpt));
-            Lazy<ImmutableArray<IArgument>> arguments = new Lazy<ImmutableArray<IArgument>>(() =>
-            {
-                MethodSymbol accessor = boundIndexerAccess.UseSetterForDefaultArgumentGeneration
-                    ? boundIndexerAccess.Indexer.GetOwnOrInheritedSetMethod()
-                    : boundIndexerAccess.Indexer.GetOwnOrInheritedGetMethod();
+            PropertySymbol property = boundIndexerAccess.Indexer;
+            SyntaxNode syntax = boundIndexerAccess.Syntax;
+            ITypeSymbol type = boundIndexerAccess.Type;
+            Optional<object> constantValue = ConvertToOptional(boundIndexerAccess.ConstantValue);
+            bool isImplicit = boundIndexerAccess.WasCompilerGenerated;
 
-                return DeriveArguments(
+            MethodSymbol accessor = boundIndexerAccess.UseSetterForDefaultArgumentGeneration
+                ? property.GetOwnOrInheritedSetMethod()
+                : property.GetOwnOrInheritedGetMethod();
+            
+            if (!boundIndexerAccess.OriginalIndexersOpt.IsDefault || boundIndexerAccess.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor == null || accessor.OriginalDefinition is ErrorMethodSymbol)
+            {
+                return CreateInvalidExpressionForHasArgumentsExpression(boundIndexerAccess.ReceiverOpt, boundIndexerAccess.Arguments, null, syntax, type, constantValue, isImplicit);
+            }
+
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(property.IsStatic ? null : boundIndexerAccess.ReceiverOpt));
+            Lazy<ImmutableArray<IArgument>> arguments = new Lazy<ImmutableArray<IArgument>>(() =>
+                DeriveArguments(
                     boundIndexerAccess,
                     boundIndexerAccess.BinderOpt,
-                    boundIndexerAccess.Indexer,
+                    property,
                     accessor,
                     boundIndexerAccess.Arguments,
                     boundIndexerAccess.ArgumentNamesOpt,
                     boundIndexerAccess.ArgsToParamsOpt,
                     boundIndexerAccess.ArgumentRefKindsOpt,
-                    boundIndexerAccess.Indexer.Parameters,
+                    property.Parameters,
                     boundIndexerAccess.Expanded,
-                    boundIndexerAccess.Syntax);
-            });
-            SyntaxNode syntax = boundIndexerAccess.Syntax;
-            ITypeSymbol type = boundIndexerAccess.Type;
-            Optional<object> constantValue = ConvertToOptional(boundIndexerAccess.ConstantValue);
-            bool isImplicit = boundIndexerAccess.WasCompilerGenerated;
+                    syntax));
             return new LazyPropertyReferenceExpression(property, instance, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -468,29 +479,35 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyPropertyReferenceExpression(property, instance, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IObjectCreationExpression CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
+        private IOperation CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
         {
-            IMethodSymbol constructor = boundObjectCreationExpression.Constructor;
+            MethodSymbol constructor = boundObjectCreationExpression.Constructor;
+            SyntaxNode syntax = boundObjectCreationExpression.Syntax;
+            ITypeSymbol type = boundObjectCreationExpression.Type;
+            Optional<object> constantValue = ConvertToOptional(boundObjectCreationExpression.ConstantValue);
+            bool isImplicit = boundObjectCreationExpression.WasCompilerGenerated;
+            
+            if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor == null || constructor.OriginalDefinition is ErrorMethodSymbol)
+            {
+                return CreateInvalidExpressionForHasArgumentsExpression(null, boundObjectCreationExpression.Arguments, boundObjectCreationExpression.InitializerExpressionOpt, syntax, type, constantValue, isImplicit);
+            }
+
             Lazy<IObjectOrCollectionInitializerExpression> initializer = new Lazy<IObjectOrCollectionInitializerExpression>(() => (IObjectOrCollectionInitializerExpression)Create(boundObjectCreationExpression.InitializerExpressionOpt));
             Lazy<ImmutableArray<IArgument>> arguments = new Lazy<ImmutableArray<IArgument>>(() =>
             {
                 return DeriveArguments(
                     boundObjectCreationExpression,
                     boundObjectCreationExpression.BinderOpt,
-                    boundObjectCreationExpression.Constructor,
-                    boundObjectCreationExpression.Constructor,
+                    constructor,
+                    constructor,
                     boundObjectCreationExpression.Arguments,
                     boundObjectCreationExpression.ArgumentNamesOpt,
                     boundObjectCreationExpression.ArgsToParamsOpt,
                     boundObjectCreationExpression.ArgumentRefKindsOpt,
-                    boundObjectCreationExpression.Constructor.Parameters,
+                    constructor.Parameters,
                     boundObjectCreationExpression.Expanded,
-                    boundObjectCreationExpression.Syntax);
+                    syntax);
             });
-            SyntaxNode syntax = boundObjectCreationExpression.Syntax;
-            ITypeSymbol type = boundObjectCreationExpression.Type;
-            Optional<object> constantValue = ConvertToOptional(boundObjectCreationExpression.ConstantValue);
-            bool isImplicit = boundObjectCreationExpression.WasCompilerGenerated;
             return new LazyObjectCreationExpression(constructor, initializer, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -563,14 +580,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyObjectOrCollectionInitializerExpression(initializers, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IMemberReferenceExpression CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
+        private IOperation CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
         {
             Lazy<IOperation> instance = new Lazy<IOperation>(() => new InstanceReferenceExpression(
-                semanticModel: _semanticModel,
-                syntax: boundObjectInitializerMember.Syntax,
-                type: boundObjectInitializerMember.ReceiverType,
-                constantValue: default(Optional<object>),
-                isImplicit: boundObjectInitializerMember.WasCompilerGenerated));
+                    semanticModel: _semanticModel,
+                    syntax: boundObjectInitializerMember.Syntax,
+                    type: boundObjectInitializerMember.ReceiverType,
+                    constantValue: default(Optional<object>),
+                    isImplicit: true));
 
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
             ITypeSymbol type = boundObjectInitializerMember.Type;
@@ -596,6 +613,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                     }
                     else
                     {
+                        var accessor = property.GetOwnOrInheritedSetMethod();
+                        if (accessor == null || boundObjectInitializerMember.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor.OriginalDefinition is ErrorMethodSymbol)
+                        {
+                            Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(() =>
+                                boundObjectInitializerMember.Arguments.SelectAsArray(a => Create(a)));
+                            return new LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit);
+                        }
                         // Indexed property reference.
                         arguments = new Lazy<ImmutableArray<IArgument>>(() =>
                         {
@@ -603,7 +627,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                                 boundObjectInitializerMember,
                                 boundObjectInitializerMember.BinderOpt,
                                 property,
-                                property.GetOwnOrInheritedSetMethod(),
+                                accessor,
                                 boundObjectInitializerMember.Arguments,
                                 boundObjectInitializerMember.ArgumentNamesOpt,
                                 boundObjectInitializerMember.ArgsToParamsOpt,

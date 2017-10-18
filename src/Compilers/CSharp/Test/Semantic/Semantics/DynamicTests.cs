@@ -1299,14 +1299,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void C.Goo()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'c.Goo(d)')
-  Instance Receiver: 
-    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'c.Goo(d)')
+  Children(2):
+      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
@@ -1340,20 +1336,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
-  Instance Receiver: 
-    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c.Goo<short>')
-      Children(1):
-          IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
-  Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
+  Children(3):
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c.Goo<short>')
+        Children(1):
+            IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
+      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
@@ -1390,14 +1379,10 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( ? A.B.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'M(d)')
-  Instance Receiver: 
-    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
-        ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M(d)')
+  Children(2):
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')
+      ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(15,13): error CS0120: An object reference is required for the non-static field, method, or property 'A.F'
