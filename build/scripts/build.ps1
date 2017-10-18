@@ -222,6 +222,10 @@ function Build-NuGetPackages() {
     Run-MSBuild $build
 }
 
+function Build-DeployToSymStore() {
+    Run-MSBuild "Roslyn.sln /t:DeployToSymStore"
+}
+
 # These are tests that don't follow our standard restore, build, test pattern. They customize 
 # the processes in order to test specific elements of our build and hence are handled 
 # separately from our other tests
@@ -548,7 +552,7 @@ try {
     $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
     $dotnet, $sdkDir = Ensure-SdkInPathAndData
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $configDir = Join-Path $binariesDIr $buildConfiguration
+    $configDir = Join-Path $binariesDir $buildConfiguration
     $bootstrapDir = ""
 
     # Ensure the main output directories exist as a number of tools will fail when they don't exist. 
@@ -587,6 +591,10 @@ try {
     # VSIX, NuGet doesn't support re-packing hence we have to order it this way.
     if ($pack) {
         Build-NuGetPackages
+
+        if ($cibuild -or $official) { 
+            Build-DeployToSymStore
+        }
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {
