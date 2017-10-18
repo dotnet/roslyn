@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
     {
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
-        private readonly Project _project;
-        private readonly SymbolKey _symbol;
+        private readonly ProjectId _projectId;
+        private readonly SymbolKey _symbolKey;
 
         protected readonly CallHierarchyProvider Provider;
         protected readonly string SymbolName;
@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         // For Testing only
         internal IImmutableSet<Document> Documents;
 
-        protected AbstractCallFinder(ISymbol symbol, Project project, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+        protected AbstractCallFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
         {
             _asyncListener = asyncListener;
-            _symbol = symbol.GetSymbolKey();
+            _symbolKey = symbol.GetSymbolKey();
             this.SymbolName = symbol.Name;
-            _project = project;
+            _projectId = projectId;
             this.Provider = provider;
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
             _cancellationSource.Cancel();
         }
 
-        public void StartSearch(CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
+        public void StartSearch(Workspace workspace, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
         {
             var asyncToken = _asyncListener.BeginAsyncOperation(this.GetType().Name + ".Search");
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                 string completionErrorMessage = null;
                 try
                 {
-                    await SearchAsync(callback, searchScope, _cancellationSource.Token).ConfigureAwait(false);
+                    await SearchAsync(workspace, searchScope, callback, _cancellationSource.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -85,23 +85,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
             }, CancellationToken.None).CompletesAsyncOperation(asyncToken);
         }
 
-        private async Task SearchAsync(ICallHierarchySearchCallback callback, CallHierarchySearchScope scope, CancellationToken cancellationToken)
+        private async Task SearchAsync(Workspace workspace, CallHierarchySearchScope scope, ICallHierarchySearchCallback callback, CancellationToken cancellationToken)
         {
-            var workspace = _project.Solution.Workspace;
-            var currentProject = workspace.CurrentSolution.GetProject(_project.Id);
-            var compilation = await currentProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var resolution = _symbol.Resolve(compilation, cancellationToken: cancellationToken);
+            var project = workspace.CurrentSolution.GetProject(_projectId);
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var resolution = _symbolKey.Resolve(compilation, cancellationToken: cancellationToken);
 
-            var documents = this.Documents ?? IncludeDocuments(scope, currentProject);
+            var symbol = resolution.Symbol;
 
-            var currentSymbol = resolution.Symbol;
-
-            if (currentSymbol == null)
+            if (symbol == null)
             {
                 throw new Exception(string.Format(WorkspacesResources.The_symbol_0_cannot_be_located_within_the_current_solution, SymbolName));
             }
 
-            await SearchWorkerAsync(currentSymbol, currentProject, callback, documents, cancellationToken).ConfigureAwait(false);
+            var documents = this.Documents ?? IncludeDocuments(scope, project);
+
+            await SearchWorkerAsync(symbol, project, callback, documents, cancellationToken).ConfigureAwait(false);
         }
 
         private IImmutableSet<Document> IncludeDocuments(CallHierarchySearchScope scope, Project project)
