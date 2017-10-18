@@ -90,12 +90,26 @@
 
     <!-- https://github.com/dotnet/roslyn/issues/21272 -->
     <GenerateResourceMSBuildRuntime Condition="'$(TargetFramework)' == 'netcoreapp2.0'">CurrentRuntime</GenerateResourceMSBuildRuntime>
+   
+    <!-- 
+      Official build:
+       - Build standalone Portable PDBs to reduce the size of the binaries.
+       - Convert Portable PDBs to Windows PDBs and publish the converted PDBs to Symbol Store to allow WinDBG, 
+         Watson and other tools to find symbol format they understand.
+        
+      Jenkins build:
+       - Embed PDBs to make it easier to debug Jenkins crash dumps.
+       
+      Developer build:
+       - Embed PDBs to be consistent with Jenkins builds.
+    -->
+    <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
+    <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">embedded</RoslynDebugType>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
-    <RoslynDebugType>full</RoslynDebugType>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy
@@ -111,8 +125,6 @@
 
   <!-- Unix specific settings -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-    <RoslynDebugType>portable</RoslynDebugType>
-    
     <!-- Presently can't build anything with a net46 TargetFramework on non-Windows. Disabling
          for now. 
          

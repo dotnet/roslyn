@@ -132,7 +132,6 @@ try {
 
     Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop:$testDesktop }
 
-    Exec-Block { & (Join-Path $PSScriptRoot "run-gitlink.ps1") -config $config }
     Build-InsertionItems
     Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
 

@@ -9,7 +9,6 @@
     <EnvDTE80Version>8.0.0</EnvDTE80Version>
     <dotnetxunitVersion>2.3.0-beta4-build3742</dotnetxunitVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
-    <GitLinkVersion>3.0.0</GitLinkVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
     <LibGit2SharpVersion>0.22.0</LibGit2SharpVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
@@ -109,7 +108,7 @@
     <MicrosoftVisualStudioShellInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioShellInterop121DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop140DesignTimeVersion>14.3.25407</MicrosoftVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop150DesignTimeVersion>15.0.26606-alpha</MicrosoftVisualStudioShellInterop150DesignTimeVersion>
-	<MicrosoftVisualStudioShellInterop153DesignTimeVersion>15.0.26606</MicrosoftVisualStudioShellInterop153DesignTimeVersion>
+    <MicrosoftVisualStudioShellInterop153DesignTimeVersion>15.0.26606</MicrosoftVisualStudioShellInterop153DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop80Version>8.0.50727</MicrosoftVisualStudioShellInterop80Version>
     <MicrosoftVisualStudioShellInterop90Version>9.0.30729</MicrosoftVisualStudioShellInterop90Version>
     <MicrosoftVisualStudioTelemetryVersion>15.0.26606-alpha</MicrosoftVisualStudioTelemetryVersion>
@@ -139,6 +138,7 @@
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
     <NuSpecReferenceGeneratorVersion>1.4.2</NuSpecReferenceGeneratorVersion>
     <OctokitVersion>0.23.0</OctokitVersion>
+    <Pdb2PdbVersion>1.1.0-beta1-62106-03</Pdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>14.0.983-pre-ge167e81694</RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>
