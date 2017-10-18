@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -50,19 +51,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         public void StartSearch(CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
         {
-            Task.Run(() => SearchAsync(callback, searchScope, _cancellationSource.Token), _cancellationSource.Token);
+            var asyncToken = _asyncListener.BeginAsyncOperation(this.GetType().Name + ".Search");
+
+            // NOTE: This task has CancellationToken.None specified, since it must complete no matter what
+            // so the callback is appropriately notified that the search has terminated.
+            Task.Run(async () =>
+            {
+                // The error message to show if we had an error. null will mean we succeeded.
+                string completionErrorMessage = null;
+                try
+                {
+                    await SearchAsync(callback, searchScope, _cancellationSource.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    completionErrorMessage = EditorFeaturesResources.Canceled;
+                }
+                catch (Exception e)
+                {
+                    completionErrorMessage = e.Message;
+                }
+                finally
+                {
+                    if (completionErrorMessage != null)
+                    {
+                        callback.SearchFailed(completionErrorMessage);
+                    }
+                    else
+                    {
+                        callback.SearchSucceeded();
+                    }
+                }
+            }, CancellationToken.None)
+                .CompletesAsyncOperation(asyncToken);
         }
 
         private async Task SearchAsync(ICallHierarchySearchCallback callback, CallHierarchySearchScope scope, CancellationToken cancellationToken)
         {
-            callback.ReportProgress(0, 1);
-
-            var asyncToken = _asyncListener.BeginAsyncOperation(this.GetType().Name + ".Search");
-
-            // Follow the search task with task that lets the callback know we're done and which
-            // marks the async operation as complete.  Note that we pass CancellationToken.None
-            // here.  That's intentional.  This operation is *not* cancellable.
-
             var workspace = _project.Solution.Workspace;
             var currentProject = workspace.CurrentSolution.GetProject(_project.Id);
             var compilation = await currentProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -74,25 +99,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
             if (currentSymbol == null)
             {
-                return;
+                throw new Exception(string.Format(WorkspacesResources.The_symbol_0_cannot_be_located_within_the_current_solution, SymbolName));
             }
 
-            await SearchWorkerAsync(currentSymbol, currentProject, callback, documents, cancellationToken).SafeContinueWith(
-                t =>
-            {
-                callback.ReportProgress(1, 1);
-
-                if (t.Status == TaskStatus.RanToCompletion)
-                {
-                    callback.SearchSucceeded();
-                }
-                else
-                {
-                    callback.SearchFailed(EditorFeaturesResources.Canceled);
-                }
-
-                asyncToken.Dispose();
-            }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).ConfigureAwait(false);
+            await SearchWorkerAsync(currentSymbol, currentProject, callback, documents, cancellationToken).ConfigureAwait(false);
         }
 
         private IImmutableSet<Document> IncludeDocuments(CallHierarchySearchScope scope, Project project)
