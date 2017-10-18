@@ -326,7 +326,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitChildren(IOperation operation)
         {
-            var children = operation.Children.WhereNotNull().ToImmutableArray();
+            Debug.Assert(operation.Children.All(o => o != null));
+
+            var children = operation.Children.ToImmutableArray();
             if (!children.IsEmpty || operation.Kind != OperationKind.None)
             {
                 VisitArray(children, "Children", logElementCount: true);
@@ -1315,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            VisitArrayCommon(operation.TypeArguments, "Type Arguments", logElementCount: true,logNullForDefault: false, arrayElementVisitor: VisitSymbolArrayElement);
+            VisitArrayCommon(operation.TypeArguments, "Type Arguments", logElementCount: true, logNullForDefault: false, arrayElementVisitor: VisitSymbolArrayElement);
 
             VisitInstanceExpression(operation.Instance);
         }

@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundEventAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundEventAccess.ConstantValue);
             bool isImplicit = boundEventAccess.WasCompilerGenerated;
-            return new LazyEventReferenceExpression(@event, instance,  _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyEventReferenceExpression(@event, instance, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IEventAssignmentExpression CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IInvalidExpression CreateBoundBadExpressionOperation(BoundBadExpression boundBadExpression)
         {
-            Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(() => boundBadExpression.ChildBoundNodes.SelectAsArray(n => Create(n)));
+            Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(() => boundBadExpression.ChildBoundNodes.Select(n => Create(n)).WhereNotNull().ToImmutableArray());
             SyntaxNode syntax = boundBadExpression.Syntax;
             // We match semantic model here: if the expression IsMissing, we have a null type, rather than the ErrorType of the bound node.
             ITypeSymbol type = syntax.IsMissing ? null : boundBadExpression.Type;
@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IInvalidStatement CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)
         {
-            Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(() => boundBadStatement.ChildBoundNodes.SelectAsArray(n => Create(n)));
+            Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(() => boundBadStatement.ChildBoundNodes.Select(n => Create(n)).WhereNotNull().ToImmutableArray());
             SyntaxNode syntax = boundBadStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);

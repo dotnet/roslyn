@@ -502,7 +502,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidExpression
-            Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundBadExpression.ChildBoundNodes.SelectAsArray(Function(n) Create(n)))
+            Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function() boundBadExpression.ChildBoundNodes.Select(Function(n) Create(n)).WhereNotNull().ToImmutableArray())
             Dim syntax As SyntaxNode = boundBadExpression.Syntax
             ' We match semantic model here: If the Then expression IsMissing, we have a null type, rather than the ErrorType Of the bound node.
             Dim type As ITypeSymbol = If(syntax.IsMissing, Nothing, boundBadExpression.Type)
