@@ -28,5 +28,6 @@
     <PackageReference Include="GitLink" Version="$(GitLinkVersion)" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" />
     <PackageReference Include="xunit.runner.wpf" Version="$(xunitrunnerwpfVersion)" />
+    <PackageReference Include="pdb2pdb" Version="$(Pdb2PdbVersion)" />
   </ItemGroup>
 </Project>
