@@ -82,8 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                         callback.SearchSucceeded();
                     }
                 }
-            }, CancellationToken.None)
-                .CompletesAsyncOperation(asyncToken);
+            }, CancellationToken.None).CompletesAsyncOperation(asyncToken);
         }
 
         private async Task SearchAsync(ICallHierarchySearchCallback callback, CallHierarchySearchScope scope, CancellationToken cancellationToken)
