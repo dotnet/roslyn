@@ -1379,7 +1379,42 @@ public class C {}";
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute, legacyStrongName: false);
         }
 
-        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
+        [Fact]
+        public void BothLegacyAndNonLegacyGiveTheSameOutput()
+        {
+            string s = "public class C {}";
+            Stream portable;
+            Stream legacy;
+
+            var commonOptions = TestOptions.ReleaseDll
+                .WithDeterministic(true)
+                .WithModuleName("a.dll")
+                .WithCryptoKeyFile(s_keyPairFile);
+            EmitOptions emitOptions = EmitOptions.Default.WithOutputNameOverride("a.dll");
+
+            {
+                var options = commonOptions.WithStrongNameProvider(s_defaultPortableProvider);
+                var other = CreateStandardCompilation(s, options: options);
+                portable = other.EmitToStream(emitOptions);
+                portable.Position = 0;
+            }
+
+            {
+                var options = commonOptions.WithStrongNameProvider(s_defaultDesktopProvider);
+                var other = CreateStandardCompilation(s, options: options);
+                legacy = other.EmitToStream(emitOptions);
+                legacy.Position = 0;
+            }
+
+            using (var portableMetadata = AssemblyMetadata.CreateFromStream(portable))
+            using (var legacyMetadata = AssemblyMetadata.CreateFromStream(legacy))
+            {
+                var portablePublicKey = portableMetadata.GetAssembly().Identity.PublicKey;
+                var legacyPublicKey = legacyMetadata.GetAssembly().Identity.PublicKey;
+                Assert.True(portablePublicKey.SequenceEqual(legacyPublicKey));
+            }
+        }
+
         [Fact()]
         public void SignRefAssemblyKeyFileCmdLine()
         {
