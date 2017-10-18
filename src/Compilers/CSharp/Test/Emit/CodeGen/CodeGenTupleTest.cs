@@ -5199,7 +5199,7 @@ class C
         }
 
         [Fact]
-        public void TupleUnsupportedInUsingStatment()
+        public void TupleUnsupportedInUsingStatement()
         {
             var source = @"
 using VT2 = (int, int);
@@ -17437,7 +17437,7 @@ class Program
         // (T, T) is introducing exact bound on T even in an 'in' param position
         Test(z, z1);
 
-        // evdently, this is an error. 
+        // evidently, this is an error. 
         Test<(IEnumerable<int>, IEnumerable <int>)> (z, z1);
     }
 
@@ -18868,7 +18868,7 @@ public interface I1 : I0
         }
 
         [Fact]
-        public void HiddingInterfaceMethodsWithDifferentTupleNames()
+        public void HidingInterfaceMethodsWithDifferentTupleNames()
         {
             var source = @"
 public interface I0

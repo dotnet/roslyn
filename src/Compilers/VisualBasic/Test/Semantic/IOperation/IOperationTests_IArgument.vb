@@ -1052,7 +1052,7 @@ BC33037: Cannot copy the value of 'ByRef' parameter 'a' back to the matching arg
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        Public Sub GettingInOutConverionFromVBArgument()
+        Public Sub GettingInOutConversionFromVBArgument()
             Dim source = <![CDATA[
 Class C
     Public Shared Widening Operator CType(ByVal c As C) As Integer
@@ -1081,12 +1081,12 @@ End Class]]>.Value
             Dim result = GetOperationAndSyntaxForTest(Of InvocationExpressionSyntax)(compilation, fileName)
 
             Dim expectedInKind = ConversionKind.Widening Or ConversionKind.UserDefined
-            Dim exptectedInMethod = compilation.GetSymbolsWithName(Function (name As string)
-                                                                       Return name = "op_Implicit"
-                                                                   End Function, SymbolFilter.Member).Single()
+            Dim expectedInMethod = compilation.GetSymbolsWithName(Function(name As String)
+                                                                      Return name = "op_Implicit"
+                                                                  End Function, SymbolFilter.Member).Single()
 
             Dim expectedOutKind = ConversionKind.Narrowing Or ConversionKind.UserDefined
-            Dim expectedOutMethod = compilation.GetSymbolsWithName(Function (name As string)
+            Dim expectedOutMethod = compilation.GetSymbolsWithName(Function(name As String)
                                                                        Return name = "op_Explicit"
                                                                    End Function, SymbolFilter.Member).Single()
 
@@ -1094,7 +1094,7 @@ End Class]]>.Value
             Dim argument = invocation.ArgumentsInEvaluationOrder(0)
 
             Dim inConversion = argument.GetInConversion()
-            Assert.Same(exptectedInMethod, inConversion.MethodSymbol)
+            Assert.Same(expectedInMethod, inConversion.MethodSymbol)
             Assert.Equal(expectedInKind, inConversion.Kind)
 
             Dim outConversion = argument.GetOutConversion()

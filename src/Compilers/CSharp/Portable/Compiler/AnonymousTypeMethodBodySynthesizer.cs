@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundExpression call = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
                 if (call == null)
                 {
-                    // This may happen if Object..ctor is not found or is unaccessible
+                    // This may happen if Object..ctor is not found or is inaccessible
                     return;
                 }
                 statements[statementIndex++] = F.ExpressionStatement(call);

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
     public class NoPiaInstantiationOfGenericClassAndStruct : CSharpTestBase
     {
         [Fact]
-        public void NoPiaIllegalGenericInstantiationSymboleForClassThatInheritsGeneric()
+        public void NoPiaIllegalGenericInstantiationSymbolForClassThatInheritsGeneric()
         {
             //Test class that inherits Generic<NoPIAType>
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         }
 
         [Fact]
-        public void NoPiaIllegalGenericInstantiationSymboleForGenericType()
+        public void NoPiaIllegalGenericInstantiationSymbolForGenericType()
         {
             //Test field with Generic(Of NoPIAType())
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         }
 
         [Fact]
-        public void NoPiaIllegalGenericInstantiationSymboleForFieldWithNestedGenericType()
+        public void NoPiaIllegalGenericInstantiationSymbolForFieldWithNestedGenericType()
         {
             //Test field with Generic(Of IGeneric(Of NoPIAType))
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         }
 
         [Fact]
-        public void NoPiaIllegalGenericInstantiationSymboleForFieldWithTwoNestedGenericType()
+        public void NoPiaIllegalGenericInstantiationSymbolForFieldWithTwoNestedGenericType()
         {
             //Test field with IGeneric(Of IGeneric(Of Generic(Of NoPIAType)))
 

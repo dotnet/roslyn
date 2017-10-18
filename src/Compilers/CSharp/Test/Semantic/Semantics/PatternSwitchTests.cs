@@ -1951,7 +1951,7 @@ False";
         {
             // This test ensures that we switch on a *copy* of the switch expression,
             // so that it is not affected by subsequent assignment to a variable appearing
-            // in the swich expression.
+            // in the switch expression.
             var source =
 @"using System;
 class Program

@@ -8645,7 +8645,7 @@ End Module
 
         <ConditionalFact(GetType(WindowsOnly))>
         <WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")>
-        Public Sub PdbPathNotEmittedWitoutPdb()
+        Public Sub PdbPathNotEmittedWithoutPdb()
             Dim dir = Temp.CreateDirectory()
 
             Dim src = MakeTrivialExe(directory:=dir.Path)

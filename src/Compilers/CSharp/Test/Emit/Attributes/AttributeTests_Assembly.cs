@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var now = DateTime.Now;
             int days, seconds;
-            VersionTestHelpers.GetDefautVersion(now, out days, out seconds);
+            VersionTestHelpers.GetDefaultVersion(now, out days, out seconds);
 
             var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
             var comp = CreateStandardCompilation(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(now));

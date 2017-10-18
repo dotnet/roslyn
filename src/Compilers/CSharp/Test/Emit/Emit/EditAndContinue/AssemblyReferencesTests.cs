@@ -498,7 +498,7 @@ class C
 
         [Fact]
         [WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
-        public void CurrentComplationVersionWildcards()
+        public void CurrentCompilationVersionWildcards()
         {
             var source0 = MarkedSource(@"
 using System;

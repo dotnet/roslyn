@@ -7181,7 +7181,7 @@ class Program3
         /// the compiler should delete the file to unblock build while allowing the reader to continue 
         /// reading the previous snapshot of the file content.
         /// 
-        /// On Windows we can read the original data directly from the stream withotu creating a memory map. 
+        /// On Windows we can read the original data directly from the stream without creating a memory map. 
         /// </summary>
         [ConditionalFact(typeof(WindowsOnly))]
         public void FileShareDeleteCompatibility_Windows()
@@ -9599,7 +9599,7 @@ class C
 
         [ConditionalFact(typeof(WindowsOnly))]
         [WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")]
-        public void PdbPathNotEmittedWitoutPdb()
+        public void PdbPathNotEmittedWithoutPdb()
         {
             var dir = Temp.CreateDirectory();
 

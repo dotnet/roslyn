@@ -7462,7 +7462,7 @@ class C
                 throw new ArgumentOutOfRangeException();
             });
 
-            // the compiler shound't swallow any exceptions but InvalidDataException
+            // the compiler should't swallow any exceptions but InvalidDataException
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 compilation1.EmitDifference(
                     generation0,

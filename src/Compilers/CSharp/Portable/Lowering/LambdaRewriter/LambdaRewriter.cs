@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // local function references is not rewritten until all local
             // functions have already been lowered. Everything else is rewritten
             // by the visitors as the definition is lowered. This means that
-            // only one substition happens per lowering, but we need to do
+            // only one substitution happens per lowering, but we need to do
             // N substitutions all at once, where N is the number of lowerings.
 
             var builder = ArrayBuilder<TypeSymbol>.GetInstance();

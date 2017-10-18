@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     internal struct BuildPaths
     {
         /// <summary>
-        /// The path which containts the compiler binaries and response files.
+        /// The path which contains the compiler binaries and response files.
         /// </summary>
         internal string ClientDirectory { get; }
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
             this.Arguments = parser.Parse(allArgs, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
             this.AssemblyLoader = assemblyLoader;
-            this.EmbeddedSourcePaths = GetEmbedddedSourcePaths(Arguments);
+            this.EmbeddedSourcePaths = GetEmbeddedSourcePaths(Arguments);
 
             if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
             {
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis
             OrderedSet<string> embeddedFiles,
             IList<Diagnostic> diagnostics);
 
-        private static IReadOnlySet<string> GetEmbedddedSourcePaths(CommandLineArguments arguments)
+        private static IReadOnlySet<string> GetEmbeddedSourcePaths(CommandLineArguments arguments)
         {
             if (arguments.EmbeddedFiles.IsEmpty)
             {

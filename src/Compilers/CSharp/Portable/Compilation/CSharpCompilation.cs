@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // Are there any top-level return statments?
+            // Are there any top-level return statements?
             if (root.DescendantNodes(n => n is GlobalStatementSyntax || n is StatementSyntax || n is CompilationUnitSyntax).Any(n => n.IsKind(SyntaxKind.ReturnStatement)))
             {
                 return true;

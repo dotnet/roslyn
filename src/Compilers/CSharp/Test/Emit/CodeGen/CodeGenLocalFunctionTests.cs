@@ -4964,7 +4964,7 @@ class Program
 
         [Fact]
         [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
-        public void StructFrameInitUnnecesary()
+        public void StructFrameInitUnnecessary()
         {
             var c = CompileAndVerify(@"
     class Program

@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<MetadataReference> references,
             ImmutableArray<ResolvedReference> referenceMap,
             int referencedModuleCount,
-            int explicitlyReferencedAsemblyCount,
+            int explicitlyReferencedAssemblyCount,
             IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             bool supersedeLowerVersions,
             out Dictionary<MetadataReference, int> referencedAssembliesMap,
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis
                     // the item in the list is the highest version, by construction
                     for (int i = 1; i < assemblyReference.Value.Count; i++)
                     {
-                        int assemblyIndex = assemblyReference.Value[i].GetAssemblyIndex(explicitlyReferencedAsemblyCount);
+                        int assemblyIndex = assemblyReference.Value[i].GetAssemblyIndex(explicitlyReferencedAssemblyCount);
                         aliasesOfReferencedAssembliesBuilder[assemblyIndex] = s_supersededAlias;
                     }
                 }

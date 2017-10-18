@@ -1492,7 +1492,7 @@ HandleAsAGeneralExpression:
                                         ' hints and type-inference works. That's because all our hints inhere to the
                                         ' type parameter T; in an ideal world, the ByRef hint would inhere to the parameter.
                                         ' But I don't think we'll ever do better than this, just because trying to do
-                                        ' type inference inhering to arguments/parameters becomes exponential.
+                                        ' type inference inferring to arguments/parameters becomes exponential.
                                         ' Variance generic parameters will work the same.
 
                                         ' Dev10#595234: each Param'sInferenceRestriction is found as a modification of the surrounding InferenceRestriction:

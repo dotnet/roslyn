@@ -730,7 +730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim startCh = Peek()
 
             ' First create a trivia from the start of this merge conflict marker to the
-            ' end of line/file (whicever comes first).
+            ' end of line/file (whichever comes first).
             ScanConflictMarkerHeader(tList)
 
             ' Now add the newlines as the next trivia.

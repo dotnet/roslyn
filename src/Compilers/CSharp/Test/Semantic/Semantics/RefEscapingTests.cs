@@ -1912,7 +1912,7 @@ using System;
 using System.Collections.Generic;
 
 // X cannot be a ref-like type since it must implement IEnumerable
-// that significantly reduces the number of scenarios that coudl be applicable to ref-like types
+// that significantly reduces the number of scenarios that could be applicable to ref-like types
 class X : List<int>
 {
     void Add(Span<int> x, int y) { }
