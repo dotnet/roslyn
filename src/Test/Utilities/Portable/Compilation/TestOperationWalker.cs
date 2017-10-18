@@ -331,7 +331,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
         {
-            var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
             var unaryOperationKind = operation.OperatorKind;
             var isLifted = operation.IsLifted;
@@ -342,7 +341,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitBinaryOperatorExpression(IBinaryOperatorExpression operation)
         {
-            var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
             var binaryOperationKind = operation.OperatorKind;
             var isLifted = operation.IsLifted;
@@ -354,7 +352,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitConversionExpression(IConversionExpression operation)
         {
-            var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
             var conversion = operation.Conversion;
             var isExplicitInCode = operation.IsExplicitInCode;
@@ -388,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
         {
-            var isType = operation.IsType;
+            var isType = operation.TypeOperand;
 
             base.VisitIsTypeExpression(operation);
         }
@@ -548,7 +545,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)
         {
-            var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
             var binaryOperationKind = operation.OperatorKind;
 
@@ -557,7 +553,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation)
         {
-            var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
             var isPostFix = operation.IsPostfix;
 

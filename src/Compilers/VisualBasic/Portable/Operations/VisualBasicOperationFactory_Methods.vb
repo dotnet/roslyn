@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Case VisualBasic.UnaryOperatorKind.IsFalse
                         Return UnaryOperatorKind.False
                     Case Else
-                        Return UnaryOperatorKind.Invalid
+                        Return UnaryOperatorKind.None
                 End Select
             End Function
 
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Case VisualBasic.BinaryOperatorKind.Concatenate
                         Return BinaryOperatorKind.Concatenate
                     Case Else
-                        Return BinaryOperatorKind.Invalid
+                        Return BinaryOperatorKind.None
                 End Select
             End Function
         End Class

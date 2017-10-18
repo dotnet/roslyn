@@ -184,19 +184,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                             SemanticModel semanticModel = operationContext.Compilation.GetSemanticModel(advance.Syntax.SyntaxTree);
 
                                             IOperation advanceIncrement;
-                                            BinaryOperatorKind advanceOperationCode;
+                                            BinaryOperatorKind? advanceOperationCode;
                                             GetOperationKindAndValue(semanticModel, testVariable, advanceExpression, out advanceOperationCode, out advanceIncrement);
 
-                                            if (advanceIncrement != null)
+                                            if (advanceIncrement != null && advanceOperationCode.HasValue)
                                             {
                                                 int incrementValue = (int)advanceIncrement.ConstantValue.Value;
-                                                if (advanceOperationCode == BinaryOperatorKind.Subtract)
+                                                if (advanceOperationCode.Value == BinaryOperatorKind.Subtract)
                                                 {
                                                     advanceOperationCode = BinaryOperatorKind.Add;
                                                     incrementValue = -incrementValue;
                                                 }
 
-                                                if (advanceOperationCode == BinaryOperatorKind.Add &&
+                                                if (advanceOperationCode.Value == BinaryOperatorKind.Add &&
                                                     incrementValue != 0 &&
                                                     (condition.OperatorKind == BinaryOperatorKind.LessThan ||
                                                      condition.OperatorKind == BinaryOperatorKind.LessThanOrEqual ||
@@ -223,10 +223,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private void GetOperationKindAndValue(
             SemanticModel semanticModel, ILocalSymbol testVariable, IOperation advanceExpression,
-            out BinaryOperatorKind advanceOperationCode, out IOperation advanceIncrement)
+            out BinaryOperatorKind? advanceOperationCode, out IOperation advanceIncrement)
         {
             advanceIncrement = null;
-            advanceOperationCode = BinaryOperatorKind.None;
+            advanceOperationCode = null;
 
             if (advanceExpression.Kind == OperationKind.SimpleAssignmentExpression)
             {
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     // Advance is known to be an assignment of a binary operation to the local used in the test.
 
                     IBinaryOperatorExpression advanceOperation = (IBinaryOperatorExpression)advanceAssignment.Value;
-                    if (!advanceOperation.UsesOperatorMethod &&
+                    if (advanceOperation.OperatorMethod == null &&
                         advanceOperation.LeftOperand.Kind == OperationKind.LocalReferenceExpression &&
                         ((ILocalReferenceExpression)advanceOperation.LeftOperand).Local == testVariable &&
                         advanceOperation.RightOperand.ConstantValue.HasValue &&
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
                      long priorArgumentValue = long.MinValue;
-                     foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
+                     foreach (IArgument argument in invocation.Arguments)
                      {
                          if (argument.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                          {
@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
 
-                     foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
+                     foreach (IArgument argument in invocation.Arguments)
                      {
                          if (argument.Parameter.IsParams)
                          {
@@ -1139,7 +1139,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConstructorDescriptor, creation.Syntax.GetLocation()));
                     }
 
-                    foreach (IArgument argument in creation.ArgumentsInEvaluationOrder)
+                    foreach (IArgument argument in creation.Arguments)
                     {
                         if (argument.Parameter.IsParams)
                         {
@@ -1526,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     IBinaryOperatorExpression binary = (IBinaryOperatorExpression)operationContext.Operation;
-                    if (binary.OperatorKind == BinaryOperatorKind.Add && binary.UsesOperatorMethod && binary.OperatorMethod.Name.Contains("Addition"))
+                    if (binary.OperatorKind == BinaryOperatorKind.Add && binary.OperatorMethod != null && binary.OperatorMethod.Name.Contains("Addition"))
                     {
                         operationContext.ReportDiagnostic(Diagnostic.Create(OperatorAddMethodDescriptor, binary.Syntax.GetLocation()));
                     }
@@ -1542,7 +1542,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     IUnaryOperatorExpression unary = (IUnaryOperatorExpression)operationContext.Operation;
-                    if (unary.OperatorKind == UnaryOperatorKind.Minus && unary.UsesOperatorMethod && unary.OperatorMethod.Name.Contains("UnaryNegation"))
+                    if (unary.OperatorKind == UnaryOperatorKind.Minus && unary.OperatorMethod  != null && unary.OperatorMethod.Name.Contains("UnaryNegation"))
                     {
                         operationContext.ReportDiagnostic(Diagnostic.Create(OperatorMinusMethodDescriptor, unary.Syntax.GetLocation()));
                     }
@@ -1580,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     var binary = (IBinaryOperatorExpression)operationContext.Operation;
-                    if (binary.UsesOperatorMethod)
+                    if (binary.OperatorMethod != null)
                     {
                         operationContext.ReportDiagnostic(
                             Diagnostic.Create(BinaryUserDefinedOperatorDescriptor,
@@ -1623,7 +1623,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     var right = binary.RightOperand;
                     if (!left.HasErrors(operationContext.Compilation, operationContext.CancellationToken) &&
                         !right.HasErrors(operationContext.Compilation, operationContext.CancellationToken) &&
-                        !binary.UsesOperatorMethod && binary.OperatorMethod == null)
+                        binary.OperatorMethod == null)
                     {
                         if (left.Kind == OperationKind.LocalReferenceExpression)
                         {
@@ -1657,7 +1657,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         var operandLocal = ((ILocalReferenceExpression)operand).Local;
                         if (operandLocal.Name == "x")
                         {
-                            if (!operand.HasErrors(operationContext.Compilation, operationContext.CancellationToken) && !unary.UsesOperatorMethod && unary.OperatorMethod == null)
+                            if (!operand.HasErrors(operationContext.Compilation, operationContext.CancellationToken) && unary.OperatorMethod == null)
                             {
                                 operationContext.ReportDiagnostic(
                                     Diagnostic.Create(UnaryOperatorDescriptor,
