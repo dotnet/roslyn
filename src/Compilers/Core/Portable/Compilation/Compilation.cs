@@ -2459,14 +2459,14 @@ namespace Microsoft.CodeAnalysis
 
                 Func<Stream> getRefPeStream = () =>
                 {
-                    refPeStream = GetRefPeStream(metadataDiagnostics, metadataPEStreamProvider);
+                    refPeStream = GetAuxPeStream(metadataDiagnostics, metadataPEStreamProvider);
                     return refPeStream;
                 };
 
                 var includePortablePdbStream = moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStreamProvider != null;
                 Func<Stream> getPortablePdbStream = () =>
                 {
-                    portablePdbStream = GetPortablePdbStream(metadataDiagnostics, pdbStreamProvider);
+                    portablePdbStream = GetAuxPeStream(metadataDiagnostics, pdbStreamProvider);
                     return portablePdbStream;
                 };
 
@@ -2561,37 +2561,25 @@ namespace Microsoft.CodeAnalysis
 
         }
 
-        Stream GetRefPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider metadataPEStreamProvider) 
+        private static Stream GetAuxPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider metadataPEStreamProvider) 
         {
             if (metadataDiagnostics.HasAnyErrors())
             {
                 return null;
             }
 
-            var refPeStream = metadataPEStreamProvider.GetOrCreateStream(metadataDiagnostics);
-            Debug.Assert(refPeStream != null || metadataDiagnostics.HasAnyErrors());
-            return refPeStream;
-        }
-
-        Stream GetPortablePdbStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider pdbStreamProvider)
-        {
-            if (metadataDiagnostics.HasAnyErrors())
-            {
-                return null;
-            }
-
-            var portablePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
-            Debug.Assert(portablePdbStream != null || metadataDiagnostics.HasAnyErrors());
-            return portablePdbStream;
+            var auxStream = metadataPEStreamProvider.GetOrCreateStream(metadataDiagnostics);
+            Debug.Assert(auxStream != null || metadataDiagnostics.HasAnyErrors());
+            return auxStream;
         }
 
         /// <summary>
-        /// Returns a tripple of streams where 
+        /// Returns a tuple of streams where 
         /// * `peStream` is a stream which will carry the output PE bits
         /// * `signingStream` is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
-        /// * `selectedStream` is an alais of either peStream or signingStream, and is the stream that will be written to by the emitter.
+        /// * `selectedStream` is an alias of either peStream or signingStream, and is the stream that will be written to by the emitter.
         /// </summary>
-        (Stream peStream, Stream signingStream, Stream selectedStream) GetPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider peStreamProvider, bool metadataOnly)
+        private (Stream peStream, Stream signingStream, Stream selectedStream) GetPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider peStreamProvider, bool metadataOnly)
         {
             Stream peStream = null;
             Stream signingStream = null;
