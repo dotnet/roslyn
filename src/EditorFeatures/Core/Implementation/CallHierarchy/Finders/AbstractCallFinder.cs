@@ -88,6 +88,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         private async Task SearchAsync(Workspace workspace, CallHierarchySearchScope scope, ICallHierarchySearchCallback callback, CancellationToken cancellationToken)
         {
             var project = workspace.CurrentSolution.GetProject(_projectId);
+            
+            if (project == null)
+            {
+                throw new Exception(string.Format(WorkspacesResources.The_symbol_0_cannot_be_located_within_the_current_solution, SymbolName));
+            }
+
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var resolution = _symbolKey.Resolve(compilation, cancellationToken: cancellationToken);
 
