@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                 {
                     completionErrorMessage = EditorFeaturesResources.Canceled;
                 }
-                catch (Exception e)
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
                     completionErrorMessage = e.Message;
                 }
