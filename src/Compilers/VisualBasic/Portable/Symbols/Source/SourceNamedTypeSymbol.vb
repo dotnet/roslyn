@@ -2068,23 +2068,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                ' If there are no attributes then this symbol is not Obsolete. Only apply this optimization for cases
-                ' where we know the syntax tree is loaded, or we could force a complete tree deserialization (and thus
-                ' no longer be an early return optimization).
-                If Not IsPartial AndAlso Not GetAttributeDeclarations().Any() Then
-                    Return Nothing
-                End If
-
-                If m_lazyCustomAttributesBag Is Nothing Then
-                    Return ObsoleteAttributeData.Uninitialized
-                End If
-
-                If m_lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
-                    Dim data = DirectCast(m_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, TypeEarlyWellKnownAttributeData)
+                Dim lazyCustomAttributesBag = m_lazyCustomAttributesBag
+                If lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
+                    Dim data = DirectCast(lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonTypeEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
-                Else
-                    Return ObsoleteAttributeData.Uninitialized
                 End If
+
+                For Each decl In TypeDeclaration.Declarations
+                    If decl.HasAnyAttributes Then
+                        Return ObsoleteAttributeData.Uninitialized
+                    End If
+                Next
+
+                Return Nothing
             End Get
         End Property
 
