@@ -248,9 +248,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <remarks>
         /// The name is used for determining internals-visible-to relationship with referenced assemblies.
-        /// 
+        ///
         /// If the compilation represents an assembly the value of <see cref="AssemblyName"/> is its simple name.
-        /// 
+        ///
         /// Unless <see cref="CompilationOptions.ModuleName"/> specifies otherwise the module name
         /// written to metadata is <see cref="AssemblyName"/> with an extension based upon <see cref="CompilationOptions.OutputKind"/>.
         /// </remarks>
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
 
         internal void CheckAssemblyName(DiagnosticBag diagnostics)
         {
-            // We could only allow name == null if OutputKind is Module. 
+            // We could only allow name == null if OutputKind is Module.
             // However, it does no harm that we allow name == null for assemblies as well, so we don't enforce it.
 
             if (this.AssemblyName != null)
@@ -353,12 +353,12 @@ namespace Microsoft.CodeAnalysis
             return _lazySubmissionSlotIndex;
         }
 
-        // The type of interactive submission result requested by the host, or null if this compilation doesn't represent a submission. 
+        // The type of interactive submission result requested by the host, or null if this compilation doesn't represent a submission.
         //
         // The type is resolved to a symbol when the Script's instance ctor symbol is constructed. The symbol needs to be resolved against
         // the references of this compilation.
         //
-        // Consider (tomat): As an alternative to Reflection Type we could hold onto any piece of information that lets us 
+        // Consider (tomat): As an alternative to Reflection Type we could hold onto any piece of information that lets us
         // resolve the type symbol when needed.
 
         /// <summary>
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract ISymbol CommonGetAssemblyOrModuleSymbol(MetadataReference reference);
 
         /// <summary>
-        /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol. 
+        /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         /// </summary>
         /// <param name="assemblySymbol">The target symbol.</param>
         public MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
@@ -730,8 +730,8 @@ namespace Microsoft.CodeAnalysis
         /// Assembly identities of all assemblies directly referenced by this compilation.
         /// </summary>
         /// <remarks>
-        /// Includes identities of references passed in the compilation constructor 
-        /// as well as those specified via directives in source code. 
+        /// Includes identities of references passed in the compilation constructor
+        /// as well as those specified via directives in source code.
         /// </remarks>
         public abstract IEnumerable<AssemblyIdentity> ReferencedAssemblyNames { get; }
 
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract IModuleSymbol CommonSourceModule { get; }
 
         /// <summary>
-        /// The root namespace that contains all namespaces and types defined in source code or in 
+        /// The root namespace that contains all namespaces and types defined in source code or in
         /// referenced metadata, merged into a single namespace hierarchy.
         /// </summary>
         public INamespaceSymbol GlobalNamespace { get { return CommonGlobalNamespace; } }
@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new INamedTypeSymbol with the given element types and (optional) element names.
         /// </summary>
         public INamedTypeSymbol CreateTupleTypeSymbol(
-            ImmutableArray<ITypeSymbol> elementTypes, 
+            ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string> elementNames = default(ImmutableArray<string>),
             ImmutableArray<Location> elementLocations = default(ImmutableArray<Location>))
         {
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected static void CheckTupleElementLocations(
-            int cardinality, 
+            int cardinality,
             ImmutableArray<Location> elementLocations)
         {
             if (!elementLocations.IsDefault)
@@ -990,7 +990,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
-            ImmutableArray<ITypeSymbol> elementTypes, 
+            ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string> elementNames,
             ImmutableArray<Location> elementLocations);
 
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis
         /// Also, the underlying type needs to be tuple-compatible.
         /// </remarks>
         public INamedTypeSymbol CreateTupleTypeSymbol(
-            INamedTypeSymbol underlyingType, 
+            INamedTypeSymbol underlyingType,
             ImmutableArray<string> elementNames = default(ImmutableArray<string>),
             ImmutableArray<Location> elementLocations = default(ImmutableArray<Location>))
         {
@@ -1018,16 +1018,16 @@ namespace Microsoft.CodeAnalysis
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
-            INamedTypeSymbol underlyingType, 
+            INamedTypeSymbol underlyingType,
             ImmutableArray<string> elementNames,
             ImmutableArray<Location> elementLocations);
 
         /// <summary>
         /// Returns a new anonymous type symbol with the given member types member names.
         /// Anonymous type members will be readonly by default.  Writable properties are
-        /// supported in VB and can be created by passing in <code>false</code> in the 
-        /// appropriate locations in <paramref name="memberIsReadOnly"/>. 
-        /// 
+        /// supported in VB and can be created by passing in <code>false</code> in the
+        /// appropriate locations in <paramref name="memberIsReadOnly"/>.
+        ///
         /// Source locations can also be provided through <paramref name="memberLocations"/>
         /// </summary>
         public INamedTypeSymbol CreateAnonymousTypeSymbol(
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
-            ImmutableArray<ITypeSymbol> memberTypes, 
+            ImmutableArray<ITypeSymbol> memberTypes,
             ImmutableArray<string> memberNames,
             ImmutableArray<Location> memberLocations,
             ImmutableArray<bool> memberIsReadOnly);
@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis
         internal void CompleteCompilationEventQueue_NoLock()
         {
             Debug.Assert(EventQueue != null);
-            
+
             // Signal the end of compilation.
             EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
             EventQueue.PromiseNotToEnqueue();
@@ -1257,8 +1257,8 @@ namespace Microsoft.CodeAnalysis
             writer.Write((UInt32)0);            //DataVersion
             writer.Write((UInt16)0);            //MemoryFlags
             writer.Write((UInt16)0);            //LanguageId
-            writer.Write((UInt32)0);            //Version 
-            writer.Write((UInt32)0);            //Characteristics 
+            writer.Write((UInt32)0);            //Version
+            writer.Write((UInt32)0);            //Characteristics
         }
 
         protected abstract void AppendDefaultVersionResource(Stream resourceStream);
@@ -1351,8 +1351,8 @@ namespace Microsoft.CodeAnalysis
                     data: r.data,
                     codePage: 0,
                     languageId: r.LanguageId,
-                    //EDMAURER converting to int from ushort. 
-                    //Go to short first to avoid sign extension. 
+                    //EDMAURER converting to int from ushort.
+                    //Go to short first to avoid sign extension.
                     id: unchecked((short)r.pstringName.Ordinal),
                     name: r.pstringName.theString,
                     typeId: unchecked((short)r.pstringType.Ordinal),
@@ -1388,7 +1388,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             switch (resourceForm)
-            { 
+            {
                 case Win32ResourceForm.COFF:
                     moduleBeingBuilt.Win32ResourceSection = MakeWin32ResourcesFromCOFF(win32Resources, diagnostics);
                     break;
@@ -1637,7 +1637,7 @@ namespace Microsoft.CodeAnalysis
             if (requires32Bit)
             {
                 // 32 bit machine (The standard says to always set this, the linker team says otherwise)
-                // The loader team says that this is not used for anything in the OS. 
+                // The loader team says that this is not used for anything in the OS.
                 characteristics |= Characteristics.Bit32Machine;
             }
             else
@@ -1687,11 +1687,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The value is not used by Windows loader, but the OS appcompat infrastructure uses it to identify apps. 
-        /// It is useful for us to have a mechanism to identify the compiler that produced the binary. 
-        /// This is the appropriate value to use for that. That is what it was invented for. 
-        /// We don't want to have the high bit set for this in case some users perform a signed comparison to 
-        /// determine if the value is less than some version. The C++ linker is at 0x0B. 
+        /// The value is not used by Windows loader, but the OS appcompat infrastructure uses it to identify apps.
+        /// It is useful for us to have a mechanism to identify the compiler that produced the binary.
+        /// This is the appropriate value to use for that. That is what it was invented for.
+        /// We don't want to have the high bit set for this in case some users perform a signed comparison to
+        /// determine if the value is less than some version. The C++ linker is at 0x0B.
         /// We'll start our numbering at 0x30 for C#, 0x50 for VB.
         /// </summary>
         internal abstract byte LinkerMajorVersion { get; }
@@ -1710,7 +1710,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                // A module cannot be signed. The native compiler allowed one to create a netmodule with an AssemblyKeyFile 
+                // A module cannot be signed. The native compiler allowed one to create a netmodule with an AssemblyKeyFile
                 // or Container attribute (or specify a key via the cmd line). When the module was linked into an assembly,
                 // alink would sign the assembly. So rather than give an error we just don't sign when outputting a module.
 
@@ -1808,14 +1808,14 @@ namespace Microsoft.CodeAnalysis
                     if (existingDoc == null)
                     {
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
-                            normalizedPath, 
-                            DebugSourceDocumentLanguageId, 
+                            normalizedPath,
+                            DebugSourceDocumentLanguageId,
                             () => tree.GetDebugSourceInfo()));
                     }
                 }
             }
 
-            // Add debug documents for all pragmas. 
+            // Add debug documents for all pragmas.
             // If there are clashes with already processed directives, report warnings.
             // If there are clashes with debug documents that came from actual trees, ignore the pragma.
             // Therefore we need to add these in a separate pass after documents for syntax trees were added.
@@ -1854,7 +1854,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Signals the event queue, if any, that we are done compiling.
         /// There should not be more compiling actions after this step.
-        /// NOTE: once we signal about completion to analyzers they will cancel and thus in some cases we 
+        /// NOTE: once we signal about completion to analyzers they will cancel and thus in some cases we
         ///       may be effectively cutting off some diagnostics.
         ///       It is not clear if behavior is desirable.
         ///       See: https://github.com/dotnet/roslyn/issues/11470
@@ -2010,23 +2010,23 @@ namespace Microsoft.CodeAnalysis
         /// <param name="metadataPEStream">Stream to which the metadata-only output will be written.</param>
         /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
         /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
-        /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
+        /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).
         /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
         /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
         /// <param name="options">Emit options.</param>
         /// <param name="debugEntryPoint">
         /// Debug entry-point of the assembly. The method token is stored in the generated PDB stream.
-        /// 
+        ///
         /// When a program launches with a debugger attached the debugger places the first breakpoint to the start of the debug entry-point method.
         /// The CLR starts executing the static Main method of <see cref="CompilationOptions.MainTypeName"/> type. When the first breakpoint is hit
-        /// the debugger steps thru the code statement by statement until user code is reached, skipping methods marked by <see cref="DebuggerHiddenAttribute"/>, 
+        /// the debugger steps thru the code statement by statement until user code is reached, skipping methods marked by <see cref="DebuggerHiddenAttribute"/>,
         /// and taking other debugging attributes into consideration.
-        /// 
+        ///
         /// By default both entry points in an executable program (<see cref="OutputKind.ConsoleApplication"/>, <see cref="OutputKind.WindowsApplication"/>, <see cref="OutputKind.WindowsRuntimeApplication"/>)
         /// are the same method (Main). A non-executable program has no entry point. Runtimes that implement a custom loader may specify debug entry-point
         /// to force the debugger to skip over complex custom loader logic executing at the beginning of the .exe and thus improve debugging experience.
-        /// 
-        /// Unlike ordinary entry-point which is limited to a non-generic static method of specific signature, there are no restrictions on the <paramref name="debugEntryPoint"/> 
+        ///
+        /// Unlike ordinary entry-point which is limited to a non-generic static method of specific signature, there are no restrictions on the <paramref name="debugEntryPoint"/>
         /// method other than having a method body (extern, interface, or abstract methods are not allowed).
         /// </param>
         /// <param name="sourceLinkStream">
@@ -2125,9 +2125,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
             }
 
-            if (embeddedTexts != null && 
-                !embeddedTexts.IsEmpty() && 
-                pdbStream == null && 
+            if (embeddedTexts != null &&
+                !embeddedTexts.IsEmpty() &&
+                pdbStream == null &&
                 options?.DebugInformationFormat != DebugInformationFormat.Embedded)
             {
                 throw new ArgumentException(CodeAnalysisResources.EmbeddedTextsRequirePdb, nameof(embeddedTexts));
@@ -2415,7 +2415,6 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
             Stream peStream = null;
-            Stream refPeStream = null;
             Stream portablePdbStream = null;
 
             bool deterministic = IsEmitDeterministic;
@@ -2443,7 +2442,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
                 {
-                    // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
+                    // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
                     nativePdbWriter = new Cci.PdbWriter(pePdbFilePath, testSymWriterFactory, deterministic);
@@ -2459,8 +2458,7 @@ namespace Microsoft.CodeAnalysis
 
                 Func<Stream> getRefPeStream = () =>
                 {
-                    refPeStream = GetAuxPeStream(metadataDiagnostics, metadataPEStreamProvider);
-                    return refPeStream;
+                    return GetAuxPeStream(metadataDiagnostics, metadataPEStreamProvider);
                 };
 
                 var includePortablePdbStream = moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStreamProvider != null;
@@ -2557,11 +2555,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             return true;
-
-
         }
 
-        private static Stream GetAuxPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider metadataPEStreamProvider) 
+        private static Stream GetAuxPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider metadataPEStreamProvider)
         {
             if (metadataDiagnostics.HasAnyErrors())
             {
@@ -2574,7 +2570,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns a tuple of streams where 
+        /// Returns a tuple of streams where
         /// * `peStream` is a stream which will carry the output PE bits
         /// * `signingStream` is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
         /// * `selectedStream` is an alias of either peStream or signingStream, and is the stream that will be written to by the emitter.
@@ -2597,7 +2593,7 @@ namespace Microsoft.CodeAnalysis
                 return (peStream, signingStream, selectedStream);
             }
 
-            // If the current strong name provider is the Desktop version, signing can only be done to on-disk files. 
+            // If the current strong name provider is the Desktop version, signing can only be done to on-disk files.
             // If this binary is configured to be signed, create a temp file, output to that
             // then stream that to the stream that this method was called with. Otherwise output to the
             // stream that this method was called with.
@@ -2725,8 +2721,8 @@ namespace Microsoft.CodeAnalysis
 
                     writer.WriteMetadataAndIL(
                         nativePdbWriterOpt,
-                        metadataStream, 
-                        ilStream, 
+                        metadataStream,
+                        ilStream,
                         (nativePdbWriterOpt == null) ? pdbStream : null,
                         out MetadataSizes metadataSizes);
 
@@ -2823,7 +2819,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract int GetSyntaxTreeOrdinal(SyntaxTree tree);
 
         /// <summary>
-        /// Compare two source locations, using their containing trees, and then by Span.First within a tree. 
+        /// Compare two source locations, using their containing trees, and then by Span.First within a tree.
         /// Can be used to get a total ordering on declarations, for example.
         /// </summary>
         internal abstract int CompareSourceLocations(Location loc1, Location loc2);
@@ -2950,7 +2946,7 @@ namespace Microsoft.CodeAnalysis
         {
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }
-        
+
         internal abstract bool IsIOperationFeatureEnabled();
 
         /// <summary>
