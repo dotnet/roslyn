@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Semantics.OperationExtensions;
+using static Microsoft.CodeAnalysis.Operations.OperationExtensions;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {

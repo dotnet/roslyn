@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
     /// Represents a reference to a member of a class, struct, or module that is dynamically bound.

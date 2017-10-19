@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 {

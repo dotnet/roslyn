@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;

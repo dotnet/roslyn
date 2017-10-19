@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 

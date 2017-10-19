@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
     /// Represents an indexer access that is dynamically bound.

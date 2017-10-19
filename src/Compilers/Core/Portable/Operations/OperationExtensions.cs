@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     public static partial class OperationExtensions
     {

@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
     /// Represents a creation of anonymous object.

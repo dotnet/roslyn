@@ -2,7 +2,7 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
     /// Represents a <see cref="IOperation"/> visitor that visits only the single IOperation

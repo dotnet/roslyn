@@ -7,7 +7,7 @@ Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols

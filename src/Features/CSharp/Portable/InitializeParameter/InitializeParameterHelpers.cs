@@ -5,7 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {

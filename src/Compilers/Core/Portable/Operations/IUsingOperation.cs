@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
     /// Represents a <see cref="Body"/> of operations that are executed while using disposable <see cref="Resources"/>.

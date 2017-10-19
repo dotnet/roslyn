@@ -6,7 +6,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess

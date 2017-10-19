@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Semantics
+Namespace Microsoft.CodeAnalysis.Operations
     Partial Friend NotInheritable Class VisualBasicOperationFactory
 
         Private ReadOnly _cache As ConcurrentDictionary(Of BoundNode, IOperation) =

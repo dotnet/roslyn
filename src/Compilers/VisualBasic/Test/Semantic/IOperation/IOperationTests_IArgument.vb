@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 

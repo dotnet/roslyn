@@ -1,6 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -62,7 +62,7 @@ End Module
             Dim assignment1 As ISimpleAssignmentOperation = DirectCast(expression1, ISimpleAssignmentOperation)
             Assert.Equal(assignment1.Value.Kind, OperationKind.BinaryOperator)
             Dim add1 As IBinaryOperation = DirectCast(assignment1.Value, IBinaryOperation)
-            Assert.Equal(add1.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
+            Assert.Equal(add1.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
             Assert.Null(add1.OperatorMethod)
             Dim left1 As IOperation = add1.LeftOperand
             Assert.Equal(left1.Kind, OperationKind.LocalReference)
@@ -95,7 +95,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, Is
             Dim assignment2 As ISimpleAssignmentOperation = DirectCast(expression2, ISimpleAssignmentOperation)
             Assert.Equal(assignment2.Value.Kind, OperationKind.BinaryOperator)
             Dim add2 As IBinaryOperation = DirectCast(assignment2.Value, IBinaryOperation)
-            Assert.Equal(add2.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
+            Assert.Equal(add2.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
             Assert.NotNull(add2.OperatorMethod)
             Assert.Equal(add2.OperatorMethod.Name, "op_Addition")
             Dim left2 As IOperation = add2.LeftOperand
@@ -128,7 +128,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             Dim assignment3 As ISimpleAssignmentOperation = DirectCast(expression3, ISimpleAssignmentOperation)
             Assert.Equal(assignment3.Value.Kind, OperationKind.UnaryOperator)
             Dim negate3 As IUnaryOperation = DirectCast(assignment3.Value, IUnaryOperation)
-            Assert.Equal(negate3.OperatorKind, CodeAnalysis.Semantics.UnaryOperatorKind.Minus)
+            Assert.Equal(negate3.OperatorKind, CodeAnalysis.Operations.UnaryOperatorKind.Minus)
             Assert.Null(negate3.OperatorMethod)
             Dim operand3 As IOperation = negate3.Operand
             Assert.Equal(operand3.Kind, OperationKind.LocalReference)
@@ -191,7 +191,7 @@ End Module
             Dim value1 As ILocalReferenceOperation = TryCast(assignment1.Value, ILocalReferenceOperation)
             Assert.NotNull(value1)
             Assert.Equal(value1.Local.Name, "y")
-            Assert.Equal(assignment1.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
+            Assert.Equal(assignment1.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
             Assert.Null(assignment1.OperatorMethod)
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
@@ -217,7 +217,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             Dim value2 As ILocalReferenceOperation = TryCast(assignment2.Value, ILocalReferenceOperation)
             Assert.NotNull(value2)
             Assert.Equal(value2.Local.Name, "b")
-            Assert.Equal(assignment2.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
+            Assert.Equal(assignment2.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
             Assert.NotNull(assignment2.OperatorMethod)
             Assert.Equal(assignment2.OperatorMethod.Name, "op_Addition")
 

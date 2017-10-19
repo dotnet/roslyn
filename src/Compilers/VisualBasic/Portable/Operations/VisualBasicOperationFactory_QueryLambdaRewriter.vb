@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.BoundTreeVisitor
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-Namespace Microsoft.CodeAnalysis.Semantics
+Namespace Microsoft.CodeAnalysis.Operations
     Partial Friend NotInheritable Class VisualBasicOperationFactory
         Private Shared Function RewriteQueryLambda(node As BoundQueryLambda) As BoundNode
             ' We rewrite query lambda into regular lambda with 2 passes.

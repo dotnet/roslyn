@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Semantics
+Namespace Microsoft.CodeAnalysis.Operations
     Partial Friend NotInheritable Class VisualBasicOperationFactory
         Private Shared Function ConvertToOptional(value As ConstantValue) As [Optional](Of Object)
             Return If(value Is Nothing OrElse value.IsBad, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))

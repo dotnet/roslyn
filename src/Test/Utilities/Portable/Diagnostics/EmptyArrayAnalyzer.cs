@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {

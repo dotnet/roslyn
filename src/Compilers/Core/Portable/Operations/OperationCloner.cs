@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     internal abstract class OperationCloner : OperationVisitor<object, IOperation>
     {
