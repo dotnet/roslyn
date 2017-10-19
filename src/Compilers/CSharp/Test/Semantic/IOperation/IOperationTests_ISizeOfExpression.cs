@@ -25,7 +25,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, Constant: 4) (Syntax: 'sizeof(int)')
+ISizeOfExpression ([1] OperationKind.SizeOfExpression, Type: System.Int32, Constant: 4) (Syntax: 'sizeof(int)')
   TypeOperand: System.Int32
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -49,7 +49,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(C)')
+ISizeOfExpression ([1] OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(C)')
   TypeOperand: C
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -80,7 +80,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32) (Syntax: 'sizeof(void**)')
+ISizeOfExpression ([1] OperationKind.SizeOfExpression, Type: System.Int32) (Syntax: 'sizeof(void**)')
   TypeOperand: System.Void**
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -104,7 +104,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(UndefinedType)')
+ISizeOfExpression ([1] OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(UndefinedType)')
   TypeOperand: UndefinedType
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -135,7 +135,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(i)')
+ISizeOfExpression ([1] OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(i)')
   TypeOperand: i
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -168,9 +168,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'sizeof(M2()')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'sizeof(M2()')
   Children(1):
-      ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(M2')
+      ISizeOfExpression ([0] OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(M2')
         TypeOperand: M2
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -210,7 +210,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof()')
+ISizeOfExpression ([1] OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof()')
   TypeOperand: ?
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

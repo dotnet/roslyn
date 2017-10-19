@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(" (");
 
+            // Child Ordial
+            LogString($"[{GetChildOrdinal(operation)}] ");
+
             // Kind
             LogString($"{nameof(OperationKind)}.{operation.Kind}");
 
@@ -100,13 +103,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(", IsImplicit");
             }
 
-
             LogString(")");
 
             // Syntax
             LogString($" (Syntax: {GetSnippetFromSyntax(operation.Syntax)})");
 
             LogNewLine();
+        }
+
+        private string GetChildOrdinal(IOperation operation)
+        {
+            var parent = operation.Parent;
+            if (parent == null)
+            {
+                // root operation
+                return "Root";
+            }
+
+            var count = 0;
+            foreach (var child in parent.Children)
+            {
+                if (child == operation)
+                {
+                    return count.ToString();
+                }
+
+                count++;
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
         private static string GetSnippetFromSyntax(SyntaxNode syntax)

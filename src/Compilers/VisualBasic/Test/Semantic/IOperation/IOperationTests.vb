@@ -73,17 +73,17 @@ End Module
             Assert.Equal(CInt(literal1.ConstantValue.Value), 10)
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
-IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = x + 10')
+IExpressionStatement ([1] OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = x + 10')
   Expression: 
-    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
+    ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
       Left: 
-        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
+        ILocalReferenceExpression: x ([0] OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
       Right: 
-        IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid) (Syntax: 'x + 10')
+        IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) ([1] OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid) (Syntax: 'x + 10')
           Left: 
-            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
+            ILocalReferenceExpression: x ([0] OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
           Right: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')")
+            ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')")
 
             ' x = x + y passes semantic analysis.
 
@@ -106,17 +106,17 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
             Assert.Equal(DirectCast(right2, ILocalReferenceExpression).Local.Name, "y")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
+IExpressionStatement ([2] OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
   Expression: 
-    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2) (Syntax: 'x = x + y')
+    ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: B2) (Syntax: 'x = x + y')
       Left: 
-        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
+        ILocalReferenceExpression: x ([0] OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
       Right: 
-        IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperatorExpression, Type: B2) (Syntax: 'x + y')
+        IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) ([1] OperationKind.BinaryOperatorExpression, Type: B2) (Syntax: 'x + y')
           Left: 
-            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
+            ILocalReferenceExpression: x ([0] OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
           Right: 
-            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'y')")
+            ILocalReferenceExpression: y ([1] OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'y')")
 
             ' -x fails semantic analysis and does not have an operator method, but the operand is available.
 
@@ -135,15 +135,15 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
             Assert.Equal(DirectCast(operand3, ILocalReferenceExpression).Local.Name, "x")
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:="
-IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = -x')
+IExpressionStatement ([3] OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = -x')
   Expression: 
-    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = -x')
+    ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = -x')
       Left: 
-        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
+        ILocalReferenceExpression: x ([0] OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
       Right: 
-        IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: B2, IsInvalid) (Syntax: '-x')
+        IUnaryOperatorExpression (UnaryOperatorKind.Minus) ([1] OperationKind.UnaryOperatorExpression, Type: B2, IsInvalid) (Syntax: '-x')
           Operand: 
-            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, IsInvalid) (Syntax: 'x')")
+            ILocalReferenceExpression: x ([0] OperationKind.LocalReferenceExpression, Type: B2, IsInvalid) (Syntax: 'x')")
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -195,13 +195,13 @@ End Module
             Assert.Null(assignment1.OperatorMethod)
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
+IExpressionStatement ([2] OperationKind.ExpressionStatement) (Syntax: 'x += y')
   Expression: 
-    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x += y')
+    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) ([0] OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x += y')
       Left: 
-        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        ILocalReferenceExpression: x ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
       Right: 
-        ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')")
+        ILocalReferenceExpression: y ([1] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')")
 
             ' a += b produces a compound assignment with an operator method add.
 
@@ -222,13 +222,13 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
             Assert.Equal(assignment2.OperatorMethod.Name, "op_Addition")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b')
+IExpressionStatement ([3] OperationKind.ExpressionStatement) (Syntax: 'a += b')
   Expression: 
-    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignmentExpression, Type: B2) (Syntax: 'a += b')
+    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) ([0] OperationKind.CompoundAssignmentExpression, Type: B2) (Syntax: 'a += b')
       Left: 
-        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'a')
+        ILocalReferenceExpression: a ([0] OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'a')
       Right: 
-        ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'b')")
+        ILocalReferenceExpression: b ([1] OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'b')")
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -245,23 +245,23 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
+IIfStatement ([0] OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
+    IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked) ([0] OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: 
-        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        IParameterReferenceExpression: x ([0] OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If x <> 0 T ... End If')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(x)')
+    IBlockStatement (1 statements) ([1] OperationKind.BlockStatement, IsImplicit) (Syntax: 'If x <> 0 T ... End If')
+      IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(x)')
         Expression: 
-          IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(x)')
+          IInvocationExpression (Sub System.Console.Write(value As System.Int32)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(x)')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
-                  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) ([0] OperationKind.Argument) (Syntax: 'x')
+                  IParameterReferenceExpression: x ([0] OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IfFalse: 
@@ -286,29 +286,29 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For i = 0 T ... Next')
+IForToLoopStatement (LoopKind.ForTo) ([0] OperationKind.LoopStatement) (Syntax: 'For i = 0 T ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
-    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+    ILocalReferenceExpression: i ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
   InitialValue: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+    ILiteralExpression ([2] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
+    IConversionExpression (Explicit, TryCast: False, Unchecked) ([3] OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'For i = 0 T ... Next')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(i)')
+    IBlockStatement (1 statements) ([4] OperationKind.BlockStatement, IsImplicit) (Syntax: 'For i = 0 T ... Next')
+      IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(i)')
         Expression: 
-          IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+          IInvocationExpression (Sub System.Console.Write(value As System.Int32)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(i)')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) ([0] OperationKind.Argument) (Syntax: 'i')
+                  ILocalReferenceExpression: i ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   NextVariables(0)
@@ -366,57 +366,57 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().ToArray()
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:=
-"IInvocationExpression (Sub Module1.Test1(ParamArray x As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Test1(Nothing)')
+"IInvocationExpression (Sub Module1.Test1(ParamArray x As System.Int32())) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Test1(Nothing)')
   Instance Receiver: 
     null
   Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'Nothing')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'Nothing')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: 'Nothing')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:=
-"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')
+"IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')
   Children(3):
-      IOperation:  (OperationKind.None) (Syntax: 'Test2')
+      IOperation:  ([0] OperationKind.None) (Syntax: 'Test2')
         Children(1):
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsImplicit) (Syntax: 'Test2')
-      IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
+            IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: Module1, IsImplicit) (Syntax: 'Test2')
+      IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) ([1] OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
         Arguments(0)
         Initializer: 
           null
-      ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')")
+      ILiteralExpression ([2] OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')")
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:=
-"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test1(AddressOf Main)')
+"IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test1(AddressOf Main)')
   Children(2):
-      IOperation:  (OperationKind.None) (Syntax: 'Test1')
+      IOperation:  ([0] OperationKind.None) (Syntax: 'Test1')
         Children(1):
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsImplicit) (Syntax: 'Test1')
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')
+            IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: Module1, IsImplicit) (Syntax: 'Test1')
+      IOperation:  ([1] OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')
         Children(1):
-            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Main')
+            IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'Main')
               Children(1):
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsInvalid, IsImplicit) (Syntax: 'Main')")
+                  IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: Module1, IsInvalid, IsImplicit) (Syntax: 'Main')")
 
             comp.VerifyOperationTree(nodes(3), expectedOperationTree:=
-"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... essOf Main)')
+"IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... essOf Main)')
   Children(3):
-      IOperation:  (OperationKind.None) (Syntax: 'Test2')
+      IOperation:  ([0] OperationKind.None) (Syntax: 'Test2')
         Children(1):
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsImplicit) (Syntax: 'Test2')
-      IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
+            IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: Module1, IsImplicit) (Syntax: 'Test2')
+      IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) ([1] OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
         Arguments(0)
         Initializer: 
           null
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')
+      IOperation:  ([2] OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')
         Children(1):
-            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Main')
+            IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'Main')
               Children(1):
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsInvalid, IsImplicit) (Syntax: 'Main')")
+                  IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: Module1, IsInvalid, IsImplicit) (Syntax: 'Main')")
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -437,21 +437,21 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... essOf c1.S}')
+IAnonymousObjectCreationExpression ([1] OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... essOf c1.S}')
   Initializers(1):
-      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .a = AddressOf c1.S')
+      ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .a = AddressOf c1.S')
         Left: 
-          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? ([0] OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
             Instance Receiver: 
               null
         Right: 
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'AddressOf c1.S')
+          IInvalidExpression ([1] OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'AddressOf c1.S')
             Children(1):
-                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf c1.S')
+                IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'AddressOf c1.S')
                   Children(1):
-                      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1.S')
+                      IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'c1.S')
                         Children(1):
-                            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1')
+                            IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -488,13 +488,13 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'c(c, d)')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'c(c, d)')
   Children(3):
-      IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: 'c')
+      IOperation:  ([0] OperationKind.None, IsInvalid, IsImplicit) (Syntax: 'c')
         Children(1):
-            IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
-      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+            IParameterReferenceExpression: c ([0] OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceExpression: c ([1] OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      IParameterReferenceExpression: d ([2] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -552,7 +552,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IEndStatement (OperationKind.EndStatement) (Syntax: 'End')
+IEndStatement ([0] OperationKind.EndStatement) (Syntax: 'End')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -574,18 +574,18 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
+IIfStatement ([0] OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i = 0')
+    IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) ([0] OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i = 0')
       Left: 
-        IFieldReferenceExpression: C.i As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        IFieldReferenceExpression: C.i As System.Int32 (Static) ([0] OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
           Instance Receiver: 
             null
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If i = 0 Th ... End If')
-      IEndStatement (OperationKind.EndStatement) (Syntax: 'End')
+    IBlockStatement (1 statements) ([1] OperationKind.BlockStatement, IsImplicit) (Syntax: 'If i = 0 Th ... End If')
+      IEndStatement ([0] OperationKind.EndStatement) (Syntax: 'End')
   IfFalse: 
     null
 ]]>.Value
@@ -609,7 +609,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IStopStatement (OperationKind.StopStatement) (Syntax: 'Stop')
+IStopStatement ([0] OperationKind.StopStatement) (Syntax: 'Stop')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -631,18 +631,18 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
+IIfStatement ([0] OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i = 0')
+    IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) ([0] OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i = 0')
       Left: 
-        IFieldReferenceExpression: C.i As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        IFieldReferenceExpression: C.i As System.Int32 (Static) ([0] OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
           Instance Receiver: 
             null
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If i = 0 Th ... End If')
-      IStopStatement (OperationKind.StopStatement) (Syntax: 'Stop')
+    IBlockStatement (1 statements) ([1] OperationKind.BlockStatement, IsImplicit) (Syntax: 'If i = 0 Th ... End If')
+      IStopStatement ([0] OperationKind.StopStatement) (Syntax: 'Stop')
   IfFalse: 
     null
 ]]>.Value
@@ -669,27 +669,27 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch ex As ...  Is Nothing')
+ICatchClause (Exception type: System.Exception) ([1] OperationKind.CatchClause) (Syntax: 'Catch ex As ...  Is Nothing')
   Locals: Local_1: ex As System.Exception
   ExceptionDeclarationOrExpression: 
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ex')
+    IVariableDeclaration (1 variables) ([0] OperationKind.VariableDeclaration) (Syntax: 'ex')
       Variables: Local_1: ex As System.Exception
       Initializer: 
         null
   Filter: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'ex Is Nothing')
+    IBinaryOperatorExpression (BinaryOperatorKind.Equals) ([1] OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'ex Is Nothing')
       Left: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'ex')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'ex')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
+            ILocalReferenceExpression: ex ([0] OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
       Right: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([1] OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
   Handler: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Catch ex As ...  Is Nothing')
+    IBlockStatement (0 statements) ([2] OperationKind.BlockStatement, IsImplicit) (Syntax: 'Catch ex As ...  Is Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -710,22 +710,22 @@ Class Test
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... te("hello")')
-  IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
-    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write("hello")')
+IAnonymousFunctionExpression (Symbol: Sub ()) ([0] OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... te("hello")')
+  IBlockStatement (3 statements) ([0] OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
+    IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'Console.Write("hello")')
       Expression: 
-        IInvocationExpression (Sub System.Console.Write(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write("hello")')
+        IInvocationExpression (Sub System.Console.Write(value As System.String)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write("hello")')
           Instance Receiver: 
             null
           Arguments(1):
-              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"hello"')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "hello") (Syntax: '"hello"')
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) ([0] OperationKind.Argument) (Syntax: '"hello"')
+                ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: "hello") (Syntax: '"hello"')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
+    ILabeledStatement (Label: exit) ([1] OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
       Statement: 
         null
-    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
+    IReturnStatement ([2] OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
       ReturnedValue: 
         null
 ]]>.Value
@@ -748,18 +748,18 @@ Class Test
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() 1')
-  IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function() 1')
+IAnonymousFunctionExpression (Symbol: Function () As System.Int32) ([0] OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() 1')
+  IBlockStatement (3 statements, 1 locals) ([0] OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function() 1')
     Locals: Local_1: <anonymous local> As System.Int32
-    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '1')
+    IReturnStatement ([0] OperationKind.ReturnStatement, IsImplicit) (Syntax: '1')
       ReturnedValue: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Function() 1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    ILabeledStatement (Label: exit) ([1] OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Function() 1')
       Statement: 
         null
-    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Function() 1')
+    IReturnStatement ([2] OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Function() 1')
       ReturnedValue: 
-        ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'Function() 1')
+        ILocalReferenceExpression:  ([0] OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'Function() 1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -782,18 +782,18 @@ Class Test
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()' ... nd Function')
-  IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function()' ... nd Function')
+IAnonymousFunctionExpression (Symbol: Function () As System.Int32) ([0] OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()' ... nd Function')
+  IBlockStatement (3 statements, 1 locals) ([0] OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function()' ... nd Function')
     Locals: Local_1: <anonymous local> As System.Int32
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
+    IReturnStatement ([0] OperationKind.ReturnStatement) (Syntax: 'Return 1')
       ReturnedValue: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    ILabeledStatement (Label: exit) ([1] OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
       Statement: 
         null
-    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
+    IReturnStatement ([2] OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
       ReturnedValue: 
-        ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
+        ILocalReferenceExpression:  ([0] OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -816,15 +816,15 @@ Class Test
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
-  IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
+IAnonymousFunctionExpression (Symbol: Sub ()) ([0] OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
+  IBlockStatement (3 statements) ([0] OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
+    IReturnStatement ([0] OperationKind.ReturnStatement) (Syntax: 'Return')
       ReturnedValue: 
         null
-    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
+    ILabeledStatement (Label: exit) ([1] OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
       Statement: 
         null
-    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
+    IReturnStatement ([2] OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
       ReturnedValue: 
         null
 ]]>.Value

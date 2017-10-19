@@ -608,7 +608,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     continue;
                 }
 
-                var clonedOperation = model.CloneOperation(operation);
+                IOperation clonedOperation;
+                if (operation.Parent == null)
+                {
+                    clonedOperation = model.CloneOperation(operation);
+                }
+                else
+                {
+                    var count = 0;
+                    foreach (var child in operation.Parent.Children)
+                    {
+                        if (child == operation)
+                        {
+                            break;
+                        }
+
+                        count++;
+                    }
+
+                    // need to clone from parent since OperationTreeVerifier puts parent information in the output
+                    clonedOperation = model.CloneOperation(operation.Parent).Children.ElementAt(count);
+                }
 
                 // check whether cloned IOperation is same as original one
                 var original = OperationTreeVerifier.GetOperationTree(model.Compilation, operation);

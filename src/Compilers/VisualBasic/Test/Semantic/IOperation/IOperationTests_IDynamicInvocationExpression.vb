@@ -20,14 +20,14 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c.M2(d)')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c.M2(d)')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c.M2')
+    IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c.M2')
       Type Arguments(0)
       Instance Receiver: 
-        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'c')
+        IParameterReferenceExpression: c ([0] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'c')
   Arguments(1):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -56,14 +56,14 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'M2(d)')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'M2(d)')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
+    IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
       Type Arguments(0)
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M2')
   Arguments(1):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -92,15 +92,15 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'M2(d, e)')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'M2(d, e)')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
+    IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
       Type Arguments(0)
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
-      IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: e ([2] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -129,15 +129,15 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'M2(d:=d, c:=e)')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'M2(d:=d, c:=e)')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
+    IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
       Type Arguments(0)
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
-      IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: e ([2] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
   ArgumentNames(2):
     "d"
     "c"
@@ -171,15 +171,15 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'M2(d, e)')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'M2(d, e)')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
+    IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
       Type Arguments(0)
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
-      IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: e ([2] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -208,12 +208,12 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(d)')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(d)')
   Children(2):
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
+      IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+            IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -249,14 +249,14 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(d)')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(d)')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
+    IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: 
-        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+        IParameterReferenceExpression: c ([0] OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   Arguments(1):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -291,15 +291,15 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(d, d)')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(d, d)')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
+    IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: 
-        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+        IParameterReferenceExpression: c ([0] OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   Arguments(2):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: d ([2] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -334,15 +334,15 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(x2:=e, x:=d)')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(x2:=e, x:=d)')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
+    IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: 
-        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+        IParameterReferenceExpression: c ([0] OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   Arguments(2):
-      IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: e ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
+      IParameterReferenceExpression: d ([2] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(2):
     "x2"
     "x"
@@ -380,15 +380,15 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(x2:=e, x:=d)')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(x2:=e, x:=d)')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
+    IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: 
-        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+        IParameterReferenceExpression: c ([0] OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   Arguments(2):
-      IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: e ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
+      IParameterReferenceExpression: d ([2] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(2):
     "x2"
     "x"
@@ -432,13 +432,13 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'c(c, d)')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'c(c, d)')
   Children(3):
-      IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: 'c')
+      IOperation:  ([0] OperationKind.None, IsInvalid, IsImplicit) (Syntax: 'c')
         Children(1):
-            IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
-      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+            IParameterReferenceExpression: c ([0] OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceExpression: c ([1] OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      IParameterReferenceExpression: d ([2] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -467,15 +467,15 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationExpression (virtual Sub C.MySubDelegate.Invoke(x As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'd(o)')
+IInvocationExpression (virtual Sub C.MySubDelegate.Invoke(x As System.Int32)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'd(o)')
   Instance Receiver: 
-    IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: C.MySubDelegate) (Syntax: 'd')
+    IParameterReferenceExpression: d ([0] OperationKind.ParameterReferenceExpression, Type: C.MySubDelegate) (Syntax: 'd')
   Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'o')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'o')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: 'o')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'o')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
+            IParameterReferenceExpression: o ([0] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -513,20 +513,20 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(d)(d)')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(d)(d)')
   Expression: 
-    IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(d)')
+    IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(d)')
       Expression: 
-        IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
+        IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
           Type Arguments(0)
           Instance Receiver: 
-            IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+            IParameterReferenceExpression: c ([0] OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
       Arguments(1):
-          IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+          IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
       ArgumentNames(0)
       ArgumentRefKinds: null
   Arguments(1):
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value

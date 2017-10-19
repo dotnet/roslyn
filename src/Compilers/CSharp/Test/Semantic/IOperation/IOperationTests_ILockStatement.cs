@@ -26,13 +26,13 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (o) ... }')
+ILockStatement ([0] OperationKind.LockStatement) (Syntax: 'lock (o) ... }')
   Expression: 
-    IFieldReferenceExpression: System.Object C1.o (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
+    IFieldReferenceExpression: System.Object C1.o ([0] OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'o')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'o')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -56,11 +56,11 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (o) ... }')
+ILockStatement ([1] OperationKind.LockStatement) (Syntax: 'lock (o) ... }')
   Expression: 
-    ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceExpression: o ([0] OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -83,11 +83,11 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (null) ... }')
+ILockStatement ([0] OperationKind.LockStatement) (Syntax: 'lock (null) ... }')
   Expression: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+    ILiteralExpression ([0] OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -111,11 +111,11 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (i) ... }')
+ILockStatement ([1] OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (i) ... }')
   Expression: 
-    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
+    ILocalReferenceExpression: i ([0] OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0185: 'int' is not a reference type as required by the lock statement
@@ -142,12 +142,12 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock () ... }')
+ILockStatement ([0] OperationKind.LockStatement, IsInvalid) (Syntax: 'lock () ... }')
   Expression: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+    IInvalidExpression ([0] OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ')'
@@ -176,12 +176,12 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (inval ... }')
+ILockStatement ([0] OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (inval ... }')
   Expression: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'invalidReference')
+    IInvalidExpression ([0] OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'invalidReference')
       Children(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'invalidReference' does not exist in the current context
@@ -207,14 +207,14 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (o)
+ILockStatement ([1] OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (o)
 ')
   Expression: 
-    ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceExpression: o ([0] OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: 
-    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '')
+    IExpressionStatement ([1] OperationKind.ExpressionStatement) (Syntax: '')
       Expression: 
-        IInvalidExpression (OperationKind.InvalidExpression, Type: null) (Syntax: '')
+        IInvalidExpression ([0] OperationKind.InvalidExpression, Type: null) (Syntax: '')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -246,14 +246,14 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (o.ToS ... }')
+ILockStatement ([1] OperationKind.LockStatement) (Syntax: 'lock (o.ToS ... }')
   Expression: 
-    IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'o.ToString()')
+    IInvocationExpression (virtual System.String System.Object.ToString()) ([0] OperationKind.InvocationExpression, Type: System.String) (Syntax: 'o.ToString()')
       Instance Receiver: 
-        ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+        ILocalReferenceExpression: o ([0] OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
       Arguments(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -281,14 +281,14 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (M2()) ... }')
+ILockStatement ([0] OperationKind.LockStatement) (Syntax: 'lock (M2()) ... }')
   Expression: 
-    IInvocationExpression ( System.Object C1.M2()) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M2()')
+    IInvocationExpression ( System.Object C1.M2()) ([0] OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M2()')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'M2')
       Arguments(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -313,14 +313,14 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (M2()) ... }')
+ILockStatement ([0] OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (M2()) ... }')
   Expression: 
-    IInvocationExpression ( void C1.M2()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
+    IInvocationExpression ( void C1.M2()) ([0] OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'M2')
       Arguments(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0185: 'void' is not a reference type as required by the lock statement
@@ -350,22 +350,22 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (new o ... }')
+ILockStatement ([0] OperationKind.LockStatement) (Syntax: 'lock (new o ... }')
   Expression: 
-    IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'new object()')
+    IObjectCreationExpression (Constructor: System.Object..ctor()) ([0] OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'new object()')
       Arguments(0)
       Initializer: 
         null
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... o World!"");')
+    IBlockStatement (1 statements) ([1] OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... o World!"");')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... lo World!"")')
+          IInvocationExpression (void System.Console.WriteLine(System.String value)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... lo World!"")')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""Hello World!""')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Hello World!"") (Syntax: '""Hello World!""')
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) ([0] OperationKind.Argument) (Syntax: '""Hello World!""')
+                  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""Hello World!"") (Syntax: '""Hello World!""')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";

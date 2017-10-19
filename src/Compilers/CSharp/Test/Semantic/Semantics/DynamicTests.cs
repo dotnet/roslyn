@@ -1185,13 +1185,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd1.N<S>()')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd1.N<S>()')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd1.N<S>')
+    IDynamicMemberReferenceExpression (Member Name: ""N"", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd1.N<S>')
       Type Arguments(1):
         Symbol: S
       Instance Receiver: 
-        ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
+        ILocalReferenceExpression: d1 ([0] OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -1251,14 +1251,14 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(Syste ... riteLine())')
+IDynamicInvocationExpression ([0] OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(Syste ... riteLine())')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Goo')
+    IDynamicMemberReferenceExpression (Member Name: ""Goo"", Containing Type: null) ([0] OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Goo')
       Type Arguments(0)
       Instance Receiver: 
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+        IParameterReferenceExpression: d ([0] OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
   Arguments(1):
-      IInvocationExpression (void System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... WriteLine()')
+      IInvocationExpression (void System.Console.WriteLine()) ([1] OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... WriteLine()')
         Instance Receiver: 
           null
         Arguments(0)
@@ -1299,10 +1299,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'c.Goo(d)')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'c.Goo(d)')
   Children(2):
-      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+      IParameterReferenceExpression: c ([0] OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
@@ -1336,13 +1336,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
   Children(3):
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c.Goo<short>')
+      IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'c.Goo<short>')
         Children(1):
-            IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
+            IParameterReferenceExpression: c ([0] OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceExpression: d ([1] OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
+      IParameterReferenceExpression: d ([2] OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
@@ -1379,10 +1379,10 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M(d)')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M(d)')
   Children(2):
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')
-      ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
+      IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'M')
+      ILocalReferenceExpression: d ([1] OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(15,13): error CS0120: An object reference is required for the non-static field, method, or property 'A.F'
