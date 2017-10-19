@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1475,6 +1475,7 @@ class C<T>
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestBinaryOperatorOverloading_UserDefined_Dynamic_Unambiguous()
         {
@@ -1498,14 +1499,14 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 D<System.Object>.C.op_Addition(D<System.Object>.C x, D<System.Object>.C y)) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 D<System.Object>.C.op_Addition(D<System.Object>.C x, D<System.Object>.C y)) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
   Left: 
-    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: D<System.Object>.C) (Syntax: 'x')
+    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: D<System.Object>.C) (Syntax: 'x')
   Right: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: D<System.Object>.C, IsImplicit) (Syntax: 'y')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: D<System.Object>.C, IsImplicit) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: D<dynamic>.C) (Syntax: 'y')
+        ILocalReferenceOperation: y (OperationKind.LocalReference, Type: D<dynamic>.C) (Syntax: 'y')
 ";
             // Dev11 reports error CS0121: The call is ambiguous between the following methods or properties: 
             // 'D<object>.C.operator+(D<object>.C, D<object>.C)' and 'D<dynamic>.C.operator +(D<dynamic>.C, D<dynamic>.C)'
