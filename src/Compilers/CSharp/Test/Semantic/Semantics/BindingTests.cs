@@ -3541,5 +3541,47 @@ public class Class1
                 //         System.Func<object> delegateConversion2 = "string literal".ExtensionMethod2<>;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(34, 68));
         }
+
+        [WorkItem(22757, "https://github.com/dotnet/roslyn/issues/22757")]
+        [Fact]
+        public void MethodGroupConversionNoReceiver()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class A
+{
+    class B
+    {
+        void F()
+        {
+            IEnumerable<string> c = null;
+            c.S(G);
+        }
+    }
+    object G(string s)
+    {
+        return null;
+    }
+}
+static class E
+{
+    internal static IEnumerable<U> S<T, U>(this IEnumerable<T> c, Func<T, U> f)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (10,17): error CS0120: An object reference is required for the non-static field, method, or property 'A.G(string)'
+                //             c.S(G);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("A.G(string)").WithLocation(10, 17));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "G").First();
+            model.GetSymbolInfo(node);
+        }
     }
 }
