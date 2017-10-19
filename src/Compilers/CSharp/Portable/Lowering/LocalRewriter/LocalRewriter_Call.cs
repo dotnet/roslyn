@@ -713,7 +713,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsSafeForReordering(argument, argRefKind))
                 {
                     arguments[p] = argument;
-                    refKinds[p] = argRefKind;
                 }
                 else
                 {
@@ -722,6 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     storesToTemps.Add(assignment);
                     arguments[p] = temp;
                 }
+                refKinds[p] = argRefKind;
             }
         }
 

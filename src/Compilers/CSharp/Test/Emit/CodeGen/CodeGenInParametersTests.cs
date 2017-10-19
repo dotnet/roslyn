@@ -234,6 +234,64 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void InParamPassRoField1()
+        {
+            var text = @"
+class Program
+{
+    public static readonly int F = 42;
+
+    public static void Main()
+    {
+        System.Console.WriteLine(M(in F));
+    }
+
+    static ref readonly int M(in int x)
+    {
+        return ref x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: "42");
+
+            comp.VerifyIL("Program.Main()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldsflda    ""int Program.F""
+  IL_0005:  call       ""ref readonly int Program.M(in int)""
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
+}");
+
+
+            comp.VerifyIL("Program.M(in int)", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+            comp = CompileAndVerify(text, verify: false, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldsflda    ""int Program.F""
+  IL_0005:  call       ""ref readonly int Program.M(in int)""
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
+}");
+
+        }
+
+        [Fact]
         public void InParamPassRoParamReturn()
         {
             var text = @"
@@ -796,6 +854,57 @@ class Program
                 //             M1(in RefReturning(ref local), await GetT(2), 3);
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await GetT(2)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 44)
                 );
+        }
+
+        [Fact]
+        public void ReadonlyParamAsyncSpillInRoField()
+        {
+            var text = @"
+    using System.Threading.Tasks;
+
+    class Program
+    {
+        public static readonly int F = 5;
+
+        static void Main(string[] args)
+        {
+            Test().Wait();
+        }
+
+        public static async Task Test()
+        {
+            int local = 1;
+            M1(in F, await GetT(2), 3);
+        } 
+
+        public static async Task<T> GetT<T>(T val)
+        {
+            await Task.Yield();
+            MutateReadonlyField();
+            return val;
+        }
+
+        private static unsafe void MutateReadonlyField()
+        {
+            fixed(int* ptr = &F)
+            {
+                *ptr = 42;
+            }
+        }
+
+        public static void M1(in int arg1, in int arg2, in int arg3)
+        {
+            System.Console.WriteLine(arg1 + arg2 + arg3);
+        }
+    }
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(comp, verify: false, expectedOutput: @"47");
+
+            comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            CompileAndVerify(comp, verify: false, expectedOutput: @"47");
         }
 
         [Fact]
