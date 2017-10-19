@@ -548,6 +548,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool HasSecurityTransparentAttribute
+        {
+            get
+            {
+                CommonAssemblyWellKnownAttributeData<NamedTypeSymbol> decodedData = ((SourceAssemblySymbol)this.ContainingAssembly).GetSourceDecodedWellKnownAttributeData();
+                return decodedData != null && decodedData.HasSecurityTransparentAttribute;
+            }
+        }
+
+        internal bool HasAllowPartiallyTrustedCallersAttribute
+        {
+            get
+            {
+                CommonAssemblyWellKnownAttributeData<NamedTypeSymbol> decodedData = ((SourceAssemblySymbol)this.ContainingAssembly).GetSourceDecodedWellKnownAttributeData();
+                return decodedData != null && decodedData.HasAllowPartiallyTrustedCallersAttribute;
+            }
+        }
+
         internal override CharSet? DefaultMarshallingCharSet
         {
             get

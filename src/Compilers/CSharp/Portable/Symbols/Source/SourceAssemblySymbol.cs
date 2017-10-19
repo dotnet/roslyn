@@ -2278,6 +2278,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasReferenceAssemblyAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityTransparentAttribute))
+            {
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasSecurityTransparentAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowPartiallyTrustedCallersAttribute))
+            {
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasAllowPartiallyTrustedCallersAttribute = true;
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.RuntimeCompatibilityAttribute))
             {
                 bool wrapNonExceptionThrows = true;
