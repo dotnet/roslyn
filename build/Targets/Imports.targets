@@ -28,6 +28,7 @@
         <_CopyProjectReferences>false</_CopyProjectReferences>
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'Exe'">
@@ -35,6 +36,7 @@
         <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'WinExe'">
@@ -42,6 +44,7 @@
         <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
   </Choose>
