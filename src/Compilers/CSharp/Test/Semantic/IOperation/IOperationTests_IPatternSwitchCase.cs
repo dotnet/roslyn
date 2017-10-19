@@ -29,9 +29,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case var y:) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case var y:')
+IPatternCaseClause (Label Symbol: case var y:) (CaseKind.Pattern) ([0] OperationKind.CaseClause) (Syntax: 'case var y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: System.Int32? y) (OperationKind.DeclarationPattern) (Syntax: 'var y')
+    IDeclarationPattern (Declared Symbol: System.Int32? y) ([0] OperationKind.DeclarationPattern) (Syntax: 'var y')
   Guard Expression: 
     null
 ";
@@ -60,9 +60,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case int y:) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case int y:')
+IPatternCaseClause (Label Symbol: case int y:) (CaseKind.Pattern) ([0] OperationKind.CaseClause) (Syntax: 'case int y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'int y')
+    IDeclarationPattern (Declared Symbol: System.Int32 y) ([0] OperationKind.DeclarationPattern) (Syntax: 'int y')
   Guard Expression: 
     null
 ";
@@ -90,9 +90,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case X y:')
+IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) ([0] OperationKind.CaseClause) (Syntax: 'case X y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
+    IDeclarationPattern (Declared Symbol: X y) ([0] OperationKind.DeclarationPattern) (Syntax: 'X y')
   Guard Expression: 
     null
 ";
@@ -120,9 +120,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case T y:) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case T y:')
+IPatternCaseClause (Label Symbol: case T y:) (CaseKind.Pattern) ([0] OperationKind.CaseClause) (Syntax: 'case T y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: T y) (OperationKind.DeclarationPattern) (Syntax: 'T y')
+    IDeclarationPattern (Declared Symbol: T y) ([0] OperationKind.DeclarationPattern) (Syntax: 'T y')
   Guard Expression: 
     null
 ";
@@ -150,9 +150,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case dynamic y:) (CaseKind.Pattern) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case dynamic y:')
+IPatternCaseClause (Label Symbol: case dynamic y:) (CaseKind.Pattern) ([0] OperationKind.CaseClause, IsInvalid) (Syntax: 'case dynamic y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: dynamic y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'dynamic y')
+    IDeclarationPattern (Declared Symbol: dynamic y) ([0] OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'dynamic y')
   Guard Expression: 
     null
 ";
@@ -186,9 +186,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case X y:')
+IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) ([0] OperationKind.CaseClause) (Syntax: 'case X y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
+    IDeclarationPattern (Declared Symbol: X y) ([0] OperationKind.DeclarationPattern) (Syntax: 'X y')
   Guard Expression: 
     null
 ";
@@ -217,9 +217,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case X y:')
+IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) ([1] OperationKind.CaseClause) (Syntax: 'case X y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
+    IDeclarationPattern (Declared Symbol: X y) ([0] OperationKind.DeclarationPattern) (Syntax: 'X y')
   Guard Expression: 
     null
 ";
@@ -249,9 +249,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case X y:')
+IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) ([1] OperationKind.CaseClause) (Syntax: 'case X y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
+    IDeclarationPattern (Declared Symbol: X y) ([0] OperationKind.DeclarationPattern) (Syntax: 'X y')
   Guard Expression: 
     null
 ";
@@ -279,18 +279,18 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case X y when x != null:) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case X y when x != null:')
+IPatternCaseClause (Label Symbol: case X y when x != null:) (CaseKind.Pattern) ([0] OperationKind.CaseClause) (Syntax: 'case X y when x != null:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
+    IDeclarationPattern (Declared Symbol: X y) ([0] OperationKind.DeclarationPattern) (Syntax: 'X y')
   Guard Expression: 
-    IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x != null')
+    IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) ([1] OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x != null')
       Left: 
-        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+        IParameterReferenceExpression: x ([0] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
       Right: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([1] OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -316,15 +316,15 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case X y when x is X z :) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case X y when x is X z :')
+IPatternCaseClause (Label Symbol: case X y when x is X z :) (CaseKind.Pattern) ([0] OperationKind.CaseClause) (Syntax: 'case X y when x is X z :')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
+    IDeclarationPattern (Declared Symbol: X y) ([0] OperationKind.DeclarationPattern) (Syntax: 'X y')
   Guard Expression: 
-    IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is X z')
+    IIsPatternExpression ([1] OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is X z')
       Expression: 
-        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+        IParameterReferenceExpression: x ([0] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
       Pattern: 
-        IDeclarationPattern (Declared Symbol: X z) (OperationKind.DeclarationPattern) (Syntax: 'X z')
+        IDeclarationPattern (Declared Symbol: X z) ([1] OperationKind.DeclarationPattern) (Syntax: 'X z')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -350,11 +350,11 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case X y when :) (CaseKind.Pattern) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case X y when :')
+IPatternCaseClause (Label Symbol: case X y when :) (CaseKind.Pattern) ([0] OperationKind.CaseClause, IsInvalid) (Syntax: 'case X y when :')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
+    IDeclarationPattern (Declared Symbol: X y) ([0] OperationKind.DeclarationPattern) (Syntax: 'X y')
   Guard Expression: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+    IInvalidExpression ([1] OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -385,14 +385,14 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case X y when x:) (CaseKind.Pattern) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case X y when x:')
+IPatternCaseClause (Label Symbol: case X y when x:) (CaseKind.Pattern) ([0] OperationKind.CaseClause, IsInvalid) (Syntax: 'case X y when x:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
+    IDeclarationPattern (Declared Symbol: X y) ([0] OperationKind.DeclarationPattern) (Syntax: 'X y')
   Guard Expression: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
+    IConversionExpression (Implicit, TryCast: False, Unchecked) ([1] OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
+        IParameterReferenceExpression: x ([0] OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'object' to 'bool'. An explicit conversion exists (are you missing a cast?)
@@ -422,13 +422,13 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is true')
+IIsPatternExpression ([0] OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is true')
   Expression: 
-    IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+    IParameterReferenceExpression: x ([0] OperationKind.ParameterReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
   Pattern: 
-    IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'true')
+    IConstantPattern ([1] OperationKind.ConstantPattern, IsInvalid) (Syntax: 'true')
       Value: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0150: A constant value is expected
@@ -459,7 +459,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IDefaultCaseClause (CaseKind.Default) (OperationKind.CaseClause) (Syntax: 'default:')
+IDefaultCaseClause (CaseKind.Default) ([1] OperationKind.CaseClause) (Syntax: 'default:')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -485,11 +485,11 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case typeof(X):) (CaseKind.Pattern) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case typeof(X):')
+IPatternCaseClause (Label Symbol: case typeof(X):) (CaseKind.Pattern) ([0] OperationKind.CaseClause, IsInvalid) (Syntax: 'case typeof(X):')
   Pattern: 
-    IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'case typeof(X):')
+    IConstantPattern ([0] OperationKind.ConstantPattern, IsInvalid) (Syntax: 'case typeof(X):')
       Value: 
-        ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof(X)')
+        ITypeOfExpression ([0] OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof(X)')
           TypeOperand: X
   Guard Expression: 
     null
@@ -525,9 +525,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case UndefinedType y:) (CaseKind.Pattern) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case UndefinedType y:')
+IPatternCaseClause (Label Symbol: case UndefinedType y:) (CaseKind.Pattern) ([0] OperationKind.CaseClause, IsInvalid) (Syntax: 'case UndefinedType y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: UndefinedType y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'UndefinedType y')
+    IDeclarationPattern (Declared Symbol: UndefinedType y) ([0] OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'UndefinedType y')
   Guard Expression: 
     null
 ";
@@ -559,9 +559,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case X y:')
+IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) ([0] OperationKind.CaseClause, IsInvalid) (Syntax: 'case X y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'X y')
+    IDeclarationPattern (Declared Symbol: X y) ([0] OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'X y')
   Guard Expression: 
     null
 ";
@@ -597,9 +597,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IPatternCaseClause (Label Symbol: case int y:) (CaseKind.Pattern) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case int y:')
+IPatternCaseClause (Label Symbol: case int y:) (CaseKind.Pattern) ([0] OperationKind.CaseClause, IsInvalid) (Syntax: 'case int y:')
   Pattern: 
-    IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int y')
+    IDeclarationPattern (Declared Symbol: System.Int32 y) ([0] OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int y')
   Guard Expression: 
     null
 ";
@@ -634,9 +634,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case /*</bind>*/')
+ISingleValueCaseClause (CaseKind.SingleValue) ([0] OperationKind.CaseClause, IsInvalid) (Syntax: 'case /*</bind>*/')
   Value: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+    IInvalidExpression ([0] OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -686,37 +686,37 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchStatement (3 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (p) ... }')
+ISwitchStatement (3 cases) ([0] OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (p) ... }')
   Switch expression: 
-    IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'p')
+    IParameterReferenceExpression: p ([0] OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'p')
   Sections:
-      ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'case int x: ... break;')
+      ISwitchCase (1 case clauses, 1 statements) ([1] OperationKind.SwitchCase) (Syntax: 'case int x: ... break;')
           Clauses:
-              IPatternCaseClause (Label Symbol: case int x:) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case int x:')
+              IPatternCaseClause (Label Symbol: case int x:) (CaseKind.Pattern) ([0] OperationKind.CaseClause) (Syntax: 'case int x:')
                 Pattern: 
-                  IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern) (Syntax: 'int x')
+                  IDeclarationPattern (Declared Symbol: System.Int32 x) ([0] OperationKind.DeclarationPattern) (Syntax: 'int x')
                 Guard Expression: 
                   null
           Body:
-              IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
-      ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'case int y: ... break;')
+              IBranchStatement (BranchKind.Break) ([1] OperationKind.BranchStatement) (Syntax: 'break;')
+      ISwitchCase (1 case clauses, 1 statements) ([2] OperationKind.SwitchCase, IsInvalid) (Syntax: 'case int y: ... break;')
           Clauses:
-              IPatternCaseClause (Label Symbol: case int y:) (CaseKind.Pattern) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case int y:')
+              IPatternCaseClause (Label Symbol: case int y:) (CaseKind.Pattern) ([0] OperationKind.CaseClause, IsInvalid) (Syntax: 'case int y:')
                 Pattern: 
-                  IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int y')
+                  IDeclarationPattern (Declared Symbol: System.Int32 y) ([0] OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int y')
                 Guard Expression: 
                   null
           Body:
-              IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
-      ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'case X z: ... break;')
+              IBranchStatement (BranchKind.Break) ([1] OperationKind.BranchStatement) (Syntax: 'break;')
+      ISwitchCase (1 case clauses, 1 statements) ([3] OperationKind.SwitchCase) (Syntax: 'case X z: ... break;')
           Clauses:
-              IPatternCaseClause (Label Symbol: case X z:) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case X z:')
+              IPatternCaseClause (Label Symbol: case X z:) (CaseKind.Pattern) ([0] OperationKind.CaseClause) (Syntax: 'case X z:')
                 Pattern: 
-                  IDeclarationPattern (Declared Symbol: X z) (OperationKind.DeclarationPattern) (Syntax: 'X z')
+                  IDeclarationPattern (Declared Symbol: X z) ([0] OperationKind.DeclarationPattern) (Syntax: 'X z')
                 Guard Expression: 
                   null
           Body:
-              IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+              IBranchStatement (BranchKind.Break) ([1] OperationKind.BranchStatement) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8120: The switch case has already been handled by a previous case.

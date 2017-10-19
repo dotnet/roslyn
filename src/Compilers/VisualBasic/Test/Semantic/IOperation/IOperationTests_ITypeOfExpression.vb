@@ -21,7 +21,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'GetType(Integer)')
+ITypeOfExpression ([1] OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'GetType(Integer)')
   TypeOperand: System.Int32
 ]]>.Value
 
@@ -42,7 +42,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'GetType(C)')
+ITypeOfExpression ([1] OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'GetType(C)')
   TypeOperand: C
 ]]>.Value
 
@@ -63,7 +63,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType(UndefinedType)')
+ITypeOfExpression ([1] OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType(UndefinedType)')
   TypeOperand: UndefinedType
 ]]>.Value
 
@@ -88,7 +88,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType(t)')
+ITypeOfExpression ([1] OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType(t)')
   TypeOperand: t
 ]]>.Value
 
@@ -117,7 +117,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType(M2())')
+ITypeOfExpression ([1] OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType(M2())')
   TypeOperand: M2()
 ]]>.Value
 
@@ -142,7 +142,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType()')
+ITypeOfExpression ([1] OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType()')
   TypeOperand: ?
 ]]>.Value
 

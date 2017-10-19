@@ -32,13 +32,13 @@ class C2 : C1
 }
 ";
             string expectedOperationTree = @"
-ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'P1 = 1')
+ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'P1 = 1')
   Left: 
-    IPropertyReferenceExpression: System.Int32 C1.P1 { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'P1')
+    IPropertyReferenceExpression: System.Int32 C1.P1 { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'P1')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsImplicit) (Syntax: 'P1')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C2, IsImplicit) (Syntax: 'P1')
   Right: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

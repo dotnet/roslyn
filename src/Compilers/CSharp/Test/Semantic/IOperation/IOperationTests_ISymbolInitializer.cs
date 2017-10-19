@@ -47,8 +47,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IFieldInitializer (Field: System.Int32 C.s1) ([Root] OperationKind.FieldInitializer) (Syntax: '= 1')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0414: The field 'C.s1' is assigned but its value is never used
@@ -70,8 +70,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (Syntax: '= 2')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+IFieldInitializer (Field: System.Int32 C.i2) ([Root] OperationKind.FieldInitializer) (Syntax: '= 2')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0414: The field 'C.i2' is assigned but its value is never used
@@ -96,8 +96,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IPropertyInitializer (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializer) (Syntax: '= 1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IPropertyInitializer (Property: System.Int32 C.P1 { get; }) ([Root] OperationKind.PropertyInitializer) (Syntax: '= 1')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -115,8 +115,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IParameterInitializer (Parameter: [System.Int32 p1 = 0]) (OperationKind.ParameterInitializer) (Syntax: '= 0')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+IParameterInitializer (Parameter: [System.Int32 p1 = 0]) ([Root] OperationKind.ParameterInitializer) (Syntax: '= 0')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1751: Cannot specify a default value for a parameter array
@@ -138,11 +138,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializer) (Syntax: '= null')
-  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
+IParameterInitializer (Parameter: params System.Int32[] p2) ([Root] OperationKind.ParameterInitializer) (Syntax: '= null')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1751: Cannot specify a default value for a parameter array
@@ -166,12 +166,12 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+IFieldInitializer (Field: System.Int32 C.s1) ([Root] OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add) ([0] OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: 
-      IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
+      IInvocationExpression (System.Int32 C.F()) ([1] OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: 
           null
         Arguments(0)
@@ -196,12 +196,12 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+IFieldInitializer (Field: System.Int32 C.s1) ([Root] OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add) ([0] OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: 
-      IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
+      IInvocationExpression (System.Int32 C.F()) ([1] OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: 
           null
         Arguments(0)
@@ -224,12 +224,12 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+IFieldInitializer (Field: System.Int32 C.i1) ([Root] OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add) ([0] OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: 
-      IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
+      IInvocationExpression (System.Int32 C.F()) ([1] OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: 
           null
         Arguments(0)
@@ -257,8 +257,8 @@ partial class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IFieldInitializer (Field: System.Int32 C.s1) ([Root] OperationKind.FieldInitializer) (Syntax: '= 1')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0414: The field 'C.i1' is assigned but its value is never used
@@ -296,8 +296,8 @@ partial class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializer) (Syntax: '= 2')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+IFieldInitializer (Field: System.Int32 C.i2) ([Root] OperationKind.FieldInitializer) (Syntax: '= 2')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0414: The field 'C.s2' is assigned but its value is never used
@@ -330,13 +330,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializer) (Syntax: '= MakeAction(1)')
-  IInvocationExpression (System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(1)')
+IFieldInitializer (Field: System.Action C.e) ([Root] OperationKind.FieldInitializer) (Syntax: '= MakeAction(1)')
+  IInvocationExpression (System.Action C.MakeAction(System.Int32 x)) ([0] OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(1)')
     Instance Receiver: 
       null
     Arguments(1):
-        IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: '1')
+          ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -358,13 +358,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializer) (Syntax: '= MakeAction(2)')
-  IInvocationExpression (System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(2)')
+IFieldInitializer (Field: System.Action C.f) ([Root] OperationKind.FieldInitializer) (Syntax: '= MakeAction(2)')
+  IInvocationExpression (System.Action C.MakeAction(System.Int32 x)) ([0] OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(2)')
     Instance Receiver: 
       null
     Arguments(1):
-        IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '2')
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: '2')
+          ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -384,11 +384,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Single C.f) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= 0.0')
-  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+IFieldInitializer (Field: System.Single C.f) ([Root] OperationKind.FieldInitializer, IsInvalid) (Syntax: '= 0.0')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (4,33): error CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type
@@ -413,11 +413,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Single C.f) (OperationKind.FieldInitializer) (Syntax: '= 0')
-  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsImplicit) (Syntax: '0')
+IFieldInitializer (Field: System.Single C.f) ([Root] OperationKind.FieldInitializer) (Syntax: '= 0')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsImplicit) (Syntax: '0')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (4,19): warning CS0414: The field 'C.f' is assigned but its value is never used

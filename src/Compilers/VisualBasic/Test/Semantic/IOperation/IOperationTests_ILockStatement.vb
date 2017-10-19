@@ -23,13 +23,13 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
+ILockStatement ([0] OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
   Expression: 
-    IFieldReferenceExpression: C1.o As System.Object (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
+    IFieldReferenceExpression: C1.o As System.Object ([0] OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'o')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'o')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock o' ... nd SyncLock')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock o' ... nd SyncLock')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -53,11 +53,11 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
+ILockStatement ([1] OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
   Expression: 
-    ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceExpression: o ([0] OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock o' ... nd SyncLock')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock o' ... nd SyncLock')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -81,11 +81,11 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
+ILockStatement ([1] OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
   Expression: 
-    ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceExpression: o ([0] OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock o' ... nd SyncLock')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock o' ... nd SyncLock')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -109,11 +109,11 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock i' ... nd SyncLock')
+ILockStatement ([1] OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock i' ... nd SyncLock')
   Expression: 
-    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
+    ILocalReferenceExpression: i ([0] OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'SyncLock i' ... nd SyncLock')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'SyncLock i' ... nd SyncLock')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -140,12 +140,12 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock'BI ... nd SyncLock')
+ILockStatement ([0] OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock'BI ... nd SyncLock')
   Expression: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+    IInvalidExpression ([0] OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'SyncLock'BI ... nd SyncLock')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'SyncLock'BI ... nd SyncLock')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -172,12 +172,12 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock In ... nd SyncLock')
+ILockStatement ([0] OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock In ... nd SyncLock')
   Expression: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'InvalidReference')
+    IInvalidExpression ([0] OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'InvalidReference')
       Children(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'SyncLock In ... nd SyncLock')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'SyncLock In ... nd SyncLock')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -204,11 +204,11 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock o' ... SyncLock o"')
+ILockStatement ([1] OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock o' ... SyncLock o"')
   Expression: 
-    ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'o')
+    ILocalReferenceExpression: o ([0] OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'o')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'SyncLock o' ... SyncLock o"')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'SyncLock o' ... SyncLock o"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -235,14 +235,14 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o. ... nd SyncLock')
+ILockStatement ([1] OperationKind.LockStatement) (Syntax: 'SyncLock o. ... nd SyncLock')
   Expression: 
-    IInvocationExpression (virtual Function System.Object.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'o.ToString()')
+    IInvocationExpression (virtual Function System.Object.ToString() As System.String) ([0] OperationKind.InvocationExpression, Type: System.String) (Syntax: 'o.ToString()')
       Instance Receiver: 
-        ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+        ILocalReferenceExpression: o ([0] OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
       Arguments(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock o. ... nd SyncLock')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock o. ... nd SyncLock')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -268,14 +268,14 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock M2 ... nd SyncLock')
+ILockStatement ([0] OperationKind.LockStatement) (Syntax: 'SyncLock M2 ... nd SyncLock')
   Expression: 
-    IInvocationExpression ( Function C1.M2() As System.Object) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M2()')
+    IInvocationExpression ( Function C1.M2() As System.Object) ([0] OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M2()')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'M2')
       Arguments(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock M2 ... nd SyncLock')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock M2 ... nd SyncLock')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -300,16 +300,16 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock M2 ... nd SyncLock')
+ILockStatement ([0] OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock M2 ... nd SyncLock')
   Expression: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'M2()')
+    IInvalidExpression ([0] OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'M2()')
       Children(1):
-          IInvocationExpression ( Sub C1.M2()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
+          IInvocationExpression ( Sub C1.M2()) ([0] OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
             Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'M2')
+              IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'M2')
             Arguments(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'SyncLock M2 ... nd SyncLock')
+    IBlockStatement (0 statements) ([1] OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'SyncLock M2 ... nd SyncLock')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -338,19 +338,19 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
+ILockStatement ([1] OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
   Expression: 
-    ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceExpression: o ([0] OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock o' ... nd SyncLock')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... lo World!")')
+    IBlockStatement (1 statements) ([1] OperationKind.BlockStatement, IsImplicit) (Syntax: 'SyncLock o' ... nd SyncLock')
+      IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... lo World!")')
         Expression: 
-          IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... lo World!")')
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... lo World!")')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Hello World!"')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) ([0] OperationKind.Argument) (Syntax: '"Hello World!"')
+                  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value

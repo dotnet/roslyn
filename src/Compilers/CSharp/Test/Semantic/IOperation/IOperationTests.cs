@@ -46,26 +46,26 @@ public class Cls
             var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
             compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
-@"IInvocationExpression (void Cls.Test1(params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Test1(null)')
+@"IInvocationExpression (void Cls.Test1(params System.Int32[] x)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Test1(null)')
   Instance Receiver: 
     null
   Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'null')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: 'null')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
 
             compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
+@"IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
   Children(2):
-      IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'new object()')
+      IObjectCreationExpression (Constructor: System.Object..ctor()) ([0] OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'new object()')
         Arguments(0)
         Initializer: 
           null
-      ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')");
+      ILiteralExpression ([1] OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

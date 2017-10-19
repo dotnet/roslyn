@@ -22,25 +22,25 @@ Label:  Console.WriteLine("Hello World!")
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (5 statements) (OperationKind.BlockStatement) (Syntax: 'Public Sub  ... End Sub')
-  IBranchStatement (BranchKind.GoTo, Label: Label) (OperationKind.BranchStatement) (Syntax: 'GoTo Label')
-  ILabeledStatement (Label: Label) (OperationKind.LabeledStatement) (Syntax: 'Label:')
+IBlockStatement (5 statements) ([Root] OperationKind.BlockStatement) (Syntax: 'Public Sub  ... End Sub')
+  IBranchStatement (BranchKind.GoTo, Label: Label) ([0] OperationKind.BranchStatement) (Syntax: 'GoTo Label')
+  ILabeledStatement (Label: Label) ([1] OperationKind.LabeledStatement) (Syntax: 'Label:')
     Statement: 
       null
-  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... lo World!")')
+  IExpressionStatement ([2] OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... lo World!")')
     Expression: 
-      IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... lo World!")')
+      IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... lo World!")')
         Instance Receiver: 
           null
         Arguments(1):
-            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Hello World!"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) ([0] OperationKind.Argument) (Syntax: '"Hello World!"')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
+  ILabeledStatement (Label: exit) ([3] OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
+  IReturnStatement ([4] OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value

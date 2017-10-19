@@ -28,19 +28,19 @@ Class TestClass
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  ... AddressOf M')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'AddHandler  ... AddressOf M')
   Expression: 
-    IEventAssignmentExpression (EventAdd) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
+    IEventAssignmentExpression (EventAdd) ([0] OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: 
-        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
+        IEventReferenceExpression: Event TestClass.TestEvent As System.Action ([0] OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: 
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
+            IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
       Handler: 
-        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+        IDelegateCreationExpression ([1] OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() ([0] OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+                IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -67,19 +67,19 @@ Class TestClass
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl ... AddressOf M')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl ... AddressOf M')
   Expression: 
-    IEventAssignmentExpression (EventRemove) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
+    IEventAssignmentExpression (EventRemove) ([0] OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
       Event Reference: 
-        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
+        IEventReferenceExpression: Event TestClass.TestEvent As System.Action ([0] OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: 
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
+            IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
       Handler: 
-        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+        IDelegateCreationExpression ([1] OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() ([0] OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+                IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -106,19 +106,19 @@ Class TestClass
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  ... AddressOf M')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'AddHandler  ... AddressOf M')
   Expression: 
-    IEventAssignmentExpression (EventAdd) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
+    IEventAssignmentExpression (EventAdd) ([0] OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: 
-        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
+        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) ([0] OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: 
             null
       Handler: 
-        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+        IDelegateCreationExpression ([1] OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() ([0] OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+                IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -145,19 +145,19 @@ Class TestClass
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl ... AddressOf M')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl ... AddressOf M')
   Expression: 
-    IEventAssignmentExpression (EventRemove) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
+    IEventAssignmentExpression (EventRemove) ([0] OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
       Event Reference: 
-        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
+        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) ([0] OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: 
             null
       Handler: 
-        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+        IDelegateCreationExpression ([1] OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() ([0] OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+                IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -184,21 +184,21 @@ Class TestClass
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'RemoveHandl ... AddressOf M')
+IExpressionStatement ([0] OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'RemoveHandl ... AddressOf M')
   Expression: 
-    IEventAssignmentExpression (EventRemove) (OperationKind.EventAssignmentExpression, Type: null, IsInvalid) (Syntax: 'RemoveHandl ... AddressOf M')
+    IEventAssignmentExpression (EventRemove) ([0] OperationKind.EventAssignmentExpression, Type: null, IsInvalid) (Syntax: 'RemoveHandl ... AddressOf M')
       Event Reference: 
-        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
+        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) ([0] OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: 
             null
       Handler: 
-        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf M')
+        IDelegateCreationExpression ([1] OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M')
+            IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'AddressOf M')
               Children(1):
-                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')
+                  IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'M')
                     Children(1):
-                        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsInvalid, IsImplicit) (Syntax: 'M')
+                        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: TestClass, IsInvalid, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -227,19 +227,19 @@ Class TestClass
     End Sub
 End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  ... AddressOf M')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'AddHandler  ... AddressOf M')
   Expression: 
-    IEventAssignmentExpression (EventAdd) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
+    IEventAssignmentExpression (EventAdd) ([0] OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: 
-        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'Me.TestEvent')
+        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) ([0] OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'Me.TestEvent')
           Instance Receiver: 
             null
       Handler: 
-        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+        IDelegateCreationExpression ([1] OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() ([0] OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+                IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -269,19 +269,19 @@ Class TestClass
     End Sub
 End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'AddHandler  ... AddressOf M')
+IExpressionStatement ([0] OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'AddHandler  ... AddressOf M')
   Expression: 
-    IEventAssignmentExpression (EventAdd) (OperationKind.EventAssignmentExpression, Type: null, IsInvalid) (Syntax: 'AddHandler  ... AddressOf M')
+    IEventAssignmentExpression (EventAdd) ([0] OperationKind.EventAssignmentExpression, Type: null, IsInvalid) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: 
-        IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action, IsInvalid) (Syntax: 'TestClass.TestEvent')
+        IEventReferenceExpression: Event TestClass.TestEvent As System.Action ([0] OperationKind.EventReferenceExpression, Type: System.Action, IsInvalid) (Syntax: 'TestClass.TestEvent')
           Instance Receiver: 
-            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'TestClass')
+            IOperation:  ([0] OperationKind.None, IsInvalid) (Syntax: 'TestClass')
       Handler: 
-        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
+        IDelegateCreationExpression ([1] OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() ([0] OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
+                IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

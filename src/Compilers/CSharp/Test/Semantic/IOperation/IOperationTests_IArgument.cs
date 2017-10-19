@@ -28,7 +28,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+IInvocationExpression (void P.M2()) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
     null
   Arguments(0)
@@ -54,16 +54,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2(System.Int32 x, System.Double y)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, 2.0)')
+IInvocationExpression (void P.M2(System.Int32 x, System.Double y)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, 2.0)')
   Instance Receiver: 
     null
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '2.0')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: y) ([1] OperationKind.Argument) (Syntax: '2.0')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -88,16 +88,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
     null
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 'M2(1)')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 'M2(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -122,16 +122,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(x: 1, y: 9.9)')
+IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(x: 1, y: 9.9)')
   Instance Receiver: 
     null
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'x: 1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: 'x: 1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'y: 9.9')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: y) ([1] OperationKind.Argument) (Syntax: 'y: 9.9')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -156,16 +156,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: 9.9, x: 1)')
+IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: 9.9, x: 1)')
   Instance Receiver: 
     null
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'y: 9.9')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: y) ([0] OperationKind.Argument) (Syntax: 'y: 9.9')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'x: 1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: 'x: 1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -190,20 +190,20 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: 0, z: 2)')
+IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: 0, z: 2)')
   Instance Receiver: 
     null
   Arguments(3):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'y: 0')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: y) ([0] OperationKind.Argument) (Syntax: 'y: 0')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'z: 2')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: z) ([1] OperationKind.Argument) (Syntax: 'z: 2')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(y: 0, z: 2)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(y: 0, z: 2)')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2(y: 0, z: 2)')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(y: 0, z: 2)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -228,20 +228,20 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(z: 2, x: 9)')
+IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(z: 2, x: 9)')
   Instance Receiver: 
     null
   Arguments(3):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'z: 2')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: z) ([0] OperationKind.Argument) (Syntax: 'z: 2')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'x: 9')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: 'x: 9')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(z: 2, x: 9)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(z: 2, x: 9)')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2(z: 2, x: 9)')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(z: 2, x: 9)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -266,22 +266,22 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(9, z: 10);')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'M2(9, z: 10);')
   Expression: 
-    IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(9, z: 10)')
+    IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(9, z: 10)')
       Instance Receiver: 
         null
       Arguments(3):
-          IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '9')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
+          IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: '9')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'z: 10')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+          IArgument (ArgumentKind.Explicit, Matching Parameter: z) ([1] OperationKind.Argument) (Syntax: 'z: 10')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(9, z: 10)')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(9, z: 10)')
+          IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2(9, z: 10)')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(9, z: 10)')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -308,16 +308,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(ref a, out b)')
+IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(ref a, out b)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'ref a')
-        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: 'ref a')
+        ILocalReferenceExpression: a ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'out b')
-        ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: y) ([2] OperationKind.Argument) (Syntax: 'out b')
+        ILocalReferenceExpression: b ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -344,16 +344,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(x: ref a, y: out b)')
+IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(x: ref a, y: out b)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'x: ref a')
-        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: 'x: ref a')
+        ILocalReferenceExpression: a ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'y: out b')
-        ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: y) ([2] OperationKind.Argument) (Syntax: 'y: out b')
+        ILocalReferenceExpression: b ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -380,16 +380,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: out b, x: ref a)')
+IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: out b, x: ref a)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'y: out b')
-        ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: y) ([1] OperationKind.Argument) (Syntax: 'y: out b')
+        ILocalReferenceExpression: b ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'x: ref a')
-        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([2] OperationKind.Argument) (Syntax: 'x: ref a')
+        ILocalReferenceExpression: a ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -416,12 +416,12 @@ class P
 struct S { }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([S sobj = default(S)])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+IInvocationExpression ( void P.M2([S sobj = default(S)])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sobj) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: S) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sobj) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        IDefaultValueExpression ([0] OperationKind.DefaultValueExpression, Type: S) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -448,12 +448,12 @@ class P
 struct S { }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([S sobj = default(S)])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+IInvocationExpression ( void P.M2([S sobj = default(S)])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sobj) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: S) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sobj) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        IDefaultValueExpression ([0] OperationKind.DefaultValueExpression, Type: S) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -479,12 +479,12 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([System.Double s = 3.14])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+IInvocationExpression ( void P.M2([System.Double s = 3.14])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 3.14) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Double, Constant: 3.14) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -513,20 +513,20 @@ static class Extensions
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [System.Int32 y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'this.E1(1, 2)')
+IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [System.Int32 y = 0])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'this.E1(1, 2)')
   Instance Receiver: 
     null
   Arguments(3):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, IsImplicit) (Syntax: 'this')
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: p) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'this')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '2')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: y) ([2] OperationKind.Argument) (Syntax: '2')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -555,22 +555,22 @@ static class Extensions
 }
 ";
             string expectedOperationTree = @"
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'this.E1(y: 1, x: 2);')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'this.E1(y: 1, x: 2);')
   Expression: 
-    IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [System.Int32 y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'this.E1(y: 1, x: 2)')
+    IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [System.Int32 y = 0])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'this.E1(y: 1, x: 2)')
       Instance Receiver: 
         null
       Arguments(3):
-          IArgument (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, IsImplicit) (Syntax: 'this')
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+          IArgument (ArgumentKind.Explicit, Matching Parameter: p) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'this')
+            IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'y: 1')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IArgument (ArgumentKind.Explicit, Matching Parameter: y) ([1] OperationKind.Argument) (Syntax: 'y: 1')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'x: 2')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+          IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([2] OperationKind.Argument) (Syntax: 'x: 2')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -599,20 +599,20 @@ static class Extensions
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [System.Int32 y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'this.E1(y: 1)')
+IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [System.Int32 y = 0])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'this.E1(y: 1)')
   Instance Receiver: 
     null
   Arguments(3):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, IsImplicit) (Syntax: 'this')
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: p) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'this')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'y: 1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: y) ([1] OperationKind.Argument) (Syntax: 'y: 1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'this.E1(y: 1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'this.E1(y: 1)')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'this.E1(y: 1)')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'this.E1(y: 1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -638,16 +638,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, a)')
+IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, a)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'a')
-        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: array) ([2] OperationKind.Argument) (Syntax: 'a')
+        ILocalReferenceExpression: a ([0] OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -672,23 +672,23 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, 0.1, 0.2)')
+IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, 0.1, 0.2)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1, 0.1, 0.2)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, 0.1, 0.2)')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2(1, 0.1, 0.2)')
+        IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, 0.1, 0.2)')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(1, 0.1, 0.2)')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(1, 0.1, 0.2)')
           Initializer: 
-            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1, 0.1, 0.2)')
+            IArrayInitializer (2 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'M2(1, 0.1, 0.2)')
               Element Values(2):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.1) (Syntax: '0.1')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.2) (Syntax: '0.2')
+                  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Double, Constant: 0.1) (Syntax: '0.1')
+                  ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Double, Constant: 0.2) (Syntax: '0.2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -713,20 +713,20 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1)')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
+        IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1)')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(1)')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(1)')
           Initializer: 
-            IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
+            IArrayInitializer (0 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
               Element Values(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -753,20 +753,20 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2()')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2()')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2()')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2()')
           Initializer: 
-            IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2()')
+            IArrayInitializer (0 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'M2()')
               Element Values(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -793,16 +793,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: a)')
+IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: a)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'array: a')
-        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: array) ([1] OperationKind.Argument) (Syntax: 'array: a')
+        ILocalReferenceExpression: a ([0] OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: a)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: a)')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: a)')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: a)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -827,25 +827,25 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: 1)')
+IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: 1)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: 1)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(array: 1)')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: 1)')
+        IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(array: 1)')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1)')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1)')
           Initializer: 
-            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1)')
+            IArrayInitializer (1 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1)')
               Element Values(1):
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: 1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: 1)')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: 1)')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: 1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -871,16 +871,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, array: a)')
+IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, array: a)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'array: a')
-        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: array) ([2] OperationKind.Argument) (Syntax: 'array: a')
+        ILocalReferenceExpression: a ([0] OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -905,25 +905,25 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, array: 1)')
+IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, array: 1)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1, array: 1)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, array: 1)')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2(1, array: 1)')
+        IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, array: 1)')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1, array: 1)')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1, array: 1)')
           Initializer: 
-            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1, array: 1)')
+            IArrayInitializer (1 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'M2(1, array: 1)')
               Element Values(1):
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -949,18 +949,18 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(array: a, x: 1);')
+IExpressionStatement ([1] OperationKind.ExpressionStatement) (Syntax: 'M2(array: a, x: 1);')
   Expression: 
-    IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: a, x: 1)')
+    IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: a, x: 1)')
       Instance Receiver: 
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
       Arguments(2):
-          IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'array: a')
-            ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
+          IArgument (ArgumentKind.Explicit, Matching Parameter: array) ([1] OperationKind.Argument) (Syntax: 'array: a')
+            ILocalReferenceExpression: a ([0] OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'x: 1')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([2] OperationKind.Argument) (Syntax: 'x: 1')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -985,25 +985,25 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: 1, x: 10)')
+IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: 1, x: 10)')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: 1, x: 10)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(array: 1, x: 10)')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: 1, x: 10)')
+        IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(array: 1, x: 10)')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1, x: 10)')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1, x: 10)')
           Initializer: 
-            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1, x: 10)')
+            IArrayInitializer (1 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1, x: 10)')
               Element Values(1):
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'x: 10')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([2] OperationKind.Argument) (Syntax: 'x: 10')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1034,20 +1034,20 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+IInvocationExpression ( void P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(3):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"") (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"") (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 8) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) ([3] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 8) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1077,20 +1077,20 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'M2()')
+IInvocationExpression ( System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) ([0] OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(3):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"") (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"") (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) ([3] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1120,20 +1120,20 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'M2()')
+IInvocationExpression (System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) ([0] OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'M2()')
   Instance Receiver: 
     null
   Arguments(3):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""field"") (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""field"") (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1175,20 +1175,20 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'M2()')
+IInvocationExpression (System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) ([0] OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'M2()')
   Instance Receiver: 
     null
   Arguments(3):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""MyEvent"") (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""MyEvent"") (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 11) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 11) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1214,10 +1214,10 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
   Children(2):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1501: No overload for method 'M2' takes 2 arguments
@@ -1245,10 +1245,10 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1,)')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1,)')
   Children(2):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IInvalidExpression ([1] OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1277,9 +1277,9 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1)')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1)')
   Children(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -1307,46 +1307,46 @@ public class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void System.Console.Write(System.String format, System.Object arg0, System.Object arg1, System.Object arg2, System.Object arg3, __arglist)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... arglist(5))')
+IInvocationExpression (void System.Console.Write(System.String format, System.Object arg0, System.Object arg1, System.Object arg2, System.Object arg3, __arglist)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... arglist(5))')
   Instance Receiver: 
     null
   Arguments(6):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument) (Syntax: '""{0} {1} {2} {3} {4}""')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""{0} {1} {2} {3} {4}"") (Syntax: '""{0} {1} {2} {3} {4}""')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: format) ([0] OperationKind.Argument) (Syntax: '""{0} {1} {2} {3} {4}""')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""{0} {1} {2} {3} {4}"") (Syntax: '""{0} {1} {2} {3} {4}""')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: '1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) ([1] OperationKind.Argument) (Syntax: '1')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: '2')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '2')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) ([2] OperationKind.Argument) (Syntax: '2')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '2')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: arg2) (OperationKind.Argument) (Syntax: '3')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '3')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: arg2) ([3] OperationKind.Argument) (Syntax: '3')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '3')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: arg3) (OperationKind.Argument) (Syntax: '4')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '4')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: arg3) ([4] OperationKind.Argument) (Syntax: '4')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '4')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '__arglist(5)')
-        IOperation:  (OperationKind.None) (Syntax: '__arglist(5)')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) ([5] OperationKind.Argument) (Syntax: '__arglist(5)')
+        IOperation:  ([0] OperationKind.None) (Syntax: '__arglist(5)')
           Children(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1372,12 +1372,12 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1411,12 +1411,12 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: index) ([1] OperationKind.Argument) (Syntax: '10')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1446,12 +1446,12 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: index) ([1] OperationKind.Argument) (Syntax: '10')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1481,16 +1481,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.Int32 j = 2]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[j:10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.Int32 j = 2]] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[j:10]')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument) (Syntax: 'j:10')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: j) ([1] OperationKind.Argument) (Syntax: 'j:10')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: i) (OperationKind.Argument, IsImplicit) (Syntax: 'this[j:10]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'this[j:10]')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: i) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'this[j:10]')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'this[j:10]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1520,10 +1520,10 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Children(2):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+      IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
+      ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(12,27): error CS0154: The property or indexer 'P.this[int]' cannot be used in this context because it lacks the get accessor
@@ -1554,10 +1554,10 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Children(2):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+      IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
+      ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1601,16 +1601,16 @@ internal class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [System.Int32 y = 9]] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'd[0]')
+IPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [System.Int32 y = 9]] { set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'd[0]')
   Instance Receiver: 
-    ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: Derived) (Syntax: 'd')
+    ILocalReferenceExpression: d ([0] OperationKind.LocalReferenceExpression, Type: Derived) (Syntax: 'd')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: '0')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsImplicit) (Syntax: 'd[0]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'd[0]')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'd[0]')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'd[0]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1643,20 +1643,20 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.Int32[] y] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.Int32[] y] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: '0')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: y) (OperationKind.Argument, IsImplicit) (Syntax: 'this[0]')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0]')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: y) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'this[0]')
+        IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0]')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'this[0]')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'this[0]')
           Initializer: 
-            IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[0]')
+            IArrayInitializer (0 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'this[0]')
               Element Values(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1685,12 +1685,12 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
+IPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: '0')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1795,16 +1795,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
   Instance Receiver: 
-    ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+    ILocalReferenceExpression: p ([0] OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([1] OperationKind.Argument) (Syntax: '10')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument, IsImplicit) (Syntax: 'p[10]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: 'p[10]')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'p[10]')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: 'p[10]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1913,16 +1913,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
   Instance Receiver: 
-    ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+    ILocalReferenceExpression: p ([0] OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([1] OperationKind.Argument) (Syntax: '10')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument, IsImplicit) (Syntax: 'p[10]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'p[10]')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2032,16 +2032,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
   Instance Receiver: 
-    ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+    ILocalReferenceExpression: p ([0] OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([1] OperationKind.Argument) (Syntax: '10')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument, IsImplicit) (Syntax: 'p[10]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'p[10]')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2097,15 +2097,15 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'p.M1()')
+IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'p.M1()')
   Instance Receiver: 
-    ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+    ILocalReferenceExpression: p ([0] OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'p.M1()')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'p.M1()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'p.M1()')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) ([0] OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'p.M1()')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"") (Syntax: 'p.M1()')
+            ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"") (Syntax: 'p.M1()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2132,14 +2132,14 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2([System.Boolean[missing]? x = true])) (OperationKind.InvocationExpression, Type: System.Void[missing], IsInvalid) (Syntax: 'M2()')
+IInvocationExpression (void P.M2([System.Boolean[missing]? x = true])) ([0] OperationKind.InvocationExpression, Type: System.Void[missing], IsInvalid) (Syntax: 'M2()')
   Instance Receiver: 
     null
   Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'M2()')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([0] OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'M2()')
+        IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'M2()')
           Children(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean[missing], Constant: True, IsInvalid) (Syntax: 'M2()')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Boolean[missing], Constant: True, IsInvalid) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2193,12 +2193,12 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationExpression (Constructor: P..ctor([System.Boolean[missing]? x = true])) (OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P()')
+IObjectCreationExpression (Constructor: P..ctor([System.Boolean[missing]? x = true])) ([0] OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P()')
   Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'new P()')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'new P()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([0] OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'new P()')
+        IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'new P()')
           Children(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean[missing], Constant: True, IsInvalid) (Syntax: 'new P()')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Boolean[missing], Constant: True, IsInvalid) (Syntax: 'new P()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Initializer: 
@@ -2260,18 +2260,18 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 5]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: 'this[0]')
+IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 5]] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument, IsInvalid) (Syntax: '0')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'this[0]')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: 'this[0]')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) ([2] OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'this[0]')
+        IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: 'this[0]')
           Children(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 5, IsInvalid) (Syntax: 'this[0]')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 5, IsInvalid) (Syntax: 'this[0]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2340,12 +2340,12 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2([System.Boolean[missing]? x = null])) (OperationKind.InvocationExpression, Type: System.Void[missing], IsInvalid) (Syntax: 'M2()')
+IInvocationExpression (void P.M2([System.Boolean[missing]? x = null])) ([0] OperationKind.InvocationExpression, Type: System.Void[missing], IsInvalid) (Syntax: 'M2()')
   Instance Receiver: 
     null
   Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'M2()')
-        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([0] OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'M2()')
+        IDefaultValueExpression ([0] OperationKind.DefaultValueExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2396,10 +2396,10 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationExpression (Constructor: P..ctor([System.Boolean[missing]? x = null])) (OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P()')
+IObjectCreationExpression (Constructor: P..ctor([System.Boolean[missing]? x = null])) ([0] OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P()')
   Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'new P()')
-        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'new P()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([0] OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'new P()')
+        IDefaultValueExpression ([0] OperationKind.DefaultValueExpression, Type: System.Boolean[missing]?, IsInvalid) (Syntax: 'new P()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Initializer: 
@@ -2458,19 +2458,18 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: 'this[0]')
+IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument, IsInvalid) (Syntax: '0')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'this[0]')
-        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: 'this[0]')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) ([2] OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'this[0]')
+        IDefaultValueExpression ([0] OperationKind.DefaultValueExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: 'this[0]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -2537,16 +2536,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2(System.Int32 x, [S s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+IInvocationExpression (void P.M2(System.Int32 x, [S s = null])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
     null
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: S) (Syntax: 'M2(1)')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: S) (Syntax: 'M2(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2581,14 +2580,14 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationExpression (Constructor: P..ctor(System.Int32 x, [S s = null])) (OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(1)')
+IObjectCreationExpression (Constructor: P..ctor(System.Int32 x, [S s = null])) ([0] OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(1)')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'new P(1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: S) (Syntax: 'new P(1)')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'new P(1)')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: S) (Syntax: 'new P(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Initializer: 
@@ -2628,16 +2627,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index, [S s = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index, [S s = null]] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '0')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: index) ([1] OperationKind.Argument) (Syntax: '0')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'this[0]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: S) (Syntax: 'this[0]')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) ([2] OperationKind.Argument, IsImplicit) (Syntax: 'this[0]')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: S) (Syntax: 'this[0]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2679,16 +2678,16 @@ class G<T>
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2(System.Int32 x, [G<S> s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+IInvocationExpression (void P.M2(System.Int32 x, [G<S> s = null])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
     null
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: G<S>, Constant: null) (Syntax: 'M2(1)')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: G<S>, Constant: null) (Syntax: 'M2(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2727,16 +2726,16 @@ struct G<T>
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+IInvocationExpression (void P.M2(System.Int32 x, [G<S>? s = null])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
     null
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([0] OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: G<S>?) (Syntax: 'M2(1)')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
+        IDefaultValueExpression ([0] OperationKind.DefaultValueExpression, Type: G<S>?) (Syntax: 'M2(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2793,8 +2792,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([0] OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2818,8 +2817,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'ref i')
-  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([0] OperationKind.Argument) (Syntax: 'ref i')
+  ILocalReferenceExpression: i ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2844,8 +2843,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'refI')
-  ILocalReferenceExpression: refI (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'refI')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([0] OperationKind.Argument) (Syntax: 'refI')
+  ILocalReferenceExpression: refI ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'refI')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2869,8 +2868,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'out i')
-  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([0] OperationKind.Argument) (Syntax: 'out i')
+  ILocalReferenceExpression: i ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2897,20 +2896,20 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(1);')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'M2(1);')
   Expression: 
-    IInvocationExpression (void P.M2(params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+    IInvocationExpression (void P.M2(params System.Int32[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
       Instance Receiver: 
         null
       Arguments(1):
-          IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(1)')
+          IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
+            IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(1)')
               Dimension Sizes(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1)')
+                  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1)')
               Initializer: 
-                IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
+                IArrayInitializer (1 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
                   Element Values(1):
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2933,21 +2932,21 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(0, 1);')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'M2(0, 1);')
   Expression: 
-    IInvocationExpression (void P.M2(params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(0, 1)')
+    IInvocationExpression (void P.M2(params System.Int32[] array)) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(0, 1)')
       Instance Receiver: 
         null
       Arguments(1):
-          IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(0, 1)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(0, 1)')
+          IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'M2(0, 1)')
+            IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(0, 1)')
               Dimension Sizes(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(0, 1)')
+                  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(0, 1)')
               Initializer: 
-                IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(0, 1)')
+                IArrayInitializer (2 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'M2(0, 1)')
                   Element Values(2):
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2970,8 +2969,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument) (Syntax: 'j: 1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IArgument (ArgumentKind.Explicit, Matching Parameter: j) ([0] OperationKind.Argument) (Syntax: 'j: 1')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2994,8 +2993,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'i: 1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([1] OperationKind.Argument) (Syntax: 'i: 1')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3018,8 +3017,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([0] OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3043,8 +3042,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'ref i')
-  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([0] OperationKind.Argument) (Syntax: 'ref i')
+  ILocalReferenceExpression: i ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3068,8 +3067,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'out i')
-  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([0] OperationKind.Argument) (Syntax: 'out i')
+  ILocalReferenceExpression: i ([0] OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3096,18 +3095,18 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'new P(1);')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'new P(1);')
   Expression: 
-    IObjectCreationExpression (Constructor: P..ctor(params System.Int32[] array)) (OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(1)')
+    IObjectCreationExpression (Constructor: P..ctor(params System.Int32[] array)) ([0] OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(1)')
       Arguments(1):
-          IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'new P(1)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(1)')
+          IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'new P(1)')
+            IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(1)')
               Dimension Sizes(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new P(1)')
+                  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new P(1)')
               Initializer: 
-                IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'new P(1)')
+                IArrayInitializer (1 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'new P(1)')
                   Element Values(1):
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Initializer: 
@@ -3132,19 +3131,19 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'new P(0, 1);')
+IExpressionStatement ([0] OperationKind.ExpressionStatement) (Syntax: 'new P(0, 1);')
   Expression: 
-    IObjectCreationExpression (Constructor: P..ctor(params System.Int32[] array)) (OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(0, 1)')
+    IObjectCreationExpression (Constructor: P..ctor(params System.Int32[] array)) ([0] OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(0, 1)')
       Arguments(1):
-          IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'new P(0, 1)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(0, 1)')
+          IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'new P(0, 1)')
+            IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(0, 1)')
               Dimension Sizes(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'new P(0, 1)')
+                  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'new P(0, 1)')
               Initializer: 
-                IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'new P(0, 1)')
+                IArrayInitializer (2 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'new P(0, 1)')
                   Element Values(2):
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Initializer: 
@@ -3169,8 +3168,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) ([1] OperationKind.Argument) (Syntax: '1')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3193,18 +3192,18 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[1]')
+IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] { get; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[1]')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'this[1]')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[1]')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'this[1]')
+        IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[1]')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'this[1]')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'this[1]')
           Initializer: 
-            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[1]')
+            IArrayInitializer (1 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'this[1]')
               Element Values(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3227,19 +3226,19 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0, 1]')
+IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] { get; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0, 1]')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'this[0, 1]')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0, 1]')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: array) ([1] OperationKind.Argument, IsImplicit) (Syntax: 'this[0, 1]')
+        IArrayCreationExpression ([0] OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0, 1]')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'this[0, 1]')
+              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'this[0, 1]')
           Initializer: 
-            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[0, 1]')
+            IArrayInitializer (2 elements) ([1] OperationKind.ArrayInitializer) (Syntax: 'this[0, 1]')
               Element Values(2):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3255,9 +3254,9 @@ IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] {
 [assembly: /*<bind>*/System.CLSCompliant(isCompliant: true)/*</bind>*/]
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'System.CLSC ... iant: true)')
+IOperation:  ([Root] OperationKind.None) (Syntax: 'System.CLSC ... iant: true)')
   Children(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3276,13 +3275,13 @@ class MyA : System.Attribute
 }
 ";
             string expectedOperationTree = @"
-ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Prop = ""test""')
+ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Prop = ""test""')
   Left: 
-    IPropertyReferenceExpression: System.String MyA.Prop { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Prop')
+    IPropertyReferenceExpression: System.String MyA.Prop { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Prop')
       Instance Receiver: 
         null
   Right: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""test"") (Syntax: '""test""')
+    ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.String, Constant: ""test"") (Syntax: '""test""')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3302,8 +3301,8 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: i2) (OperationKind.Argument) (Syntax: '2')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i2) ([2] OperationKind.Argument) (Syntax: '2')
+  ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -3327,15 +3326,15 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (void P.M2([System.Int32? x = 10])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+IInvocationExpression (void P.M2([System.Int32? x = 10])) ([0] OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
     null
   Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        IObjectCreationExpression (Constructor: System.Int32?..ctor(System.Int32 value)) (OperationKind.ObjectCreationExpression, Type: System.Int32?) (Syntax: 'M2()')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        IObjectCreationExpression (Constructor: System.Int32?..ctor(System.Int32 value)) ([0] OperationKind.ObjectCreationExpression, Type: System.Int32?) (Syntax: 'M2()')
           Arguments(1):
-              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: 'M2()')
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) ([0] OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+                ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: 'M2()')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Initializer: 
@@ -3367,18 +3366,18 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
+IObjectCreationExpression (Constructor: P..ctor()) ([0] OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
+    IObjectOrCollectionInitializerExpression ([0] OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
       Initializers(1):
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '[0] = 1')
+          ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '[0] = 1')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: '[0]')
+              IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: '[0]')
                 Children(1):
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                    ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3411,18 +3410,18 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
+IObjectCreationExpression (Constructor: P..ctor()) ([0] OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
+    IObjectOrCollectionInitializerExpression ([0] OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
       Initializers(1):
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '[0] = 1')
+          ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '[0] = 1')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: '[0]')
+              IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: '[0]')
                 Children(1):
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                    ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3455,28 +3454,28 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
   Children(1):
-      IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
+      IObjectOrCollectionInitializerExpression ([0] OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
         Initializers(1):
-            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0] = 1')
+            ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0] = 1')
               Left: 
-                IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 0]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
+                IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 0]] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
                   Instance Receiver: 
-                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
+                    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
                   Arguments(2):
-                      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+                      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument, IsInvalid) (Syntax: '0')
+                        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: '[0]')
-                        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: '[0]')
+                      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) ([2] OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: '[0]')
+                        IInvalidExpression ([0] OperationKind.InvalidExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: '[0]')
                           Children(1):
-                              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '[0]')
+                              ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '[0]')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 1, IsInvalid) (Syntax: '1')
+                ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 1, IsInvalid) (Syntax: '1')
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3552,26 +3551,26 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
   Children(1):
-      IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
+      IObjectOrCollectionInitializerExpression ([0] OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
         Initializers(1):
-            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0] = 1')
+            ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0] = 1')
               Left: 
-                IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
+                IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
                   Instance Receiver: 
-                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
+                    IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
                   Arguments(2):
-                      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+                      IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument, IsInvalid) (Syntax: '0')
+                        ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: '[0]')
-                        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: '[0]')
+                      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) ([2] OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: '[0]')
+                        IDefaultValueExpression ([0] OperationKind.DefaultValueExpression, Type: System.Int32[missing]?, IsInvalid) (Syntax: '[0]')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 1, IsInvalid) (Syntax: '1')
+                ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 1, IsInvalid) (Syntax: '1')
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3644,27 +3643,27 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P() { [0] = 1 }')
+IObjectCreationExpression (Constructor: P..ctor()) ([0] OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P() { [0] = 1 }')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: P) (Syntax: '{ [0] = 1 }')
+    IObjectOrCollectionInitializerExpression ([0] OperationKind.ObjectOrCollectionInitializerExpression, Type: P) (Syntax: '{ [0] = 1 }')
       Initializers(1):
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[0] = 1')
+          ISimpleAssignmentExpression ([0] OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[0] = 1')
             Left: 
-              IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, [S s = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '[0]')
+              IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, [S s = null]] { get; set; } ([0] OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '[0]')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: '[0]')
+                  IInstanceReferenceExpression ([0] OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: '[0]')
                 Arguments(2):
-                    IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: x) ([1] OperationKind.Argument) (Syntax: '0')
+                      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: '[0]')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: S) (Syntax: '[0]')
+                    IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) ([2] OperationKind.Argument, IsImplicit) (Syntax: '[0]')
+                      ILiteralExpression ([0] OperationKind.LiteralExpression, Type: S) (Syntax: '[0]')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3693,12 +3692,12 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M2(1, 2)')
+IInvalidExpression ([0] OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M2(1, 2)')
   Children(3):
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M2')
+      IInvalidExpression ([0] OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M2')
         Children(0)
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralExpression ([1] OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralExpression ([2] OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(6,19): error CS0103: The name 'M2' does not exist in the current context
