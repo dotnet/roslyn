@@ -38,12 +38,18 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim newNode = DirectCast(MyBase.VisitLiteralExpression(node), LiteralExpressionSyntax)
                 Dim literal As SyntaxToken = newNode.Token
 
+                Const digitSeperator = "_"c
+                ' Get the literal identifier text which needs to be pretty listed.
+                Dim idText = literal.GetIdentifierText()
+
+                If idText.Contains(digitSeperator) Then
+                    Return newNode
+                End If
+
                 ' Pretty list floating and decimal literals.
                 Select Case literal.Kind
-                    Case SyntaxKind.FloatingLiteralToken
-                        ' Get the literal identifier text which needs to be pretty listed.
-                        Dim idText = literal.GetIdentifierText()
 
+                    Case SyntaxKind.FloatingLiteralToken
                         ' Compiler has parsed the literal text as single/double value, fetch the string representation of this value.
                         Dim value As Double = 0
                         Dim valueText As String = GetFloatLiteralValueString(literal, value) + GetTypeCharString(literal.GetTypeCharacter())
@@ -60,7 +66,6 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                     Case SyntaxKind.DecimalLiteralToken
                         ' Get the literal identifier text which needs to be pretty listed.
-                        Dim idText = literal.GetIdentifierText()
                         Dim value = DirectCast(literal.Value, Decimal)
 
                         If value = 0 Then
@@ -69,15 +74,13 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         End If
 
                         ' Compiler has parsed the literal text as a decimal value, fetch the string representation of this value.
-                        Dim valueText As String = GetDecimalLiteralValueString(value) + GetTypeCharString(literal.GetTypeCharacter())
+                        Dim valueText As String = GetDecimalLiteralValueString(value) & GetTypeCharString(literal.GetTypeCharacter())
 
                         If Not CaseInsensitiveComparison.Equals(valueText, idText) Then
                             Return newNode.ReplaceToken(literal, CreateLiteralToken(literal, valueText, value))
                         End If
-                    Case SyntaxKind.IntegerLiteralToken
-                        ' Get the literal identifier text which needs to be pretty listed.
-                        Dim idText = literal.GetIdentifierText()
 
+                    Case SyntaxKind.IntegerLiteralToken
                         'The value will only ever be negative when we have a hex or oct value
                         'it's safe to cast to ULong as we check for negative values later
                         Dim value As ULong = CType(literal.Value, ULong)
@@ -88,9 +91,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         End If
 
                         Dim base = literal.GetBase()
-
-                        Const digitSeparator = "_"c
-                        If Not base.HasValue OrElse idText.Contains(digitSeparator) Then
+                        If Not base.HasValue OrElse idText.Contains(digitSeperator) Then
                             Return newNode
                         End If
 
@@ -100,6 +101,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         If Not CaseInsensitiveComparison.Equals(valueText, idText) Then
                             Return newNode.ReplaceToken(literal, CreateLiteralToken(literal, valueText, value))
                         End If
+
                 End Select
 
                 Return newNode
