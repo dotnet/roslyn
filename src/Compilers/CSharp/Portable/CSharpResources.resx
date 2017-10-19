@@ -1470,7 +1470,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
-    <value>Predefined type '{0}' is not defined or imported, or is declared in multiple referenced assemblies</value>
+    <value>Predefined type '{0}' is not defined or imported, or is declared in multiple referenced assemblies. {1}</value>
   </data>
   <data name="ERR_StructWithBaseConstructorCall" xml:space="preserve">
     <value>'{0}': structs cannot call base class constructors</value>
@@ -5209,5 +5209,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
+  </data>
+  <data name="ERR_TypeFoundInMultipleAssemblies" xml:space="preserve">
+    <value>The predefined type '{0}' is defined in multiple assemblies in the global alias, including '{1}' and '{2}'.</value>
   </data>
 </root>

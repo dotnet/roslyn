@@ -516,4 +516,23 @@ namespace Microsoft.CodeAnalysis
     {
         public abstract override string ToString();
     }
+
+    internal class NestedDiagnostics : IMessageSerializable
+    {
+        internal ImmutableArray<Diagnostic> Nested { get; set; }
+        internal NestedDiagnostics(ImmutableArray<Diagnostic> nested)
+        {
+            Nested = nested;
+        }
+
+        public override string ToString()
+        {
+            var builder = PooledObjects.PooledStringBuilder.GetInstance();
+            foreach (var diag in Nested)
+            {
+                builder.Builder.Append(diag.ToString());
+            }
+            return builder.ToStringAndFree();
+        }
+    }
 }

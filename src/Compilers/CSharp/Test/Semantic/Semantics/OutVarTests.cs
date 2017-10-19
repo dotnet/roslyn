@@ -204,7 +204,7 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x2").WithLocation(6, 28),
                 // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         Test1(out (var x1, var x2));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(var x1, var x2)").WithArguments("System.ValueTuple`2").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(var x1, var x2)").WithArguments("System.ValueTuple`2", "").WithLocation(6, 19),
                 // (6,19): error CS1510: A ref or out value must be an assignable variable
                 //         Test1(out (var x1, var x2));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(var x1, var x2)").WithLocation(6, 19)
@@ -254,7 +254,7 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "long x2").WithLocation(6, 28),
                 // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         Test1(out (int x1, long x2));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int x1, long x2)").WithArguments("System.ValueTuple`2").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int x1, long x2)").WithArguments("System.ValueTuple`2", "").WithLocation(6, 19),
                 // (6,19): error CS1510: A ref or out value must be an assignable variable
                 //         Test1(out (int x1, long x2));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int x1, long x2)").WithLocation(6, 19),
@@ -314,10 +314,10 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "byte x3").WithLocation(6, 38),
                 // (6,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(long x2, byte x3)").WithArguments("System.ValueTuple`2").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(long x2, byte x3)").WithArguments("System.ValueTuple`2", "").WithLocation(6, 28),
                 // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int x1, (long x2, byte x3))").WithArguments("System.ValueTuple`2").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int x1, (long x2, byte x3))").WithArguments("System.ValueTuple`2", "").WithLocation(6, 19),
                 // (6,19): error CS1510: A ref or out value must be an assignable variable
                 //         Test1(out (int x1, (long x2, byte x3)));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int x1, (long x2, byte x3))").WithLocation(6, 19),

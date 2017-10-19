@@ -1879,7 +1879,7 @@ class C
             comp.VerifyDiagnostics(
                 // (7,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var y = (x, x) = new C();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(x, x)").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(x, x)").WithArguments("System.ValueTuple`2", "").WithLocation(7, 17)
                 );
         }
 
@@ -3732,13 +3732,13 @@ class C1
             comp.VerifyDiagnostics(
                 // (4,32): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static void Test(int arg1, (byte, byte) arg2)
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(byte, byte)").WithArguments("System.ValueTuple`2").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(byte, byte)").WithArguments("System.ValueTuple`2", "").WithLocation(4, 32),
                 // (6,38): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         foreach ((int, int) e in new (int, int)[10])
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 38),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2", "").WithLocation(6, 38),
                 // (6,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         foreach ((int, int) e in new (int, int)[10])
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2", "").WithLocation(6, 18)
                 );
             // no crash
         }

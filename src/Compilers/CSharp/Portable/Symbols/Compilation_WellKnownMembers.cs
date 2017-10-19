@@ -135,18 +135,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var warnings = DiagnosticBag.GetInstance();
                 NamedTypeSymbol result;
 
+                // well-known types introduced before CSharp7 allow lookup ambiguity
+                AssemblySymbol.DuplicateHandling duplicateHandling = ignoreCorLibraryDuplicatedTypes
+                    ? AssemblySymbol.DuplicateHandling.IgnoreCorLibDuplicate
+                    : type <= WellKnownType.CSharp7Sentinel
+                        ? AssemblySymbol.DuplicateHandling.PickFirst
+                        : AssemblySymbol.DuplicateHandling.Strict;
+
                 if (IsTypeMissing(type))
                 {
                     result = null;
                 }
                 else
                 {
-                    // well-known types introduced before CSharp7 allow lookup ambiguity and report a warning
-                    DiagnosticBag legacyWarnings = (type <= WellKnownType.CSharp7Sentinel) ? warnings : null;
-
                     result = this.Assembly.GetTypeByMetadataName(
                         mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true,
-                        warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
+                        warnings: warnings, duplicateHandling: duplicateHandling);
                 }
 
                 if ((object)result == null)
@@ -156,11 +160,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (type.IsValueTupleType())
                     {
                         result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName,
-                                           new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName), type);
+                            new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName, new NestedDiagnostics(warnings.ToReadOnly())), type);
                     }
                     else
                     {
                         result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
+                    }
+
+                    if (duplicateHandling == AssemblySymbol.DuplicateHandling.Strict)
+                    {
+                        warnings.Clear();
                     }
                 }
 

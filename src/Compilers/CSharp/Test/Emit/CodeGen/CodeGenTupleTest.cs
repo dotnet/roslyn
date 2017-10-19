@@ -2803,12 +2803,12 @@ class C
 ";
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (6,9): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies.
                 //         (int, string) x = (1, "hello");
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, string)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
-                // (6,27): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, string)").WithArguments("System.ValueTuple`2", "").WithLocation(6, 9),
+                // (6,27): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies.
                 //         (int, string) x = (1, "hello");
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(1, ""hello"")").WithArguments("System.ValueTuple`2").WithLocation(6, 27),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(1, ""hello"")").WithArguments("System.ValueTuple`2", "").WithLocation(6, 27),
                 // (6,23): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         (int, string) x = (1, "hello");
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 23)
@@ -3194,12 +3194,12 @@ class C
 " + tupleattributes_cs;
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,12): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (10,12): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies.
                 //     static (T1 first, T2 second) M<T1, T2>()
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2").WithLocation(10, 12),
-                // (12,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2", "").WithLocation(10, 12),
+                // (12,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies.
                 //         return (default(T1), default(T2));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2").WithLocation(12, 16)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2", "").WithLocation(12, 16)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -3213,7 +3213,7 @@ class C
             Assert.Equal(TypeKind.Struct, mTuple.TypeKind);
             AssertTupleTypeEquality(mTuple);
             Assert.False(mTuple.IsImplicitlyDeclared);
-            Assert.Equal("Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies", mTuple.GetUseSiteDiagnostic().GetMessage(CultureInfo.InvariantCulture));
+            Assert.Equal("Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies. ", mTuple.GetUseSiteDiagnostic().GetMessage(CultureInfo.InvariantCulture));
             Assert.Null(mTuple.BaseType);
             Assert.False(((TupleTypeSymbol)mTuple).UnderlyingDefinitionToMemberMap.Any());
 
@@ -3275,9 +3275,9 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,12): error CS8179: Predefined type 'System.ValueTuple`8' is not defined or imported, or is declared in multiple referenced assemblies
+                // (8,12): error CS8179: Predefined type 'System.ValueTuple`8' is not defined or imported, or is declared in multiple referenced assemblies.
                 //     static (T1, T2, T3, T4, T5, T6, T7, T8, T9) M<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(T1, T2, T3, T4, T5, T6, T7, T8, T9)").WithArguments("System.ValueTuple`8").WithLocation(8, 12)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(T1, T2, T3, T4, T5, T6, T7, T8, T9)").WithArguments("System.ValueTuple`8", "").WithLocation(8, 12)
                 );
         }
 
@@ -4126,9 +4126,9 @@ class C3
     }
 }
 ";
-            var comp1 = CreateStandardCompilation(source1);
+            var comp1 = CreateStandardCompilation(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
-            var comp2 = CreateStandardCompilation(source2);
+            var comp2 = CreateStandardCompilation(source2, assemblyName: "comp2");
             comp2.VerifyDiagnostics();
             var comp = CreateStandardCompilation(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, options: TestOptions.ReleaseExe);
 
@@ -4171,13 +4171,13 @@ class C3
 }
 ";
             var comp1 = CreateStandardCompilation(trivial2uple, assemblyName: "comp1");
-            var comp2 = CreateStandardCompilation(trivial2uple);
+            var comp2 = CreateStandardCompilation(trivial2uple, assemblyName: "comp2");
 
             var comp = CreateStandardCompilation(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
             comp.VerifyDiagnostics(
-                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2", "error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(6, 17),
                 // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         var x = (1, 1);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
@@ -4197,16 +4197,16 @@ class C3
 }
 ";
             var comp1 = CreateStandardCompilation(trivial2uple, assemblyName: "comp1");
-            var comp2 = CreateStandardCompilation(trivial2uple);
+            var comp2 = CreateStandardCompilation(trivial2uple, assemblyName: "comp2");
 
             var comp = CreateStandardCompilation(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (6,9): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (int, int) x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
-                // (6,24): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2", "error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(6, 9),
+                // (6,24): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (int, int) x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2", "error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(6, 24),
                 // (6,20): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 20)
@@ -4223,16 +4223,16 @@ class C3
 }
 ";
             var comp1 = CreateStandardCompilation(trivial2uple, assemblyName: "comp1");
-            var comp2 = CreateStandardCompilation(trivial2uple);
+            var comp2 = CreateStandardCompilation(trivial2uple, assemblyName: "comp2");
 
             var comp = CreateStandardCompilation(source,
                 references: new[] { new CSharpCompilationReference(comp1),
                     new CSharpCompilationReference(comp2),
                     ValueTupleRef });
             comp.VerifyDiagnostics(
-                // (4,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (4,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     public void M((int, int) x) { }
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 19)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2", "error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(4, 19)
                 );
         }
 
@@ -5324,9 +5324,9 @@ class C3
             var comp = CreateStandardCompilation(source, references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() });
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (7,14): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         x.M1((1, 1));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2", "error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(7, 14),
                 // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
                 //         x.M1((1, 1));
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C1.M1(int, (int, int))", "C2.M1(int, (int, int))").WithLocation(7, 11)
@@ -6784,28 +6784,28 @@ class C
                 // (12,37): error CS0029: Cannot implicitly convert type 'double' to 'int'
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9.1,10);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "9.1").WithArguments("double", "int").WithLocation(12, 37),
-                // (13,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported, or is declared in multiple referenced assemblies
+                // (13,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported, or is declared in multiple referenced assemblies.
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,;
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,").WithArguments("System.ValueTuple`3").WithLocation(13, 13),
-                // (14,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported, or is declared in multiple referenced assemblies
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,").WithArguments("System.ValueTuple`3", "").WithLocation(13, 13),
+                // (14,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported, or is declared in multiple referenced assemblies.
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"((0, 0),1,2,3,4,5,6,7,8,9
-").WithArguments("System.ValueTuple`3").WithLocation(14, 13),
+").WithArguments("System.ValueTuple`3", "").WithLocation(14, 13),
                 // (15,29): error CS0103: The name 'oops' does not exist in the current context
                 //         x = ((0, 0),1,2,3,4,oops,6,7,oopsss,9,10);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "oops").WithArguments("oops").WithLocation(15, 29),
                 // (15,38): error CS0103: The name 'oopsss' does not exist in the current context
                 //         x = ((0, 0),1,2,3,4,oops,6,7,oopsss,9,10);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "oopsss").WithArguments("oopsss").WithLocation(15, 38),
-                // (17,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported, or is declared in multiple referenced assemblies
+                // (17,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported, or is declared in multiple referenced assemblies.
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple`3").WithLocation(17, 13),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple`3", "").WithLocation(17, 13),
                 // (17,13): error CS0029: Cannot implicitly convert type '((int, int), int, int, int, int, int, int, int, int, int)' to '((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)'
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("((int, int), int, int, int, int, int, int, int, int, int)", "((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)").WithLocation(17, 13),
-                // (18,37): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported, or is declared in multiple referenced assemblies
+                // (18,37): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported, or is declared in multiple referenced assemblies.
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,(1,1,1), 10);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1,1,1)").WithArguments("System.ValueTuple`3").WithLocation(18, 37),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1,1,1)").WithArguments("System.ValueTuple`3", "").WithLocation(18, 37),
                 // (18,37): error CS0029: Cannot implicitly convert type '(int, int, int)' to 'int'
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,(1,1,1), 10);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1,1,1)").WithArguments("(int, int, int)", "int").WithLocation(18, 37)
@@ -15484,9 +15484,9 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2", "error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(6, 17)
                 );
 
             comp = CreateStandardCompilation(source,
@@ -15495,9 +15495,9 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2", "error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(6, 17)
                 );
 
             comp = CreateStandardCompilation(source,
@@ -15546,9 +15546,9 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (6,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         "x".M1((1, null));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2", "error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(6, 16)
                 );
 
             comp = CreateStandardCompilation(source3,
@@ -15618,12 +15618,12 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,16): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported, or is declared in multiple referenced assemblies
+                // (6,16): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2, T3>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`3").WithLocation(6, 16),
-                // (6,16): error CS8179: Predefined type 'System.ValueTuple`8' is not defined or imported, or is declared in multiple referenced assemblies
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`3", "error CS8355: The predefined type 'ValueTuple<T1, T2, T3>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(6, 16),
+                // (6,16): error CS8179: Predefined type 'System.ValueTuple`8' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`8").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`8", "error CS8355: The predefined type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(6, 16)
                 );
 
             comp = CreateStandardCompilation(source3,
@@ -20454,9 +20454,9 @@ public class S
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,5): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (4,5): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies.
                 //     (int, int) t = null;
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 5),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2", "").WithLocation(4, 5),
                 // (4,20): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
                 //     (int, int) t = null;
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(4, 20)
@@ -20508,13 +20508,12 @@ class C3
                         options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (7,14): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies. error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         x.M1((1, 1));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2", "error CS8355: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias, including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.").WithLocation(7, 14),
                 // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
                 //         x.M1((1, 1));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C1.M1(int, (int, int))", "C2.M1(int, (int, int))").WithLocation(7, 11)
-                );
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C1.M1(int, (int, int))", "C2.M1(int, (int, int))").WithLocation(7, 11));
         }
 
         [Fact, WorkItem(12952, "https://github.com/dotnet/roslyn/issues/12952")]
