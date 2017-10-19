@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return DirectCast(node, TypeStatementSyntax).Parent
         End Function
 
-        Protected Overrides Function TryGetLastStatement(blockStatement As IBlockStatement) As SyntaxNode
+        Protected Overrides Function TryGetLastStatement(blockStatement As IBlockOperation) As SyntaxNode
             Return DirectCast(blockStatement.Syntax, MethodBlockBaseSyntax).Statements.LastOrDefault()
         End Function
 

@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
                     enforcementLevel: DiagnosticSeverity.Hidden));
 
-        protected abstract SyntaxNode TryGetLastStatement(IBlockStatement blockStatementOpt);
+        protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, TMemberDeclarationSyntax memberDeclaration,
-            IBlockStatement blockStatementOpt, CancellationToken cancellationToken)
+            IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             // Only supported for constructor parameters.
             var methodSymbol = parameter.ContainingSymbol as IMethodSymbol;
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private async Task<Document> AddSymbolInitializationAsync(
             Document document, IParameterSymbol parameter, TMemberDeclarationSyntax memberDeclaration,
-            IBlockStatement blockStatementOpt, ISymbol fieldOrProperty, CancellationToken cancellationToken)
+            IBlockOperation blockStatementOpt, ISymbol fieldOrProperty, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private CodeGenerationOptions GetAddOptions<TSymbol>(
-            IParameterSymbol parameter, IBlockStatement blockStatementOpt,
+            IParameterSymbol parameter, IBlockOperation blockStatementOpt,
             SyntaxNode typeDeclaration, CancellationToken cancellationToken)
             where TSymbol : ISymbol
         {
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private SyntaxNode TryGetStatementToAddInitializationAfter(
             SemanticModel semanticModel,
             IParameterSymbol parameter,
-            IBlockStatement blockStatementOpt,
+            IBlockOperation blockStatementOpt,
             CancellationToken cancellationToken)
         {
             var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
@@ -347,8 +347,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     methodSymbol.Parameters[i], blockStatementOpt);
                 if (statement != null)
                 {
-                    var statementIndex = blockStatementOpt.Statements.IndexOf(statement);
-                    return statementIndex > 0 ? blockStatementOpt.Statements[statementIndex - 1].Syntax : null;
+                    var statementIndex = blockStatementOpt.Operations.IndexOf(statement);
+                    return statementIndex > 0 ? blockStatementOpt.Operations[statementIndex - 1].Syntax : null;
                 }
             }
 
@@ -357,16 +357,16 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return TryGetLastStatement(blockStatementOpt);
         }
 
-        private IOperation TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockStatement blockStatementOpt)
+        private IOperation TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation blockStatementOpt)
             => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatementOpt, out var fieldOrProperty);
 
         private IOperation TryFindFieldOrPropertyAssignmentStatement(
-            IParameterSymbol parameter, IBlockStatement blockStatementOpt, out ISymbol fieldOrProperty)
+            IParameterSymbol parameter, IBlockOperation blockStatementOpt, out ISymbol fieldOrProperty)
         {
             if (blockStatementOpt != null)
             {
                 var containingType = parameter.ContainingType;
-                foreach (var statement in blockStatementOpt.Statements)
+                foreach (var statement in blockStatementOpt.Operations)
                 {
                     // look for something of the form:  "this.s = s" or "this.s = s ?? ..."
                     if (IsFieldOrPropertyAssignment(statement, containingType, out var assignmentExpression, out fieldOrProperty) &&
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private static bool IsParameterReferenceOrCoalesceOfParameterReference(
-           IAssignmentExpression assignmentExpression, IParameterSymbol parameter)
+           IAssignmentOperation assignmentExpression, IParameterSymbol parameter)
         {
             if (IsParameterReference(assignmentExpression.Value, parameter))
             {
@@ -391,8 +391,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return true;
             }
 
-            if (UnwrapImplicitConversion(assignmentExpression.Value) is ICoalesceExpression coalesceExpression &&
-                IsParameterReference(coalesceExpression.Expression, parameter))
+            if (UnwrapImplicitConversion(assignmentExpression.Value) is ICoalesceOperation coalesceExpression &&
+                IsParameterReference(coalesceExpression.Value, parameter))
             {
                 // We already have a member initialized with this parameter like:
                 //      this.field = parameter ?? ...
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private async Task<ISymbol> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
-            Document document, IParameterSymbol parameter, IBlockStatement blockStatementOpt, CancellationToken cancellationToken)
+            Document document, IParameterSymbol parameter, IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             // Look for a field/property that really looks like it corresponds to this parameter.
             // Use a variety of heuristics around the name/type to see if this is a match.
@@ -457,14 +457,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private bool ContainsMemberAssignment(
-            IBlockStatement blockStatementOpt, ISymbol member)
+            IBlockOperation blockStatementOpt, ISymbol member)
         {
             if (blockStatementOpt != null)
             {
-                foreach (var statement in blockStatementOpt.Statements)
+                foreach (var statement in blockStatementOpt.Operations)
                 {
                     if (IsFieldOrPropertyAssignment(statement, member.ContainingType, out var assignmentExpression) &&
-                        UnwrapImplicitConversion(assignmentExpression.Target) is IMemberReferenceExpression memberReference &&
+                        UnwrapImplicitConversion(assignmentExpression.Target) is IMemberReferenceOperation memberReference &&
                         member.Equals(memberReference.Member))
                     {
                         return true;

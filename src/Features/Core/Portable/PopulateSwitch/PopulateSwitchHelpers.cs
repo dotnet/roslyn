@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public const string MissingCases = nameof(MissingCases);
         public const string MissingDefaultCase = nameof(MissingDefaultCase);
 
-        public static bool HasDefaultCase(ISwitchStatement switchStatement)
+        public static bool HasDefaultCase(ISwitchOperation switchStatement)
         {
             for (var index = switchStatement.Cases.Length - 1; index >= 0; index--)
             {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return false;
         }
 
-        private static bool HasDefaultCase(ISwitchCase switchCase)
+        private static bool HasDefaultCase(ISwitchCaseOperation switchCase)
         {
             foreach (var clause in switchCase.Clauses)
             {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return false;
         }
 
-        public static ICollection<ISymbol> GetMissingEnumMembers(ISwitchStatement switchStatement)
+        public static ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation switchStatement)
         {
             var switchExpression = switchStatement.Value;
             var switchExpressionType = switchExpression?.Type;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return enumMembers.Values;
         }
 
-        private static bool TryRemoveExistingEnumMembers(ISwitchStatement switchStatement, Dictionary<long, ISymbol> enumValues)
+        private static bool TryRemoveExistingEnumMembers(ISwitchOperation switchStatement, Dictionary<long, ISymbol> enumValues)
         {
             foreach (var switchCase in switchStatement.Cases)
             {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                             continue;
 
                         case CaseKind.SingleValue:
-                            var value = ((ISingleValueCaseClause)clause).Value;
+                            var value = ((ISingleValueCaseClauseOperation)clause).Value;
                             if (value == null || !value.ConstantValue.HasValue)
                             {
                                 // We had a case which didn't resolve properly.  

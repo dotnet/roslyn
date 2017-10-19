@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             => s_registerMethod.Invoke(context, new object[]
                {
                    new Action<OperationAnalysisContext>(AnalyzeOperation),
-                   ImmutableArray.Create(OperationKind.SwitchStatement)
+                   ImmutableArray.Create(OperationKind.Switch)
                });
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var switchOperation = (ISwitchStatement)context.Operation;
+            var switchOperation = (ISwitchOperation)context.Operation;
             var switchBlock = switchOperation.Syntax;
             var tree = switchBlock.SyntaxTree;
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         #endregion
 
         private bool SwitchIsIncomplete(
-            ISwitchStatement switchStatement,
+            ISwitchOperation switchStatement,
             out bool missingCases, out bool missingDefaultCase)
         {
             var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement);

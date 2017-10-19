@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
             => InitializeParameterHelpers.GetBody(containingMember);
 
-        protected override SyntaxNode TryGetLastStatement(IBlockStatement blockStatementOpt)
+        protected override SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
             => InitializeParameterHelpers.TryGetLastStatement(blockStatementOpt);
 
         protected override void InsertStatement(SyntaxEditor editor, BaseMethodDeclarationSyntax methodDeclaration, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public static bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => compilation.ClassifyConversion(source: source, destination: destination).IsImplicit;
 
-        public static SyntaxNode TryGetLastStatement(IBlockStatement blockStatementOpt)
+        public static SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
             => blockStatementOpt?.Syntax is BlockSyntax block
                 ? block.Statements.LastOrDefault()
                 : blockStatementOpt?.Syntax;
