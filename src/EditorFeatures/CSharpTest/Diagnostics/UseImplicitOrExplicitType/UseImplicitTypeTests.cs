@@ -1749,5 +1749,86 @@ class C
 }",
 options: ImplicitTypeEverywhere());
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class C
+{
+    static void M()
+    {
+        [|Span<int>|] x = stackalloc int [10];
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class C
+{
+    static void M(bool choice)
+    {
+        [|Span<int>|] x = choice ? stackalloc int [10] : stackalloc int [100];
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class C
+{
+    static void M()
+    {
+        [|Span<int>|] x = (Span<int>)stackalloc int [100];
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task DoNotSuggestVarOnStackAllocExpressions_PointerType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    unsafe static void M()
+    {
+        [|int*|] x = stackalloc int [10];
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }
