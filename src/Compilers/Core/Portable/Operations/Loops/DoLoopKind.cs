@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents different kinds of do loop statements.
+    /// Represents different kinds of do loop operations.
     /// </summary>
     public enum DoLoopKind
     {

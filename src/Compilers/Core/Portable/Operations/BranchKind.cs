@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Kind of the branch for an <see cref="IBranchStatement"/>
+    /// Kind of the branch for an <see cref="IBranchOperation"/>
     /// </summary>
     public enum BranchKind
     {

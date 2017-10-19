@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return ImmutableArray.Create(Create(statement));
         }
 
-        internal IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
+        internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
         {
             var value = Create(expression);
 
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isImplicit: expression.WasCompilerGenerated || argument == null);
         }
 
-        private IVariableDeclaration CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        private IVariableDeclarationOperation CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
-            IVariableInitializer initializer = null;
+            IVariableInitializerOperation initializer = null;
             if (boundLocalDeclaration.InitializerOpt != null)
             {
                 IOperation initializerValue = Create(boundLocalDeclaration.InitializerOpt);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, initializer, _semanticModel, syntax);
         }
 
-        private IVariableDeclaration CreateVariableDeclaration(BoundLocal boundLocal)
+        private IVariableDeclarationOperation CreateVariableDeclaration(BoundLocal boundLocal)
         {
             return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
         }
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return Create(boundCall.ReceiverOpt);
         }
 
-        private IEventReferenceExpression CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
+        private IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
             SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
             // BoundEventAssignmentOperator doesn't hold on to BoundEventAccess provided during binding.
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyEventReferenceExpression(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
         }
 
-        private ImmutableArray<IArgument> DeriveArguments(
+        private ImmutableArray<IArgumentOperation> DeriveArguments(
             BoundNode boundNode,
             Binder binder,
             Symbol methodOrIndexer,
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             // - if boundArguments is empty, then either there's error or we need to provide values for optional/param-array parameters. 
             if (parameters.IsDefaultOrEmpty && boundArguments.IsDefaultOrEmpty)
             {
-                return ImmutableArray<IArgument>.Empty;
+                return ImmutableArray<IArgumentOperation>.Empty;
             }
 
             //TODO: https://github.com/dotnet/roslyn/issues/18722
@@ -188,25 +188,25 @@ namespace Microsoft.CodeAnalysis.Semantics
             return builder.ToImmutableAndFree();
         }
 
-        private ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)
+        private ImmutableArray<ISwitchCaseOperation> GetSwitchStatementCases(BoundSwitchStatement statement)
         {
             return statement.SwitchSections.SelectAsArray(switchSection =>
             {
-                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
+                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
+                return (ISwitchCaseOperation)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
 
-        private ImmutableArray<ISwitchCase> GetPatternSwitchStatementCases(BoundPatternSwitchStatement statement)
+        private ImmutableArray<ISwitchCaseOperation> GetPatternSwitchStatementCases(BoundPatternSwitchStatement statement)
         {
             return statement.SwitchSections.SelectAsArray(switchSection =>
             {
-                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
+                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
+                return (ISwitchCaseOperation)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
 

@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Kinds of loop statements.
+    /// Kinds of loop operations.
     /// </summary>
     public enum LoopKind
     {
@@ -13,27 +13,27 @@ namespace Microsoft.CodeAnalysis.Semantics
         None = 0x0,
 
         /// <summary>
-        /// Represents a <see cref="IDoLoopStatement"/> in C# or VB.
+        /// Represents an <see cref="IDoLoopOperation"/> in C# or VB.
         /// </summary>
         Do = 0x1,
 
         /// <summary>
-        /// Represents a <see cref="IWhileLoopStatement"/> in C# or VB.
+        /// Represents an <see cref="IWhileLoopOperation"/> in C# or VB.
         /// </summary>
         While = 0x2,
         
         /// <summary>
-        /// Indicates a <see cref="IForLoopStatement"/> in C#.
+        /// Indicates an <see cref="IForLoopOperation"/> in C#.
         /// </summary>
         For = 0x3,
         
         /// <summary>
-        /// Indicates a <see cref="IForToLoopStatement"/> in VB.
+        /// Indicates an <see cref="IForToLoopOperation"/> in VB.
         /// </summary>
         ForTo = 0x4,
         
         /// <summary>
-        /// Indicates a <see cref="IForEachLoopStatement"/> in C# or VB.
+        /// Indicates an <see cref="IForEachLoopOperation"/> in C# or VB.
         /// </summary>
         ForEach = 0x5
     }
