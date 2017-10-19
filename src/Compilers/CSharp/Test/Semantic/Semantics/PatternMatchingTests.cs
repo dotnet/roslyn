@@ -3656,7 +3656,7 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
                 // (8,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, object.Equals)").WithArguments("System.ValueTuple`2").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, object.Equals)").WithArguments("System.ValueTuple`2", "").WithLocation(8, 17),
                 // (8,17): error CS0023: Operator 'is' cannot be applied to operand of type '(int, method group)'
                 //             if ((1, object.Equals) is()) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, object.Equals) is()").WithArguments("is", "(int, method group)").WithLocation(8, 17)
@@ -3696,7 +3696,7 @@ public class Vec
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is 3").WithLocation(8, 13),
                 // (9,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         if ((1, null) is 4) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(9, 13),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2", "").WithLocation(9, 13),
                 // (9,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is 4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
@@ -3711,7 +3711,7 @@ public class Vec
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is var x3").WithLocation(12, 13),
                 // (13,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         if ((1, null) is var x4) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(13, 13),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2", "").WithLocation(13, 13),
                 // (13,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is var x4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is var x4").WithArguments("is", "(int, <null>)").WithLocation(13, 13)

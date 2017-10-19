@@ -7919,7 +7919,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported, or is declared in multiple referenced assemblies.
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported, or is declared in multiple referenced assemblies. {1}.
         /// </summary>
         internal static string ERR_PredefinedValueTupleTypeNotFound {
             get {
@@ -9391,6 +9391,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TypeForwardedToMultipleAssemblies {
             get {
                 return ResourceManager.GetString("ERR_TypeForwardedToMultipleAssemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The predefined type &apos;{0}&apos; is defined in multiple assemblies in the global alias, including &apos;{1}&apos; and &apos;{2}&apos;..
+        /// </summary>
+        internal static string ERR_TypeFoundInMultipleAssemblies {
+            get {
+                return ResourceManager.GetString("ERR_TypeFoundInMultipleAssemblies", resourceCulture);
             }
         }
         

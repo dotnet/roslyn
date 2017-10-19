@@ -1250,7 +1250,7 @@ class C
             comp.VerifyDiagnostics(
                 // (7,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)
                 //         (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 2)").WithArguments("System.ValueTuple`2").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 2)").WithArguments("System.ValueTuple`2", "").WithLocation(7, 18)
                 );
         }
 

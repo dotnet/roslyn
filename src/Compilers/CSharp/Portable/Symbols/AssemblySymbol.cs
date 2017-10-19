@@ -539,8 +539,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="warnings">
         /// A diagnostic bag to receive warnings if we should allow multiple definitions and pick one.
         /// </param>
-        /// <param name="ignoreCorLibraryDuplicatedTypes">
-        /// In case duplicate types are found, ignore the one from corlib. This is useful for any kind of compilation at runtime
+        /// <param name="duplicateHandling">
+        /// If IgnoreCorLibDuplicate, when duplicate types are found, ignore the one from corlib. This is useful for any kind of compilation at runtime
         /// (EE/scripting/Powershell) using a type that is being migrated to corlib.
         /// </param>
         /// <returns>Null if the type can't be found.</returns>
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isWellKnownType,
             bool useCLSCompliantNameArityEncoding = false,
             DiagnosticBag warnings = null,
-            bool ignoreCorLibraryDuplicatedTypes = false)
+            DuplicateHandling duplicateHandling = DuplicateHandling.PickFirst)
         {
             NamedTypeSymbol type;
             MetadataTypeName mdName;
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(parts.Length > 0);
                 mdName = MetadataTypeName.FromFullName(parts[0], useCLSCompliantNameArityEncoding);
                 type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType,
-                    warnings: warnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
+                    warnings: warnings, duplicateHandling: duplicateHandling);
 
                 for (int i = 1; (object)type != null && !type.IsErrorType() && i < parts.Length; i++)
                 {
@@ -574,10 +574,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 mdName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding);
                 type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType,
-                    warnings: warnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
+                    warnings: warnings, duplicateHandling: duplicateHandling);
             }
 
             return ((object)type == null || type.IsErrorType()) ? null : type;
+        }
+
+        internal enum DuplicateHandling
+        {
+            PickFirst = 0,
+            Strict = 1,
+            IgnoreCorLibDuplicate = 2
         }
 
         private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
@@ -728,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool includeReferences,
             bool isWellKnownType,
             DiagnosticBag warnings = null,
-            bool ignoreCorLibraryDuplicatedTypes = false)
+            DuplicateHandling duplicateHandling = DuplicateHandling.PickFirst)
         {
             NamedTypeSymbol result;
 
@@ -788,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)result != null)
                 {
                     // duplicate
-                    if (ignoreCorLibraryDuplicatedTypes)
+                    if (duplicateHandling == DuplicateHandling.IgnoreCorLibDuplicate)
                     {
                         if (IsInCorLib(candidate))
                         {
@@ -807,10 +814,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         result = null;
                     }
-                    else
+                    else if (duplicateHandling == DuplicateHandling.PickFirst)
                     {
                         // The predefined type '{0}' is defined in multiple assemblies in the global alias; using definition from '{1}'
                         warnings.Add(ErrorCode.WRN_MultiplePredefTypes, NoLocation.Singleton, result, result.ContainingAssembly);
+                    }
+                    else
+                    {
+                        Debug.Assert(duplicateHandling == DuplicateHandling.Strict);
+                        warnings.Add(ErrorCode.ERR_TypeFoundInMultipleAssemblies, NoLocation.Singleton, result,
+                            result.ContainingAssembly, candidate.ContainingAssembly);
+
+                        result = null;
                     }
 
                     break;
