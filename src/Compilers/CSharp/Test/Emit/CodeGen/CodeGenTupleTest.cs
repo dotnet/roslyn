@@ -24240,5 +24240,39 @@ class C
 
             Assert.Equal("(System.Int32 A, System.Object B)", tupleSymbol.ConvertedType.ToTestDisplayString());
         }
+
+        [Fact]
+        public void SettingMembersOfReadOnlyTuple()
+        {
+            var text = @"
+public class C
+{
+    public static void Main()
+    {
+        var tuple = (1, 2);
+
+        tuple.Item1 = 3;
+    }
+}
+namespace System
+{
+    public readonly struct ValueTuple<T1, T2>
+    {
+        public readonly T1 Item1;
+        public readonly T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (10,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                //         tuple.Item1 = 3;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "tuple.Item1").WithLocation(8, 9));
+        }
     }
 }
