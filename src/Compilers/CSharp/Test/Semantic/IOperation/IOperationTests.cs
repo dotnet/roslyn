@@ -46,32 +46,32 @@ public class Cls
             var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
             compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
-@"IInvocationExpression (void Cls.Test1(params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Test1(null)')
+@"IInvocationOperation (void Cls.Test1(params System.Int32[] x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test1(null)')
   Instance Receiver: 
     null
   Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'null')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32[]) (Syntax: 'null')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
 
             compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IInvocationExpression (void Cls.Test2(System.Int32 y, params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
+@"IInvocationOperation (void Cls.Test2(System.Int32 y, params System.Int32[] x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
   Instance Receiver: 
     null
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'new object()')
-        IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'new object()')
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: System.Object, IsInvalid) (Syntax: 'new object()')
+        IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'new object()')
           Arguments(0)
           Initializer: 
             null
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'null')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: null) (Syntax: 'null')
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
         }
@@ -104,20 +104,20 @@ public class C
             Assert.Equal("(x, y, z) = (1, 2, 3)", assignments[0].ToString());
             IOperation operation1 = model.GetOperation(assignments[0]);
             Assert.NotNull(operation1);
-            Assert.Equal(OperationKind.DeconstructionAssignmentExpression, operation1.Kind);
-            Assert.False(operation1 is ISimpleAssignmentExpression);
+            Assert.Equal(OperationKind.DeconstructionAssignment, operation1.Kind);
+            Assert.False(operation1 is ISimpleAssignmentOperation);
 
             Assert.Equal("(x, y, z) = new C()", assignments[1].ToString());
             IOperation operation2 = model.GetOperation(assignments[1]);
             Assert.NotNull(operation2);
-            Assert.Equal(OperationKind.DeconstructionAssignmentExpression, operation2.Kind);
-            Assert.False(operation2 is ISimpleAssignmentExpression);
+            Assert.Equal(OperationKind.DeconstructionAssignment, operation2.Kind);
+            Assert.False(operation2 is ISimpleAssignmentOperation);
 
             Assert.Equal("var (a, b) = (1, 2)", assignments[2].ToString());
             IOperation operation3 = model.GetOperation(assignments[2]);
             Assert.NotNull(operation3);
-            Assert.Equal(OperationKind.DeconstructionAssignmentExpression, operation3.Kind);
-            Assert.False(operation3 is ISimpleAssignmentExpression);
+            Assert.Equal(OperationKind.DeconstructionAssignment, operation3.Kind);
+            Assert.False(operation3 is ISimpleAssignmentOperation);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

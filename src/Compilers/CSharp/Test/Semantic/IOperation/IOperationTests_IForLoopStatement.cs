@@ -29,46 +29,46 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 3')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 3')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x * 3;')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = x * 3;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = x * 3')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = x * 3')
             Left: 
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+              ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x * 3')
+              IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x * 3')
                 Left: 
-                  ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -94,43 +94,43 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (j = 0; ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (j = 0; ... }')
   Condition: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Before:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = 0')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = 0')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = j + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = j + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                 Left: 
-                  ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                  ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = i + 1;')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = i + 1;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -156,43 +156,43 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (j = 0; ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (j = 0; ... }')
   Condition: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
   Before:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = 0')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = 0')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = j + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = j + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                 Left: 
-                  ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                  ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = i + 1;')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = i + 1;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -218,64 +218,64 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i = 0, ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (i = 0, ... }')
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = 0')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 0')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = 0')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IIfStatement (OperationKind.IfStatement) (Syntax: 'if (i > 2) continue;')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'if (i > 2) continue;')
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 2')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 2')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-        IfTrue: 
-          IBranchStatement (BranchKind.Continue) (OperationKind.BranchStatement) (Syntax: 'continue;')
-        IfFalse: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        WhenTrue: 
+          IBranchOperation (BranchKind.Continue) (OperationKind.Branch, Type: null) (Syntax: 'continue;')
+        WhenFalse: 
           null
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'j = j + 1;')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = j + 1;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                 Left: 
-                  ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                  ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -301,64 +301,64 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i = 0, ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (i = 0, ... }')
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = 0')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 0')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = 0')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IIfStatement (OperationKind.IfStatement) (Syntax: 'if (i > 3) break;')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'if (i > 3) break;')
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 3')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 3')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-        IfTrue: 
-          IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
-        IfFalse: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+        WhenTrue: 
+          IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+        WhenFalse: 
           null
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'j = j + 1;')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = j + 1;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                 Left: 
-                  ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                  ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -383,35 +383,35 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (;;) ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (;;) ... }')
   Condition: 
     null
   Before(0)
   AtLoopBottom(0)
   Body: 
-    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IIfStatement (OperationKind.IfStatement) (Syntax: 'if (i > 4) break;')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'if (i > 4) break;')
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 4')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 4')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
-        IfTrue: 
-          IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
-        IfFalse: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+        WhenTrue: 
+          IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+        WhenFalse: 
           null
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = i + 2;')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = i + 2;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 2')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 2')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 2')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 2')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -435,61 +435,61 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i = i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (i = i  ... }')
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 2')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 2')
       Left: 
-        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
   Before:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 2')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 2')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 2')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 2')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 2')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 2')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = j + 1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = j + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                 Left: 
-                  ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                  ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -512,28 +512,28 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (; i <  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (; i <  ... }')
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before(0)
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -555,35 +555,35 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int k  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int k  ... }')
   Locals: Local_1: System.Int32 k
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'k > 100')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'k > 100')
       Left: 
-        ILocalReferenceExpression: k (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'k')
+        ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int k = 200')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'k = 200')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int k = 200')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'k = 200')
           Variables: Local_1: System.Int32 k
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 200')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 200) (Syntax: '200')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 200')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 200) (Syntax: '200')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'k = k - 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'k = k - 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'k = k - 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'k = k - 1')
             Left: 
-              ILocalReferenceExpression: k (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'k')
+              ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'k - 1')
+              IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'k - 1')
                 Left: 
-                  ILocalReferenceExpression: k (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'k')
+                  ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -609,28 +609,28 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (Initia ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (Initia ... }')
   Condition: 
-    IInvocationExpression (System.Boolean C.Conditional()) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'Conditional()')
+    IInvocationOperation (System.Boolean C.Conditional()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Conditional()')
       Instance Receiver: 
         null
       Arguments(0)
   Before:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'Initializer()')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Initializer()')
         Expression: 
-          IInvocationExpression (System.Int32 C.Initializer()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Initializer()')
+          IInvocationOperation (System.Int32 C.Initializer()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Initializer()')
             Instance Receiver: 
               null
             Arguments(0)
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'Iterator()')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Iterator()')
         Expression: 
-          IInvocationExpression (System.Int32 C.Iterator()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Iterator()')
+          IInvocationOperation (System.Int32 C.Iterator()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Iterator()')
             Instance Receiver: 
               null
             Arguments(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -649,35 +649,35 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ...  = i + 1) ;')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ...  = i + 1) ;')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 100')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 100')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 10')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 10')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 10')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 10')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 10')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 10')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IEmptyStatement (OperationKind.EmptyStatement) (Syntax: ';')
+    IEmptyOperation (OperationKind.Empty, Type: null) (Syntax: ';')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -701,64 +701,64 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 100')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 100')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
+            IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int j = 0')
+              IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = 0')
                 Variables: Local_1: System.Int32 j
                 Initializer: 
-                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         AtLoopBottom:
-            IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = j + 1')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = j + 1')
               Expression: 
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
                   Left: 
-                    ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                    ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                       Left: 
-                        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Body: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -784,71 +784,71 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
+            IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int j = 0')
+              IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = 0')
                 Variables: Local_1: System.Int32 j
                 Initializer: 
-                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         AtLoopBottom:
-            IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = j + 1')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = j + 1')
               Expression: 
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
                   Left: 
-                    ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                    ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                       Left: 
-                        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Body: 
-          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 1;')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
               Expression: 
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
                   Left: 
-                    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   Right: 
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -873,68 +873,68 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < j')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < j')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = i + 1')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = i + 1')
+            IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int j = i + 1')
+              IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = i + 1')
                 Variables: Local_1: System.Int32 j
                 Initializer: 
-                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i + 1')
-                    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                       Left: 
-                        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         AtLoopBottom:
-            IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = j - 1')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = j - 1')
               Expression: 
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j - 1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j - 1')
                   Left: 
-                    ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                    ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperatorExpression (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j - 1')
+                    IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j - 1')
                       Left: 
-                        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Body: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -961,74 +961,74 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
+            IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int j = 0')
+              IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = 0')
                 Variables: Local_1: System.Int32 j
                 Initializer: 
-                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         AtLoopBottom:
-            IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = j + 1')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = j + 1')
               Expression: 
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
                   Left: 
-                    ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                    ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                       Left: 
-                        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Body: 
-          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IIfStatement (OperationKind.IfStatement) (Syntax: 'if (j == 5) ... break;')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'if (j == 5) ... break;')
               Condition: 
-                IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j == 5')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j == 5')
                   Left: 
-                    ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                    ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
-              IfTrue: 
-                IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
-              IfFalse: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+              WhenTrue: 
+                IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+              WhenFalse: 
                 null
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
@@ -1057,98 +1057,98 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 1')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 1')
+            IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int j = 1')
+              IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = 1')
                 Variables: Local_1: System.Int32 j
                 Initializer: 
-                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         AtLoopBottom:
-            IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = j + 1')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = j + 1')
               Expression: 
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
                   Left: 
-                    ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                    ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                       Left: 
-                        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Body: 
-          IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IIfStatement (OperationKind.IfStatement) (Syntax: 'if ((j % 2) ... continue;')
+          IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'if ((j % 2) ... continue;')
               Condition: 
-                IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(j % 2) != 0')
+                IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(j % 2) != 0')
                   Left: 
-                    IBinaryOperatorExpression (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j % 2')
+                    IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j % 2')
                       Left: 
-                        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                   Right: 
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-              IfTrue: 
-                IBranchStatement (BranchKind.Continue) (OperationKind.BranchStatement) (Syntax: 'continue;')
-              IfFalse: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              WhenTrue: 
+                IBranchOperation (BranchKind.Continue) (OperationKind.Branch, Type: null) (Syntax: 'continue;')
+              WhenFalse: 
                 null
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = i + 1;')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = i + 1;')
               Expression: 
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
                   Left: 
-                    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   Right: 
-                    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                       Left: 
-                        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(i);')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
               Expression: 
-                IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
                   Instance Receiver: 
                     null
                   Arguments(1):
-                      IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
-                        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i')
+                        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1178,78 +1178,78 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
+            IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int j = 0')
+              IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = 0')
                 Variables: Local_1: System.Int32 j
                 Initializer: 
-                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         AtLoopBottom:
-            IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'j = j + 1')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = j + 1')
               Expression: 
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
                   Left: 
-                    ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                    ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                       Left: 
-                        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Body: 
-          IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IBranchStatement (BranchKind.GoTo, Label: stop) (OperationKind.BranchStatement) (Syntax: 'goto stop;')
-            ILabeledStatement (Label: stop) (OperationKind.LabeledStatement) (Syntax: 'stop: ... j = j + 1;')
+          IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IBranchOperation (BranchKind.GoTo, Label: stop) (OperationKind.Branch, Type: null) (Syntax: 'goto stop;')
+            ILabeledOperation (Label: stop) (OperationKind.Labeled, Type: null) (Syntax: 'stop: ... j = j + 1;')
               Statement: 
-                IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'j = j + 1;')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = j + 1;')
                   Expression: 
-                    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = j + 1')
                       Left: 
-                        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
-                        IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'j + 1')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
                           Left: 
-                            ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                            ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                           Right: 
-                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -1275,57 +1275,57 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
+            IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int j = 0')
+              IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = 0')
                 Variables: Local_1: System.Int32 j
                 Initializer: 
-                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         AtLoopBottom(0)
         Body: 
-          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'throw new S ... xception();')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'throw new S ... xception();')
               Expression: 
-                IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'throw new S ... xception();')
-                  IObjectCreationExpression (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new System.Exception()')
+                IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'throw new S ... xception();')
+                  IObjectCreationOperation (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new System.Exception()')
                     Arguments(0)
                     Initializer: 
                       null
@@ -1354,43 +1354,43 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom(0)
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 5')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 5')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
+            IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int j = 0')
+              IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = 0')
                 Variables: Local_1: System.Int32 j
                 Initializer: 
-                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         AtLoopBottom(0)
         Body: 
-          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return;')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return;')
               ReturnedValue: 
                 null
 ";
@@ -1415,48 +1415,48 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
     Local_2: System.Int32 j
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0, j = 1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0, j = 1')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 1')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = 1')
           Variables: Local_1: System.Int32 j
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'j = 2;')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = 2')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = 2')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -1481,61 +1481,61 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 50 - x')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 50 - x')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        IBinaryOperatorExpression (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '50 - x')
+        IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '50 - x')
           Left: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 50) (Syntax: '50')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 50) (Syntax: '50')
           Right: 
-            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + 1;')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = x + 1;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = x + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = x + 1')
             Left: 
-              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+              ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + 1')
                 Left: 
-                  ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'c = c + 1;')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = c + 1;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'c = c + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'c = c + 1')
             Left: 
-              ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'c')
+              ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'c')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'c + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'c + 1')
                 Left: 
-                  ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'c')
+                  ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'c')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -1557,21 +1557,21 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (; fals ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (; fals ... }')
   Condition: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
   Before(0)
   AtLoopBottom(0)
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... e(""hello"");')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... e(""hello"");')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... ne(""hello"")')
+          IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... ne(""hello"")')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""hello""')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""hello"") (Syntax: '""hello""')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '""hello""')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"") (Syntax: '""hello""')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1600,59 +1600,59 @@ public class F
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (F f =  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (F f =  ... }')
   Locals: Local_1: F f
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'f.i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'f.i < 5')
       Left: 
-        IFieldReferenceExpression: System.Int32 F.i (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'f.i')
+        IFieldReferenceOperation: System.Int32 F.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'f.i')
           Instance Receiver: 
-            ILocalReferenceExpression: f (OperationKind.LocalReferenceExpression, Type: F) (Syntax: 'f')
+            ILocalReferenceOperation: f (OperationKind.LocalReference, Type: F) (Syntax: 'f')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'F f = new F ... s = ""abc"" }')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'f = new F { ... s = ""abc"" }')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'F f = new F ... s = ""abc"" }')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'f = new F { ... s = ""abc"" }')
           Variables: Local_1: F f
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new F { i ... s = ""abc"" }')
-              IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'new F { i = ... s = ""abc"" }')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new F { i ... s = ""abc"" }')
+              IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new F { i = ... s = ""abc"" }')
                 Arguments(0)
                 Initializer: 
-                  IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F) (Syntax: '{ i = 0, s = ""abc"" }')
+                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ i = 0, s = ""abc"" }')
                     Initializers(2):
-                        ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 0')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 0')
                           Left: 
-                            IFieldReferenceExpression: System.Int32 F.i (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                            IFieldReferenceOperation: System.Int32 F.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
                               Instance Receiver: 
-                                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'i')
+                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: F) (Syntax: 'i')
                           Right: 
-                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                        ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 's = ""abc""')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 's = ""abc""')
                           Left: 
-                            IFieldReferenceExpression: System.String F.s (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 's')
+                            IFieldReferenceOperation: System.String F.s (OperationKind.FieldReference, Type: System.String) (Syntax: 's')
                               Instance Receiver: 
-                                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 's')
+                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: F) (Syntax: 's')
                           Right: 
-                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"") (Syntax: '""abc""')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""abc"") (Syntax: '""abc""')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'f.i = f.i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'f.i = f.i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'f.i = f.i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'f.i = f.i + 1')
             Left: 
-              IFieldReferenceExpression: System.Int32 F.i (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'f.i')
+              IFieldReferenceOperation: System.Int32 F.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'f.i')
                 Instance Receiver: 
-                  ILocalReferenceExpression: f (OperationKind.LocalReferenceExpression, Type: F) (Syntax: 'f')
+                  ILocalReferenceOperation: f (OperationKind.LocalReference, Type: F) (Syntax: 'f')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'f.i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'f.i + 1')
                 Left: 
-                  IFieldReferenceExpression: System.Int32 F.i (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'f.i')
+                  IFieldReferenceOperation: System.Int32 F.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'f.i')
                     Instance Receiver: 
-                      ILocalReferenceExpression: f (OperationKind.LocalReferenceExpression, Type: F) (Syntax: 'f')
+                      ILocalReferenceOperation: f (OperationKind.LocalReference, Type: F) (Syntax: 'f')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -1699,41 +1699,41 @@ public class myFor
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (d.Init ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (d.Init ... }')
   Condition: 
-    IUnaryOperatorExpression (UnaryOperatorKind.True) (OperationKind.UnaryOperatorExpression, Type: System.Boolean, IsImplicit) (Syntax: 'd.Done')
+    IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd.Done')
       Operand: 
-        IDynamicMemberReferenceExpression (Member Name: ""Done"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Done')
+        IDynamicMemberReferenceOperation (Member Name: ""Done"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Done')
           Type Arguments(0)
           Instance Receiver: 
-            ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+            ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
   Before:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'd.Initialize(5)')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'd.Initialize(5)')
         Expression: 
-          IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd.Initialize(5)')
+          IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd.Initialize(5)')
             Expression: 
-              IDynamicMemberReferenceExpression (Member Name: ""Initialize"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Initialize')
+              IDynamicMemberReferenceOperation (Member Name: ""Initialize"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Initialize')
                 Type Arguments(0)
                 Instance Receiver: 
-                  ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+                  ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
             Arguments(1):
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
             ArgumentNames(0)
             ArgumentRefKinds(0)
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'd.Next()')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'd.Next()')
         Expression: 
-          IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd.Next()')
+          IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd.Next()')
             Expression: 
-              IDynamicMemberReferenceExpression (Member Name: ""Next"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Next')
+              IDynamicMemberReferenceOperation (Member Name: ""Next"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Next')
                 Type Arguments(0)
                 Instance Receiver: 
-                  ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+                  ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
             Arguments(0)
             ArgumentNames(0)
             ArgumentRefKinds(0)
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
@@ -1754,35 +1754,35 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (var i  ...  = i + 1) ;')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (var i  ...  = i + 1) ;')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var i = 1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 1')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'var i = 1')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 1')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IEmptyStatement (OperationKind.EmptyStatement) (Syntax: ';')
+    IEmptyOperation (OperationKind.Empty, Type: null) (Syntax: ';')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -1813,56 +1813,56 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (IEnume ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (IEnume ... }')
   Locals: Local_1: System.Collections.Generic.IEnumerable<System.String> str
   Condition: 
     null
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'IEnumerable ... select w')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'str = from  ... select w')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'IEnumerable ... select w')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'str = from  ... select w')
           Variables: Local_1: System.Collections.Generic.IEnumerable<System.String> str
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= from x in ... select w')
-              ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x in "" ... select w')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= from x in ... select w')
+              ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x in "" ... select w')
                 Expression: 
-                  IInvocationExpression (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<System.String, System.String>(this System.Collections.Generic.IEnumerable<System.String> source, System.Func<System.String, System.String> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select w')
+                  IInvocationOperation (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<System.String, System.String>(this System.Collections.Generic.IEnumerable<System.String> source, System.Func<System.String, System.String> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select w')
                     Instance Receiver: 
                       null
                     Arguments(2):
-                        IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'select z')
-                          IInvocationExpression (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<<anonymous type: System.Char x, System.String z>, System.String>(this System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>> source, System.Func<<anonymous type: System.Char x, System.String z>, System.String> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select z')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select z')
+                          IInvocationOperation (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<<anonymous type: System.Char x, System.String z>, System.String>(this System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>> source, System.Func<<anonymous type: System.Char x, System.String z>, System.String> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select z')
                             Instance Receiver: 
                               null
                             Arguments(2):
-                                IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'let z = x.ToString()')
-                                  IInvocationExpression (System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>> System.Linq.Enumerable.Select<System.Char, <anonymous type: System.Char x, System.String z>>(this System.Collections.Generic.IEnumerable<System.Char> source, System.Func<System.Char, <anonymous type: System.Char x, System.String z>> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'let z = x.ToString()')
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'let z = x.ToString()')
+                                  IInvocationOperation (System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>> System.Linq.Enumerable.Select<System.Char, <anonymous type: System.Char x, System.String z>>(this System.Collections.Generic.IEnumerable<System.Char> source, System.Func<System.Char, <anonymous type: System.Char x, System.String z>> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'let z = x.ToString()')
                                     Instance Receiver: 
                                       null
                                     Arguments(2):
-                                        IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from x in ""123""')
-                                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
+                                          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
                                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                             Operand: 
-                                              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""123"") (Syntax: '""123""')
+                                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""123"") (Syntax: '""123""')
                                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'x.ToString()')
-                                          IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func<System.Char, <anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'x.ToString()')
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: System.Func<System.Char, <anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'x.ToString()')
+                                          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Char, <anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'x.ToString()')
                                             Target: 
-                                              IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'x.ToString()')
-                                                IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'x.ToString()')
-                                                  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x.ToString()')
+                                              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x.ToString()')
+                                                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x.ToString()')
+                                                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x.ToString()')
                                                     ReturnedValue: 
-                                                      IObjectCreationExpression (Constructor: <anonymous type: System.Char x, System.String z>..ctor(System.Char x, System.String z)) (OperationKind.ObjectCreationExpression, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'let z = x.ToString()')
+                                                      IObjectCreationOperation (Constructor: <anonymous type: System.Char x, System.String z>..ctor(System.Char x, System.String z)) (OperationKind.ObjectCreation, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                         Arguments(2):
-                                                            IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'let z = x.ToString()')
-                                                              IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
+                                                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
+                                                              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                            IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, IsImplicit) (Syntax: 'x.ToString()')
-                                                              IInvocationExpression (virtual System.String System.Char.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'x.ToString()')
+                                                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: System.String, IsImplicit) (Syntax: 'x.ToString()')
+                                                              IInvocationOperation (virtual System.String System.Char.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
                                                                 Instance Receiver: 
-                                                                  IOperation:  (OperationKind.None) (Syntax: 'x')
+                                                                  IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
                                                                 Arguments(0)
                                                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1872,54 +1872,54 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (IE
                                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'z')
-                                  IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func<<anonymous type: System.Char x, System.String z>, System.String>, IsImplicit) (Syntax: 'z')
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: System.Func<<anonymous type: System.Char x, System.String z>, System.String>, IsImplicit) (Syntax: 'z')
+                                  IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<<anonymous type: System.Char x, System.String z>, System.String>, IsImplicit) (Syntax: 'z')
                                     Target: 
-                                      IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'z')
-                                        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'z')
-                                          IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'z')
+                                      IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'z')
+                                        IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'z')
+                                          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'z')
                                             ReturnedValue: 
-                                              IOperation:  (OperationKind.None) (Syntax: 'z')
+                                              IOperation:  (OperationKind.None, Type: null) (Syntax: 'z')
                                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'w')
-                          IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'w')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'w')
+                          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'w')
                             Target: 
-                              IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'w')
-                                IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'w')
-                                  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'w')
+                              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'w')
+                                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'w')
+                                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'w')
                                     ReturnedValue: 
-                                      IOperation:  (OperationKind.None) (Syntax: 'w')
+                                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'w')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   AtLoopBottom(0)
   Body: 
-    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
         Locals: Local_1: System.String item
         LoopControlVariable: 
-          ILocalReferenceExpression: item (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null) (Syntax: 'foreach (va ... }')
+          ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, Constant: null) (Syntax: 'foreach (va ... }')
         Collection: 
-          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'str')
+          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'str')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILocalReferenceExpression: str (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'str')
+              ILocalReferenceOperation: str (OperationKind.LocalReference, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'str')
         Body: 
-          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... Line(item);')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Line(item);')
               Expression: 
-                IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... eLine(item)')
+                IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... eLine(item)')
                   Instance Receiver: 
                     null
                   Arguments(1):
-                      IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'item')
-                        ILocalReferenceExpression: item (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'item')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: 'item')
+                        ILocalReferenceOperation: item (OperationKind.LocalReference, Type: System.String) (Syntax: 'item')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         NextVariables(0)
-      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return;')
+      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return;')
         ReturnedValue: 
           null
 ";
@@ -1958,66 +1958,66 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom(0)
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return from ... select w;')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return from ... select w;')
         ReturnedValue: 
-          ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x in "" ... select w')
+          ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x in "" ... select w')
             Expression: 
-              IInvocationExpression (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<System.String, System.String>(this System.Collections.Generic.IEnumerable<System.String> source, System.Func<System.String, System.String> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select w')
+              IInvocationOperation (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<System.String, System.String>(this System.Collections.Generic.IEnumerable<System.String> source, System.Func<System.String, System.String> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select w')
                 Instance Receiver: 
                   null
                 Arguments(2):
-                    IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'select z')
-                      IInvocationExpression (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<<anonymous type: System.Char x, System.String z>, System.String>(this System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>> source, System.Func<<anonymous type: System.Char x, System.String z>, System.String> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select z')
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select z')
+                      IInvocationOperation (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<<anonymous type: System.Char x, System.String z>, System.String>(this System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>> source, System.Func<<anonymous type: System.Char x, System.String z>, System.String> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select z')
                         Instance Receiver: 
                           null
                         Arguments(2):
-                            IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'let z = x.ToString()')
-                              IInvocationExpression (System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>> System.Linq.Enumerable.Select<System.Char, <anonymous type: System.Char x, System.String z>>(this System.Collections.Generic.IEnumerable<System.Char> source, System.Func<System.Char, <anonymous type: System.Char x, System.String z>> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'let z = x.ToString()')
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'let z = x.ToString()')
+                              IInvocationOperation (System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>> System.Linq.Enumerable.Select<System.Char, <anonymous type: System.Char x, System.String z>>(this System.Collections.Generic.IEnumerable<System.Char> source, System.Func<System.Char, <anonymous type: System.Char x, System.String z>> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<<anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'let z = x.ToString()')
                                 Instance Receiver: 
                                   null
                                 Arguments(2):
-                                    IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from x in ""123""')
-                                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
+                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
+                                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
                                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                         Operand: 
-                                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""123"") (Syntax: '""123""')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""123"") (Syntax: '""123""')
                                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                    IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'x.ToString()')
-                                      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func<System.Char, <anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'x.ToString()')
+                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: System.Func<System.Char, <anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'x.ToString()')
+                                      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Char, <anonymous type: System.Char x, System.String z>>, IsImplicit) (Syntax: 'x.ToString()')
                                         Target: 
-                                          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'x.ToString()')
-                                            IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'x.ToString()')
-                                              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x.ToString()')
+                                          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x.ToString()')
+                                            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x.ToString()')
+                                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x.ToString()')
                                                 ReturnedValue: 
-                                                  IObjectCreationExpression (Constructor: <anonymous type: System.Char x, System.String z>..ctor(System.Char x, System.String z)) (OperationKind.ObjectCreationExpression, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'let z = x.ToString()')
+                                                  IObjectCreationOperation (Constructor: <anonymous type: System.Char x, System.String z>..ctor(System.Char x, System.String z)) (OperationKind.ObjectCreation, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                     Arguments(2):
-                                                        IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'let z = x.ToString()')
-                                                          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
+                                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
+                                                          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                        IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, IsImplicit) (Syntax: 'x.ToString()')
-                                                          IInvocationExpression (virtual System.String System.Char.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'x.ToString()')
+                                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: System.String, IsImplicit) (Syntax: 'x.ToString()')
+                                                          IInvocationOperation (virtual System.String System.Char.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
                                                             Instance Receiver: 
-                                                              IOperation:  (OperationKind.None) (Syntax: 'x')
+                                                              IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
                                                             Arguments(0)
                                                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2027,26 +2027,26 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
                                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'z')
-                              IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func<<anonymous type: System.Char x, System.String z>, System.String>, IsImplicit) (Syntax: 'z')
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: System.Func<<anonymous type: System.Char x, System.String z>, System.String>, IsImplicit) (Syntax: 'z')
+                              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<<anonymous type: System.Char x, System.String z>, System.String>, IsImplicit) (Syntax: 'z')
                                 Target: 
-                                  IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'z')
-                                    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'z')
-                                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'z')
+                                  IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'z')
+                                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'z')
+                                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'z')
                                         ReturnedValue: 
-                                          IOperation:  (OperationKind.None) (Syntax: 'z')
+                                          IOperation:  (OperationKind.None, Type: null) (Syntax: 'z')
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'w')
-                      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'w')
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'w')
+                      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.String, System.String>, IsImplicit) (Syntax: 'w')
                         Target: 
-                          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'w')
-                            IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'w')
-                              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'w')
+                          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'w')
+                            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'w')
+                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'w')
                                 ReturnedValue: 
-                                  IOperation:  (OperationKind.None) (Syntax: 'w')
+                                  IOperation:  (OperationKind.None, Type: null) (Syntax: 'w')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2074,63 +2074,63 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (e = x  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (e = x  ... }')
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'e = x => x * x')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'e = x => x * x')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e = x => x * x')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e = x => x * x')
             Left: 
-              ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
+              ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>, IsImplicit) (Syntax: 'x => x * x')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>, IsImplicit) (Syntax: 'x => x * x')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'x => x * x')
-                    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'x * x')
-                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x * x')
+                  IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'x => x * x')
+                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x * x')
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x * x')
                         ReturnedValue: 
-                          IBinaryOperatorExpression (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x * x')
+                          IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x * x')
                             Left: 
-                              IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                             Right: 
-                              IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i++')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i++')
         Expression: 
-          IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
+          IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
             Target: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
   Body: 
-    IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Func<System.Int32, System.Int32> lambda
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var lambda  ... .Compile();')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'lambda = e.Compile()')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'var lambda  ... .Compile();')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'lambda = e.Compile()')
           Variables: Local_1: System.Func<System.Int32, System.Int32> lambda
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= e.Compile()')
-              IInvocationExpression ( System.Func<System.Int32, System.Int32> System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>.Compile()) (OperationKind.InvocationExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'e.Compile()')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= e.Compile()')
+              IInvocationOperation ( System.Func<System.Int32, System.Int32> System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>.Compile()) (OperationKind.Invocation, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'e.Compile()')
                 Instance Receiver: 
-                  ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
+                  ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
                 Arguments(0)
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... lambda(i));')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... lambda(i));')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... (lambda(i))')
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... (lambda(i))')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'lambda(i)')
-                  IInvocationExpression (virtual System.Int32 System.Func<System.Int32, System.Int32>.Invoke(System.Int32 arg)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'lambda(i)')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'lambda(i)')
+                  IInvocationOperation (virtual System.Int32 System.Func<System.Int32, System.Int32>.Invoke(System.Int32 arg)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'lambda(i)')
                     Instance Receiver: 
-                      ILocalReferenceExpression: lambda (OperationKind.LocalReferenceExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'lambda')
+                      ILocalReferenceOperation: lambda (OperationKind.LocalReference, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'lambda')
                     Arguments(1):
-                        IArgument (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument) (Syntax: 'i')
-                          ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i')
+                          ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2159,76 +2159,76 @@ class C
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 1')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 1')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 1')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'e = x => x * x')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'e = x => x * x')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e = x => x * x')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e = x => x * x')
             Left: 
-              ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
+              ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>, IsImplicit) (Syntax: 'x => x * x')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>, IsImplicit) (Syntax: 'x => x * x')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'x => x * x')
-                    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'x * x')
-                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x * x')
+                  IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'x => x * x')
+                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x * x')
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x * x')
                         ReturnedValue: 
-                          IBinaryOperatorExpression (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x * x')
+                          IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x * x')
                             Left: 
-                              IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                             Right: 
-                              IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i = i + 1')
+                              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
             Left: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Body: 
-    IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Func<System.Int32, System.Int32> lambda
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var lambda  ... .Compile();')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'lambda = e.Compile()')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'var lambda  ... .Compile();')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'lambda = e.Compile()')
           Variables: Local_1: System.Func<System.Int32, System.Int32> lambda
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= e.Compile()')
-              IInvocationExpression ( System.Func<System.Int32, System.Int32> System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>.Compile()) (OperationKind.InvocationExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'e.Compile()')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= e.Compile()')
+              IInvocationOperation ( System.Func<System.Int32, System.Int32> System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>.Compile()) (OperationKind.Invocation, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'e.Compile()')
                 Instance Receiver: 
-                  ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
+                  ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
                 Arguments(0)
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... lambda(i));')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... lambda(i));')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... (lambda(i))')
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... (lambda(i))')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'lambda(i)')
-                  IInvocationExpression (virtual System.Int32 System.Func<System.Int32, System.Int32>.Invoke(System.Int32 arg)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'lambda(i)')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'lambda(i)')
+                  IInvocationOperation (virtual System.Int32 System.Func<System.Int32, System.Int32>.Invoke(System.Int32 arg)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'lambda(i)')
                     Instance Receiver: 
-                      ILocalReferenceExpression: lambda (OperationKind.LocalReferenceExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'lambda')
+                      ILocalReferenceOperation: lambda (OperationKind.LocalReference, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'lambda')
                     Arguments(1):
-                        IArgument (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument) (Syntax: 'i')
-                          ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i')
+                          ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2258,38 +2258,38 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (C1 i = ... l; i++) { }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (C1 i = ... l; i++) { }')
   Locals: Local_1: C1 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i == null')
+    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i == null')
       Left: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'i')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: C1) (Syntax: 'i')
+            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: C1) (Syntax: 'i')
       Right: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C1 i = new C1()')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = new C1()')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'C1 i = new C1()')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = new C1()')
           Variables: Local_1: C1 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C1()')
-              IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1) (Syntax: 'new C1()')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C1()')
+              IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new C1()')
                 Arguments(0)
                 Initializer: 
                   null
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i++')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i++')
         Expression: 
-          IIncrementOrDecrementExpression (Postfix) (OperatorMethod: C1 C1.op_Increment(C1 obj)) (OperationKind.IncrementExpression, Type: C1) (Syntax: 'i++')
+          IIncrementOrDecrementOperation (Postfix) (OperatorMethod: C1 C1.op_Increment(C1 obj)) (OperationKind.Increment, Type: C1) (Syntax: 'i++')
             Target: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: C1) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: C1) (Syntax: 'i')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -2312,39 +2312,39 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
   Locals: Local_1: System.Int32 j
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 5')
       Left: 
-        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = i++')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = i++')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int j = i++')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = i++')
           Variables: Local_1: System.Int32 j
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i++')
-              IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i++')
+              IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
                 Target: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: '++j')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: '++j')
         Expression: 
-          IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++j')
+          IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++j')
             Target: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... iteLine(j);')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... iteLine(j);')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(j)')
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(j)')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'j')
-                  ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'j')
+                  ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2370,39 +2370,39 @@ class Program
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int j  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
   Locals: Local_1: System.Int32 j
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 5')
       Left: 
-        ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+        ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = ++i')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = ++i')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int j = ++i')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = ++i')
           Variables: Local_1: System.Int32 j
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ++i')
-              IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ++i')
+              IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++i')
                 Target: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: '++j')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: '++j')
         Expression: 
-          IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++j')
+          IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++j')
             Target: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... iteLine(j);')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... iteLine(j);')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(j)')
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(j)')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'j')
-                  ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'j')
+                  ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2426,34 +2426,34 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '++i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '++i < 5')
       Left: 
-        IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
+        IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++i')
           Target: 
-            ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom(0)
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... iteLine(i);')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... iteLine(i);')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2482,43 +2482,43 @@ class Program
 
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (int i  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'foo(i--) > -5')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'foo(i--) > -5')
       Left: 
-        IInvocationExpression (System.Int32 Program.foo(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'foo(i--)')
+        IInvocationOperation (System.Int32 Program.foo(System.Int32 x)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'foo(i--)')
           Instance Receiver: 
             null
           Arguments(1):
-              IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'i--')
-                IIncrementOrDecrementExpression (Postfix) (OperationKind.DecrementExpression, Type: System.Int32) (Syntax: 'i--')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i--')
+                IIncrementOrDecrementOperation (Postfix) (OperationKind.Decrement, Type: System.Int32) (Syntax: 'i--')
                   Target: 
-                    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Right: 
-        IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Int32, Constant: -5) (Syntax: '-5')
+        IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -5) (Syntax: '-5')
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i = 0')
           Variables: Local_1: System.Int32 i
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom(0)
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... iteLine(i);')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... iteLine(i);')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2542,21 +2542,21 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (; true ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (; true ... }')
   Condition: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Before(0)
   AtLoopBottom(0)
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... eLine(""z"");')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... eLine(""z"");')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... teLine(""z"")')
+          IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... teLine(""z"")')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""z""')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""z"") (Syntax: '""z""')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '""z""')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""z"") (Syntax: '""z""')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2579,41 +2579,41 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'for (int k  ... 100, j > 5;')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'for (int k  ... 100, j > 5;')
   Locals: Local_1: System.Int32 k
     Local_2: System.Int32 j
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'k < 100')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'k < 100')
       Left: 
-        ILocalReferenceExpression: k (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'k')
+        ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100, IsInvalid) (Syntax: '100')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100, IsInvalid) (Syntax: '100')
   Before:
-      IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int k = 0, j = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'k = 0')
+      IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int k = 0, j = 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'k = 0')
           Variables: Local_1: System.Int32 k
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = 0')
           Variables: Local_1: System.Int32 j
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: '')
         Expression: 
-          IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+          IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
             Children(0)
-      IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: 'j > 5')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'j > 5')
         Expression: 
-          IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'j > 5')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'j > 5')
             Left: 
-              ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'j')
+              ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'j')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5, IsInvalid) (Syntax: '5')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsInvalid) (Syntax: '5')
   Body: 
-    IEmptyStatement (OperationKind.EmptyStatement, IsInvalid) (Syntax: ';')
+    IEmptyOperation (OperationKind.Empty, Type: null, IsInvalid) (Syntax: ';')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -2636,73 +2636,73 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (var j  ... }')
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (var j  ... }')
   Locals: Local_1: System.Int32 j
     Local_2: System.Int32 i
   Condition: 
-    IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var j = int ...  i) ? i : 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = int.Try ...  i) ? i : 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'var j = int ...  i) ? i : 0')
+        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j = int.Try ...  i) ? i : 0')
           Variables: Local_1: System.Int32 j
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= int.TryPa ...  i) ? i : 0')
-              IConditionalExpression (OperationKind.ConditionalExpression, Type: System.Int32) (Syntax: 'int.TryPars ...  i) ? i : 0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= int.TryPa ...  i) ? i : 0')
+              IConditionalOperation (isStatement: False) (OperationKind.Conditional, Type: System.Int32) (Syntax: 'int.TryPars ...  i) ? i : 0')
                 Condition: 
-                  IInvocationExpression (System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
+                  IInvocationOperation (System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
                     Instance Receiver: 
                       null
                     Arguments(2):
-                        IArgument (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument) (Syntax: 's')
-                          ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: System.String) (Syntax: 's')
+                          ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        IArgument (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument) (Syntax: 'out var i')
-                          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
-                            ILocalReferenceExpression: i (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument, Type: System.Int32) (Syntax: 'out var i')
+                          IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
+                            ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 WhenTrue: 
-                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 WhenFalse: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
-      IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'i++')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i++')
         Expression: 
-          IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
+          IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
             Target: 
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... }, s={s}"");')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... }, s={s}"");')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... i}, s={s}"")')
+          IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... i}, s={s}"")')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i={i}, s={s}""')
-                  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""i={i}, s={s}""')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '$""i={i}, s={s}""')
+                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""i={i}, s={s}""')
                     Parts(4):
-                        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'i=')
+                        IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'i=')
                           Text: 
-                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""i="") (Syntax: 'i=')
-                        IInterpolation (OperationKind.Interpolation) (Syntax: '{i}')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""i="") (Syntax: 'i=')
+                        IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
                           Expression: 
-                            ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                           Alignment: 
                             null
                           FormatString: 
                             null
-                        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ', s=')
+                        IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ', s=')
                           Text: 
-                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", s="") (Syntax: ', s=')
-                        IInterpolation (OperationKind.Interpolation) (Syntax: '{s}')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", s="") (Syntax: ', s=')
+                        IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{s}')
                           Expression: 
-                            ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
+                            ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
                           Alignment: 
                             null
                           FormatString: 

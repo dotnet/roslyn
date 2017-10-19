@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void IDynamicInvocationExpression_PublicExtensionMethodTests()
         {
             // Test null argument
-            IDynamicInvocationExpression nullDynamicExpression = null;
+            IDynamicInvocationOperation nullDynamicExpression = null;
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentName(0));
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void IDynamicIndexerAccessExpression_PublicExtensionMethodTests()
         {
             // Test null argument
-            IDynamicIndexerAccessExpression nullDynamicExpression = null;
+            IDynamicIndexerAccessOperation nullDynamicExpression = null;
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentName(0));
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void IDynamicObjectCreationExpression_PublicExtensionMethodTests()
         {
             // Test null argument
-            IDynamicObjectCreationExpression nullDynamicExpression = null;
+            IDynamicObjectCreationOperation nullDynamicExpression = null;
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentName(0));
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
