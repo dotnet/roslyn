@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                  {
                      IOperation operation = operationContext.Operation;
 
-                     if (operation.Kind == OperationKind.ConversionExpression)
+                     if (operation.Kind == OperationKind.Conversion)
                      {
-                         IConversionExpression conversion = (IConversionExpression)operation;
+                         IConversionOperation conversion = (IConversionOperation)operation;
                          if (conversion.Type.IsReferenceType &&
                              conversion.Operand.Type != null &&
                              conversion.Operand.Type.IsValueType &&
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                      }
 
                      // Calls to instance methods of value types don’t have conversions.
-                     if (operation.Kind == OperationKind.InvocationExpression)
+                     if (operation.Kind == OperationKind.Invocation)
                      {
-                         IInvocationExpression invocation = (IInvocationExpression)operation;
+                         IInvocationOperation invocation = (IInvocationOperation)operation;
 
                          if (invocation.Instance != null &&
                              invocation.Instance.Type.IsValueType &&
@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                          }
                      }
                  },
-                 OperationKind.ConversionExpression,
-                 OperationKind.InvocationExpression);
+                 OperationKind.Conversion,
+                 OperationKind.Invocation);
         }
 
         /// <summary>Reports a diagnostic warning for a boxing operation.</summary>
