@@ -774,6 +774,66 @@ End Class
             Await VerifyItemsExistAsync(text, "cref", "langword")
         End Function
 
+        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLangwordCompletionInPlainText() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' Some text $$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "Nothing", "Shared", "True", "False", "Await")
+        End Function
+
+        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function LangwordCompletionAfterAngleBracket1() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' Some text <$$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
+        End Function
+
+        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function LangwordCompletionAfterAngleBracket2() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' Some text <s$$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
+        End Function
+
+        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function LangwordCompletionAfterAngleBracket3() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' Some text < $$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "Nothing", "Shared", "True", "False", "Await")
+        End Function
+
         <WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSeeLangwordAttributeValue() As Task
