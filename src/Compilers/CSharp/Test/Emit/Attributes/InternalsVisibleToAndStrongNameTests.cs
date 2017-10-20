@@ -1384,11 +1384,17 @@ public class C {}";
         {
             string s = "public class C {}";
 
-            ImmutableArray<u8> EmitAndGetPublicKey(StrongNameProvider provider) {
+            var commonOptions = TestOptions.ReleaseDll
+                .WithDeterministic(true)
+                .WithModuleName("a.dll")
+                .WithCryptoKeyFile(s_keyPairFile);
+            var emitOptions = EmitOptions.Default.WithOutputNameOverride("a.dll");
+
+            ImmutableArray<byte> EmitAndGetPublicKey(StrongNameProvider provider) {
                 var options = commonOptions.WithStrongNameProvider(s_defaultPortableProvider);
                 var compilation = CreateStandardCompilation(s, options: options);
                 var stream = compilation.EmitToStream(emitOptions);
-                portable.Position = 0;
+                stream.Position = 0;
                 using (var metadata = AssemblyMetadata.CreateFromStream(stream))
                 {
                     return metadata.GetAssembly().Identity.PublicKey;
@@ -1397,7 +1403,7 @@ public class C {}";
 
             var portable = EmitAndGetPublicKey(s_defaultPortableProvider);
             var desktop = EmitAndGetPublicKey(s_defaultDesktopProvider);
-            Assert.True(portabl.SequenceEqual(desktop));
+            Assert.True(portable.SequenceEqual(desktop));
         }
 
         [Fact()]
