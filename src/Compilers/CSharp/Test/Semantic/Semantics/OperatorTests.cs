@@ -10533,5 +10533,33 @@ class Program
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "t is ValueTuple<int, int>").WithArguments("(int, int)").WithLocation(9, 13)
                 );
         }
+
+        [Fact, WorkItem(21486, "https://github.com/dotnet/roslyn/issues/21486")]
+        public void TypeOfErrorUnaryOperator()
+        {
+            var source =
+@"
+public class C {
+    public void M2() {
+        var local = !invalidExpression;
+        if (local) { }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (4,22): error CS0103: The name 'invalidExpression' does not exist in the current context
+                //         var local = !invalidExpression;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "invalidExpression").WithArguments("invalidExpression").WithLocation(4, 22)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var negNode = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            Assert.Equal("!invalidExpression", negNode.ToString());
+
+            var type = (TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(negNode).Type;
+            Assert.Equal("?", type.ToTestDisplayString());
+            Assert.True(type.IsErrorType());
+        }
     }
 }
