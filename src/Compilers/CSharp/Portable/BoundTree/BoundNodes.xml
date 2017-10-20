@@ -1000,6 +1000,8 @@
     <Field Name="LocalSymbol" Type="LocalSymbol"/>
     <Field Name="IsDeclaration" Type="bool"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
+    <!-- True if LocalSymbol.Type.IsNullable could not be inferred. -->
+    <Field Name="IsNullableUnknown" Type="bool"/>
   </Node>
 
   <Node Name="BoundPseudoVariable" Base="BoundExpression">

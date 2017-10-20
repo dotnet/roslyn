@@ -3638,7 +3638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocal : BoundExpression
     {
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, bool isDeclaration, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, bool isDeclaration, ConstantValue constantValueOpt, bool isNullableUnknown, TypeSymbol type, bool hasErrors)
             : base(BoundKind.Local, syntax, type, hasErrors)
         {
 
@@ -3648,9 +3648,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LocalSymbol = localSymbol;
             this.IsDeclaration = isDeclaration;
             this.ConstantValueOpt = constantValueOpt;
+            this.IsNullableUnknown = isNullableUnknown;
         }
 
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, bool isDeclaration, ConstantValue constantValueOpt, TypeSymbol type)
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, bool isDeclaration, ConstantValue constantValueOpt, bool isNullableUnknown, TypeSymbol type)
             : base(BoundKind.Local, syntax, type)
         {
 
@@ -3660,6 +3661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LocalSymbol = localSymbol;
             this.IsDeclaration = isDeclaration;
             this.ConstantValueOpt = constantValueOpt;
+            this.IsNullableUnknown = isNullableUnknown;
         }
 
 
@@ -3669,16 +3671,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ConstantValue ConstantValueOpt { get; }
 
+        public bool IsNullableUnknown { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitLocal(this);
         }
 
-        public BoundLocal Update(LocalSymbol localSymbol, bool isDeclaration, ConstantValue constantValueOpt, TypeSymbol type)
+        public BoundLocal Update(LocalSymbol localSymbol, bool isDeclaration, ConstantValue constantValueOpt, bool isNullableUnknown, TypeSymbol type)
         {
-            if (localSymbol != this.LocalSymbol || isDeclaration != this.IsDeclaration || constantValueOpt != this.ConstantValueOpt || type != this.Type)
+            if (localSymbol != this.LocalSymbol || isDeclaration != this.IsDeclaration || constantValueOpt != this.ConstantValueOpt || isNullableUnknown != this.IsNullableUnknown || type != this.Type)
             {
-                var result = new BoundLocal(this.Syntax, localSymbol, isDeclaration, constantValueOpt, type, this.HasErrors);
+                var result = new BoundLocal(this.Syntax, localSymbol, isDeclaration, constantValueOpt, isNullableUnknown, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8975,7 +8979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.LocalSymbol, node.IsDeclaration, node.ConstantValueOpt, type);
+            return node.Update(node.LocalSymbol, node.IsDeclaration, node.ConstantValueOpt, node.IsNullableUnknown, type);
         }
         public override BoundNode VisitPseudoVariable(BoundPseudoVariable node)
         {
@@ -10247,6 +10251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("localSymbol", node.LocalSymbol, null),
                 new TreeDumperNode("isDeclaration", node.IsDeclaration, null),
                 new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
+                new TreeDumperNode("isNullableUnknown", node.IsNullableUnknown, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

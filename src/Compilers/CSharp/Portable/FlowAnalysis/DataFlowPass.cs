@@ -1346,13 +1346,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.PropertyAccess:
                     {
-                        var propertyAccesss = (BoundPropertyAccess)node;
-                        int slot = MakeSlot(propertyAccesss);
+                        var propertyAccess = (BoundPropertyAccess)node;
+                        int slot = MakeSlot(propertyAccess);
                         SetSlotState(slot, written);
                         if (written)
                         {
-                            NoteWrite(propertyAccesss, value, read);
-                            TrackNullableStateForAssignment(node, propertyAccesss.PropertySymbol, slot, value, valueIsNotNull);
+                            NoteWrite(propertyAccess, value, read);
+                            TrackNullableStateForAssignment(node, propertyAccess.PropertySymbol, slot, value, valueIsNotNull);
                         }
                         break;
                     }
@@ -1361,8 +1361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (written && _performStaticNullChecks && this.State.Reachable)
                         {
-                            var indexerAccesss = (BoundIndexerAccess)node;
-                            TrackNullableStateForAssignment(node, indexerAccesss.Indexer, -1, value, valueIsNotNull);
+                            var indexerAccess = (BoundIndexerAccess)node;
+                            TrackNullableStateForAssignment(node, indexerAccess.Indexer, -1, value, valueIsNotNull);
                         }
                         break;
                     }
