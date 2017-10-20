@@ -831,7 +831,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyItemsExistAsync(text, "Nothing", "Shared", "True", "False", "Await")
+            Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
         End Function
 
         <WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>

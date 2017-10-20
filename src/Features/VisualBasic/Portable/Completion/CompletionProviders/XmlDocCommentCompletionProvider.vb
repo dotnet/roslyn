@@ -111,11 +111,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
                 ' Avoid including language keywords when following < Or <text, since these cases should only be
-                ' attempting to complete the XML name (which for language keywords Is 'see'). While the parser
-                ' treats the 'name' in '< name' as an XML name, we don't treat it like that here so the completion
-                ' experience Is consistent for '< ' and '< n'.
-                Dim xmlNameOnly = token.IsKind(SyntaxKind.LessThanToken) OrElse
-                    (token.Parent.IsKind(SyntaxKind.XmlName) AndAlso Not token.HasLeadingTrivia)
+                ' attempting to complete the XML name (which for language keywords Is 'see'). The VB parser treats
+                ' spaces after a < character as trailing whitespace, even if an identifier follows it on the same line.
+                ' Therefore, the consistent VB experience says we never show keywords for < followed by spaces.
+                Dim xmlNameOnly = token.IsKind(SyntaxKind.LessThanToken) OrElse token.Parent.IsKind(SyntaxKind.XmlName)
                 Dim includeKeywords = Not xmlNameOnly
 
                 items.AddRange(GetNestedItems(symbol, includeKeywords))
