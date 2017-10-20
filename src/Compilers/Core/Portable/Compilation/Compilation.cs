@@ -2415,7 +2415,6 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
             Stream peStream = null;
-            Stream portablePdbStream = null;
 
             bool deterministic = IsEmitDeterministic;
 
@@ -2458,15 +2457,17 @@ namespace Microsoft.CodeAnalysis
 
                 Func<Stream> getRefPeStream = () =>
                 {
-                    return GetAuxPeStream(metadataDiagnostics, metadataPEStreamProvider);
+                    return ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics);
                 };
 
-                var includePortablePdbStream = moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStreamProvider != null;
                 Func<Stream> getPortablePdbStream = () =>
                 {
-                    portablePdbStream = GetAuxPeStream(metadataDiagnostics, pdbStreamProvider);
-                    return portablePdbStream;
+                    return ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics);
                 };
+
+                if (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null) {
+                    getPortablePdbStream = null;
+                }
 
                 try
                 {
@@ -2476,7 +2477,7 @@ namespace Microsoft.CodeAnalysis
                         MessageProvider,
                         getPeStream,
                         metadataPEStreamProvider != null ? getRefPeStream : null,
-                        includePortablePdbStream ? getPortablePdbStream : null,
+                        getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
                         metadataOnly,
@@ -2557,7 +2558,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        private static Stream GetAuxPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider metadataPEStreamProvider)
+        private static Stream ConditionalGetOrCreateStream(EmitStreamProvider metadataPEStreamProvider, DiagnosticBag metadataDiagnostics)
         {
             if (metadataDiagnostics.HasAnyErrors())
             {

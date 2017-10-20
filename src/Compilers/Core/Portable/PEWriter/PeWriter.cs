@@ -159,16 +159,18 @@ namespace Microsoft.Cci
                 else
                 {
                     // write to Portable PDB stream:
-                    Stream portablePdbStream = getPortablePdbStreamOpt();
-                    if (portablePdbStream != null)
+                    using(Stream portablePdbStream = getPortablePdbStreamOpt())
                     {
-                        try
+                        if (portablePdbStream != null)
                         {
-                            portablePdbBlob.WriteContentTo(portablePdbStream);
-                        }
-                        catch (Exception e) when (!(e is OperationCanceledException))
-                        {
-                            throw new PdbWritingException(e);
+                            try
+                            {
+                                portablePdbBlob.WriteContentTo(portablePdbStream);
+                            }
+                            catch (Exception e) when (!(e is OperationCanceledException))
+                            {
+                                throw new PdbWritingException(e);
+                            }
                         }
                     }
                 }
@@ -234,7 +236,10 @@ namespace Microsoft.Cci
 
             try
             {
-                peBlob.WriteContentTo(peStream);
+                using (peStream)
+                {
+                    peBlob.WriteContentTo(peStream);
+                }
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
