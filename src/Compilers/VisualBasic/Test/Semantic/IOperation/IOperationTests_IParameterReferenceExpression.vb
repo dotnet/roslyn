@@ -21,14 +21,14 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITupleOperation (OperationKind.Tuple, Type: (x As System.Int32, System.Int32)) (Syntax: '(x, x + y)')
+ITupleOperation (OperationKind.Tuple, IsExpression, Type: (x As System.Int32, System.Int32)) (Syntax: '(x, x + y)')
   Elements(2):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32) (Syntax: 'x + y')
         Left: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+          IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -50,26 +50,26 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key Amount As System.Int32, Key Message As System.String>) (Syntax: 'New With {' ... }')
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, IsExpression, Type: <anonymous type: Key Amount As System.Int32, Key Message As System.String>) (Syntax: 'New With {' ... }')
   Initializers(2):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Key .Amount = x')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'Key .Amount = x')
         Left: 
-          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Amount As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Amount')
+          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Amount As System.Int32 (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: 'Amount')
             Instance Receiver: 
               null
         Right: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Key .Messag ... "Hello" + y')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.String) (Syntax: 'Key .Messag ... "Hello" + y')
         Left: 
-          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Message As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Message')
+          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Message As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'Message')
             Instance Receiver: 
               null
         Right: 
-          IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Hello" + y')
+          IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.String) (Syntax: '"Hello" + y')
             Left: 
-              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
             Right: 
-              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
+              IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 'y')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -99,25 +99,25 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'From cust I ... t cust.Name')
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, IsExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'From cust I ... t cust.Name')
   Expression: 
-    IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of Customer).Select(Of System.String)(selector As System.Func(Of Customer, System.String)) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'Select cust.Name')
+    IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of Customer).Select(Of System.String)(selector As System.Func(Of Customer, System.String)) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.Invocation, IsExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'Select cust.Name')
       Instance Receiver: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of Customer), IsImplicit) (Syntax: 'cust In customers')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Collections.Generic.IEnumerable(Of Customer), IsImplicit) (Syntax: 'cust In customers')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IParameterReferenceOperation: customers (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of Customer)) (Syntax: 'customers')
+            IParameterReferenceOperation: customers (OperationKind.ParameterReference, IsExpression, Type: System.Collections.Generic.List(Of Customer)) (Syntax: 'customers')
       Arguments(1):
           IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'cust.Name')
-            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of Customer, System.String), IsImplicit) (Syntax: 'cust.Name')
+            IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.Func(Of Customer, System.String), IsImplicit) (Syntax: 'cust.Name')
               Target: 
-                IAnonymousFunctionOperation (Symbol: Function (cust As Customer) As System.String) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'cust.Name')
-                  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'cust.Name')
-                    IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'cust.Name')
+                IAnonymousFunctionOperation (Symbol: Function (cust As Customer) As System.String) (OperationKind.AnonymousFunction, IsExpression, Type: null, IsImplicit) (Syntax: 'cust.Name')
+                  IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'cust.Name')
+                    IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'cust.Name')
                       ReturnedValue: 
-                        IPropertyReferenceOperation: Property Customer.Name As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'cust.Name')
+                        IPropertyReferenceOperation: Property Customer.Name As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'cust.Name')
                           Instance Receiver: 
-                            IParameterReferenceOperation: cust (OperationKind.ParameterReference, Type: Customer) (Syntax: 'cust.Name')
+                            IParameterReferenceOperation: cust (OperationKind.ParameterReference, IsExpression, Type: Customer) (Syntax: 'cust.Name')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -146,20 +146,20 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (Syntax: 'Aggregate y ... nto Count()')
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, IsExpression, Type: System.Int32) (Syntax: 'Aggregate y ... nto Count()')
   Expression: 
-    IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+    IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.Invocation, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
       Instance Receiver: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New Integer() {x}')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New Integer() {x}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer() {x}')
+            IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32()) (Syntax: 'New Integer() {x}')
               Dimension Sizes(1):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {x}')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {x}')
               Initializer: 
                 IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{x}')
                   Element Values(1):
-                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
       Arguments(0)
 ]]>.Value
 
@@ -187,25 +187,25 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Linq.IOrderedEnumerable(Of System.String)) (Syntax: 'From y In x ... By y.Length')
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, IsExpression, Type: System.Linq.IOrderedEnumerable(Of System.String)) (Syntax: 'From y In x ... By y.Length')
   Expression: 
-    IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.String).OrderBy(Of System.Int32)(keySelector As System.Func(Of System.String, System.Int32)) As System.Linq.IOrderedEnumerable(Of System.String)) (OperationKind.Invocation, Type: System.Linq.IOrderedEnumerable(Of System.String), IsImplicit) (Syntax: 'y.Length')
+    IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.String).OrderBy(Of System.Int32)(keySelector As System.Func(Of System.String, System.Int32)) As System.Linq.IOrderedEnumerable(Of System.String)) (OperationKind.Invocation, IsExpression, Type: System.Linq.IOrderedEnumerable(Of System.String), IsImplicit) (Syntax: 'y.Length')
       Instance Receiver: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'y In x')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'y In x')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String()) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.String()) (Syntax: 'x')
       Arguments(1):
           IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'y.Length')
-            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.String, System.Int32), IsImplicit) (Syntax: 'y.Length')
+            IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.Func(Of System.String, System.Int32), IsImplicit) (Syntax: 'y.Length')
               Target: 
-                IAnonymousFunctionOperation (Symbol: Function (y As System.String) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'y.Length')
-                  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'y.Length')
-                    IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'y.Length')
+                IAnonymousFunctionOperation (Symbol: Function (y As System.String) As System.Int32) (OperationKind.AnonymousFunction, IsExpression, Type: null, IsImplicit) (Syntax: 'y.Length')
+                  IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'y.Length')
+                    IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'y.Length')
                       ReturnedValue: 
-                        IPropertyReferenceOperation: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y.Length')
+                        IPropertyReferenceOperation: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: 'y.Length')
                           Instance Receiver: 
-                            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y.Length')
+                            IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 'y.Length')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -234,46 +234,46 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'From y In x ... nto Count()')
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, IsExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'From y In x ... nto Count()')
   Expression: 
-    IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.String).GroupBy(Of <anonymous type: Key w As System.String(), Key z As System.String>, <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)(keySelector As System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), resultSelector As System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+    IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.String).GroupBy(Of <anonymous type: Key w As System.String(), Key z As System.String>, <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)(keySelector As System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), resultSelector As System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (OperationKind.Invocation, IsExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
       Instance Receiver: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'y In x')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'y In x')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String()) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.String()) (Syntax: 'x')
       Arguments(2):
           IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), IsImplicit) (Syntax: 'x')
+            IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), IsImplicit) (Syntax: 'x')
               Target: 
-                IAnonymousFunctionOperation (Symbol: Function (y As System.String) As <anonymous type: Key w As System.String(), Key z As System.String>) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
-                  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'x')
-                    IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'x')
+                IAnonymousFunctionOperation (Symbol: Function (y As System.String) As <anonymous type: Key w As System.String(), Key z As System.String>) (OperationKind.AnonymousFunction, IsExpression, Type: null, IsImplicit) (Syntax: 'x')
+                  IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'x')
+                    IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'x')
                       ReturnedValue: 
-                        IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                        IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, IsExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
                           Initializers(2):
-                              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String()) (Syntax: 'x')
-                              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                              IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.String()) (Syntax: 'x')
+                              IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 'x')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
-            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+            IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
               Target: 
-                IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key w As System.String(), Key z As System.String>, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.String)) As <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
-                  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Group By w  ... nto Count()')
-                    IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Group By w  ... nto Count()')
+                IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key w As System.String(), Key z As System.String>, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.String)) As <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>) (OperationKind.AnonymousFunction, IsExpression, Type: null, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                  IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Group By w  ... nto Count()')
+                    IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'Group By w  ... nto Count()')
                       ReturnedValue: 
-                        IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                        IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, IsExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
                           Initializers(3):
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.w As System.String() (OperationKind.PropertyReference, Type: System.String()) (Syntax: 'Group By w  ... nto Count()')
+                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.w As System.String() (OperationKind.PropertyReference, IsExpression, Type: System.String()) (Syntax: 'Group By w  ... nto Count()')
                                 Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key w As System.String(), Key z As System.String>) (Syntax: 'Group By w  ... nto Count()')
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.z As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Group By w  ... nto Count()')
+                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, IsExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>) (Syntax: 'Group By w  ... nto Count()')
+                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.z As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'Group By w  ... nto Count()')
                                 Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key w As System.String(), Key z As System.String>) (Syntax: 'Group By w  ... nto Count()')
-                              IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.String).Count() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, IsExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>) (Syntax: 'Group By w  ... nto Count()')
+                              IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.String).Count() As System.Int32) (OperationKind.Invocation, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
                                 Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, IsExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
                                 Arguments(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -307,66 +307,66 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreation, Type: [Class]) (Syntax: 'New [Class] ... }')
+IObjectCreationOperation (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: [Class]) (Syntax: 'New [Class] ... }')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: [Class]) (Syntax: 'With {'BIND ... }')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: [Class]) (Syntax: 'With {'BIND ... }')
       Initializers(4):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.X = x')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void) (Syntax: '.X = x')
             Left: 
-              IPropertyReferenceOperation: Property [Class].X As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
+              IPropertyReferenceOperation: Property [Class].X As System.Int32 (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: [Class], IsImplicit) (Syntax: 'New [Class] ... }')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: [Class], IsImplicit) (Syntax: 'New [Class] ... }')
             Right: 
-              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.Y = {x, y, 3}')
+              IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void) (Syntax: '.Y = {x, y, 3}')
             Left: 
-              IPropertyReferenceOperation: Property [Class].Y As System.Int32() (OperationKind.PropertyReference, Type: System.Int32()) (Syntax: 'Y')
+              IPropertyReferenceOperation: Property [Class].Y As System.Int32() (OperationKind.PropertyReference, IsExpression, Type: System.Int32()) (Syntax: 'Y')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: [Class], IsImplicit) (Syntax: 'New [Class] ... }')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: [Class], IsImplicit) (Syntax: 'New [Class] ... }')
             Right: 
-              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: '{x, y, 3}')
+              IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32()) (Syntax: '{x, y, 3}')
                 Dimension Sizes(1):
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '{x, y, 3}')
+                    ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '{x, y, 3}')
                 Initializer: 
                   IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{x, y, 3}')
                     Element Values(3):
-                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                        IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.Z = New Di ... om {{x, y}}')
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+                        IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
+                        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void) (Syntax: '.Z = New Di ... om {{x, y}}')
             Left: 
-              IPropertyReferenceOperation: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'Z')
+              IPropertyReferenceOperation: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReference, IsExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'Z')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: [Class], IsImplicit) (Syntax: 'New [Class] ... }')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: [Class], IsImplicit) (Syntax: 'New [Class] ... }')
             Right: 
-              IObjectCreationOperation (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'New Diction ... om {{x, y}}')
+              IObjectCreationOperation (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'New Diction ... om {{x, y}}')
                 Arguments(0)
                 Initializer: 
-                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'From {{x, y}}')
+                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'From {{x, y}}')
                     Initializers(1):
-                        ICollectionElementInitializerOperation (AddMethod: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32).Add(key As System.Int32, value As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '{x, y}')
+                        ICollectionElementInitializerOperation (AddMethod: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32).Add(key As System.Int32, value As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, IsExpression, Type: System.Void, IsImplicit) (Syntax: '{x, y}')
                           Arguments(2):
-                              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.C = New [C ... th {.X = z}')
+                              IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+                              IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void) (Syntax: '.C = New [C ... th {.X = z}')
             Left: 
-              IPropertyReferenceOperation: Property [Class].C As [Class] (OperationKind.PropertyReference, Type: [Class]) (Syntax: 'C')
+              IPropertyReferenceOperation: Property [Class].C As [Class] (OperationKind.PropertyReference, IsExpression, Type: [Class]) (Syntax: 'C')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: [Class], IsImplicit) (Syntax: 'New [Class] ... }')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: [Class], IsImplicit) (Syntax: 'New [Class] ... }')
             Right: 
-              IObjectCreationOperation (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreation, Type: [Class]) (Syntax: 'New [Class] ... th {.X = z}')
+              IObjectCreationOperation (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: [Class]) (Syntax: 'New [Class] ... th {.X = z}')
                 Arguments(0)
                 Initializer: 
-                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: [Class]) (Syntax: 'With {.X = z}')
+                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: [Class]) (Syntax: 'With {.X = z}')
                     Initializers(1):
-                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.X = z')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void) (Syntax: '.X = z')
                           Left: 
-                            IPropertyReferenceOperation: Property [Class].X As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
+                            IPropertyReferenceOperation: Property [Class].X As System.Int32 (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: 'X')
                               Instance Receiver: 
-                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: [Class], IsImplicit) (Syntax: 'New [Class] ... th {.X = z}')
+                                IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: [Class], IsImplicit) (Syntax: 'New [Class] ... th {.X = z}')
                           Right: 
-                            IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'z')
+                            IParameterReferenceOperation: z (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'z')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -389,20 +389,20 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
+IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
   Target: 
-    IAnonymousFunctionOperation (Symbol: Function () As System.Object) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function() x')
-      IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function() x')
+    IAnonymousFunctionOperation (Symbol: Function () As System.Object) (OperationKind.AnonymousFunction, IsExpression, Type: null) (Syntax: 'Function() x')
+      IBlockOperation (3 statements, 1 locals) (OperationKind.Block, IsStatement, Type: null, IsImplicit) (Syntax: 'Function() x')
         Locals: Local_1: <anonymous local> As System.Object
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+        IReturnOperation (OperationKind.Return, IsStatement, Type: null, IsImplicit) (Syntax: 'x')
           ReturnedValue: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
-        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Function() x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'x')
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, IsStatement, Type: null, IsImplicit) (Syntax: 'Function() x')
           Statement: 
             null
-        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Function() x')
+        IReturnOperation (OperationKind.Return, IsStatement, Type: null, IsImplicit) (Syntax: 'Function() x')
           ReturnedValue: 
-            ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'Function() x')
+            ILocalReferenceOperation:  (OperationKind.LocalReference, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'Function() x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -423,11 +423,11 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
+IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
   Target: 
-    IMethodReferenceOperation: Sub Class1.M(x As System.Object, y As System.EventArgs) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf Me.M')
+    IMethodReferenceOperation: Sub Class1.M(x As System.Object, y As System.EventArgs) (OperationKind.MethodReference, IsExpression, Type: null) (Syntax: 'AddressOf Me.M')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class1) (Syntax: 'Me')
+        IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class1) (Syntax: 'Me')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -450,9 +450,9 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: System.EventHandler, IsInvalid) (Syntax: 'New EventHandler(x)')
+IInvalidOperation (OperationKind.Invalid, IsExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'New EventHandler(x)')
   Children(1):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -475,8 +475,8 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: "x") (Syntax: 'NameOf(x)')
-  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+INameOfOperation (OperationKind.NameOf, IsExpression, Type: System.String, Constant: "x") (Syntax: 'NameOf(x)')
+  IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -495,12 +495,12 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: null, IsInvalid) (Syntax: 'NameOf(x + y)')
-  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: 'x + y')
+INameOfOperation (OperationKind.NameOf, IsExpression, Type: System.String, Constant: null, IsInvalid) (Syntax: 'NameOf(x + y)')
+  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'x + y')
     Left: 
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
     Right: 
-      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+      IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -526,14 +526,14 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'd(x)')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'd(x)')
   Expression: 
-    IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'd')
+    IParameterReferenceOperation: d (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'd')
   Arguments(1):
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x')
+      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'x')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -557,14 +557,14 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'x.M(y)')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'x.M(y)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "M", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'x.M')
+    IDynamicMemberReferenceOperation (Member Name: "M", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'x.M')
       Type Arguments(0)
       Instance Receiver: 
-        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'x')
   Arguments(1):
-      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+      IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -588,14 +588,14 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'x(y)')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'x(y)')
   Expression: 
-    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'x')
   Arguments(1):
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
+      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'y')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+          IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -618,34 +618,34 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(6):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x,20}')
         Expression: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 'x')
         Alignment: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         FormatString: 
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and ") (Syntax: ' and ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{y:D3}')
         Expression: 
-          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+          IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
         Alignment: 
           null
         FormatString: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "D3") (Syntax: ':D3')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
         Expression: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: 
           null
         FormatString: 
@@ -670,20 +670,20 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Mid(str, st ... ngth) = str')
+IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Mid(str, st ... ngth) = str')
   Expression: 
-    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: 'Mid(str, st ... ngth) = str')
+    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void) (Syntax: 'Mid(str, st ... ngth) = str')
       Left: 
-        IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
+        IParameterReferenceOperation: str (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 'str')
       Right: 
         IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
           Children(4):
-              IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String) (Syntax: 'Mid(str, start, length)')
+              IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.String) (Syntax: 'Mid(str, start, length)')
                 Operand: 
                   IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'str')
-              IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'start')
-              IParameterReferenceOperation: length (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'length')
-              IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
+              IParameterReferenceOperation: start (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'start')
+              IParameterReferenceOperation: length (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'length')
+              IParameterReferenceOperation: str (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 'str')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -708,7 +708,7 @@ IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Case x')
   Children(1):
       ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'x')
         Value: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -738,22 +738,22 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'ReDim intArray(x, x, x)'
   Children(1):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'intArray(x, x, x)')
         Children(4):
-            ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32(,,)) (Syntax: 'intArray')
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x')
+            ILocalReferenceOperation: intArray (OperationKind.LocalReference, IsExpression, Type: System.Int32(,,)) (Syntax: 'intArray')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'x')
               Left: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
               Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x')
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'x')
               Left: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
               Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x')
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'x')
               Left: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
               Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -776,14 +776,14 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'Erase x')
   Children(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(), IsImplicit) (Syntax: 'x')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32(), IsImplicit) (Syntax: 'x')
         Left: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32()) (Syntax: 'x')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'x')
+          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'x')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsImplicit) (Syntax: 'Erase x')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null, IsImplicit) (Syntax: 'Erase x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -832,10 +832,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'AddressOf x.Method')
   Children(1):
-      IDynamicMemberReferenceOperation (Member Name: "Method", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'x.Method')
+      IDynamicMemberReferenceOperation (Member Name: "Method", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'x.Method')
         Type Arguments(0)
         Instance Receiver: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -857,13 +857,13 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If x Then'B ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If x Then'B ... End If')
   Condition: 
     IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
       Children(1):
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Nullable(Of System.Boolean)) (Syntax: 'x')
   WhenTrue: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'If x Then'B ... End If')
+    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If x Then'B ... End If')
   WhenFalse: 
     null
 ]]>.Value

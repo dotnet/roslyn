@@ -23,16 +23,16 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2(a As System.Int32, b As System.Double)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, 0.0)')
+IInvocationOperation ( Sub Program.M2(a As System.Int32, b As System.Double)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(1, 0.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: '0.0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0) (Syntax: '0.0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 0) (Syntax: '0.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -56,16 +56,16 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1)')
+IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsImplicit) (Syntax: 'M2')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 0, IsImplicit) (Syntax: 'M2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -89,16 +89,16 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(a:=1, b:=1.0)')
+IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(a:=1, b:=1.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a:=1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b:=1.0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 1) (Syntax: '1.0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -122,16 +122,16 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(b:=1.0, a:=0)')
+IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(b:=1.0, a:=0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a:=0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b:=1.0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 1) (Syntax: '1.0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -155,20 +155,20 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(b:=1.0, c:=2.0)')
+IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(b:=1.0, c:=2.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b:=1.0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 1) (Syntax: '1.0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: 'c:=2.0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 2) (Syntax: '2.0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -192,20 +192,20 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(, b:=1.0, c:=2.0)')
+IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(, b:=1.0, c:=2.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b:=1.0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 1) (Syntax: '1.0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: 'c:=2.0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 2) (Syntax: '2.0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -229,20 +229,20 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(b:=2.0)')
+IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(b:=2.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b:=2.0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 2) (Syntax: '2.0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsImplicit) (Syntax: 'M2')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 0, IsImplicit) (Syntax: 'M2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -266,20 +266,20 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, c:=2.0)')
+IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(1, c:=2.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsImplicit) (Syntax: 'M2')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 0, IsImplicit) (Syntax: 'M2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: 'c:=2.0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 2) (Syntax: '2.0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -303,12 +303,12 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1)')
+IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -333,12 +333,12 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x)')
+IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'x')
-        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+        ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'x')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -364,16 +364,16 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0], [ByRef b As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(b:=y, a:=x)')
+IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0], [ByRef b As System.Double = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(b:=y, a:=x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a:=x')
-        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+        ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'x')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b:=y')
-        ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Double) (Syntax: 'y')
+        ILocalReferenceOperation: y (OperationKind.LocalReference, IsExpression, Type: System.Double) (Syntax: 'y')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -398,12 +398,12 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
+IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -427,15 +427,15 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1.0)')
+IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(1.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1.0')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1.0')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1.0')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 1) (Syntax: '1.0')
+            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -460,12 +460,12 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x)')
+IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Double) (Syntax: 'x')
+        ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: System.Double) (Syntax: 'x')
         InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -494,16 +494,16 @@ Module Extensions
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'E1(1, 2)')
+IInvocationOperation ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'E1(1, 2)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'E1')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsImplicit) (Syntax: 'E1')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: '1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: '2')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -532,16 +532,16 @@ Module Extensions
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'E1(c:=1, b:=2)')
+IInvocationOperation ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'E1(c:=1, b:=2)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'E1')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsImplicit) (Syntax: 'E1')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b:=2')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: 'c:=1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -569,16 +569,16 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, a)')
+IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(1, a)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'a')
-        ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'a')
+        ILocalReferenceOperation: a (OperationKind.LocalReference, IsExpression, Type: System.Int32()) (Syntax: 'a')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -603,23 +603,23 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, 2, 3)')
+IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(1, 2, 3)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(1, 2, 3)')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1, 2, 3)')
+        IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1, 2, 3)')
           Dimension Sizes(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'M2(1, 2, 3)')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'M2(1, 2, 3)')
           Initializer: 
             IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1, 2, 3)')
               Element Values(2):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -646,18 +646,18 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1)')
+IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(1)')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1)')
+        IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1)')
           Dimension Sizes(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2(1)')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2(1)')
           Initializer: 
             IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1)')
               Element Values(0)
@@ -684,11 +684,11 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'M2()')
+IInvalidOperation (OperationKind.Invalid, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
   Children(1):
       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'M2')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -714,13 +714,13 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
+IInvalidOperation (OperationKind.Invalid, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
   Children(3):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsImplicit) (Syntax: 'M2')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -746,15 +746,15 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'M2(0,,,)')
+IInvalidOperation (OperationKind.Invalid, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(0,,,)')
   Children(5):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IOmittedArgumentOperation (OperationKind.OmittedArgument, Type: null) (Syntax: '')
-      IOmittedArgumentOperation (OperationKind.OmittedArgument, Type: null) (Syntax: '')
-      IOmittedArgumentOperation (OperationKind.OmittedArgument, Type: null, IsInvalid) (Syntax: '')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsImplicit) (Syntax: 'M2')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IOmittedArgumentOperation (OperationKind.OmittedArgument, IsExpression, Type: null) (Syntax: '')
+      IOmittedArgumentOperation (OperationKind.OmittedArgument, IsExpression, Type: null) (Syntax: '')
+      IOmittedArgumentOperation (OperationKind.OmittedArgument, IsExpression, Type: null, IsInvalid) (Syntax: '')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -785,16 +785,16 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'M2(o,,)')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'M2(o,,)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'M2')
+    IDynamicMemberReferenceOperation (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'M2')
       Type Arguments(0)
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(3):
-      IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
-      IOmittedArgumentOperation (OperationKind.OmittedArgument, Type: System.Object) (Syntax: '')
-      IOmittedArgumentOperation (OperationKind.OmittedArgument, Type: System.Object) (Syntax: '')
+      IParameterReferenceOperation: o (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'o')
+      IOmittedArgumentOperation (OperationKind.OmittedArgument, IsExpression, Type: System.Object) (Syntax: '')
+      IOmittedArgumentOperation (OperationKind.OmittedArgument, IsExpression, Type: System.Object) (Syntax: '')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -818,13 +818,13 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'M2(0, )')
+IInvalidOperation (OperationKind.Invalid, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(0, )')
   Children(3):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IOmittedArgumentOperation (OperationKind.OmittedArgument, Type: null, IsInvalid) (Syntax: '')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsImplicit) (Syntax: 'M2')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IOmittedArgumentOperation (OperationKind.OmittedArgument, IsExpression, Type: null, IsInvalid) (Syntax: '')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -851,13 +851,13 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'M2(x:=0, array:=a)')
+IInvalidOperation (OperationKind.Invalid, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(x:=0, array:=a)')
   Children(3):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-      ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'a')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsImplicit) (Syntax: 'M2')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      ILocalReferenceOperation: a (OperationKind.LocalReference, IsExpression, Type: System.Int32()) (Syntax: 'a')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -883,12 +883,12 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'M2(y:=1)')
+IInvalidOperation (OperationKind.Invalid, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(y:=1)')
   Children(2):
       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'M2')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: P, IsInvalid, IsImplicit) (Syntax: 'M2')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -918,12 +918,12 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x)')
+IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Double) (Syntax: 'x')
+        ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: System.Double) (Syntax: 'x')
         InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -958,12 +958,12 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2(ByRef a As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x)')
+IInvocationOperation ( Sub Program.M2(ByRef a As System.Int32)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C) (Syntax: 'x')
+        ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: C) (Syntax: 'x')
         InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.Int32)
         OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Explicit(i As System.Int32) As C)
 ]]>.Value
@@ -998,12 +998,12 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationOperation ( Sub Program.M2(ByRef c As C)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x)')
+IInvocationOperation ( Sub Program.M2(ByRef c As C)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Double) (Syntax: 'x')
+        ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: System.Double) (Syntax: 'x')
         InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Explicit(i As System.Int32) As C)
         OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.Int32)
 ]]>.Value
@@ -1034,12 +1034,12 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'M2(x)')
+IInvalidOperation (OperationKind.Invalid, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(x)')
   Children(2):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
-      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'x')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
+      ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: C, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1152,7 +1152,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
-  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1175,20 +1175,20 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(1)')
+IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'M2(1)')
   Expression: 
-    IInvocationOperation ( Sub Program.M2(ParamArray a As System.Int32())) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1)')
+    IInvocationOperation ( Sub Program.M2(ParamArray a As System.Int32())) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(1)')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
       Arguments(1):
           IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(1)')
-            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1)')
+            IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1)')
               Dimension Sizes(1):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M2(1)')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M2(1)')
               Initializer: 
                 IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1)')
                   Element Values(1):
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1211,21 +1211,21 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(0, 1)')
+IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'M2(0, 1)')
   Expression: 
-    IInvocationOperation ( Sub Program.M2(ParamArray a As System.Int32())) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(0, 1)')
+    IInvocationOperation ( Sub Program.M2(ParamArray a As System.Int32())) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(0, 1)')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
       Arguments(1):
           IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(0, 1)')
-            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'M2(0, 1)')
+            IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(), IsImplicit) (Syntax: 'M2(0, 1)')
               Dimension Sizes(1):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'M2(0, 1)')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'M2(0, 1)')
               Initializer: 
                 IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'M2(0, 1)')
                   Element Values(2):
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1248,22 +1248,22 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M2(1, , 2)')
+IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'M2(1, , 2)')
   Expression: 
-    IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, , 2)')
+    IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'M2(1, , 2)')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Program, IsImplicit) (Syntax: 'M2')
       Arguments(3):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
+            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: '2')
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1287,7 +1287,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b:=1')
-  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1311,7 +1311,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a:=1')
-  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1335,7 +1335,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
-  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1358,16 +1358,16 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub Program..ctor(ParamArray a As System.Int32())) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'New Program(1)')
+IObjectCreationOperation (Constructor: Sub Program..ctor(ParamArray a As System.Int32())) (OperationKind.ObjectCreation, IsExpression, Type: Program) (Syntax: 'New Program(1)')
   Arguments(1):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Program')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'Program')
+        IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(), IsImplicit) (Syntax: 'Program')
           Dimension Sizes(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'Program')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'Program')
           Initializer: 
             IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'Program')
               Element Values(1):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Initializer: 
@@ -1392,17 +1392,17 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub Program..ctor(ParamArray a As System.Int32())) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program(0, 1)')
+IObjectCreationOperation (Constructor: Sub Program..ctor(ParamArray a As System.Int32())) (OperationKind.ObjectCreation, IsExpression, Type: Program) (Syntax: 'new Program(0, 1)')
   Arguments(1):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Program')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'Program')
+        IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(), IsImplicit) (Syntax: 'Program')
           Dimension Sizes(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'Program')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'Program')
           Initializer: 
             IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'Program')
               Element Values(2):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Initializer: 
@@ -1424,18 +1424,18 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a(0 To  ...  As Integer')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Dim a(0 To  ...  As Integer')
   IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a(0 To 20)')
     Variables: Local_1: a As System.Int32()
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'a(0 To 20)')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'a(0 To 20)')
+        IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32()) (Syntax: 'a(0 To 20)')
           Dimension Sizes(1):
-              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 21, IsImplicit) (Syntax: '0 To 20')
+              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 21, IsImplicit) (Syntax: '0 To 20')
                 Left: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
                 Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 20')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 20')
           Initializer: 
             null
 ]]>.Value

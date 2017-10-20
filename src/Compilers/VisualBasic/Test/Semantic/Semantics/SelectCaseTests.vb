@@ -427,7 +427,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IRelationalCaseClauseOperation (Relational operator kind: BinaryOperatorKind.LessThan) (CaseKind.Relational) (OperationKind.CaseClause, Type: null) (Syntax: 'Is < j')
   Value: 
-    IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+    IParameterReferenceOperation: j (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'j')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -453,9 +453,9 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null) (Syntax: 'min To max')
   Min: 
-    IParameterReferenceOperation: min (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'min')
+    IParameterReferenceOperation: min (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'min')
   Max: 
-    IParameterReferenceOperation: max (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'max')
+    IParameterReferenceOperation: max (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'max')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -636,59 +636,59 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ISwitchOperation (2 cases) (OperationKind.Switch, Type: null) (Syntax: 'Select Case ... End Select')
+ISwitchOperation (2 cases) (OperationKind.Switch, IsStatement, Type: null) (Syntax: 'Select Case ... End Select')
   Switch expression: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'Nothing')
   Sections:
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'Case Functi ... e("Failed")')
           Clauses:
               ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null) (Syntax: 'Function() 5')
                 Value: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'Function() 5')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'Function() 5')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsImplicit) (Syntax: 'Function() 5')
+                      IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: Function <generated method>() As System.Int32, IsImplicit) (Syntax: 'Function() 5')
                         Target: 
-                          IAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function() 5')
-                            IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function() 5')
+                          IAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunction, IsExpression, Type: null) (Syntax: 'Function() 5')
+                            IBlockOperation (3 statements, 1 locals) (OperationKind.Block, IsStatement, Type: null, IsImplicit) (Syntax: 'Function() 5')
                               Locals: Local_1: <anonymous local> As System.Int32
-                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '5')
+                              IReturnOperation (OperationKind.Return, IsStatement, Type: null, IsImplicit) (Syntax: '5')
                                 ReturnedValue: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
-                              ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Function() 5')
+                                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                              ILabeledOperation (Label: exit) (OperationKind.Labeled, IsStatement, Type: null, IsImplicit) (Syntax: 'Function() 5')
                                 Statement: 
                                   null
-                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Function() 5')
+                              IReturnOperation (OperationKind.Return, IsStatement, Type: null, IsImplicit) (Syntax: 'Function() 5')
                                 ReturnedValue: 
-                                  ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'Function() 5')
+                                  ILocalReferenceOperation:  (OperationKind.LocalReference, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'Function() 5')
           Body:
-              IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Case Functi ... e("Failed")')
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... e("Failed")')
+              IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Case Functi ... e("Failed")')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'System.Cons ... e("Failed")')
                   Expression: 
-                    IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... e("Failed")')
+                    IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'System.Cons ... e("Failed")')
                       Instance Receiver: 
                         null
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Failed"')
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Failed") (Syntax: '"Failed"')
+                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Failed") (Syntax: '"Failed"')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'Case Else ... Succeeded")')
           Clauses:
               IDefaultCaseClauseOperation (CaseKind.Default) (OperationKind.CaseClause, Type: null) (Syntax: 'Case Else')
           Body:
-              IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Case Else ... Succeeded")')
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Succeeded")')
+              IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Case Else ... Succeeded")')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'System.Cons ... Succeeded")')
                   Expression: 
-                    IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Succeeded")')
+                    IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'System.Cons ... Succeeded")')
                       Instance Receiver: 
                         null
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Succeeded"')
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Succeeded") (Syntax: '"Succeeded"')
+                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Succeeded") (Syntax: '"Succeeded"')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value

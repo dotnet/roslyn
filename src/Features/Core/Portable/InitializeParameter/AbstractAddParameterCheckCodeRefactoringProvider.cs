@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private bool IsIfNullCheck(IOperation statement, IParameterSymbol parameter)
         {
-            if (statement is IConditionalOperation ifStatement && ifStatement.IsStatement())
+            if (statement is IConditionalOperation ifStatement && ifStatement.IsStatement)
             {
                 var condition = ifStatement.Condition;
                 condition = UnwrapImplicitConversion(condition);
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 foreach (var statement in blockStatementOpt.Operations)
                 {
-                    if (statement is IConditionalOperation ifStatement && ifStatement.IsStatement())
+                    if (statement is IConditionalOperation ifStatement && ifStatement.IsStatement)
                     {
                         if (ContainsParameterReference(semanticModel, ifStatement.Condition, parameterSymbol, cancellationToken))
                         {

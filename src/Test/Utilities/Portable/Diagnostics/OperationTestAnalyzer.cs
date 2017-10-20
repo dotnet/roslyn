@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var invalidOperation = (IInvalidOperation)operationContext.Operation;
-                     if (invalidOperation.IsStatement())
+                     if (invalidOperation.IsStatement)
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(InvalidStatementDescriptor, operationContext.Operation.Syntax.GetLocation()));
                      }

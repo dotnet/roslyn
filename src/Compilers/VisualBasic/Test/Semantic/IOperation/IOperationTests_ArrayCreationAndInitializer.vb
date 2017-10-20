@@ -19,13 +19,13 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String()) (Syntax: 'New String(0) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.String()) (Syntax: 'New String(0) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.String()) (Syntax: '{}')
       Element Values(0)
@@ -50,9 +50,9 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M() {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: M()) (Syntax: 'New M() {}')
   Dimension Sizes(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'New M() {}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'New M() {}')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{}')
       Element Values(0)
@@ -78,13 +78,13 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M(dimension) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: M()) (Syntax: 'New M(dimension) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'dimension')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'dimension')
         Left: 
-          ILocalReferenceOperation: dimension (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'dimension')
+          ILocalReferenceOperation: dimension (OperationKind.LocalReference, IsExpression, Type: System.Int32, Constant: 1) (Syntax: 'dimension')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'dimension')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'dimension')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{}')
       Element Values(0)
@@ -109,13 +109,13 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M(dimension) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: M()) (Syntax: 'New M(dimension) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
         Left: 
-          IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'dimension')
+          IParameterReferenceOperation: dimension (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'dimension')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'dimension')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'dimension')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{}')
       Element Values(0)
@@ -142,16 +142,16 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M(dimension) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: M()) (Syntax: 'New M(dimension) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
         Left: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
+          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.UInt16) (Syntax: 'dimension')
+              IParameterReferenceOperation: dimension (OperationKind.ParameterReference, IsExpression, Type: System.UInt16) (Syntax: 'dimension')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'dimension')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'dimension')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{}')
       Element Values(0)
@@ -176,16 +176,16 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M(Direc ... nteger)) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: M()) (Syntax: 'New M(Direc ... nteger)) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... n, Integer)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... n, Integer)')
         Left: 
-          IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: 'DirectCast( ... n, Integer)')
+          IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32) (Syntax: 'DirectCast( ... n, Integer)')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'dimension')
+              IParameterReferenceOperation: dimension (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'dimension')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'DirectCast( ... n, Integer)')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'DirectCast( ... n, Integer)')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{}')
       Element Values(0)
@@ -207,13 +207,13 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String()) (Syntax: 'New String( ... ring.Empty}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.String()) (Syntax: 'New String( ... ring.Empty}')
   Dimension Sizes(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New String( ... ring.Empty}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New String( ... ring.Empty}')
   Initializer: 
     IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.String()) (Syntax: '{String.Empty}')
       Element Values(1):
-          IFieldReferenceOperation: System.String.Empty As System.String (Static) (OperationKind.FieldReference, Type: System.String) (Syntax: 'String.Empty')
+          IFieldReferenceOperation: System.String.Empty As System.String (Static) (OperationKind.FieldReference, IsExpression, Type: System.String) (Syntax: 'String.Empty')
             Instance Receiver: 
               null
 ]]>.Value
@@ -233,24 +233,24 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C(1) {N ... C, Nothing}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: C()) (Syntax: 'New C(1) {N ... C, Nothing}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
     IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{New C, Nothing}')
       Element Values(2):
-          IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C')
+          IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C) (Syntax: 'New C')
             Arguments(0)
             Initializer: 
               null
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, Constant: null, IsImplicit) (Syntax: 'Nothing')
+          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: C, Constant: null, IsImplicit) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -268,17 +268,17 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syntax: 'New C(2) {New C}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: C(), IsInvalid) (Syntax: 'New C(2) {New C}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
   Initializer: 
     IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: C(), IsInvalid) (Syntax: '{New C}')
       Element Values(1):
-          IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'New C')
+          IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C, IsInvalid) (Syntax: 'New C')
             Arguments(0)
             Initializer: 
               null
@@ -304,22 +304,22 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsInvalid) (Syntax: 'New Integer(x(0)) {1, 2}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(), IsInvalid) (Syntax: 'New Integer(x(0)) {1, 2}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x(0)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'x(0)')
         Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'x(0)')
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, IsExpression, Type: System.Int32) (Syntax: 'x(0)')
             Array reference: 
-              ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'x')
+              ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: System.Int32()) (Syntax: 'x')
             Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x(0)')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x(0)')
   Initializer: 
     IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsInvalid) (Syntax: '{1, 2}')
       Element Values(2):
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -345,13 +345,13 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M() {New M}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: M()) (Syntax: 'New M() {New M}')
   Dimension Sizes(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New M() {New M}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New M() {New M}')
   Initializer: 
     IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: M()) (Syntax: '{New M}')
       Element Values(1):
-          IObjectCreationOperation (Constructor: Sub M..ctor()) (OperationKind.ObjectCreation, Type: M) (Syntax: 'New M')
+          IObjectCreationOperation (Constructor: Sub M..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: M) (Syntax: 'New M')
             Arguments(0)
             Initializer: 
               null
@@ -376,13 +376,13 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: '{New M}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: M()) (Syntax: '{New M}')
   Dimension Sizes(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '{New M}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '{New M}')
   Initializer: 
     IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{New M}')
       Element Values(1):
-          IObjectCreationOperation (Constructor: Sub M..ctor()) (OperationKind.ObjectCreation, Type: M) (Syntax: 'New M')
+          IObjectCreationOperation (Constructor: Sub M..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: M) (Syntax: 'New M')
             Arguments(0)
             Initializer: 
               null
@@ -402,14 +402,14 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a = {}')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Dim a = {}')
   IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a')
     Variables: Local_1: a As System.Object()
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= {}')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Object()) (Syntax: '{}')
+        IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Object()) (Syntax: '{}')
           Dimension Sizes(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{}')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{}')
           Initializer: 
             IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{}')
               Element Values(0)
@@ -432,18 +432,18 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String()) (Syntax: '{"hello", a, Nothing}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.String()) (Syntax: '{"hello", a, Nothing}')
   Dimension Sizes(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '{"hello", a, Nothing}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '{"hello", a, Nothing}')
   Initializer: 
     IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{"hello", a, Nothing}')
       Element Values(3):
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "hello") (Syntax: '"hello"')
-          ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.String) (Syntax: 'a')
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "hello") (Syntax: '"hello"')
+          ILocalReferenceOperation: a (OperationKind.LocalReference, IsExpression, Type: System.String) (Syntax: 'a')
+          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -463,23 +463,23 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte(,,)) (Syntax: 'New Byte(0, 1, 2) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Byte(,,)) (Syntax: 'New Byte(0, 1, 2) {}')
   Dimension Sizes(3):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Byte(,,)) (Syntax: '{}')
       Element Values(0)
@@ -501,11 +501,11 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte(,,)) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Byte(,,)) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
   Dimension Sizes(3):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
   Initializer: 
     IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Byte(,,)) (Syntax: '{{{1, 2, 3} ... {4, 5, 6}}}')
       Element Values(2):
@@ -513,34 +513,34 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte(,,)) (Sy
             Element Values(1):
                 IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2, 3}')
                   Element Values(3):
-                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 1, IsImplicit) (Syntax: '1')
+                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Byte, Constant: 1, IsImplicit) (Syntax: '1')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 2, IsImplicit) (Syntax: '2')
+                          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Byte, Constant: 2, IsImplicit) (Syntax: '2')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
+                          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
           IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{{4, 5, 6}}')
             Element Values(1):
                 IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{4, 5, 6}')
                   Element Values(3):
-                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 4, IsImplicit) (Syntax: '4')
+                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Byte, Constant: 4, IsImplicit) (Syntax: '4')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 5, IsImplicit) (Syntax: '5')
+                          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Byte, Constant: 5, IsImplicit) (Syntax: '5')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
-                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 6, IsImplicit) (Syntax: '6')
+                          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Byte, Constant: 6, IsImplicit) (Syntax: '6')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
+                          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 6) (Syntax: '6')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -560,23 +560,23 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(,)) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
   Dimension Sizes(2):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
   Initializer: 
     IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
       Element Values(2):
           IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2, 3}')
             Element Values(3):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
           IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{4, 5, 6}')
             Element Values(3):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 6) (Syntax: '6')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -595,13 +595,13 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()(,)) (Syntax: 'New Integer(0)(,) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32()(,)) (Syntax: 'New Integer(0)(,) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Int32()(,)) (Syntax: '{}')
       Element Values(0)
@@ -622,26 +622,26 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer ... ), x(1)) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(,)) (Syntax: 'New Integer ... ), x(1)) {}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x(0)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'x(0)')
         Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'x(0)')
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, IsExpression, Type: System.Int32) (Syntax: 'x(0)')
             Array reference: 
-              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'x')
+              IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32()) (Syntax: 'x')
             Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x(0)')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x(1)')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x(0)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'x(1)')
         Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'x(1)')
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, IsExpression, Type: System.Int32) (Syntax: 'x(1)')
             Array reference: 
-              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'x')
+              IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32()) (Syntax: 'x')
             Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x(1)')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x(1)')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,)) (Syntax: '{}')
       Element Values(0)
@@ -662,18 +662,18 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer(1, 1) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(,)) (Syntax: 'New Integer(1, 1) {}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,)) (Syntax: '{}')
       Element Values(0)
@@ -694,18 +694,18 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer(1, 1) {{}}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer(1, 1) {{}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
     IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,), IsInvalid) (Syntax: '{{}}')
       Element Values(1):
@@ -735,18 +735,18 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... 1) {{}, {}}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... 1) {{}, {}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
     IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,), IsInvalid) (Syntax: '{{}, {}}')
       Element Values(2):
@@ -778,25 +778,25 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... 1) {{1, 2}}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... 1) {{1, 2}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
     IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,), IsInvalid) (Syntax: '{{1, 2}}')
       Element Values(1):
           IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{1, 2}')
             Element Values(2):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -818,25 +818,25 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... {1, 2}, {}}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... {1, 2}, {}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
     IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,), IsInvalid) (Syntax: '{{1, 2}, {}}')
       Element Values(2):
           IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2}')
             Element Values(2):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
           IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{}')
             Element Values(0)
 ]]>.Value
@@ -860,29 +860,29 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer ... 2}, {1, 2}}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(,)) (Syntax: 'New Integer ... 2}, {1, 2}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
   Initializer: 
     IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(,)) (Syntax: '{{1, 2}, {1, 2}}')
       Element Values(2):
           IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2}')
             Element Values(2):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
           IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2}')
             Element Values(2):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -901,12 +901,12 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,,,)) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32(,,,)) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
   Dimension Sizes(4):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
   Initializer: 
     IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
       Element Values(2):
@@ -916,16 +916,16 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,,,)) (
                   Element Values(1):
                       IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2}')
                         Element Values(2):
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
           IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{{{3, 4}}}')
             Element Values(1):
                 IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{{3, 4}}')
                   Element Values(1):
                       IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{3, 4}')
                         Element Values(2):
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -943,19 +943,19 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String(,), IsInvalid) (Syntax: 'New String(1,) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.String(,), IsInvalid) (Syntax: 'New String(1,) {}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '')
         Left: 
-          IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '')
+          IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '')
             Children(0)
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.String(,)) (Syntax: '{}')
       Element Values(0)
@@ -980,16 +980,16 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syntax: 'New C() {1}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: C(), IsInvalid) (Syntax: 'New C() {1}')
   Dimension Sizes(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'New C() {1}')
+      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'New C() {1}')
   Initializer: 
     IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: C(), IsInvalid) (Syntax: '{1}')
       Element Values(1):
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: '1')
+          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: C, IsInvalid, IsImplicit) (Syntax: '1')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1011,16 +1011,16 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syntax: 'New C(c) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: C(), IsInvalid) (Syntax: 'New C(c) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
         Left: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
+          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
+              IParameterReferenceOperation: c (OperationKind.ParameterReference, IsExpression, Type: C, IsInvalid) (Syntax: 'c')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'c')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'c')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{}')
       Element Values(0)
@@ -1049,16 +1049,16 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C(M()) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: C()) (Syntax: 'New C(M()) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'M()')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'M()')
         Left: 
-          IInvocationOperation ( Function C.M() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M()')
+          IInvocationOperation ( Function C.M() As System.Int32) (OperationKind.Invocation, IsExpression, Type: System.Int32) (Syntax: 'M()')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M')
+              IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C, IsImplicit) (Syntax: 'M')
             Arguments(0)
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M()')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M()')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{}')
       Element Values(0)
@@ -1084,19 +1084,19 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C(Direc ... nteger)) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: C()) (Syntax: 'New C(Direc ... nteger)) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
         Left: 
-          IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: 'DirectCast(M(), Integer)')
+          IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32) (Syntax: 'DirectCast(M(), Integer)')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IInvocationOperation ( Function C.M() As System.Object) (OperationKind.Invocation, Type: System.Object) (Syntax: 'M()')
+              IInvocationOperation ( Function C.M() As System.Object) (OperationKind.Invocation, IsExpression, Type: System.Object) (Syntax: 'M()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C, IsImplicit) (Syntax: 'M')
                 Arguments(0)
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{}')
       Element Values(0)
@@ -1122,19 +1122,19 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syntax: 'New C(M()) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: C(), IsInvalid) (Syntax: 'New C(M()) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
         Left: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
+          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IInvocationOperation ( Function C.M() As System.Object) (OperationKind.Invocation, Type: System.Object, IsInvalid) (Syntax: 'M()')
+              IInvocationOperation ( Function C.M() As System.Object) (OperationKind.Invocation, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'M()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
                 Arguments(0)
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'M()')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'M()')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{}')
       Element Values(0)
@@ -1164,19 +1164,19 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syntax: 'New C(Direc ... nteger)) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: C(), IsInvalid) (Syntax: 'New C(Direc ... nteger)) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
         Left: 
-          IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid) (Syntax: 'DirectCast(M(), Integer)')
+          IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'DirectCast(M(), Integer)')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IInvocationOperation ( Function C.M() As C) (OperationKind.Invocation, Type: C, IsInvalid) (Syntax: 'M()')
+              IInvocationOperation ( Function C.M() As C) (OperationKind.Invocation, IsExpression, Type: C, IsInvalid) (Syntax: 'M()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
                 Arguments(0)
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: C()) (Syntax: '{}')
       Element Values(0)
@@ -1201,18 +1201,18 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x(2) As Integer')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Dim x(2) As Integer')
   IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x(2)')
     Variables: Local_1: x As System.Int32()
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x(2)')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'x(2)')
+        IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Int32()) (Syntax: 'x(2)')
           Dimension Sizes(1):
-              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
                 Left: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
                 Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
           Initializer: 
             null
 ]]>.Value
@@ -1234,16 +1234,16 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String(), IsInvalid) (Syntax: 'New String(0.0) {}')
+IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.String(), IsInvalid) (Syntax: 'New String(0.0) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '0.0')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '0.0')
         Left: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '0.0')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '0.0')
   Initializer: 
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.String()) (Syntax: '{}')
       Element Values(0)

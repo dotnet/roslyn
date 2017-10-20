@@ -22,22 +22,22 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If count >  ... lue = count')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If count >  ... lue = count')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'count > 0')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'count > 0')
       Left: 
-        ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
+        ILocalReferenceOperation: count (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'count')
       Right: 
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If count >  ... lue = count')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'returnValue = count')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If count >  ... lue = count')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'returnValue = count')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'returnValue = count')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'returnValue = count')
             Left: 
-              ILocalReferenceOperation: returnValue (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'returnValue')
+              ILocalReferenceOperation: returnValue (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
-              ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
+              ILocalReferenceOperation: count (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'count')
   WhenFalse: 
     null
 ]]>.Value
@@ -63,22 +63,22 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If count >  ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If count >  ... End If')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'count > 0')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'count > 0')
       Left: 
-        ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
+        ILocalReferenceOperation: count (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'count')
       Right: 
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If count >  ... End If')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'returnValue = count')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If count >  ... End If')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'returnValue = count')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'returnValue = count')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'returnValue = count')
             Left: 
-              ILocalReferenceOperation: returnValue (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'returnValue')
+              ILocalReferenceOperation: returnValue (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
-              ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
+              ILocalReferenceOperation: count (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'count')
   WhenFalse: 
     null
 ]]>.Value
@@ -101,39 +101,39 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If count >  ... ata - count')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If count >  ... ata - count')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'count > 10')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'count > 10')
       Left: 
-        ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
+        ILocalReferenceOperation: count (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'count')
       Right: 
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If count >  ... ata - count')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'data = data + count')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If count >  ... ata - count')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'data = data + count')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'data = data + count')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'data = data + count')
             Left: 
-              ILocalReferenceOperation: data (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'data')
+              ILocalReferenceOperation: data (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'data')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'data + count')
+              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32) (Syntax: 'data + count')
                 Left: 
-                  ILocalReferenceOperation: data (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'data')
+                  ILocalReferenceOperation: data (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'data')
                 Right: 
-                  ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
+                  ILocalReferenceOperation: count (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'count')
   WhenFalse: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else data = data - count')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'data = data - count')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Else data = data - count')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'data = data - count')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'data = data - count')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'data = data - count')
             Left: 
-              ILocalReferenceOperation: data (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'data')
+              ILocalReferenceOperation: data (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'data')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'data - count')
+              IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32) (Syntax: 'data - count')
                 Left: 
-                  ILocalReferenceOperation: data (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'data')
+                  ILocalReferenceOperation: data (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'data')
                 Right: 
-                  ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
+                  ILocalReferenceOperation: count (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'count')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -155,31 +155,31 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If m > 10 T ... rnValue = n')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If m > 10 T ... rnValue = n')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 10')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm > 10')
       Left: 
-        ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+        ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'm')
       Right: 
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If m > 10 T ... rnValue = n')
-      IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If n > 20 T ... rnValue = n')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If m > 10 T ... rnValue = n')
+      IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If n > 20 T ... rnValue = n')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 20')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'n > 20')
             Left: 
-              ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
+              ILocalReferenceOperation: n (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'n')
             Right: 
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         WhenTrue: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If n > 20 T ... rnValue = n')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'returnValue = n')
+          IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If n > 20 T ... rnValue = n')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'returnValue = n')
               Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'returnValue = n')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'returnValue = n')
                   Left: 
-                    ILocalReferenceOperation: returnValue (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'returnValue')
+                    ILocalReferenceOperation: returnValue (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'returnValue')
                   Right: 
-                    ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
+                    ILocalReferenceOperation: n (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'n')
         WhenFalse: 
           null
   WhenFalse: 
@@ -205,22 +205,22 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If 1 = 1 Th ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If 1 = 1 Th ... End If')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: True) (Syntax: '1 = 1')
+    IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean, Constant: True) (Syntax: '1 = 1')
       Left: 
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       Right: 
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If 1 = 1 Th ... End If')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = True')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If 1 = 1 Th ... End If')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'condition = True')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = True')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Boolean) (Syntax: 'condition = True')
             Left: 
-              ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
+              ILocalReferenceOperation: condition (OperationKind.LocalReference, IsExpression, Type: System.Boolean) (Syntax: 'condition')
             Right: 
-              ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
   WhenFalse: 
     null
 ]]>.Value
@@ -244,18 +244,18 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If False Th ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If False Th ... End If')
   Condition: 
-    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+    ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If False Th ... End If')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = False')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If False Th ... End If')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'condition = False')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = False')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Boolean) (Syntax: 'condition = False')
             Left: 
-              ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
+              ILocalReferenceOperation: condition (OperationKind.LocalReference, IsExpression, Type: System.Boolean) (Syntax: 'condition')
             Right: 
-              ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
   WhenFalse: 
     null
 ]]>.Value
@@ -279,32 +279,32 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 10  ... rnValue = n')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (m > 10  ... rnValue = n')
   Condition: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m > 10 And n > 20)')
+    IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(m > 10 And n > 20)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.And, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 10 And n > 20')
+        IBinaryOperation (BinaryOperatorKind.And, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm > 10 And n > 20')
           Left: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 10')
+            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm > 10')
               Left: 
-                ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+                ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'm')
               Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
           Right: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 20')
+            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'n > 20')
               Left: 
-                ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
+                ILocalReferenceOperation: n (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'n')
               Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (m > 10  ... rnValue = n')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'returnValue = n')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (m > 10  ... rnValue = n')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'returnValue = n')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'returnValue = n')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'returnValue = n')
             Left: 
-              ILocalReferenceOperation: returnValue (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'returnValue')
+              ILocalReferenceOperation: returnValue (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
-              ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
+              ILocalReferenceOperation: n (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'n')
   WhenFalse: 
     null
 ]]>.Value
@@ -331,33 +331,33 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If count >  ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If count >  ... End If')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'count > 0')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'count > 0')
       Left: 
-        ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
+        ILocalReferenceOperation: count (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'count')
       Right: 
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If count >  ... End If')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'returnValue = count')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If count >  ... End If')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'returnValue = count')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'returnValue = count')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'returnValue = count')
             Left: 
-              ILocalReferenceOperation: returnValue (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'returnValue')
+              ILocalReferenceOperation: returnValue (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
-              ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
+              ILocalReferenceOperation: count (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'count')
   WhenFalse: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else ... nValue = -1')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'returnValue = -1')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Else ... nValue = -1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'returnValue = -1')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'returnValue = -1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'returnValue = -1')
             Left: 
-              ILocalReferenceOperation: returnValue (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'returnValue')
+              ILocalReferenceOperation: returnValue (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
-              IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -1) (Syntax: '-1')
+              IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, IsExpression, Type: System.Int32, Constant: -1) (Syntax: '-1')
                 Operand: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -386,50 +386,50 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 10) ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (m > 10) ... End If')
   Condition: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m > 10)')
+    IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(m > 10)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 10')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm > 10')
           Left: 
-            ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+            ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'm')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (m > 10) ... End If')
-      IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (n > 20) ... End If')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (m > 10) ... End If')
+      IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (n > 20) ... End If')
         Condition: 
-          IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(n > 20)')
+          IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(n > 20)')
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 20')
+              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'n > 20')
                 Left: 
-                  ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
+                  ILocalReferenceOperation: n (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'n')
                 Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         WhenTrue: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (n > 20) ... End If')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... "Result 1")')
+          IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (n > 20) ... End If')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... "Result 1")')
               Expression: 
-                IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... "Result 1")')
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 1")')
                   Instance Receiver: 
                     null
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result 1"')
-                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result 1") (Syntax: '"Result 1"')
+                        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result 1") (Syntax: '"Result 1"')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         WhenFalse: 
           null
   WhenFalse: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else ... "Result 2")')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... "Result 2")')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Else ... "Result 2")')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... "Result 2")')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... "Result 2")')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 2")')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result 2"')
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result 2") (Syntax: '"Result 2"')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result 2") (Syntax: '"Result 2"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -460,48 +460,48 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 10) ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (m > 10) ... End If')
   Condition: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m > 10)')
+    IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(m > 10)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 10')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm > 10')
           Left: 
-            ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+            ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'm')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (m > 10) ... End If')
-      IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (n > 20) ... End If')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (m > 10) ... End If')
+      IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (n > 20) ... End If')
         Condition: 
-          IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(n > 20)')
+          IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(n > 20)')
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 20')
+              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'n > 20')
                 Left: 
-                  ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
+                  ILocalReferenceOperation: n (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'n')
                 Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         WhenTrue: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (n > 20) ... End If')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... "Result 1")')
+          IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (n > 20) ... End If')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... "Result 1")')
               Expression: 
-                IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... "Result 1")')
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 1")')
                   Instance Receiver: 
                     null
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result 1"')
-                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result 1") (Syntax: '"Result 1"')
+                        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result 1") (Syntax: '"Result 1"')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         WhenFalse: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else ... "Result 2")')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... "Result 2")')
+          IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Else ... "Result 2")')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... "Result 2")')
               Expression: 
-                IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... "Result 2")')
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 2")')
                   Instance Receiver: 
                     null
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result 2"')
-                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result 2") (Syntax: '"Result 2"')
+                        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result 2") (Syntax: '"Result 2"')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   WhenFalse: 
@@ -531,33 +531,33 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (m >= n  ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (m >= n  ... End If')
   Condition: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m >= n AndAlso m >= p)')
+    IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(m >= n AndAlso m >= p)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= n AndAlso m >= p')
+        IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm >= n AndAlso m >= p')
           Left: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= n')
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm >= n')
               Left: 
-                ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+                ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'm')
               Right: 
-                ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
+                ILocalReferenceOperation: n (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'n')
           Right: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= p')
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm >= p')
               Left: 
-                ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+                ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'm')
               Right: 
-                ILocalReferenceOperation: p (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'p')
+                ILocalReferenceOperation: p (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'p')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (m >= n  ... End If')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... r than m.")')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (m >= n  ... End If')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... r than m.")')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... r than m.")')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ... r than m.")')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Nothing Is ... er than m."')
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Nothing Is larger than m.") (Syntax: '"Nothing Is ... er than m."')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Nothing Is larger than m.") (Syntax: '"Nothing Is ... er than m."')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   WhenFalse: 
@@ -589,59 +589,59 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 20) ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (m > 20) ... End If')
   Condition: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m > 20)')
+    IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(m > 20)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 20')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm > 20')
           Left: 
-            ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+            ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'm')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (m > 20) ... End If')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... ("Result1")')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (m > 20) ... End If')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... ("Result1")')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result1"')
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   WhenFalse: 
-    IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'ElseIf (n > ... ("Result2")')
+    IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'ElseIf (n > ... ("Result2")')
       Condition: 
-        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(n > 10)')
+        IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(n > 10)')
           Operand: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 10')
+            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'n > 10')
               Left: 
-                ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
+                ILocalReferenceOperation: n (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'n')
               Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
       WhenTrue: 
-        IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'ElseIf (n > ... ("Result2")')
-          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... ("Result2")')
+        IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'ElseIf (n > ... ("Result2")')
+          IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... ("Result2")')
             Expression: 
-              IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... ("Result2")')
+              IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result2")')
                 Instance Receiver: 
                   null
                 Arguments(1):
                     IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result2"')
-                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result2") (Syntax: '"Result2"')
+                      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result2") (Syntax: '"Result2"')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       WhenFalse: 
-        IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else ... ("Result3")')
-          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... ("Result3")')
+        IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Else ... ("Result3")')
+          IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... ("Result3")')
             Expression: 
-              IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... ("Result3")')
+              IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result3")')
                 Instance Receiver: 
                   null
                 Arguments(1):
                     IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result3"')
-                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result3") (Syntax: '"Result3"')
+                      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result3") (Syntax: '"Result3"')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -664,60 +664,60 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 20) ... ("Result3")')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (m > 20) ... ("Result3")')
   Condition: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m > 20)')
+    IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(m > 20)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 20')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm > 20')
           Left: 
-            ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+            ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'm')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (m > 20) ... ("Result3")')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ("Result1")')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (m > 20) ... ("Result3")')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'System.Cons ... ("Result1")')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... ("Result1")')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'System.Cons ... ("Result1")')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result1"')
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   WhenFalse: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else If (n  ... ("Result3")')
-      IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (n > 10) ... ("Result3")')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Else If (n  ... ("Result3")')
+      IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (n > 10) ... ("Result3")')
         Condition: 
-          IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(n > 10)')
+          IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(n > 10)')
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 10')
+              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'n > 10')
                 Left: 
-                  ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
+                  ILocalReferenceOperation: n (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'n')
                 Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         WhenTrue: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (n > 10) ... ("Result3")')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ("Result2")')
+          IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (n > 10) ... ("Result3")')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'System.Cons ... ("Result2")')
               Expression: 
-                IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... ("Result2")')
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'System.Cons ... ("Result2")')
                   Instance Receiver: 
                     null
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result2"')
-                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result2") (Syntax: '"Result2"')
+                        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result2") (Syntax: '"Result2"')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         WhenFalse: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else System ... ("Result3")')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ("Result3")')
+          IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Else System ... ("Result3")')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'System.Cons ... ("Result3")')
               Expression: 
-                IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... ("Result3")')
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'System.Cons ... ("Result3")')
                   Instance Receiver: 
                     null
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result3"')
-                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result3") (Syntax: '"Result3"')
+                        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result3") (Syntax: '"Result3"')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -746,29 +746,29 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'If (m > 20) ... Else')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null, IsInvalid) (Syntax: 'If (m > 20) ... Else')
   Condition: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean, IsInvalid) (Syntax: '(m > 20)')
+    IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean, IsInvalid) (Syntax: '(m > 20)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'm > 20')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean, IsInvalid) (Syntax: 'm > 20')
           Left: 
-            ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'm')
+            ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'm')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20, IsInvalid) (Syntax: '20')
+            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20, IsInvalid) (Syntax: '20')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'If (m > 20) ... Else')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... ("Result1")')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'If (m > 20) ... Else')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... ("Result1")')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result1"')
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   WhenFalse: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Else')
+    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Else')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -795,25 +795,25 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'If () Then' ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null, IsInvalid) (Syntax: 'If () Then' ... End If')
   Condition: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '()')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IParenthesizedOperation (OperationKind.Parenthesized, Type: ?, IsInvalid) (Syntax: '()')
+        IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: ?, IsInvalid) (Syntax: '()')
           Operand: 
-            IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+            IInvalidOperation (OperationKind.Invalid, IsExpression, Type: null, IsInvalid) (Syntax: '')
               Children(0)
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'If () Then' ... End If')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... ("Result1")')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'If () Then' ... End If')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... ("Result1")')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Result1"')
-                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   WhenFalse: 
@@ -845,19 +845,19 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (m = 9)  ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (m = 9)  ... End If')
   Condition: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m = 9)')
+    IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean) (Syntax: '(m = 9)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm = 9')
+        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'm = 9')
           Left: 
-            ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+            ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'm')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 9) (Syntax: '9')
+            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
   WhenTrue: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'If (m = 9)  ... End If')
+    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (m = 9)  ... End If')
   WhenFalse: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Else')
+    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Else')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -886,24 +886,24 @@ Module Module1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalOperation (isStatement: True) (OperationKind.Conditional, Type: null) (Syntax: 'If (True) T ... End If')
+IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'If (True) T ... End If')
   Condition: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean, Constant: True) (Syntax: '(True)')
+    IParenthesizedOperation (OperationKind.Parenthesized, IsExpression, Type: System.Boolean, Constant: True) (Syntax: '(True)')
       Operand: 
-        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
+        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (True) T ... End If')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'A()')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'If (True) T ... End If')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'A()')
         Expression: 
-          IInvocationOperation (Function Module1.A() As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: 'A()')
+          IInvocationOperation (Function Module1.A() As System.String) (OperationKind.Invocation, IsExpression, Type: System.String) (Syntax: 'A()')
             Instance Receiver: 
               null
             Arguments(0)
   WhenFalse: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else ... B()')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'B()')
+    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Else ... B()')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'B()')
         Expression: 
-          IInvocationOperation (Function Module1.B() As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: 'B()')
+          IInvocationOperation (Function Module1.B() As System.String) (OperationKind.Invocation, IsExpression, Type: System.String) (Syntax: 'B()')
             Instance Receiver: 
               null
             Arguments(0)

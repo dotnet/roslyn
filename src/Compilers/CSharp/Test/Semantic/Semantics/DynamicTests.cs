@@ -1185,13 +1185,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd1.N<S>()')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: dynamic) (Syntax: 'd1.N<S>()')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd1.N<S>')
+    IDynamicMemberReferenceOperation (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: dynamic) (Syntax: 'd1.N<S>')
       Type Arguments(1):
         Symbol: S
       Instance Receiver: 
-        ILocalReferenceOperation: d1 (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd1')
+        ILocalReferenceOperation: d1 (OperationKind.LocalReference, IsExpression, Type: dynamic) (Syntax: 'd1')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -1251,14 +1251,14 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(Syste ... riteLine())')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(Syste ... riteLine())')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Goo')
+    IDynamicMemberReferenceOperation (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: dynamic) (Syntax: 'd.Goo')
       Type Arguments(0)
       Instance Receiver: 
-        IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
+        IParameterReferenceOperation: d (OperationKind.ParameterReference, IsExpression, Type: dynamic) (Syntax: 'd')
   Arguments(1):
-      IInvocationOperation (void System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... WriteLine()')
+      IInvocationOperation (void System.Console.WriteLine()) (OperationKind.Invocation, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... WriteLine()')
         Instance Receiver: 
           null
         Arguments(0)
@@ -1299,12 +1299,12 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationOperation ( void C.Goo()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'c.Goo(d)')
+IInvocationOperation ( void C.Goo()) (OperationKind.Invocation, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'c.Goo(d)')
   Instance Receiver: 
-    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+    IParameterReferenceOperation: c (OperationKind.ParameterReference, IsExpression, Type: C) (Syntax: 'c')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: dynamic) (Syntax: 'd')
-        IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
+        IParameterReferenceOperation: d (OperationKind.ParameterReference, IsExpression, Type: dynamic) (Syntax: 'd')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1340,18 +1340,18 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationOperation ( ? C.()) (OperationKind.Invocation, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
+IInvocationOperation ( ? C.()) (OperationKind.Invocation, IsExpression, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
   Instance Receiver: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c.Goo<short>')
       Children(1):
-          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
+          IParameterReferenceOperation: c (OperationKind.ParameterReference, IsExpression, Type: C, IsInvalid) (Syntax: 'c')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: dynamic, IsInvalid) (Syntax: 'd')
-        IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'd')
+        IParameterReferenceOperation: d (OperationKind.ParameterReference, IsExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: dynamic, IsInvalid) (Syntax: 'd')
-        IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'd')
+        IParameterReferenceOperation: d (OperationKind.ParameterReference, IsExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1390,12 +1390,12 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IInvocationOperation ( ? A.B.()) (OperationKind.Invocation, Type: ?, IsInvalid) (Syntax: 'M(d)')
+IInvocationOperation ( ? A.B.()) (OperationKind.Invocation, IsExpression, Type: ?, IsInvalid) (Syntax: 'M(d)')
   Instance Receiver: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: dynamic, IsInvalid) (Syntax: 'd')
-        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic, IsInvalid) (Syntax: 'd')
+        ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";

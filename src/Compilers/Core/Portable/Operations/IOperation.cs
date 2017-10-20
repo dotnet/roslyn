@@ -59,5 +59,15 @@ namespace Microsoft.CodeAnalysis
         /// Set to True if compiler generated /implicitly computed by compiler code
         /// </summary>
         bool IsImplicit { get; }
+
+        /// <summary>
+        /// True if the operation is classified as an expression. <see cref="Type"/> may be null or non-null for expressions.
+        /// </summary>
+        bool IsExpression { get; }
+
+        /// <summary>
+        /// True if the operation is classified as a statement. <see cref="Type"/> will always be null for statements.
+        /// </summary>
+        bool IsStatement { get; }
     }
 }

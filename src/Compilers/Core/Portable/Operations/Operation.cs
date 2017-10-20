@@ -24,8 +24,13 @@ namespace Microsoft.CodeAnalysis
         // but once initialized, will never change
         private IOperation _parentDoNotAccessDirectly;
 
-        public Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        public Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit, bool isExpression, bool isStatement)
         {
+            // Operation cannot be both an expression and a statement.
+            Debug.Assert(!(isExpression && isStatement));
+            // Statements cannot have a non-null type.
+            Debug.Assert(!isStatement || type == null);
+
             SemanticModel = semanticModel;
 
             Kind = kind;
@@ -33,6 +38,8 @@ namespace Microsoft.CodeAnalysis
             Type = type;
             ConstantValue = constantValue;
             IsImplicit = isImplicit;
+            IsExpression = isExpression;
+            IsStatement = isStatement;
         }
 
         /// <summary>
@@ -82,6 +89,16 @@ namespace Microsoft.CodeAnalysis
             // syntax is not null and return its language.
             get => Syntax.Language;
         }
+
+        /// <summary>
+        /// True if the operation is classified as an expression. <see cref="Type"/> may be null or non-null for expressions.
+        /// </summary>
+        public bool IsExpression { get; }
+
+        /// <summary>
+        /// True if the operation is classified as a statement. <see cref="Type"/> will always be null for statements.
+        /// </summary>
+        public bool IsStatement { get; }
 
         /// <summary>
         /// If the operation is an expression that evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression. Otherwise, <see cref="Optional{Object}.HasValue"/> is false.
@@ -167,7 +184,7 @@ namespace Microsoft.CodeAnalysis
             private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
 
             public NoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit) :
-                base(OperationKind.None, semanticModel, node, type: null, constantValue: constantValue, isImplicit: isImplicit)
+                base(OperationKind.None, semanticModel, node, type: null, constantValue: constantValue, isImplicit: isImplicit, isExpression: false, isStatement: false)
             {
                 _lazyChildren = new Lazy<ImmutableArray<IOperation>>(getChildren);
             }

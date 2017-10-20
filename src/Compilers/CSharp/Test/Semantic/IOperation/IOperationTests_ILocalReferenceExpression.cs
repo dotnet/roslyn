@@ -30,8 +30,8 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
-  ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: System.Int32) (Syntax: 'var i')
+  ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -54,12 +54,12 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(var i1, var i2)')
+ITupleOperation (OperationKind.Tuple, IsExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(var i1, var i2)')
   Elements(2):
-      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i1')
-        ILocalReferenceOperation: i1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
-      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i2')
-        ILocalReferenceOperation: i2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: System.Int32) (Syntax: 'var i1')
+        ILocalReferenceOperation: i1 (IsDeclaration: True) (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'i1')
+      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: System.Int32) (Syntax: 'var i2')
+        ILocalReferenceOperation: i2 (IsDeclaration: True) (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -82,11 +82,11 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: 'var (i1, i2)')
-  ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
+IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: 'var (i1, i2)')
+  ITupleOperation (OperationKind.Tuple, IsExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
     Elements(2):
-        ILocalReferenceOperation: i1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
-        ILocalReferenceOperation: i2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+        ILocalReferenceOperation: i1 (IsDeclaration: True) (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'i1')
+        ILocalReferenceOperation: i2 (IsDeclaration: True) (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

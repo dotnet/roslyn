@@ -68,6 +68,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Kind
             LogString($"{nameof(OperationKind)}.{operation.Kind}");
 
+            if (operation.IsExpression)
+            {
+                LogString(", IsExpression");
+            }
+            else if(operation.IsStatement)
+            {
+                LogString(", IsStatement");
+            }
+
             // Type
             LogString(", ");
             LogType(operation.Type);
@@ -940,7 +949,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitConditional(IConditionalOperation operation)
         {
             LogString(nameof(IConditionalOperation));
-            LogString($" (isStatement: {operation.IsStatement()})");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Condition, "Condition");
@@ -1319,7 +1327,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInvalid(IInvalidOperation operation)
         {
             LogString(nameof(IInvalidOperation));
-            LogString($" (isStatement: {operation.IsStatement()})");
             LogCommonPropertiesAndNewLine(operation);
 
             VisitChildren(operation);

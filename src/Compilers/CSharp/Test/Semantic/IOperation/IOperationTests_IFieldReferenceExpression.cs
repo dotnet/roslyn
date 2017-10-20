@@ -30,7 +30,7 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'Conditional(field)')
   Children(1):
-      IFieldReferenceOperation: System.String C.field (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""field"") (Syntax: 'field')
+      IFieldReferenceOperation: System.String C.field (Static) (OperationKind.FieldReference, IsExpression, Type: System.String, Constant: ""field"") (Syntax: 'field')
         Instance Receiver: 
           null
 ";
@@ -52,10 +52,10 @@ public void M2(out int i )
 M2(out /*<bind>*/int i/*</bind>*/);
 ";
             string expectedOperationTree = @"
-IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i')
-  IFieldReferenceOperation: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
+IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: System.Int32) (Syntax: 'int i')
+  IFieldReferenceOperation: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'i')
     Instance Receiver: 
-      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i')
+      IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Script, IsImplicit) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -71,16 +71,16 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: Syst
 /*<bind>*/(int i1, int i2)/*</bind>*/ = (1, 2);
 ";
             string expectedOperationTree = @"
-ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(int i1, int i2)')
+ITupleOperation (OperationKind.Tuple, IsExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(int i1, int i2)')
   Elements(2):
-      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i1')
-        IFieldReferenceOperation: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
+      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: System.Int32) (Syntax: 'int i1')
+        IFieldReferenceOperation: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'i1')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i1')
-      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i2')
-        IFieldReferenceOperation: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i2')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Script, IsImplicit) (Syntax: 'i1')
+      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: System.Int32) (Syntax: 'int i2')
+        IFieldReferenceOperation: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'i2')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i2')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -101,10 +101,10 @@ public void M2(out int i )
 M2(out /*<bind>*/var i/*</bind>*/);
 ";
             string expectedOperationTree = @"
-IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
-  IFieldReferenceOperation: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
+IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: System.Int32) (Syntax: 'var i')
+  IFieldReferenceOperation: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'i')
     Instance Receiver: 
-      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i')
+      IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Script, IsImplicit) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -120,16 +120,16 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: Syst
 /*<bind>*/(var i1, var i2)/*</bind>*/ = (1, 2);
 ";
             string expectedOperationTree = @"
-ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(var i1, var i2)')
+ITupleOperation (OperationKind.Tuple, IsExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(var i1, var i2)')
   Elements(2):
-      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i1')
-        IFieldReferenceOperation: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
+      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: System.Int32) (Syntax: 'var i1')
+        IFieldReferenceOperation: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'i1')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i1')
-      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i2')
-        IFieldReferenceOperation: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i2')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Script, IsImplicit) (Syntax: 'i1')
+      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: System.Int32) (Syntax: 'var i2')
+        IFieldReferenceOperation: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'i2')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i2')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -145,15 +145,15 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) 
 /*<bind>*/var (i1, i2)/*</bind>*/ = (1, 2);
 ";
             string expectedOperationTree = @"
-IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: 'var (i1, i2)')
-  ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
+IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: 'var (i1, i2)')
+  ITupleOperation (OperationKind.Tuple, IsExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
     Elements(2):
-        IFieldReferenceOperation: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
+        IFieldReferenceOperation: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'i1')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i1')
-        IFieldReferenceOperation: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i2')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Script, IsImplicit) (Syntax: 'i1')
+        IFieldReferenceOperation: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'i2')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i2')
+            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -262,21 +262,5 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return argumentRefKinds[index];
         }
-
-        /// <summary>
-        /// Returns true if this conditional operation is syntactically a statement, such as a C# and VB if else statement.
-        /// </summary>
-        public static bool IsStatement(this IConditionalOperation conditionalOperation)
-        {
-            return ((BaseConditionalOperation)conditionalOperation).IsStatement;
-        }
-
-        /// <summary>
-        /// Returns true if this invalid operation is syntactically a statement.
-        /// </summary>
-        public static bool IsStatement(this IInvalidOperation invalidOperation)
-        {
-            return ((BaseInvalidOperation)invalidOperation).IsStatement;
-        }
     }
 }

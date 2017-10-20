@@ -25,7 +25,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$""""')
   Parts(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -49,11 +49,11 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""Only text part""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$""Only text part""')
   Parts(1):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'Only text part')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Only text part"") (Syntax: 'Only text part')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""Only text part"") (Syntax: 'Only text part')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -76,11 +76,11 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{1}""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$""{1}""')
   Parts(1):
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
         Expression: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: 
           null
         FormatString: 
@@ -107,11 +107,11 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""{}""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String, IsInvalid) (Syntax: '$""{}""')
   Parts(1):
       IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{}')
         Expression: 
-          IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+          IInvalidOperation (OperationKind.Invalid, IsExpression, Type: null, IsInvalid) (Syntax: '')
             Children(0)
         Alignment: 
           null
@@ -143,24 +143,24 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(4):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x}')
         Expression: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
         Alignment: 
           null
         FormatString: 
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
         Expression: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: 
           null
         FormatString: 
@@ -190,38 +190,38 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x,20}')
         Expression: 
-          IFieldReferenceOperation: System.String Class.x (OperationKind.FieldReference, Type: System.String) (Syntax: 'x')
+          IFieldReferenceOperation: System.String Class.x (OperationKind.FieldReference, IsExpression, Type: System.String) (Syntax: 'x')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'x')
+              IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class, IsImplicit) (Syntax: 'x')
         Alignment: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         FormatString: 
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and "") (Syntax: ' and ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{y:D3}')
         Expression: 
-          IFieldReferenceOperation: System.Int32 Class.y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'y')
+          IFieldReferenceOperation: System.Int32 Class.y (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'y')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'y')
+              IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class, IsImplicit) (Syntax: 'y')
         Alignment: 
           null
         FormatString: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
         Expression: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: 
           null
         FormatString: 
@@ -251,22 +251,22 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {x,y:D3}""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$""String {x,y:D3}""')
   Parts(2):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x,y:D3}')
         Expression: 
-          IFieldReferenceOperation: System.String Class.x (OperationKind.FieldReference, Type: System.String) (Syntax: 'x')
+          IFieldReferenceOperation: System.String Class.x (OperationKind.FieldReference, IsExpression, Type: System.String) (Syntax: 'x')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'x')
+              IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class, IsImplicit) (Syntax: 'x')
         Alignment: 
-          IFieldReferenceOperation: System.Int32 Class.y (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'y')
+          IFieldReferenceOperation: System.Int32 Class.y (Static) (OperationKind.FieldReference, IsExpression, Type: System.Int32, Constant: 0) (Syntax: 'y')
             Instance Receiver: 
               null
         FormatString: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -293,29 +293,29 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x}')
         Expression: 
-          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.String) (Syntax: 'x')
+          ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: System.String) (Syntax: 'x')
         Alignment: 
           null
         FormatString: 
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and "") (Syntax: ' and ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{M2(y)}')
         Expression: 
-          IInvocationOperation ( System.String Class.M2(System.Int32 z)) (OperationKind.Invocation, Type: System.String) (Syntax: 'M2(y)')
+          IInvocationOperation ( System.String Class.M2(System.Int32 z)) (OperationKind.Invocation, IsExpression, Type: System.String) (Syntax: 'M2(y)')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'M2')
+              IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class, IsImplicit) (Syntax: 'M2')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: System.Int32) (Syntax: 'y')
-                  ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
+                  ILocalReferenceOperation: y (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'y')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Alignment: 
@@ -324,10 +324,10 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
         Expression: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: 
           null
         FormatString: 
@@ -358,23 +358,23 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {M2($""{y}"")}""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$""String {M2($""{y}"")}""')
   Parts(2):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{M2($""{y}"")}')
         Expression: 
-          IInvocationOperation ( System.Int32 Class.M2(System.String z)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2($""{y}"")')
+          IInvocationOperation ( System.Int32 Class.M2(System.String z)) (OperationKind.Invocation, IsExpression, Type: System.Int32) (Syntax: 'M2($""{y}"")')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'M2')
+              IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class, IsImplicit) (Syntax: 'M2')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: System.String) (Syntax: '$""{y}""')
-                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{y}""')
+                  IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$""{y}""')
                     Parts(1):
                         IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{y}')
                           Expression: 
-                            ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
+                            ILocalReferenceOperation: y (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'y')
                           Alignment: 
                             null
                           FormatString: 
@@ -407,14 +407,14 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""String {x ... nt {Class}""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String, IsInvalid) (Syntax: '$""String {x ... nt {Class}""')
   Parts(4):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{x1}')
         Expression: 
-          IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x1')
+          IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'x1')
             Children(0)
         Alignment: 
           null
@@ -422,10 +422,10 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{Class}')
         Expression: 
-          IInvalidOperation (isStatement: False) (OperationKind.Invalid, Type: Class, IsInvalid, IsImplicit) (Syntax: 'Class')
+          IInvalidOperation (OperationKind.Invalid, IsExpression, Type: Class, IsInvalid, IsImplicit) (Syntax: 'Class')
             Children(1):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Class')
         Alignment: 

@@ -29,9 +29,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o Is Integer')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf o Is Integer')
   Operand: 
-    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceOperation: o (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'o')
   IsType: System.Int32
 ]]>.Value
 
@@ -60,9 +60,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o Is IComparable')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf o Is IComparable')
   Operand: 
-    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceOperation: o (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'o')
   IsType: System.IComparable
 ]]>.Value
 
@@ -95,9 +95,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf v Is DayOfWeek')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf v Is DayOfWeek')
   Operand: 
-    ILocalReferenceOperation: v (OperationKind.LocalReference, Type: System.ValueType) (Syntax: 'v')
+    ILocalReferenceOperation: v (OperationKind.LocalReference, IsExpression, Type: System.ValueType) (Syntax: 'v')
   IsType: System.DayOfWeek
 ]]>.Value
 
@@ -127,9 +127,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf e Is DayOfWeek')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf e Is DayOfWeek')
   Operand: 
-    ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Enum) (Syntax: 'e')
+    ILocalReferenceOperation: e (OperationKind.LocalReference, IsExpression, Type: System.Enum) (Syntax: 'e')
   IsType: System.DayOfWeek
 ]]>.Value
 
@@ -161,12 +161,12 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf oT Is TRef')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf oT Is TRef')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TRef')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TRef')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILocalReferenceOperation: oT (OperationKind.LocalReference, Type: T) (Syntax: 'oT')
+        ILocalReferenceOperation: oT (OperationKind.LocalReference, IsExpression, Type: T) (Syntax: 'oT')
   IsType: TRef
 ]]>.Value
 
@@ -198,12 +198,12 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf oT Is TVal')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf oT Is TVal')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TVal')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TVal')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILocalReferenceOperation: oT (OperationKind.LocalReference, Type: T) (Syntax: 'oT')
+        ILocalReferenceOperation: oT (OperationKind.LocalReference, IsExpression, Type: T) (Syntax: 'oT')
   IsType: TVal
 ]]>.Value
 
@@ -235,12 +235,12 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf vVal Is TRef')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf vVal Is TRef')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf vVal Is TRef')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'TypeOf vVal Is TRef')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILocalReferenceOperation: vVal (OperationKind.LocalReference, Type: TVal) (Syntax: 'vVal')
+        ILocalReferenceOperation: vVal (OperationKind.LocalReference, IsExpression, Type: TVal) (Syntax: 'vVal')
   IsType: TRef
 ]]>.Value
 
@@ -272,12 +272,12 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf oT Is String')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf oT Is String')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is String')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is String')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILocalReferenceOperation: oT (OperationKind.LocalReference, Type: T) (Syntax: 'oT')
+        ILocalReferenceOperation: oT (OperationKind.LocalReference, IsExpression, Type: T) (Syntax: 'oT')
   IsType: System.String
 ]]>.Value
 
@@ -305,9 +305,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf obj Is Program')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf obj Is Program')
   Operand: 
-    ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: System.Object) (Syntax: 'obj')
+    ILocalReferenceOperation: obj (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'obj')
   IsType: Program
 ]]>.Value
 
@@ -341,9 +341,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf s Is AppDomain')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf s Is AppDomain')
   Operand: 
-    ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String, IsInvalid) (Syntax: 's')
+    ILocalReferenceOperation: s (OperationKind.LocalReference, IsExpression, Type: System.String, IsInvalid) (Syntax: 's')
   IsType: System.AppDomain
 ]]>.Value
 
@@ -375,9 +375,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf s Is Integer')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf s Is Integer')
   Operand: 
-    ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String, IsInvalid) (Syntax: 's')
+    ILocalReferenceOperation: s (OperationKind.LocalReference, IsExpression, Type: System.String, IsInvalid) (Syntax: 's')
   IsType: System.Int32
 ]]>.Value
 
@@ -410,9 +410,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf i Is String')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf i Is String')
   Operand: 
-    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+    ILocalReferenceOperation: i (OperationKind.LocalReference, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
   IsType: System.String
 ]]>.Value
 
@@ -587,9 +587,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o Is ... terSequence')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf o Is ... terSequence')
   Operand: 
-    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceOperation: o (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'o')
   IsType: System.String
 ]]>.Value
 
@@ -618,9 +618,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o Is HRESULT')
+IIsTypeOperation (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf o Is HRESULT')
   Operand: 
-    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceOperation: o (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'o')
   IsType: System.Int32
 ]]>.Value
 
@@ -649,9 +649,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (IsNotExpression) (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o Is ... terSequence')
+IIsTypeOperation (IsNotExpression) (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf o Is ... terSequence')
   Operand: 
-    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceOperation: o (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'o')
   IsType: System.String
 ]]>.Value
 
@@ -680,9 +680,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIsTypeOperation (IsNotExpression) (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o IsNot HRESULT')
+IIsTypeOperation (IsNotExpression) (OperationKind.IsType, IsExpression, Type: System.Boolean) (Syntax: 'TypeOf o IsNot HRESULT')
   Operand: 
-    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceOperation: o (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'o')
   IsType: System.Int32
 ]]>.Value
 
