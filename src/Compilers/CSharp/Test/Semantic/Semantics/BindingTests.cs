@@ -3581,7 +3581,8 @@ static class E
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "G").First();
-            model.GetSymbolInfo(node);
+            var info = model.GetSymbolInfo(node);
+            Assert.Equal("System.Object A.G(System.String s)", info.Symbol.ToTestDisplayString());
         }
     }
 }
