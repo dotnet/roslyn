@@ -157,7 +157,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '. = Unknown()')
                 Children(0)
             Right: 
               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Unknown()')
@@ -166,7 +166,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                       Children(0)
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '. = Unknown()')
                 Children(0)
             Right: 
               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Unknown()')
@@ -309,7 +309,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .Field = 23')
                 Children(0)
             Right: 
               IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
@@ -523,7 +523,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Field1 = Bar(.Field1)')
                 Children(1):
                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Field1')
                       Children(1):
@@ -581,7 +581,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Field = 23')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field = 23')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Field = 23')
                 Children(1):
                     IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
                       Children(1):
@@ -628,7 +628,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Goo = "Hello World!"')
                 Children(1):
                     IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Goo')
                       Children(1):
@@ -817,7 +817,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
                 Initializers(1):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
                       Left: 
-                        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
+                        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.X = "goo"')
                           Children(1):
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
                                 Children(1):
@@ -829,7 +829,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
     Expression: 
-      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C3, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C3, IsInvalid, IsImplicit) (Syntax: 'x = New C3( ...  Unknown()}')
         Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: C3) (Syntax: 'x')
         Right: 
@@ -840,7 +840,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
                 Initializers(1):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
                       Left: 
-                        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
+                        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.X = Unknown()')
                           Children(1):
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
                                 Children(1):

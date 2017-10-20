@@ -997,7 +997,7 @@ HandleAsAGeneralExpression:
                     argIndex = parameterToArgumentMap(paramIndex)
                     Dim argument = If(argIndex = -1, Nothing, arguments(argIndex))
 
-                    If argument Is Nothing OrElse argument.HasErrors OrElse targetType.IsErrorType() Then
+                    If argument Is Nothing OrElse argument.HasErrors OrElse targetType.IsErrorType() OrElse argument.Kind = BoundKind.OmittedArgument Then
                         Continue For
                     End If
 
