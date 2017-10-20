@@ -1248,7 +1248,7 @@ class C
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (7,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)
+                // (7,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 2)").WithArguments("System.ValueTuple`2").WithLocation(7, 18)
                 );
