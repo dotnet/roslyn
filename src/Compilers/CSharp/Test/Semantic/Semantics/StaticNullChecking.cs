@@ -16609,6 +16609,122 @@ class B
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
+        [Fact]
+        public void InferLocalType_UsedInDeclaration()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class C
+{
+    static T F<T>(IEnumerable<T> e)
+    {
+        throw new NotImplementedException();
+    }
+    static void G()
+    {
+        var a = new[] { F(a) };
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,27): error CS0841: Cannot use local variable 'a' before it is declared
+                //         var a = new[] { F(a) };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "a").WithArguments("a").WithLocation(11, 27),
+                // (11,27): error CS0165: Use of unassigned local variable 'a'
+                //         var a = new[] { F(a) };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27));
+        }
+
+        [Fact]
+        public void InferLocalType_UsedInDeclaration_Script()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+static T F<T>(IEnumerable<T> e)
+{
+    throw new NotImplementedException();
+}
+var a = new[] { F(a) };";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp8));
+            comp.VerifyDiagnostics(
+                // (7,5): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var a = new[] { F(a) };
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a").WithLocation(7, 5));
+        }
+
+        [Fact]
+        public void InferLocalType_UsedBeforeDeclaration()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class C
+{
+    static T F<T>(IEnumerable<T> e)
+    {
+        throw new NotImplementedException();
+    }
+    static void G()
+    {
+        var a = new[] { F(b) };
+        var b = a;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,27): error CS0841: Cannot use local variable 'b' before it is declared
+                //         var a = new[] { F(b) };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(11, 27));
+        }
+
+        [Fact]
+        public void InferLocalType_OutVarError()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class C
+{
+    static T F<T>(IEnumerable<T> e)
+    {
+        throw new NotImplementedException();
+    }
+    static void G()
+    {
+        dynamic d = null!;
+        d.F(out var v);
+        F(v).ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,21): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
+                //         d.F(out var v);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(12, 21));
+        }
+
+        [Fact]
+        public void InferLocalType_OutVarError_Script()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+static T F<T>(IEnumerable<T> e)
+{
+    throw new NotImplementedException();
+}
+dynamic d = null!;
+d.F(out var v);
+F(v).ToString();";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp8));
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
+                // d.F(out var v);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(8, 13));
+        }
+
         /// <summary>
         /// Default value for non-nullable parameter
         /// should not result in a warning at the call site.

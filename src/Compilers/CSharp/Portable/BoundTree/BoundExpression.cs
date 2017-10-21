@@ -112,19 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.LocalSymbol; }
         }
 
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
-            : this(syntax, localSymbol, false, constantValueOpt, type, hasErrors)
-        {
-        }
-
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
-            : this(syntax, localSymbol, false, constantValueOpt, type)
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, localSymbol, false, constantValueOpt, false, type, hasErrors)
         {
         }
 
         public BoundLocal Update(LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            return this.Update(localSymbol, this.IsDeclaration, constantValueOpt, type);
+            return this.Update(localSymbol, this.IsDeclaration, constantValueOpt, this.IsNullableUnknown, type);
         }
     }
 
