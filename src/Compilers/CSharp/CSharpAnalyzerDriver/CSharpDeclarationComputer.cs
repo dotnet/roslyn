@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -183,7 +184,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GetAccessorDeclaration:
                     {
                         var t = (AccessorDeclarationSyntax)node;
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, t.Body, cancellationToken));
+                        var blocks = ArrayBuilder<SyntaxNode>.GetInstance();
+                        blocks.AddIfNotNull(t.Body);
+                        blocks.AddIfNotNull(t.ExpressionBody);
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, blocks, cancellationToken));
+                        blocks.Free();
+                        
                         return;
                     }
 

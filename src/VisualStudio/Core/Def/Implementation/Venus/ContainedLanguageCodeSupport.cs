@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 accessibility: Accessibility.Protected,
                 modifiers: new DeclarationModifiers(),
                 returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
-                returnsByRef: false,
+                refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: eventHandlerName,
                 typeParameters: default,
@@ -316,7 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return false;
             }
 
-            if (Workspace.TryGetWorkspace(document.GetTextAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).Container, out var workspace))
+            if (CodeAnalysis.Workspace.TryGetWorkspace(document.GetTextAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).Container, out var workspace))
             {
                 var newName = newFullyQualifiedName.Substring(newFullyQualifiedName.LastIndexOf('.') + 1);
                 var optionSet = document.Project.Solution.Workspace.Options;

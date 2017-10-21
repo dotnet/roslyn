@@ -246,16 +246,97 @@ public class goo
 }", "returns");
         }
 
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task MethodParamTypeParam()
+        public async Task ReadWritePropertyNoReturns()
         {
-            await VerifyItemsExistAsync(@"
-public class goo<T>
+            await VerifyItemIsAbsentAsync(@"
+public class goo
 {
     
     /// $$
-    public int bar<T>(T green) { }
-}", "typeparam name=\"T\"", "param name=\"green\"");
+    public int bar { get; set; }
+}", "returns");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadWritePropertyValue()
+        {
+            await VerifyItemExistsAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { get; set; }
+}", "value");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyPropertyNoReturns()
+        {
+            await VerifyItemIsAbsentAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { get; }
+}", "returns");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyPropertyValue()
+        {
+            await VerifyItemExistsAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { get; }
+}", "value");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WriteOnlyPropertyNoReturns()
+        {
+            await VerifyItemIsAbsentAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { set; }
+}", "returns");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WriteOnlyPropertyValue()
+        {
+            await VerifyItemExistsAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { set; }
+}", "value");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task MethodParamTypeParam()
+        {
+            var text = @"
+public class goo<TGoo>
+{
+    
+    /// $$
+    public int bar<TBar>(TBar green) { }
+}";
+
+            await VerifyItemsExistAsync(text, "typeparam name=\"TBar\"", "param name=\"green\"");
+            await VerifyItemsAbsentAsync(text, "typeparam name=\"TGoo\"");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -270,18 +351,27 @@ public class goo<T>
 }", "param name=\"green\"");
         }
 
+        [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodParamRefName()
         {
-            await VerifyItemsExistAsync(@"
-public class goo<T>
+            var text = @"
+public class Outer<TOuter>
 {
-    
-    /// <summary>
-    /// $$
-    /// </summary>
-    public int bar<T>(T green) { }
-}", "typeparamref name=\"T\"", "paramref name=\"green\"");
+    public class Inner<TInner>
+    {
+        /// <summary>
+        /// $$
+        /// </summary>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+            await VerifyItemsExistAsync(
+                text,
+                "typeparamref name=\"TOuter\"",
+                "typeparamref name=\"TInner\"",
+                "typeparamref name=\"TMethod\"",
+                "paramref name=\"green\"");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -306,727 +396,6 @@ public class goo<T>
 {
     public int bar<T>(T green) { }
 }", "typeparam name=\"T\"");
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitSummary()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// summary$$
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitSummaryOnTab()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// summary$$
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '\t');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitSummaryOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// summary>$$
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitSummary()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <summary$$
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitSummaryOnTab()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <summary$$
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '\t');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitSummaryOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <summary>$$
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitRemarksOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// remarks>$$
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "remarks", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitRemarksOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <remarks>$$
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "remarks", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitReturnOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        int goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// returns>$$
-        int goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "returns", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitReturnOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        int goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <returns>$$
-        int goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "returns", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitExampleOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// example>$$
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "example", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitExampleOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <example>$$
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "example", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitExceptionNoOpenAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <exception cref=""$$""
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "exception", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitExceptionOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <exception cref="">$$""
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "exception", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitCommentNoOpenAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <!--$$-->
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "!--", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitCommentOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <!-->$$-->
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "!--", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitCdataNoOpenAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <![CDATA[$$]]>
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "![CDATA[", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitCdataOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <![CDATA[>$$]]>
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "![CDATA[", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitIncludeNoOpenAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <include file='$$' path='[@name=""""]'/>
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "include", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitIncludeOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <include file='>$$' path='[@name=""""]'/>
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "include", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitPermissionNoOpenAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <permission cref=""$$""
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "permission", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitPermissionOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <permission cref="">$$""
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "permission", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitSeeNoOpenAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <see cref=""$$""/>
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "see", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitSeeOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <see cref="">$$""/>
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "see", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitSeealsoNoOpenAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <seealso cref=""$$""/>
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "seealso", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitSeealsoOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// <$$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <seealso cref="">$$""/>
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "seealso", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitParam()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// $$
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// param name=""bar""$$
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitParamOnTab()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// $$
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// param name=""bar""$$
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit, commitChar: '\t');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitParamOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// $$
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// param name=""bar"">$$
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitParam()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// <$$
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// <param name=""bar""$$
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitParamOnTab()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// <$$
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// <param name=""bar""$$
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit, commitChar: '\t');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitParamOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// <$$
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// <param name=""bar"">$$
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "param name=\"bar\"", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvokeWithOpenAngleCommitTypeparamOnCloseAngle()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// <$$
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// <typeparam name=""T"">$$
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "typeparam name=\"T\"", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitList()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// <summary>
-        /// $$
-        /// </summary>
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// <summary>
-        /// <list type=""$$""
-        /// </summary>
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "list", expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitListCloseAngle()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// <summary>
-        /// $$
-        /// </summary>
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// <summary>
-        /// <list type="">$$""
-        /// </summary>
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "list", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTagCompletion1()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// <$$
-        /// </summary>
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// <summary>$$
-        /// </summary>
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTagCompletion2()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// <$$
-        /// <remarks></remarks>
-        /// </summary>
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// <summary>$$
-        /// <remarks></remarks>
-        /// </summary>
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTagCompletion3()
-        {
-            var markupBeforeCommit = @"class c<T>
-{
-        /// <$$
-        /// <remarks>
-        /// </summary>
-        void goo<T>(T bar) { }
-}";
-
-            var expectedCodeAfterCommit = @"class c<T>
-{
-        /// <summary>$$
-        /// <remarks>
-        /// </summary>
-        void goo<T>(T bar) { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
-        }
-
-        [WorkItem(623168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623168")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoTrailingSpace()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void goo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <see cref=""$$""/>
-        void goo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "see", expectedCodeAfterCommit, commitChar: ' ');
         }
 
         [WorkItem(638802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638802")]
@@ -1084,6 +453,108 @@ static void Main(string[] args)
 ", "args");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ParamNamesInEmptyAttribute()
+        {
+            await VerifyItemExistsAsync(@"
+/// <param name=""$$""/>
+static void Goo(string str)
+{
+}
+", "str");
+        }
+
+        [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamRefNamesInEmptyAttribute()
+        {
+            var text = @"
+public class Outer<TOuter>
+{
+    public class Inner<TInner>
+    {
+        /// <summary>
+        /// <typeparamref name=""$$""/>
+        /// </summary>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+
+            await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod");
+        }
+
+        [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamRefNamesPartiallyTyped()
+        {
+            var text = @"
+public class Outer<TOuter>
+{
+    public class Inner<TInner>
+    {
+        /// <summary>
+        /// <typeparamref name=""T$$""/>
+        /// </summary>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+
+            await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamNamesInEmptyAttribute()
+        {
+            var text = @"
+public class Outer<TOuter>
+{
+    public class Inner<TInner>
+    {
+        /// <typeparam name=""$$""/>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+
+            await VerifyItemsExistAsync(text, "TMethod");
+            await VerifyItemsAbsentAsync(text, "TOuter", "TInner");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamNamesInWrongScope()
+        {
+            var text = @"
+public class Outer<TOuter>
+{
+    public class Inner<TInner>
+    {
+        /// <summary>
+        /// <typeparam name=""$$""/>
+        /// </summary>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+
+            await VerifyItemsExistAsync(text, "TMethod");
+            await VerifyItemsAbsentAsync(text, "TOuter", "TInner");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamNamesPartiallyTyped()
+        {
+            var text = @"
+public class Outer<TOuter>
+{
+    public class Inner<TInner>
+    {
+        /// <typeparam name=""T$$""/>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+
+            await VerifyItemsExistAsync(text, "TMethod");
+            await VerifyItemsAbsentAsync(text, "TOuter", "TInner");
+        }
+
         [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PartialTagCompletion()
@@ -1134,6 +605,222 @@ public class Goo<T>
 static void Goo(string str)
 {
 }", "param name=\"str\"");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ListAttributeNames()
+        {
+            await VerifyItemsExistAsync(@"
+class C
+{
+    /// <summary>
+    /// <list $$></list>
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "type");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ListTypeAttributeValue()
+        {
+            await VerifyItemsExistAsync(@"
+class C
+{
+    /// <summary>
+    /// <list type=""$$""></list>
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "bullet", "number", "table");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11490")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SeeAttributeNames()
+        {
+            await VerifyItemsExistAsync(@"
+class C
+{
+    /// <summary>
+    /// <see $$/>
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "cref", "langword");
+        }
+
+        [WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SeeLangwordAttributeValue()
+        {
+            await VerifyItemsExistAsync(@"
+class C
+{
+    /// <summary>
+    /// <see langword=""$$""/>
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "null", "true", "false", "await");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameAfterTagNameInIncompleteTag()
+        {
+            var text = @"
+class C
+{
+    /// <exception $$
+    static void Goo()
+    {
+    }
+}";
+            await VerifyItemExistsAsync(text, "cref", usePreviousCharAsTrigger: true);
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameAfterTagNameInElementStartTag()
+        {
+            var text = @"
+class C
+{
+    /// <exception $$>
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameAfterTagNameInEmptyElement()
+        {
+            var text = @"
+class C
+{
+    /// <see $$/>
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameAfterTagNamePartiallyTyped()
+        {
+            var text = @"
+class C
+{
+    /// <exception c$$
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameAfterSpecialCrefAttribute()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <list cref=""String"" $$
+    /// </summary>
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "type");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameAfterSpecialNameAttribute()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <list name=""goo"" $$
+    /// </summary>
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "type");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameAfterTextAttribute()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <list goo="""" $$
+    /// </summary>
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "type");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameInWrongTagTypeEmptyElement()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <list $$/>
+    /// </summary>
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "type");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameInWrongTagTypeElementStartTag()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <see $$>
+    /// </summary>
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "langword");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeValueOnQuote()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <see langword=""$$
+    /// </summary>
+    static void Goo()
+    {
+    }
+}";
+            await VerifyItemExistsAsync(text, "await", usePreviousCharAsTrigger: true);
         }
     }
 }

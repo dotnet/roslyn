@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -610,9 +611,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             var compilation = _assemblySymbol.DeclaringCompilation;
             if (compilation.Options.AllowUnsafe)
@@ -655,15 +656,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var diagnostics = new DiagnosticBag();
             var symbol = new SynthesizedEmbeddedAttributeSymbol(
+                AttributeDescription.NullableAttribute,
                 compilation,
-                AttributeDescription.NullableAttribute.Namespace,
-                AttributeDescription.NullableAttribute.Name,
-                GetNullableAttributeMembers,
+                GetAdditionalNullableAttributeConstructors,
                 diagnostics);
             return new AttributeAndDiagnostics(symbol, diagnostics);
         }
 
-        private static ImmutableArray<Symbol> GetNullableAttributeMembers(
+        private static ImmutableArray<MethodSymbol> GetAdditionalNullableAttributeConstructors(
             CSharpCompilation compilation,
             NamedTypeSymbol containingType,
             DiagnosticBag diagnostics)
@@ -674,10 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ArrayTypeSymbol.CreateSZArray(
                     boolType.ContainingAssembly,
                     TypeSymbolWithAnnotations.Create(boolType)));
-            return ImmutableArray.Create<Symbol>(
-                new SynthesizedEmbeddedAttributeConstructorSymbol(
-                    containingType,
-                    m => ImmutableArray<ParameterSymbol>.Empty),
+            return ImmutableArray.Create<MethodSymbol>(
                 new SynthesizedEmbeddedAttributeConstructorSymbol(
                     containingType,
                     m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, boolArray, 0, RefKind.None))));

@@ -41,10 +41,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         operationBlockContext.RegisterOperationAction(
                            (operationContext) =>
                            {
-                               IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
-                               AssignTo(assignment.Target, assignedToLocals, mightBecomeConstLocals);
+                               if (operationContext.Operation is IAssignmentExpression assignment)
+                               {
+                                   AssignTo(assignment.Target, assignedToLocals, mightBecomeConstLocals);
+                               }
+                               else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
+                               {
+                                   AssignTo(increment.Target, assignedToLocals, mightBecomeConstLocals);
+                               }
+                               else
+                               {
+                                   throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
+                               }
                            },
-                           OperationKind.AssignmentExpression,
+                           OperationKind.SimpleAssignmentExpression,
                            OperationKind.CompoundAssignmentExpression,
                            OperationKind.IncrementExpression);
 
@@ -52,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             (operationContext) =>
                             {
                                 IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
-                                foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
+                                foreach (IArgument argument in invocation.Arguments)
                                 {
                                     if (argument.Parameter.RefKind == RefKind.Out || argument.Parameter.RefKind == RefKind.Ref)
                                     {
@@ -75,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                             var localType = local.Type;
                                             if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
                                             {
-                                                if (variable.Initializer != null && variable.Initializer.ConstantValue.HasValue)
+                                                if (variable.Initializer != null && variable.Initializer.Value.ConstantValue.HasValue)
                                                 {
                                                     mightBecomeConstLocals.Add(local);
                                                 }

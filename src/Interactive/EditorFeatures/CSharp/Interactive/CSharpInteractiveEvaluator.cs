@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 usings: imports,
                 sourceReferenceResolver: sourceReferenceResolver,
                 metadataReferenceResolver: metadataReferenceResolver,
-                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);
+                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default
+                ).WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes);
         }
 
         public override bool CanExecuteCode(string text)

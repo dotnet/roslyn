@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -179,7 +180,29 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
         #endregion
 
+        private DotnetHost _dotnetHostInfo;
+        private DotnetHost DotnetHostInfo
+        {
+            get
+            {
+                if (_dotnetHostInfo is null)
+                {
+                    CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
+                    AddCommandLineCommands(commandLineBuilder);
+                    var commandLine = commandLineBuilder.ToString();
+
+                    _dotnetHostInfo = ManagedCompiler.CreateDotnetHostInfo(ToolPath, ToolExe, ToolName, commandLine);
+                }
+                return _dotnetHostInfo;
+            }
+        }
+
         #region Tool Members
+
+        protected abstract string ToolNameWithoutExtension { get; }
+
+        protected sealed override string ToolName => ManagedCompiler.GenerateToolName(ToolNameWithoutExtension);
+
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
             if (ProvideCommandLineArgs)
@@ -194,9 +217,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override string GenerateCommandLineCommands()
         {
-            var commandLineBuilder = new CommandLineBuilderExtension();
-            AddCommandLineCommands(commandLineBuilder);
-            return commandLineBuilder.ToString();
+            return DotnetHostInfo.CommandLineArgs;
         }
 
         /// <summary>
@@ -204,7 +225,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override string GenerateFullPathToTool()
         {
-            var pathToTool = Utilities.GenerateFullPathToTool(ToolName);
+            var pathToTool = DotnetHostInfo.PathToToolOpt;
 
             if (null == pathToTool)
             {

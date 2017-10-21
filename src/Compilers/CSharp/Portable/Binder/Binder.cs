@@ -580,43 +580,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind;
         }
 
-        internal void ResolveOverloads<TMember>(
-            ImmutableArray<TMember> members,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
-            ImmutableArray<ArgumentSyntax> arguments,
-            OverloadResolutionResult<TMember> result,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool allowRefOmittedArguments)
-            where TMember : Symbol
-        {
-            var methodsBuilder = ArrayBuilder<TMember>.GetInstance(members.Length);
-            methodsBuilder.AddRange(members);
-
-            var typeArgumentsBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(typeArguments.Length);
-            typeArgumentsBuilder.AddRange(typeArguments);
-
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-            var unusedDiagnostics = DiagnosticBag.GetInstance();
-            foreach (var argumentSyntax in arguments)
-            {
-                BindArgumentAndName(analyzedArguments, unusedDiagnostics, false, argumentSyntax, allowArglist: false);
-            }
-
-            OverloadResolution.MethodOrPropertyOverloadResolution(
-                methodsBuilder,
-                typeArgumentsBuilder,
-                analyzedArguments,
-                result,
-                isMethodGroupConversion: false,
-                allowRefOmittedArguments: allowRefOmittedArguments,
-                useSiteDiagnostics: ref useSiteDiagnostics);
-
-            methodsBuilder.Free();
-            typeArgumentsBuilder.Free();
-            analyzedArguments.Free();
-            unusedDiagnostics.Free();
-        }
-
         internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,
@@ -649,70 +612,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
-        }
-
-        /// <summary>
-        /// Expression lvalue and rvalue requirements.
-        /// </summary>
-        internal enum BindValueKind : byte
-        {
-            /// <summary>
-            /// Expression is the RHS of an assignment operation.
-            /// </summary>
-            /// <remarks>
-            /// The following are rvalues: values, variables, null literals, properties
-            /// and indexers with getters, events. The following are not rvalues:
-            /// namespaces, types, method groups, anonymous functions.
-            /// </remarks>
-            RValue,
-
-            /// <summary>
-            /// Expression is the RHS of an assignment operation
-            /// and may be a method group.
-            /// </summary>
-            RValueOrMethodGroup,
-
-            /// <summary>
-            /// Expression is the LHS of a simple assignment operation.
-            /// </summary>
-            Assignment,
-
-            /// <summary>
-            /// Expression is the operand of an increment
-            /// or decrement operation.
-            /// </summary>
-            IncrementDecrement,
-
-            /// <summary>
-            /// Expression is the LHS of a compound assignment
-            /// operation (such as +=).
-            /// </summary>
-            CompoundAssignment,
-
-            /// <summary>
-            /// Expression is passed as a ref or out parameter or assigned to a byref variable.
-            /// </summary>
-            RefOrOut,
-
-            /// <summary>
-            /// Expression is the operand of an address-of operation (&amp;).
-            /// </summary>
-            AddressOf,
-
-            /// <summary>
-            /// Expression is the receiver of a fixed buffer field access
-            /// </summary>
-            FixedReceiver,
-
-            /// <summary>
-            /// Expression is assigned by reference.
-            /// </summary>
-            RefAssign,
-
-            /// <summary>
-            /// Expression is returned by reference.
-            /// </summary>
-            RefReturn,
         }
 
         /// <summary>

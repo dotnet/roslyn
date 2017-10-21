@@ -3318,7 +3318,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private ValueTuple<SyntaxNode, int> GetParameterKey(IParameterSymbol parameter, CancellationToken cancellationToken)
         {
             var containingLambda = parameter.ContainingSymbol as IMethodSymbol;
-            if (containingLambda?.MethodKind == MethodKind.LambdaMethod)
+            if (containingLambda?.MethodKind == MethodKind.LambdaMethod ||
+                containingLambda?.MethodKind == MethodKind.LocalFunction)
             {
                 var oldContainingLambdaSyntax = GetSymbolSyntax(containingLambda, cancellationToken);
                 return ValueTuple.Create(oldContainingLambdaSyntax, parameter.Ordinal);

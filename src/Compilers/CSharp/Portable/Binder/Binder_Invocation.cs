@@ -256,6 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause)
         {
+            CheckNamedArgumentsForDynamicInvocation(arguments, diagnostics);
+
             bool hasErrors = false;
             if (expression.Kind == BoundKind.MethodGroup)
             {
@@ -331,6 +333,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 applicableMethods,
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
+        }
+
+        private void CheckNamedArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        {
+            if (arguments.Names.Count == 0)
+            {
+                return;
+            }
+
+            if (!Compilation.LanguageVersion.AllowNonTrailingNamedArguments())
+            {
+                return;
+            }
+
+            bool seenName = false;
+            for (int i = 0; i < arguments.Names.Count; i++)
+            {
+                if (arguments.Names[i] != null)
+                {
+                    seenName = true;
+                }
+                else if (seenName)
+                {
+                    Error(diagnostics, ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, arguments.Arguments[i].Syntax);
+                    return;
+                }
+            }
         }
 
         private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
@@ -926,34 +955,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
-            // Skip building up a new array if the first argument doesn't have to be modified.
             ImmutableArray<BoundExpression> args;
-            if (invokedAsExtensionMethod && !ReferenceEquals(receiver, methodGroup.Receiver))
+            if (invokedAsExtensionMethod)
             {
-                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
+                BoundExpression receiverArgument;
+                ParameterSymbol receiverParameter = method.Parameters.First();
 
-                // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate
-                // conversion here.
-                Debug.Assert(method.ParameterCount > 0);
-                Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), 
-                                                                     GetTypeOrReturnTypeWithAdjustedNullableAnnotations(method.Parameters[0]).TypeSymbol, 
-                                                                     diagnostics);
-                builder.Add(convertedReceiver);
-
-                bool first = true;
-                foreach (BoundExpression arg in analyzedArguments.Arguments)
+                if ((object)receiver != methodGroup.Receiver)
                 {
-                    if (first)
-                    {
-                        // Skip the first argument (the receiver), since we added our own.
-                        first = false;
-                    }
-                    else
-                    {
-                        builder.Add(arg);
-                    }
+                    // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
+                    Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
+                    receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), 
+                                                                     GetTypeOrReturnTypeWithAdjustedNullableAnnotations(receiverParameter).TypeSymbol, 
+                                                                     diagnostics);
                 }
+                else
+                {
+                    receiverArgument = analyzedArguments.Argument(0);
+                }
+
+                if (receiverParameter.RefKind == RefKind.Ref)
+                {
+                    // If this was a ref extension method, receiverArgument must be checked for L-value constraints.
+                    // This helper method will also replace it with a BoundBadExpression if it was invalid.
+                    receiverArgument = CheckValue(receiverArgument, BindValueKind.RefOrOut, diagnostics);
+
+                    CheckFeatureAvailability(receiverArgument.Syntax, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                }
+                else if (receiverParameter.RefKind == RefKind.In)
+                {
+                    CheckFeatureAvailability(receiverArgument.Syntax, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                }
+
+                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance(analyzedArguments.Arguments.Count);
+                builder.Add(receiverArgument);
+                builder.AddRange(analyzedArguments.Arguments.Skip(1));
                 args = builder.ToImmutableAndFree();
             }
             else
@@ -1007,6 +1043,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
+
+            gotError |= !CheckInvocationArgMixing(
+                node,
+                method,
+                receiver,
+                method.Parameters,
+                args,
+                argRefKinds,
+                argsToParams,
+                this.LocalScopeDepth,
+                diagnostics);
 
             if ((object)delegateTypeOpt != null)
             {

@@ -1568,7 +1568,7 @@ End Structure
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
     Protected Sub OtherMethod()
     ~~~~~~~~~
 </errors>)
@@ -1864,10 +1864,10 @@ BC30435: Members in a Structure cannot be declared 'Protected'.
 BC30435: Members in a Structure cannot be declared 'Protected Friend'.
     Protected Friend F4 As Integer
     ~~~~~~~~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
     Protected Sub Sub3()
     ~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
     Protected Friend Sub Sub4()
     ~~~~~~~~~~~~~~~~
 BC30735: Type in a Module cannot be declared 'Protected'.

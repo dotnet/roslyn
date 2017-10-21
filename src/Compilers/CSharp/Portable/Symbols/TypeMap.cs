@@ -18,6 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly System.Func<TypeSymbol, TypeSymbolWithAnnotations> AsTypeSymbolWithAnnotations = t => TypeSymbolWithAnnotations.Create(t);
         public static readonly System.Func<TypeSymbolWithAnnotations, TypeSymbol> AsTypeSymbol = t => t.TypeSymbol;
 
+        internal static ImmutableArray<TypeSymbolWithAnnotations> AsTypeSymbolsWithAnnotations(ImmutableArray<TypeSymbol> typesOpt)
+        {
+            return typesOpt.IsDefault ? default : typesOpt.SelectAsArray(AsTypeSymbolWithAnnotations);
+        }
+
+        internal static ImmutableArray<TypeSymbol> AsTypeSymbols(ImmutableArray<TypeSymbolWithAnnotations> typesOpt)
+        {
+            return typesOpt.IsDefault ? default : typesOpt.SelectAsArray(AsTypeSymbol);
+        }
+
         // Only when the caller passes allowAlpha=true do we tolerate substituted (alpha-renamed) type parameters as keys
         internal TypeMap(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeSymbolWithAnnotations> to, bool allowAlpha = false)
             : base(ConstructMapping(from, to))

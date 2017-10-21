@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -73,13 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // 1) Verify that the range of well known attributes doesn't fall outside the bounds of
                 // the attribute completion and data mask.
-                var attributeFlags = EnumExtensions.GetValues<WellKnownAttributeFlags>();
+                var attributeFlags = EnumUtilities.GetValues<WellKnownAttributeFlags>();
                 var maxAttributeFlag = (int)System.Linq.Enumerable.Aggregate(attributeFlags, (f1, f2) => f1 | f2);
                 Debug.Assert((maxAttributeFlag & WellKnownAttributeDataMask) == maxAttributeFlag);
 
                 // 2) Verify that the range of ref kinds doesn't fall outside the bounds of
                 // the ref kind mask.
-                var refKinds = EnumExtensions.GetValues<RefKind>();
+                var refKinds = EnumUtilities.GetValues<RefKind>();
                 var maxRefKind = (int)System.Linq.Enumerable.Aggregate(refKinds, (r1, r2) => r1 | r2);
                 Debug.Assert((maxRefKind & RefKindMask) == maxRefKind);
             }
@@ -220,7 +222,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (isByRef)
                 {
                     ParameterAttributes inOutFlags = _flags & (ParameterAttributes.Out | ParameterAttributes.In);
-                    refKind = (inOutFlags == ParameterAttributes.Out) ? RefKind.Out : RefKind.Ref;
+
+                    if (inOutFlags == ParameterAttributes.Out)
+                    {
+                        refKind = RefKind.Out;
+                    }
+                    else if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
+                    {
+                        refKind = RefKind.In;
+                    }
+                    else
+                    {
+                        refKind = RefKind.Ref;
+                    }
                 }
 
                 // CONSIDER: Can we make parameter type computation lazy?
@@ -293,6 +307,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                          out isBad)
             {
                 _refCustomModifiers = CSharpCustomModifier.Convert(refCustomModifiers);
+
+                if (this.RefKind != RefKind.In && _refCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute()))
+                {
+                    // The modreq is only accepted on RefReadOnly symbols
+                    isBad = true;
+                }
 
                 Debug.Assert(_refCustomModifiers.IsEmpty || isByRef);
             }
@@ -768,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyCustomAttributes;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             foreach (CSharpAttributeData attribute in GetAttributes())
             {

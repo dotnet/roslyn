@@ -290,15 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sb.Append(", ");
                 }
 
-                var refKind = GetRefKind(i);
-                if (refKind == RefKind.Out)
-                {
-                    sb.Append("out ");
-                }
-                else if (refKind == RefKind.Ref)
-                {
-                    sb.Append("ref ");
-                }
+                sb.Append(GetRefKind(i).ToParameterPrefix());
                 sb.Append(_formalParameterTypes[i]);
             }
 
@@ -579,12 +571,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
             }
-            else if (argument.Kind == BoundKind.TupleLiteral)
+            else if (argument.Kind != BoundKind.TupleLiteral ||
+                !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, isNullable, target, kind, ref useSiteDiagnostics))
             {
-                MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, isNullable, target, kind, ref useSiteDiagnostics);
-            }
-            else
-            {
+                // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let' try to infer from arguments's type
                 if (IsReallyAType(source))
                 {
                     ExactOrBoundsInference(kind, TypeSymbolWithAnnotations.Create(source, isNullable), target, ref useSiteDiagnostics);
@@ -592,43 +582,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, bool? isNullable, TypeSymbolWithAnnotations target, ExactOrBoundsKind kind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, bool? isNullable, TypeSymbolWithAnnotations target, ExactOrBoundsKind kind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // if tuple has a type we will try to match the type as a single input
-            // Example:
-            //      if   "(a: 1, b: 2)" is passed as   T arg
-            //      then T becomes (int a, int b)
-            var source = argument.Type;
-            if (IsReallyAType(source))
-            {
-                var sourceWithAnnotations = TypeSymbolWithAnnotations.Create(source, isNullable);
-
-                switch (kind)
-                {
-                    case ExactOrBoundsKind.Exact:
-                        // SPEC: * If V is one of the unfixed Xi then U is added to the set of
-                        // SPEC:   exact bounds for Xi.
-                        if (ExactTypeParameterInference(sourceWithAnnotations, target))
-                        {
-                            return;
-                        }
-                        break;
-                    case ExactOrBoundsKind.LowerBound:
-                        // SPEC: A lower-bound inference from a type U to a type V is made as follows:
-
-                        // SPEC: * If V is one of the unfixed Xi then U is added to the set of 
-                        // SPEC:   lower bounds for Xi.
-
-                        if (LowerBoundTypeParameterInference(sourceWithAnnotations, target))
-                        {
-                            return;
-                        }
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
-                }
-            }
-
             // try match up element-wise to the destination tuple (or underlying type)
             // Example:
             //      if   "(a: 1, b: "qq")" is passed as   (T, U) arg
@@ -636,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (target.Kind != SymbolKind.NamedType)
             {
                 // tuples can only match to tuples or tuple underlying types.
-                return;
+                return false;
             }
 
             var destination = (NamedTypeSymbol)target.TypeSymbol;
@@ -646,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
             {
                 // target is not a tuple of appropriate shape
-                return;
+                return false;
             }
 
             var destTypes = destination.GetElementTypesOfTupleOrCompatible();
@@ -663,6 +618,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destType = destTypes[i];
                 MakeExplicitParameterTypeInferences(binder, sourceArgument, sourceIsNullable, destType, kind, ref useSiteDiagnostics);
             }
+
+            return true;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -1639,13 +1596,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   type C<U1...Uk> then an exact inference 
             // SPEC:   is made from each Ui to the corresponding Vi.
 
-            var namedSource = source.TypeSymbol as NamedTypeSymbol;
+            var namedSource = source.TypeSymbol.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             if ((object)namedSource == null)
             {
                 return false;
             }
 
-            var namedTarget = target.TypeSymbol as NamedTypeSymbol;
+            var namedTarget = target.TypeSymbol.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             if ((object)namedTarget == null)
             {
                 return false;
@@ -1871,6 +1828,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
+
+            source = source.TupleUnderlyingTypeOrSelf();
+            target = target.TupleUnderlyingTypeOrSelf();
 
             var constructedTarget = target as NamedTypeSymbol;
             if ((object)constructedTarget == null)
@@ -2190,12 +2150,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ExactOrBoundsNullableInference(ExactOrBoundsKind.UpperBound, source, target, ref useSiteDiagnostics);
         }
 
-        private bool UpperBoundConstructedInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool UpperBoundConstructedInference(TypeSymbolWithAnnotations sourceWithAnnotations, TypeSymbolWithAnnotations targetWithAnnotations, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert((object)source != null);
-            Debug.Assert((object)target != null);
+            Debug.Assert((object)sourceWithAnnotations != null);
+            Debug.Assert((object)targetWithAnnotations != null);
+            var source = sourceWithAnnotations.TypeSymbol.TupleUnderlyingTypeOrSelf();
+            var target = targetWithAnnotations.TypeSymbol.TupleUnderlyingTypeOrSelf();
 
-            var constructedSource = source.TypeSymbol as NamedTypeSymbol;
+            var constructedSource = source as NamedTypeSymbol;
             if ((object)constructedSource == null)
             {
                 return false;
@@ -2211,10 +2173,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   lower bound inference or upper bound inference
             // SPEC:   is made from each Ui to the corresponding Vi.
 
-            var constructedTarget = target.TypeSymbol as NamedTypeSymbol;
+            var constructedTarget = target as NamedTypeSymbol;
 
             if ((object)constructedTarget != null &&
-                constructedSource.OriginalDefinition == target.TypeSymbol.OriginalDefinition)
+                constructedSource.OriginalDefinition == target.OriginalDefinition)
             {
                 if (constructedTarget.IsInterface || constructedTarget.IsDelegateType())
                 {
@@ -2230,7 +2192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * Otherwise, if U is a class type C<U1...Uk> and V is a class type which
             // SPEC:   inherits directly or indirectly from C<V1...Vk> then an exact ...
 
-            if (UpperBoundClassInference(constructedSource, target.TypeSymbol, ref useSiteDiagnostics))
+            if (UpperBoundClassInference(constructedSource, target, ref useSiteDiagnostics))
             {
                 return true;
             }
@@ -2240,7 +2202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   or indirectly implements C<V1...Vk> then an exact ...
             // SPEC: * ... and U is an interface type ...
 
-            if (UpperBoundInterfaceInference(constructedSource, target.TypeSymbol, ref useSiteDiagnostics))
+            if (UpperBoundInterfaceInference(constructedSource, target, ref useSiteDiagnostics))
             {
                 return true;
             }

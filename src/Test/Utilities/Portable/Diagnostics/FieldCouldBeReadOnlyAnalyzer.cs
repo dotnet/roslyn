@@ -47,18 +47,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                  operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
-                                        IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
-                                        AssignTo(assignment.Target, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
+                                        if (operationContext.Operation is IAssignmentExpression assignment)
+                                        {
+                                            AssignTo(assignment.Target, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
+                                        }
+                                        else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
+                                        {
+                                            AssignTo(increment.Target, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
+                                        }
+                                        else
+                                        {
+                                            throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
+                                        }
                                     },
-                                    OperationKind.AssignmentExpression,
+                                    OperationKind.SimpleAssignmentExpression,
                                     OperationKind.CompoundAssignmentExpression,
-                                    OperationKind.IncrementExpression);
+                                    OperationKind.IncrementExpression,
+                                    OperationKind.DecrementExpression);
 
                                  operationBlockContext.RegisterOperationAction(
                                      (operationContext) =>
                                      {
                                          IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
-                                         foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
+                                         foreach (IArgument argument in invocation.Arguments)
                                          {
                                              if (argument.Parameter.RefKind == RefKind.Out || argument.Parameter.RefKind == RefKind.Ref)
                                              {

@@ -420,6 +420,11 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_NullableAttribute__ctor,
         System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
+        System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+        System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
+
+        System_ObsoleteAttribute__ctor,
+        System_Span_T__ctor,
 
         Count
     }

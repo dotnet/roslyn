@@ -945,5 +945,50 @@ struct S
             // If a type changes, we do not expect types to match.
             Assert.Null(other);
         }
+
+        [Fact]
+        public void Property_CompilationVsPE()
+        {
+            var source = @"
+using System;
+
+interface I<T, S>
+{
+	int this[int index] { set; }
+}
+
+class C : I<int, bool>
+{
+    int _current;
+	int I<int, bool>.this[int anotherIndex] 
+	{
+		set { _current = anotherIndex + value; }
+	}
+}";
+
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+
+            var peRef0 = compilation0.EmitToImageReference();
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateStandardCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+
+            var compilation1 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+
+            var testData = new CompilationTestData();
+            compilation1.EmitToArray(testData: testData);
+            var peAssemblyBuilder = (PEAssemblyBuilder)testData.Module;
+
+            var c = compilation1.GetMember<NamedTypeSymbol>("C");
+            var property = c.GetMember<PropertySymbol>("I<System.Int32,System.Boolean>.this[]");
+            var parameters = property.GetParameters().ToArray();
+            Assert.Equal(1, parameters.Length);
+            Assert.Equal("anotherIndex", parameters[0].Name);
+
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var matcher = new CSharpSymbolMatcher(null, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+
+            var mappedProperty = (Cci.IPropertyDefinition)matcher.MapDefinition(property);
+
+            Assert.Equal("I<System.Int32,System.Boolean>.Item", ((PropertySymbol)mappedProperty).MetadataName);
+        }
     }
 }

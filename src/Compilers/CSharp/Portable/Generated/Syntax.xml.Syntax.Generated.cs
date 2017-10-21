@@ -1133,11 +1133,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RefTypeSyntax)this.Green).refKeyword, this.Position, 0); }
     }
 
+    /// <summary>Gets the optional "readonly" keyword.</summary>
+    public SyntaxToken ReadOnlyKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RefTypeSyntax)this.Green).readOnlyKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(1), this.GetChildIndex(1));
+
+            return default(SyntaxToken);
+        }
+    }
+
     public TypeSyntax Type 
     {
         get
         {
-            return this.GetRed(ref this.type, 1);
+            return this.GetRed(ref this.type, 2);
         }
     }
 
@@ -1145,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.type, 1);
+            case 2: return this.GetRed(ref this.type, 2);
             default: return null;
         }
     }
@@ -1153,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.type;
+            case 2: return this.type;
             default: return null;
         }
     }
@@ -1168,11 +1181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitRefType(this);
     }
 
-    public RefTypeSyntax Update(SyntaxToken refKeyword, TypeSyntax type)
+    public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
     {
-        if (refKeyword != this.RefKeyword || type != this.Type)
+        if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || type != this.Type)
         {
-            var newNode = SyntaxFactory.RefType(refKeyword, type);
+            var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, type);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -1184,12 +1197,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public RefTypeSyntax WithRefKeyword(SyntaxToken refKeyword)
     {
-        return this.Update(refKeyword, this.Type);
+        return this.Update(refKeyword, this.ReadOnlyKeyword, this.Type);
+    }
+
+    public RefTypeSyntax WithReadOnlyKeyword(SyntaxToken readOnlyKeyword)
+    {
+        return this.Update(this.RefKeyword, readOnlyKeyword, this.Type);
     }
 
     public RefTypeSyntax WithType(TypeSyntax type)
     {
-        return this.Update(this.RefKeyword, type);
+        return this.Update(this.RefKeyword, this.ReadOnlyKeyword, type);
     }
   }
 

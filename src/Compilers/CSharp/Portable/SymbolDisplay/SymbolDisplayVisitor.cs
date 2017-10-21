@@ -305,6 +305,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddKeyword(SyntaxKind.InternalKeyword);
                     break;
                 case Accessibility.ProtectedAndInternal:
+                    AddKeyword(SyntaxKind.PrivateKeyword);
+                    AddSpace();
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    break;
                 case Accessibility.Protected:
                     AddKeyword(SyntaxKind.ProtectedKeyword);
                     break;

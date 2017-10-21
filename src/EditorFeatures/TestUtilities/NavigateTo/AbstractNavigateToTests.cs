@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -17,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Moq;
@@ -30,10 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
     {
         protected static ExportProvider s_exportProvider =
             MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic().WithPart(
-                typeof(Dev14NavigateToHostVersionService)));
-
-        protected readonly Mock<IGlyphService> _glyphServiceMock = new Mock<IGlyphService>(MockBehavior.Strict);
+                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic());
 
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
@@ -77,11 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         {
             var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
 
-            _provider = new NavigateToItemProvider(
-                workspace,
-                _glyphServiceMock.Object,
-                aggregateListener,
-                workspace.ExportProvider.GetExportedValues<Lazy<INavigateToHostVersionService, VisualStudioVersionMetadata>>());
+            _provider = new NavigateToItemProvider(workspace, aggregateListener);
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
@@ -109,10 +102,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             }
         }
 
-        protected void VerifyNavigateToResultItem(
+        internal void VerifyNavigateToResultItem(
             NavigateToItem result, string name, string displayMarkup, 
-            MatchKind matchKind, string navigateToItemKind, 
-            string additionalInfo = null)
+            MatchKind matchKind, string navigateToItemKind,
+            Glyph glyph, string additionalInfo = null)
         {
             // Verify symbol information
             Assert.Equal(name, result.Name);
@@ -123,7 +116,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             MarkupTestFile.GetSpans(displayMarkup, out displayMarkup,
                 out ImmutableArray<TextSpan> expectedDisplayNameSpans);
 
-            var itemDisplay = (AbstractNavigateToItemDisplay)result.DisplayFactory.CreateItemDisplay(result);
+            var itemDisplay = (NavigateToItemDisplay)result.DisplayFactory.CreateItemDisplay(result);
+
+            Assert.Equal(itemDisplay.GlyphMoniker, glyph.GetImageMoniker());
 
             Assert.Equal(displayMarkup, itemDisplay.Name);
             Assert.Equal<TextSpan>(
@@ -134,17 +129,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             {
                 Assert.Equal(additionalInfo, itemDisplay.AdditionalInformation);
             }
-
-            // Make sure to fetch the glyph
-            var unused = itemDisplay.Glyph;
-            _glyphServiceMock.Verify();
-        }
-
-        protected void SetupVerifiableGlyph(StandardGlyphGroup standardGlyphGroup, StandardGlyphItem standardGlyphItem)
-        {
-            _glyphServiceMock.Setup(service => service.GetGlyph(standardGlyphGroup, standardGlyphItem))
-                            .Returns(CreateIconBitmapSource())
-                            .Verifiable();
         }
 
         private BitmapSource CreateIconBitmapSource()

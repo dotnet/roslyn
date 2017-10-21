@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ContainingType.Locations; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }
@@ -261,6 +261,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false);
         }
 
+        internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
+        {
+            return ReturnType.TypeSymbol.GetUseSiteDiagnostic();
+        }
         #endregion
     }
 }

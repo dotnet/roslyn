@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact, WorkItem(529850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529850")]
         public void CultureInvariance()
         {
-            using (new CultureContext("de-DE"))
+            using (new CultureContext(new CultureInfo("de-DE", useUserOverride: false)))
             {
                 var decimalValue = new Decimal(12.5);
                 Assert.Equal("12,5", decimalValue.ToString());

@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -23,22 +20,26 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task<IList<TodoComment>> GetTodoCommentsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
+        public async Task<IList<TodoComment>> GetTodoCommentsAsync(
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.ProjectId.DebugName, cancellationToken))
+            return await RunServiceAsync(async token =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetDocument(documentId);
-
-                var service = document.GetLanguageService<ITodoCommentService>();
-                if (service != null)
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.DebugName, token))
                 {
-                    // todo comment service supported
-                    return await service.GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
-                }
+                    var solution = await GetSolutionAsync(solutionInfo, token).ConfigureAwait(false);
+                    var document = solution.GetDocument(documentId);
 
-                return SpecializedCollections.EmptyList<TodoComment>();
-            }
+                    var service = document.GetLanguageService<ITodoCommentService>();
+                    if (service != null)
+                    {
+                        // todo comment service supported
+                        return await service.GetTodoCommentsAsync(document, tokens, token).ConfigureAwait(false);
+                    }
+
+                    return SpecializedCollections.EmptyList<TodoComment>();
+                }
+            }, cancellationToken).ConfigureAwait(false);
         }
     }
 }

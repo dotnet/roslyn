@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol { get { return _containingSymbol; } }
 
-        internal override RefKind RefKind { get { return RefKind.None; } }
+        public override RefKind RefKind { get { return RefKind.None; } }
 
         public override TypeSymbolWithAnnotations Type { get { return _type; } }
 

@@ -1589,6 +1589,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.Attribute:
                     return FeaturesResources.attribute;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    return FeaturesResources.local_function;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
@@ -1893,18 +1896,31 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
-                        ClassifyTypeWithPossibleExternMembersInsert((TypeDeclarationSyntax)node);
+                        var typeDeclaration = (TypeDeclarationSyntax)node;
+                        ClassifyTypeWithPossibleExternMembersInsert(typeDeclaration);
+                        ClassifyPossibleEmbeddedAttributesForType(typeDeclaration);
                         return;
 
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.EnumDeclaration:
+                        return;
+
                     case SyntaxKind.DelegateDeclaration:
+                        var delegateDeclaration = (DelegateDeclarationSyntax)node;
+                        ClassifyPossibleReadOnlyRefAttributesForType(delegateDeclaration, delegateDeclaration.ReturnType);
+                        ClassifyPossibleInModifierForParameters(delegateDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
                     case SyntaxKind.EventDeclaration:
                         ClassifyModifiedMemberInsert(((BasePropertyDeclarationSyntax)node).Modifiers);
+                        return;
+
+                    case SyntaxKind.IndexerDeclaration:
+                        var indexerDeclaration = (IndexerDeclarationSyntax)node;
+                        ClassifyModifiedMemberInsert(indexerDeclaration.Modifiers);
+                        ClassifyPossibleReadOnlyRefAttributesForType(indexerDeclaration, indexerDeclaration.Type);
+                        ClassifyPossibleInModifierForParameters(indexerDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.ConversionOperatorDeclaration:
@@ -1920,11 +1936,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // Allow adding parameterless constructor.
                         // Semantic analysis will determine if it's an actual addition or 
                         // just an update of an existing implicit constructor.
-                        var modifiers = ((BaseMethodDeclarationSyntax)node).Modifiers;
-                        if (SyntaxUtilities.IsParameterlessConstructor(node))
+                        var method = (BaseMethodDeclarationSyntax)node;
+                        if (SyntaxUtilities.IsParameterlessConstructor(method))
                         {
                             // Disallow adding an extern constructor
-                            if (modifiers.Any(SyntaxKind.ExternKeyword))
+                            if (method.Modifiers.Any(SyntaxKind.ExternKeyword))
                             {
                                 ReportError(RudeEditKind.InsertExtern);
                             }
@@ -1932,7 +1948,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             return;
                         }
 
-                        ClassifyModifiedMemberInsert(modifiers);
+                        ClassifyModifiedMemberInsert(method.Modifiers);
+                        ClassifyPossibleInModifierForParameters(method.ParameterList);
                         return;
 
                     case SyntaxKind.GetAccessorDeclaration:
@@ -1994,6 +2011,48 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return true;
             }
 
+            private void ClassifyPossibleEmbeddedAttributesForType(TypeDeclarationSyntax type)
+            {
+                if (type.Keyword.IsKind(SyntaxKind.StructKeyword))
+                {
+                    foreach (var modifier in type.Modifiers)
+                    {
+                        switch (modifier.Kind())
+                        {
+                            case SyntaxKind.RefKeyword:
+                                ReportError(RudeEditKind.RefStruct, type, type);
+                                return;
+                            case SyntaxKind.ReadOnlyKeyword:
+                                ReportError(RudeEditKind.ReadOnlyStruct, type, type);
+                                return;
+                        }
+                    }
+                }
+            }
+
+            private void ClassifyPossibleInModifierForParameters(BaseParameterListSyntax list)
+            {
+                foreach (var parameter in list.Parameters)
+                {
+                    foreach (var modifier in parameter.Modifiers)
+                    {
+                        if (modifier.IsKind(SyntaxKind.InKeyword))
+                        {
+                            ReportError(RudeEditKind.ReadOnlyReferences, parameter, parameter);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            private void ClassifyPossibleReadOnlyRefAttributesForType(SyntaxNode owner, TypeSyntax type)
+            {
+                if (type is RefTypeSyntax refType && refType.RefKeyword != default && refType.ReadOnlyKeyword != default)
+                {
+                    ReportError(RudeEditKind.ReadOnlyReferences, owner, owner);
+                }
+            }
+
             private void ClassifyTypeWithPossibleExternMembersInsert(TypeDeclarationSyntax type)
             {
                 // extern members are not allowed, even in a new type
@@ -2032,6 +2091,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 {
                     ReportError(RudeEditKind.InsertGenericMethod);
                 }
+
+                ClassifyPossibleReadOnlyRefAttributesForType(method, method.ReturnType);
+                ClassifyPossibleInModifierForParameters(method.ParameterList);
             }
 
             private void ClassifyAccessorInsert(AccessorDeclarationSyntax accessor)
@@ -2799,6 +2861,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         case SyntaxKind.StackAllocArrayCreationExpression:
                             ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
                             return;
+
+                        case SyntaxKind.LocalFunctionStatement:
+                            var localFunction = (LocalFunctionStatementSyntax)node;
+                            ClassifyPossibleReadOnlyRefAttributesForType(localFunction, localFunction.ReturnType);
+                            ClassifyPossibleInModifierForParameters(localFunction.ParameterList);
+                            break;
                     }
                 }
             }
@@ -3138,51 +3206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
-            ReportRudeEditsForUnsupportedCSharp7EnC(diagnostics, match);
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
-        }
-
-        /// <summary>
-        /// If either trees (after or before the edit) contain unsupported C# 7 features around the active statement, report it.
-        /// </summary>
-        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match)
-        {
-            SyntaxNode foundCSharp7Syntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
-            if (foundCSharp7Syntax != null)
-            {
-                AddRudeUpdateAroundActiveStatement(diagnostics, foundCSharp7Syntax);
-                return;
-            }
-
-            foundCSharp7Syntax = match.OldRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
-            if (foundCSharp7Syntax != null)
-            {
-                AddRudeUpdateInCSharp7Method(diagnostics, foundCSharp7Syntax);
-            }
-        }
-
-        /// <summary>
-        /// If the active method used unsupported C# 7 features before the edit, it needs to be reported.
-        /// </summary>
-        private void AddRudeUpdateInCSharp7Method(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldCSharp7Syntax)
-        {
-            diagnostics.Add(new RudeEditDiagnostic(
-                RudeEditKind.UpdateAroundActiveStatement,
-                default, // no span since the offending node is in the old syntax
-                oldCSharp7Syntax,
-                new[] { GetStatementDisplayName(oldCSharp7Syntax, EditKind.Update) }));
-        }
-
-        private static bool IsUnsupportedCSharp7EnCNode(SyntaxNode n)
-        {
-            switch (n.Kind())
-            {
-                case SyntaxKind.LocalFunctionStatement:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         private void ReportRudeEditsForCheckedStatements(
