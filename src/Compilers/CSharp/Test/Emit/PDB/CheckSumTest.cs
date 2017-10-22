@@ -24,41 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void ChecksumAlgorithms()
         {
-            var source1 = "public class C1 { public C1() { } }";
-            var source256 = "public class C256 { public C256() { } }";
-            var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs");
-            var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs");
-
-            var compilation = CreateStandardCompilation(new[] { tree1, tree256 });
-            compilation.VerifyPdb(@"
-<symbols>
-  <files>
-    <file id=""1"" name=""sha1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""8E, 37, F3, 94, ED, 18, 24, 3F, 35, EC, 1B, 70, 25, 29, 42, 1C, B0, 84, 9B, C8, "" />
-    <file id=""2"" name=""sha256.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""8829d00f-11b8-4213-878b-770e8597ac16"" checkSum=""83, 31, 5B, 52,  8, 2D, 68, 54, 14, 88,  E, E3, 3A, 5E, B7, 83, 86, 53, 83, B4, 5A, 3F, 36, 9E, 5F, 1B, 60, 33, 27,  A, 8A, EC, "" />
-  </files>
-  <methods>
-    <method containingType=""C1"" name="".ctor"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""0"" />
-        </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x6"" startLine=""1"" startColumn=""33"" endLine=""1"" endColumn=""34"" document=""1"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""C256"" name="".ctor"">
-      <customDebugInfo>
-        <forward declaringType=""C1"" methodName="".ctor"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""34"" document=""2"" />
-        <entry offset=""0x6"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""38"" document=""2"" />
-      </sequencePoints>
-    </method>
-  </methods>
-</symbols>");
+            while (true) ;
         }
 
         [Fact]
