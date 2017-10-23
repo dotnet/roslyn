@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string mdName = type.GetMetadataName();
                 var warnings = DiagnosticBag.GetInstance();
                 NamedTypeSymbol result;
-                ImmutableArray<AssemblySymbol> conflicts = default;
+                (AssemblySymbol, AssemblySymbol) conflicts = default;
 
                 if (IsTypeMissing(type))
                 {
@@ -156,14 +156,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (type.IsValueTupleType())
                     {
                         CSDiagnosticInfo errorInfo;
-                        if (conflicts.IsDefault)
+                        if (conflicts.Item1 is null)
                         {
+                            Debug.Assert(conflicts.Item2 is null);
                             errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName);
                         }
                         else
                         {
-                            Debug.Assert(conflicts.Length == 2);
-                            errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, emittedName.FullName, conflicts[0], conflicts[1]);
+                            errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, emittedName.FullName, conflicts.Item1, conflicts.Item2);
                         }
 
                         result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName, errorInfo, type);

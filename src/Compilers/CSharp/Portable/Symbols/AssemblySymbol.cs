@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string metadataName,
             bool includeReferences,
             bool isWellKnownType,
-            out ImmutableArray<AssemblySymbol> conflicts,
+            out (AssemblySymbol, AssemblySymbol) conflicts,
             bool useCLSCompliantNameArityEncoding = false,
             DiagnosticBag warnings = null,
             bool ignoreCorLibraryDuplicatedTypes = false)
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AssemblyIdentity assemblyOpt,
             bool includeReferences,
             bool isWellKnownType,
-            out ImmutableArray<AssemblySymbol> conflicts,
+            out (AssemblySymbol, AssemblySymbol) conflicts,
             DiagnosticBag warnings = null,
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (warnings == null)
                     {
-                        conflicts = ImmutableArray.Create(result.ContainingAssembly, candidate.ContainingAssembly);
+                        conflicts = (result.ContainingAssembly, candidate.ContainingAssembly);
                         result = null;
                     }
                     else
