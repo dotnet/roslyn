@@ -109,16 +109,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var variable = variableDeclaration.Variables.Single();
                 var initializer = variable.Initializer.Value;
 
-                // Discourage using "var pointer = stackalloc", after introducing C# 7.2, as it might be confusing to users expecting a Span<>
-                // Check descendant nodes as well, because Span-creating stackallocs can be nested in other nodes (like conditional operators and casts).
-                // https://github.com/dotnet/roslyn/issues/22768
-                if (initializer.DescendantNodesAndSelf().Any(node => node.IsKind(SyntaxKind.StackAllocArrayCreationExpression)))
+                // Do not suggest var replacement for stackalloc span expressions.
+                // This will change the bound type from a span to a pointer.
+                if (!variableDeclaration.Type.IsKind(SyntaxKind.PointerType)
+                    && initializer
+                        .DescendantNodesAndSelf(descendIntoChildren: node => !node.IsAnyLambdaOrAnonymousMethod())
+                        .Any(node => node.IsKind(SyntaxKind.StackAllocArrayCreationExpression)))
                 {
                     issueSpan = default;
                     return false;
                 }
 
-                if (AssignmentSupportsStylePreference(variable.Identifier, typeName, initializer, semanticModel, optionSet, cancellationToken))
+                if (AssignmentSupportsStylePreference(
+                        variable.Identifier, typeName, initializer,
+                        semanticModel, optionSet, cancellationToken))
                 {
                     issueSpan = candidateIssueSpan;
                     return true;
