@@ -41,35 +41,36 @@ using System.Linq;
 public class C
 {
     static void Main()
-    { }
+    {
+        var c = new C();
+        Console.WriteLine(c.M(0).Count());
+        Console.WriteLine(c.M(1).Count());
+    }
 
-    public void M(int salesOrderId)
+    public IQueryable<E> M(int salesOrderId)
     {
         using (var uow = new D())
         {
-            Local();
+            return Local();
 
-            void Local()
-            {
-                var orderInfo = uow.ES.Where(so => so.Id == salesOrderId);
-            }
+            IQueryable<E> Local() => uow.ES.Where(so => so.Id == salesOrderId);
         }
     }
 }
 
 internal class D : IDisposable
 {
-    public IQueryable<E> ES { get; internal set; }
+    public IQueryable<E> ES => new[] { new E() }.AsQueryable();
 
-    public void Dispose() => throw new NotImplementedException();
+    public void Dispose() { }
 }
 
 public class E
 {
     public int Id;
-}
-", references: new[] { LinqAssemblyRef });
-            CompileAndVerify(comp);
+}", references: new[] { LinqAssemblyRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"1
+0");
         }
 
         [Fact]
