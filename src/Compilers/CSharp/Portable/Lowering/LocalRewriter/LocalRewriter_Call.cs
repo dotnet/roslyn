@@ -919,8 +919,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundArrayCreation(
                 syntax,
                 ImmutableArray.Create(arraySize),
-                new BoundArrayInitialization(syntax, arrayArgs),
-                paramArrayType);
+                new BoundArrayInitialization(syntax, arrayArgs) { WasCompilerGenerated = true },
+                paramArrayType) { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return new BoundLiteral(syntax, constantValue, type, constantValue.IsBad);
+                return new BoundLiteral(syntax, constantValue, type, constantValue.IsBad) { WasCompilerGenerated = true };
             }
         }
 
@@ -1266,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor, compilation, diagnostics),
                         null,
-                        defaultValue);
+                        defaultValue) { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -1358,7 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // The argument to M([Optional] int x) becomes default(int)
-                    defaultValue = new BoundDefaultExpression(syntax, parameterType);
+                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
                 }
             }
             else if (defaultConstantValue.IsNull && 
@@ -1366,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We have something like M(int? x = null) or M(S x = default(S)),
                 // so replace the argument with default(int?).
-                defaultValue = new BoundDefaultExpression(syntax, parameterType);
+                defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
             }
             else if (parameterType.IsNullableType())
             {
@@ -1386,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor, compilation, diagnostics),
                     null,
-                    defaultValue);
+                    defaultValue) { WasCompilerGenerated = true };
             }
             else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)
             {
@@ -1447,27 +1447,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.IsMarshalAsObject)
             {
                 // default(object)
-                defaultValue = new BoundDefaultExpression(syntax, parameter.Type);
+                defaultValue = new BoundDefaultExpression(syntax, parameter.Type) { WasCompilerGenerated = true };
             }
             else if (parameter.IsIUnknownConstant)
             {
                 // new UnknownWrapper(default(object))
                 var methodSymbol = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
-                var argument = new BoundDefaultExpression(syntax, parameter.Type);
-                defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, argument);
+                var argument = new BoundDefaultExpression(syntax, parameter.Type) { WasCompilerGenerated = true };
+                defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, argument) { WasCompilerGenerated = true };
             }
             else if (parameter.IsIDispatchConstant)
             {
                 // new DispatchWrapper(default(object))
                 var methodSymbol = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
-                var argument = new BoundDefaultExpression(syntax, parameter.Type);
-                defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, argument);
+                var argument = new BoundDefaultExpression(syntax, parameter.Type) { WasCompilerGenerated = true };
+                defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, argument) { WasCompilerGenerated = true };
             }
             else
             {
                 // Type.Missing
                 var fieldSymbol = (FieldSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing);
-                defaultValue = new BoundFieldAccess(syntax, null, fieldSymbol, ConstantValue.NotAvailable);
+                defaultValue = new BoundFieldAccess(syntax, null, fieldSymbol, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
             }
 
             return defaultValue;
