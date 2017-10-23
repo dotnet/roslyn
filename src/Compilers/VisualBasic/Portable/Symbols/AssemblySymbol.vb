@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' When set, any duplicate coming from corlib is ignored.
         ''' </param>
         ''' <param name="conflicts">
-        ''' In cases a type could Not be found because of ambiguity, we return two of the candidates that caused the ambiguity.
+        ''' In cases a type could not be found because of ambiguity, we return two of the candidates that caused the ambiguity.
         ''' </param>
         ''' <returns></returns>
         Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean, <Out> ByRef conflicts As (AssemblySymbol, AssemblySymbol),
