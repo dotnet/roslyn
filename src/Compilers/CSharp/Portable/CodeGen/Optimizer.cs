@@ -970,11 +970,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private static bool IsIndirectAssignment(BoundAssignmentOperator node)
         {
             var lhs = node.Left;
-
-            Debug.Assert(node.RefKind == RefKind.None || lhs is BoundLocal local &&
-                         (local.LocalSymbol.RefKind == node.RefKind ||
-                          local.LocalSymbol.RefKind == RefKind.RefReadOnly),
-                                "only ref locals can be a target of a ref assignment");
             
             switch (lhs.Kind)
             {

@@ -216,6 +216,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             refKind: refKind);
                     }
 
+                case BoundKind.Parameter:
+                    {
+                        Debug.Assert(refKind == RefKind.None ||
+                            ((BoundParameter)rewrittenLeft).ParameterSymbol.RefKind != RefKind.None);
+                        return new BoundAssignmentOperator(
+                            syntax,
+                            rewrittenLeft,
+                            rewrittenRight,
+                            type,
+                            refKind);
+                    }
+
                 case BoundKind.DiscardExpression:
                     {
                         return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenRight);

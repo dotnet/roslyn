@@ -1219,6 +1219,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.Parameter:
+                    {
+                        var paramExpr = (BoundParameter)node;
+                        var param = paramExpr.ParameterSymbol;
+                        // If we're ref-reassigning an out parameter we're effectively
+                        // leaving the original
+                        if (refKind != RefKind.None &&
+                            param.RefKind == RefKind.Out)
+                        {
+                            LeaveParameter(param, node.Syntax, paramExpr.Syntax.Location);
+                        }
+
+                        int slot = MakeSlot(paramExpr);
+                        SetSlotState(slot, written);
+                        if (written) NoteWrite(paramExpr, value, read);
+                        break;
+                    }
+
                 case BoundKind.ThisReference:
                 case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:
