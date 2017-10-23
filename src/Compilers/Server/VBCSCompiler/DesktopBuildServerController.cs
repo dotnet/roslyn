@@ -90,18 +90,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        protected override Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout)
+        protected override Stream ConnectForShutdown(string pipeName, int timeout)
         {
-            if (PlatformInformation.IsWindows)
-            {
-                var client = new NamedPipeClientStream(pipeName);
-                client.Connect(timeout);
-                return Task.FromResult<Stream>(client);
-            }
-            else
-            {
-                return Task.FromResult<Stream>(UnixDomainSocket.CreateClient(pipeName));
-            }
+            return BuildServerConnection.TryConnectToServer(pipeName, timeout, cancellationToken: default);
         }
 
         protected override string GetDefaultPipeName()

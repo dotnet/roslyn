@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         // Copied from corefx:src/Common/src/Interop/Unix/System.Native/Interop.GetPeerID.cs
         [DllImport("System.Native", EntryPoint = "SystemNative_GetPeerID", SetLastError = true)]
-        private static extern int GetPeerID(IntPtr socket, out uint euid);
+        private static extern int GetPeerID(SafeHandle socket, out uint euid);
 
         private static uint GetPeerID(Socket socket)
         {
@@ -48,11 +49,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 #else
             var handle = socket.Handle;
 #endif
-            var result = GetPeerID(handle, out var euid);
+            int result;
+            uint euid;
+            using (var safeHandle = new SafePipeHandle(handle, false))
+            {
+                result = GetPeerID(safeHandle, out euid);
+            }
+
             if (result != 0)
             {
                 throw new Exception($"getsockopt(SO_PEERCRED) or getpeereid failed ({result})");
             }
+
             return euid;
         }
 
@@ -67,11 +75,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private static bool Check(Socket connection)
         {
-            // TODO (SystemNative_GetPeerID seems to be missing???)
-            return true;
-            // var myId = GetEUid();
-            // var theirId = GetPeerID(connection);
-            // return myId == theirId;
+            var myId = GetEUid();
+            var theirId = GetPeerID(connection);
+            return myId == theirId;
         }
 
         public static UnixDomainSocket CreateServer(string pipeName)
@@ -84,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return new UnixDomainSocket(server);
         }
 
-        public async Task<NetworkStream> WaitOne()
+        public async Task<UnixDomainSocketStream> WaitOne()
         {
             while (true)
             {
@@ -94,12 +100,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     acceptedSocket.Dispose();
                     continue;
                 }
-                var stream = new NetworkStream(acceptedSocket, true);
+                var stream = new UnixDomainSocketStream(acceptedSocket);
                 return stream;
             }
         }
 
-        public static Stream CreateClient(string pipeName)
+        public static UnixDomainSocketStream CreateClient(string pipeName)
         {
             var path = NameToPath(pipeName);
             var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
@@ -115,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 return null;
             }
-            var stream = new NetworkStream(socket);
+            var stream = new UnixDomainSocketStream(socket);
             return stream;
         }
     }
@@ -155,5 +161,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return socket.ReceiveAsync(buffer, socketFlags);
 #endif
         }
+    }
+
+    internal sealed class UnixDomainSocketStream : NetworkStream
+    {
+#if NETSTANDARD1_3
+        public UnixDomainSocketStream(Socket socket) : base(socket, true)
+        {
+            this.Socket = socket;
+        }
+
+        public Socket Socket { get; }
+#else
+        public UnixDomainSocketStream(Socket socket) : base(socket, true)
+        {
+        }
+
+        // change accessibility of Socket (needed for Socket.IsConnected)
+        public new Socket Socket => base.Socket;
+#endif
     }
 }

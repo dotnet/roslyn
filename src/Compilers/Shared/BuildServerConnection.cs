@@ -216,10 +216,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     var monitorTask = CreateMonitorDisconnectTask(pipeStream, "client", serverCts.Token);
                     await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
                 }
-                else
+                else if (stream is UnixDomainSocketStream domainSocketStream)
                 {
-                    // TODO(ashauck): Monitor disconnect task
-                    await Task.WhenAny(responseTask).ConfigureAwait(false);
+                    var monitorTask = CreateMonitorDisconnectTask(domainSocketStream, "client", serverCts.Token);
+                    await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
                 }
 
                 Log("End reading response");
@@ -291,13 +291,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// which serves to check the pipe for disconnection.
         /// </summary>
         internal static async Task CreateMonitorDisconnectTask(
-            Socket socket,
+            UnixDomainSocketStream domainSocketStream,
             string identifier = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var buffer = new ArraySegment<byte>(Array.Empty<byte>());
+            var buffer = Array.Empty<byte>();
 
-            while (!cancellationToken.IsCancellationRequested && socket.Connected)
+            while (!cancellationToken.IsCancellationRequested && domainSocketStream.Socket.Connected)
             {
                 // Wait a tenth of a second before trying again
                 await Task.Delay(100, cancellationToken).ConfigureAwait(false);
@@ -305,13 +305,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 try
                 {
                     Log($"Before poking pipe {identifier}.");
-                    await SocketHelper.ReceiveAsync(socket, buffer, SocketFlags.Peek).ConfigureAwait(false);
+                    await domainSocketStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
                     Log($"After poking pipe {identifier}.");
                 }
                 catch (Exception e)
                 {
                     // It is okay for this call to fail.  Errors will be reflected in the
-                    // IsConnected property which will be read on the next iteration of the
+                    // Connected property which will be read on the next iteration of the
                     LogException(e, $"Error poking pipe {identifier}.");
                 }
             }
@@ -480,12 +480,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
 #else
             string expectedPath = Path.Combine(clientDir, ServerNameCoreClr);
             if (!File.Exists(expectedPath))
+            {
                 throw new Exception(expectedPath);
+            }
 
             var pathToDotnet = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
-            // TODO: try/catch (Win32Exception)
-            Process.Start(pathToDotnet, $@"""{expectedPath}"" ""-pipename:{pipeName}""");
-            return true;
+            try
+            {
+                Process.Start(pathToDotnet, $@"""{expectedPath}"" ""-pipename:{pipeName}""");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
 #endif
         }
 

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected abstract IClientConnectionHost CreateClientConnectionHost(string pipeName);
 
-        protected abstract Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout);
+        protected abstract Stream ConnectForShutdown(string pipeName, int timeout);
 
         /// <summary>
         /// Was a server running with the specified session key during the execution of this call?
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var realTimeout = timeout != null
                     ? (int)timeout.Value.TotalMilliseconds
                     : Timeout.Infinite;
-                using (var client = await ConnectForShutdownAsync(pipeName, realTimeout).ConfigureAwait(false))
+                using (var client = ConnectForShutdown(pipeName, realTimeout))
                 {
                     if (client != null)
                     {

@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal sealed class DomainSocketClientConnection : ClientConnection
     {
-        private readonly NetworkStream _stream;
+        private readonly UnixDomainSocketStream _stream;
 
-        public DomainSocketClientConnection(ICompilerServerHost compilerServerHost, string loggingIdentifier, NetworkStream stream)
+        public DomainSocketClientConnection(ICompilerServerHost compilerServerHost, string loggingIdentifier, UnixDomainSocketStream stream)
             : base(compilerServerHost, loggingIdentifier, stream)
         {
             _stream = stream;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected override Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
         {
-            return Task.Delay(TimeSpan.FromMilliseconds(-1), cancellationToken);
+            return BuildServerConnection.CreateMonitorDisconnectTask(_stream, LoggingIdentifier, cancellationToken);
         }
     }
 }
