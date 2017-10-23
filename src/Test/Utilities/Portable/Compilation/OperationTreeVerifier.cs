@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     _explictNodeMap.Add(operation.Syntax, operation);
                 }
-                catch (ArgumentException e)
+                catch (ArgumentException)
                 {
                     Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
                 }
