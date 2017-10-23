@@ -23,7 +23,6 @@
     <RoslynPortableRuntimeIdentifiers>win7;win7-x64</RoslynPortableRuntimeIdentifiers>
  
     <Features>strict,IOperation</Features>
-    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <SignAssembly>true</SignAssembly>
     <!-- The new SDK introduced a GenerateAssemblyInfo target, which is disabled by GenerateAssemblyInfo=false.
