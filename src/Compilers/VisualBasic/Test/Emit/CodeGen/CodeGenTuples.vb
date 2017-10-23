@@ -6639,9 +6639,9 @@ End Module
 <%= s_trivial2uple %></file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(source1, additionalRefs:={MscorlibRef_v46})
+            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(source1, additionalRefs:={MscorlibRef_v46}, assemblyName:="comp1")
             comp1.AssertNoDiagnostics()
-            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={MscorlibRef_v46})
+            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={MscorlibRef_v46}, assemblyName:="comp2")
             comp2.AssertNoDiagnostics()
 
             Dim source =
@@ -6667,7 +6667,7 @@ BC30521: Overload resolution failed because no accessible 'Extension' is most sp
     Extension method 'Public Sub Extension(y As (Integer, Integer))' defined in 'M2': Not most specific.
         x.Extension((1, 1))
           ~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
+BC37305: Predefined type 'ValueTuple(Of ,)' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
         x.Extension((1, 1))
                     ~~~~~~
 </errors>)
