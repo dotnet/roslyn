@@ -3,9 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private readonly ICompletionBroker _completionBroker;
         internal readonly IGlyphService GlyphService;
-        
+
         private readonly ITextView _textView;
 
         public event EventHandler<EventArgs> Dismissed;
@@ -39,6 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public ITextBuffer SubjectBuffer { get; }
 
+        /// <summary>
+        /// this cancellation is used to log whether presentation is
+        /// actually shown to users or not
+        /// </summary>
+        private readonly CancellationTokenSource _trackLogSession;
+        private IDisposable _logger;
+
         public CompletionPresenterSession(
             ICompletionBroker completionBroker,
             IGlyphService glyphService,
@@ -49,6 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.GlyphService = glyphService;
             _textView = textView;
             SubjectBuffer = subjectBuffer;
+
+            _trackLogSession = new CancellationTokenSource();
+            _logger = Logger.LogBlock(FunctionId.Intellisense_Completion, 
+                KeyValueLogMessage.Create(LogType.UserAction), 
+                _trackLogSession.Token);
 
             _completionSet = new RoslynCompletionSet(this, textView, subjectBuffer);
             _completionSet.SelectionStatusChanged += OnCompletionSetSelectionStatusChanged;
@@ -81,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             try
             {
                 _completionSet.SetCompletionItems(
-                    completionItems, selectedItem, suggestionModeItem, suggestionMode, 
+                    completionItems, selectedItem, suggestionModeItem, suggestionMode,
                     isSoftSelected, completionItemFilters, filterText);
             }
             finally
@@ -165,6 +179,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             AssertIsForeground();
 
+            // if completion is not shown to users yet, then
+            // log will be marked as cancelled.
+            _trackLogSession.Cancel();
+
+            ReportPerformance();
+
             _isDismissed = true;
             if (_editorSessionOpt == null)
             {
@@ -203,6 +223,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public void SelectNextPageItem()
         {
             ExecuteKeyboardCommand(IntellisenseKeyboardCommand.PageDown);
+        }
+
+        public void ReportPerformance(bool force = false)
+        {
+            // we only report once. after that, this becomes noop
+            _logger?.Dispose();
+            _logger = null;
         }
     }
 }
