@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis
         /// Pack = 4 is specified to work around a Mono runtime behavior where on 64-bit the size of the
         /// struct would be 24 and not 20 due to alignment (it ignores Size = 20, but Pack = 4 does it).
         /// Without this fix the ctor would throw because it would use sizeof(Sha1Hash) == 24.
+        /// This bug is tracked by https://bugzilla.xamarin.com/show_bug.cgi?id=60298.
         /// </remarks>
         [StructLayout(LayoutKind.Explicit, Size = 20, Pack = 4)]
         private struct Sha1Hash : IEquatable<Sha1Hash>
