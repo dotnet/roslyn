@@ -1,4 +1,4 @@
-Files in this directory are copied from RepoToolset and slightly modified to adjust for Roslyn build system specifics.
+Files in this directory are copied from RepoToolset. They might be slightly modified to adjust for the current Roslyn build system specifics if necessary.
 
 Limit Roslyn specific changes to minumum.
 
