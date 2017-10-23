@@ -4175,7 +4175,7 @@ class C3
 
             var comp = CreateStandardCompilation(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
             comp.VerifyDiagnostics(
-                // (6,17): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (6,17): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         var x = (1, 1);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 17),
                 // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
@@ -4201,10 +4201,10 @@ class C3
 
             var comp = CreateStandardCompilation(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (6,9): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(int, int)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
-                // (6,24): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (6,24): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 24),
                 // (6,20): warning CS0219: The variable 'x' is assigned but its value is never used
@@ -4230,7 +4230,7 @@ class C3
                     new CSharpCompilationReference(comp2),
                     ValueTupleRef });
             comp.VerifyDiagnostics(
-                // (4,19): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (4,19): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //     public void M((int, int) x) { }
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(int, int)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 19)
                 );
@@ -5324,7 +5324,7 @@ class C3
             var comp = CreateStandardCompilation(source, references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() });
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (7,14): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         x.M1((1, 1));
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 14),
                 // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
@@ -15472,7 +15472,7 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,17): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (6,17): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         var x = (1, 1);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 17)
                 );
@@ -15483,7 +15483,7 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,17): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies including 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (6,17): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         var x = (1, 1);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 17)
                 );
@@ -15534,7 +15534,7 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,16): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (6,16): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         "x".M1((1, null));
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, null)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 16)
                 );
@@ -15606,10 +15606,10 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,16): error CS8356: Predefined type 'System.ValueTuple`3' is declared in multiple referenced assemblies including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (6,16): error CS8356: Predefined type 'System.ValueTuple`3' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`3", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 16),
-                // (6,16): error CS8356: Predefined type 'System.ValueTuple`8' is declared in multiple referenced assemblies including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (6,16): error CS8356: Predefined type 'System.ValueTuple`8' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`8", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 16)
                 );
@@ -20496,7 +20496,7 @@ class C3
                         options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies including 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
+                // (7,14): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         x.M1((1, 1));
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 14),
                 // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
