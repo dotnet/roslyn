@@ -6384,6 +6384,7 @@ public class Test
         }
 
         [Fact]
+        [WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
         public void RefReturnNonRefLocal()
         {
             var source = @"
