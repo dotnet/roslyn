@@ -254,8 +254,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             pinnedTemp = factory.SynthesizedLocal(
                 initializerType, 
                 syntax: declarator, 
-                isPinned: true, 
-                refKind: RefKind.Ref,  // different from the array and string cases
+                isPinned: true,
+                //NOTE: different from the array and string cases
+                //      RefReadOnly to allow referring to readonly variables. 
+                //      (also, technically we only "read" through it)
+                refKind: RefKind.RefReadOnly,  
                 kind: SynthesizedLocalKind.FixedReference);
 
             // NOTE: we pin the reference, not the pointer.

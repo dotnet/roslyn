@@ -724,7 +724,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly? AddressKind.ReadOnly: AddressKind.Writeable);
+                // NOTE: passing "ReadOnlyStrict" here. 
+                //       we should not get an address of a copy if at all possible
+                this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
             }
 
             if (ShouldUseIndirectReturn())

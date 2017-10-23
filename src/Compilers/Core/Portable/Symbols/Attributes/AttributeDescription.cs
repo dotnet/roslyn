@@ -373,6 +373,9 @@ namespace Microsoft.CodeAnalysis
         };
 
         private static readonly byte[][] s_signaturesOfSecuritySafeCriticalAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfSecurityTransparentAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfAllowPartiallyTrustedCallersAttribute = { s_signature_HasThis_Void };
+
         private static readonly byte[][] s_signaturesOfDesignerGeneratedAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfMyGroupCollectionAttribute = { s_signature_HasThis_Void_String_String_String_String };
         private static readonly byte[][] s_signaturesOfComEventInterfaceAttribute = { s_signature_HasThis_Void_Type_Type };
@@ -500,6 +503,8 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription DebuggerStepThroughAttribute = new AttributeDescription("System.Diagnostics", "DebuggerStepThroughAttribute", s_signaturesOfDebuggerStepThroughAttribute);
         internal static readonly AttributeDescription SecurityCriticalAttribute = new AttributeDescription("System.Security", "SecurityCriticalAttribute", s_signaturesOfSecurityCriticalAttribute);
         internal static readonly AttributeDescription SecuritySafeCriticalAttribute = new AttributeDescription("System.Security", "SecuritySafeCriticalAttribute", s_signaturesOfSecuritySafeCriticalAttribute);
+        internal static readonly AttributeDescription SecurityTransparentAttribute = new AttributeDescription("System.Security", "SecurityTransparentAttribute", s_signaturesOfSecurityTransparentAttribute);
+        internal static readonly AttributeDescription AllowPartiallyTrustedCallersAttribute = new AttributeDescription("System.Security", "AllowPartiallyTrustedCallersAttribute", s_signaturesOfAllowPartiallyTrustedCallersAttribute);
         internal static readonly AttributeDescription DesignerGeneratedAttribute = new AttributeDescription("Microsoft.VisualBasic.CompilerServices", "DesignerGeneratedAttribute", s_signaturesOfDesignerGeneratedAttribute);
         internal static readonly AttributeDescription MyGroupCollectionAttribute = new AttributeDescription("Microsoft.VisualBasic", "MyGroupCollectionAttribute", s_signaturesOfMyGroupCollectionAttribute);
         internal static readonly AttributeDescription ComEventInterfaceAttribute = new AttributeDescription("System.Runtime.InteropServices", "ComEventInterfaceAttribute", s_signaturesOfComEventInterfaceAttribute);

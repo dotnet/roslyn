@@ -341,6 +341,42 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
+        #region SecurityTransparentAttribute
+        private bool _hasSecurityTransparentAttribute;
+        public bool HasSecurityTransparentAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasSecurityTransparentAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasSecurityTransparentAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region AllowPartiallyTrustedCallersAttribute
+        private bool _hasAllowPartiallyTrustedCallersAttribute;
+        public bool HasAllowPartiallyTrustedCallersAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasAllowPartiallyTrustedCallersAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasAllowPartiallyTrustedCallersAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
         #region RuntimeCompatibilityAttribute
 
         private bool? _runtimeCompatibilityWrapNonExceptionThrows;
