@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         public void StartSearch(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
         {
             var finder = _finders.FirstOrDefault(s => s.SearchCategory == categoryName);
-            finder.StartSearch(searchScope, callback);
+            finder.StartSearch(_workspace, searchScope, callback);
         }
 
         public void ResumeSearch(string categoryName)
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         {
             var finder = _finders.FirstOrDefault(s => s.SearchCategory == categoryName);
             finder.SetDocuments(documents);
-            finder.StartSearch(searchScope, callback);
+            finder.StartSearch(_workspace, searchScope, callback);
         }
     }
 }
