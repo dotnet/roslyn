@@ -429,72 +429,95 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {
-#if NET46
-            // The server should be in the same directory as the client
-            string expectedPath = Path.Combine(clientDir, ServerNameDesktop);
-
-            if (!File.Exists(expectedPath))
-                return false;
-
-            // As far as I can tell, there isn't a way to use the Process class to
-            // create a process with no stdin/stdout/stderr, so we use P/Invoke.
-            // This code was taken from MSBuild task starting code.
-
-            STARTUPINFO startInfo = new STARTUPINFO();
-            startInfo.cb = Marshal.SizeOf(startInfo);
-            startInfo.hStdError = InvalidIntPtr;
-            startInfo.hStdInput = InvalidIntPtr;
-            startInfo.hStdOutput = InvalidIntPtr;
-            startInfo.dwFlags = STARTF_USESTDHANDLES;
-            uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
-
-            PROCESS_INFORMATION processInfo;
-
-            Log("Attempting to create process '{0}'", expectedPath);
-
-            var builder = new StringBuilder($@"""{expectedPath}"" ""-pipename:{pipeName}""");
-
-            bool success = CreateProcess(
-                lpApplicationName: null,
-                lpCommandLine: builder,
-                lpProcessAttributes: NullPtr,
-                lpThreadAttributes: NullPtr,
-                bInheritHandles: false,
-                dwCreationFlags: dwCreationFlags,
-                lpEnvironment: NullPtr, // Inherit environment
-                lpCurrentDirectory: clientDir,
-                lpStartupInfo: ref startInfo,
-                lpProcessInformation: out processInfo);
-
-            if (success)
+#if NETSTANDARD1_3
+            bool isRunningOnCoreClr = CoreClrShim.IsRunningOnCoreClr;
+#elif NET46
+            bool isRunningOnCoreClr = false;
+#elif NETCOREAPP2_0
+            bool isRunningOnCoreClr = true;
+#endif
+            string expectedPath;
+            string processArguments;
+            if (isRunningOnCoreClr)
             {
-                Log("Successfully created process with process id {0}", processInfo.dwProcessId);
-                CloseHandle(processInfo.hProcess);
-                CloseHandle(processInfo.hThread);
+                // The server should be in the same directory as the client
+                var expectedCompilerPath = Path.Combine(clientDir, ServerNameCoreClr);
+                expectedPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
+                processArguments = $@"""{expectedCompilerPath}"" ""-pipename:{pipeName}""";
+
+                if (!File.Exists(expectedCompilerPath))
+                {
+                    return false;
+                }
             }
             else
             {
-                Log("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
-            }
-            return success;
-#else
-            string expectedPath = Path.Combine(clientDir, ServerNameCoreClr);
-            if (!File.Exists(expectedPath))
-            {
-                throw new Exception(expectedPath);
+                // The server should be in the same directory as the client
+                expectedPath = Path.Combine(clientDir, ServerNameDesktop);
+                processArguments = $@"""-pipename:{pipeName}""";
+
+                if (!File.Exists(expectedPath))
+                {
+                    return false;
+                }
             }
 
-            var pathToDotnet = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
-            try
+            if (PlatformInformation.IsWindows)
             {
-                Process.Start(pathToDotnet, $@"""{expectedPath}"" ""-pipename:{pipeName}""");
-                return true;
+                // As far as I can tell, there isn't a way to use the Process class to
+                // create a process with no stdin/stdout/stderr, so we use P/Invoke.
+                // This code was taken from MSBuild task starting code.
+
+                STARTUPINFO startInfo = new STARTUPINFO();
+                startInfo.cb = Marshal.SizeOf(startInfo);
+                startInfo.hStdError = InvalidIntPtr;
+                startInfo.hStdInput = InvalidIntPtr;
+                startInfo.hStdOutput = InvalidIntPtr;
+                startInfo.dwFlags = STARTF_USESTDHANDLES;
+                uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
+
+                PROCESS_INFORMATION processInfo;
+
+                Log("Attempting to create process '{0}'", expectedPath);
+
+                var builder = new StringBuilder($@"""{expectedPath}"" {processArguments}");
+
+                bool success = CreateProcess(
+                    lpApplicationName: null,
+                    lpCommandLine: builder,
+                    lpProcessAttributes: NullPtr,
+                    lpThreadAttributes: NullPtr,
+                    bInheritHandles: false,
+                    dwCreationFlags: dwCreationFlags,
+                    lpEnvironment: NullPtr, // Inherit environment
+                    lpCurrentDirectory: clientDir,
+                    lpStartupInfo: ref startInfo,
+                    lpProcessInformation: out processInfo);
+
+                if (success)
+                {
+                    Log("Successfully created process with process id {0}", processInfo.dwProcessId);
+                    CloseHandle(processInfo.hProcess);
+                    CloseHandle(processInfo.hThread);
+                }
+                else
+                {
+                    Log("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                }
+                return success;
             }
-            catch
+            else
             {
-                return false;
+                try
+                {
+                    Process.Start(expectedPath, processArguments);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
             }
-#endif
         }
 
         /// <summary>
