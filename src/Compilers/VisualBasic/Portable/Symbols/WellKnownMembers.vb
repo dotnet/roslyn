@@ -382,7 +382,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             delayedErrorInfo = Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleTypeRefResolutionError1, t)
                         Else
-                            delayedErrorInfo = Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleResolutionAmbiguous3, t, conflicts.Item1, conflicts.Item2)
+                            Dim capturedConflicts = conflicts
+                            delayedErrorInfo = Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleResolutionAmbiguous3, t, capturedConflicts.Item1, capturedConflicts.Item2)
                         End If
 
                         result = New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Assembly.Modules(0), emittedName, delayedErrorInfo)
