@@ -3268,8 +3268,8 @@ $@"
                 MainDescription("string[]"));
         }
 
-        [WorkItem(529139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529139")]		
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]		
+        [WorkItem(529139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529139")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ColorColorRangeVariable()
         {
             await TestAsync(
@@ -3289,8 +3289,8 @@ namespace N1
             }
         }
     }
- }",
-            MainDescription($"({FeaturesResources.range_variable}) N1.yield yield"));
+}",
+                MainDescription($"({FeaturesResources.range_variable}) N1.yield yield"));
         }
 
         [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
