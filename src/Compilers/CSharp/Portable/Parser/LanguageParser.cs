@@ -5184,7 +5184,8 @@ tryAgain:
                 case SyntaxKind.AmpersandAmpersandToken: // e.g. `e is A<B> && e`
                 case SyntaxKind.BarBarToken:             // e.g. `e is A<B> || e`
                 case SyntaxKind.AmpersandToken:          // e.g. `e is A<B> & e`
-                case SyntaxKind.OpenBracketToken:        // e.g. `e is A<B>[]`
+                case SyntaxKind.OpenBracketToken         // e.g. `e is A<B>[]`
+                    when this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken || this.PeekToken(1).Kind == SyntaxKind.CommaToken:
                 case SyntaxKind.LessThanToken:           // e.g. `e is A<B> < C`
                 case SyntaxKind.LessThanEqualsToken:     // e.g. `e is A<B> <= C`
                 case SyntaxKind.GreaterThanEqualsToken:  // e.g. `e is A<B> >= C`
