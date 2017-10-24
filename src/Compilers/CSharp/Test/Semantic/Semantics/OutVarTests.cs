@@ -196,10 +196,10 @@ public class Cls
             var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,20): error CS8184: A declaration is not allowed in this context.
+                // (6,20): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x1").WithLocation(6, 20),
-                // (6,28): error CS8184: A declaration is not allowed in this context.
+                // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x2").WithLocation(6, 28),
                 // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported

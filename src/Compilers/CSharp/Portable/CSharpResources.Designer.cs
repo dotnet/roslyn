@@ -7919,6 +7919,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is declared in multiple referenced assemblies: &apos;{1}&apos; and &apos;{2}&apos;.
+        /// </summary>
+        internal static string ERR_PredefinedValueTupleTypeAmbiguous3 {
+            get {
+                return ResourceManager.GetString("ERR_PredefinedValueTupleTypeAmbiguous3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; must be a struct..
         /// </summary>
         internal static string ERR_PredefinedValueTupleTypeMustBeStruct {
@@ -7928,7 +7937,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported, or is declared in multiple referenced assemblies.
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported.
         /// </summary>
         internal static string ERR_PredefinedValueTupleTypeNotFound {
             get {

@@ -2805,7 +2805,7 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSpan(text);
             compilation.VerifyDiagnostics(
-                // (12,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (12,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, local)").WithArguments("System.ValueTuple`2").WithLocation(12, 28),
                 // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
@@ -2814,31 +2814,31 @@ public class C
                 // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 36),
-                // (14,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (14,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, s) = (local, ""); // error 2
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(local, """")").WithArguments("System.ValueTuple`2").WithLocation(14, 23),
                 // (14,24): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, s) = (local, ""); // error 2
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(14, 24),
-                // (15,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (15,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, s) = (local, null); // error 3
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, null)").WithArguments("System.ValueTuple`2").WithLocation(15, 23),
-                // (17,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (17,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (local, s) = (global, ""); // error 4
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(global, """")").WithArguments("System.ValueTuple`2").WithLocation(17, 22),
                 // (17,23): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (local, s) = (global, ""); // error 4
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(17, 23),
-                // (18,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (18,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (local, s) = (global, null); // error 5
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(global, null)").WithArguments("System.ValueTuple`2").WithLocation(18, 22),
-                // (20,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (20,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(local, """")").WithArguments("System.ValueTuple`2").WithLocation(20, 18),
                 // (20,19): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19),
-                // (21,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (21,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (c, s) = (local, null);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, null)").WithArguments("System.ValueTuple`2").WithLocation(21, 18)
             );

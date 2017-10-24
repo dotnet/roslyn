@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false);
+            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
         }
 
         /// <summary>
