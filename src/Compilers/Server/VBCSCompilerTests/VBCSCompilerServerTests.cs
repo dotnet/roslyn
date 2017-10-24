@@ -76,31 +76,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     var thread = new Thread(() =>
                     {
                         using (var mutex = new Mutex(initiallyOwned: true, name: mutexName, createdNew: out created))
+                        using (var stream = new NamedPipeServerStream(pipeName))
                         {
-                            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-                            {
-                                using (var stream = new NamedPipeServerStream(pipeName))
-                                {
-                                    readyMre.Set();
+                            readyMre.Set();
 
-                                    // Get a client connection and then immediately close it.  Don't give any response.
-                                    stream.WaitForConnection();
-                                    stream.Close();
-                                }
-                            }
-                            else
-                            {
-                                using (var stream = UnixDomainSocket.CreateServer(pipeName))
-                                {
-                                    readyMre.Set();
-
-                                    // Get a client connection and then immediately close it.  Don't give any response.
-                                    using (stream.WaitOne().Result)
-                                    {
-                                    }
-                                }
-                            }
+                            // Get a client connection and then immediately close it.  Don't give any response.
+                            stream.WaitForConnection();
                             connected = true;
+                            stream.Close();
+
                             doneMre.WaitOne();
                             mutex.ReleaseMutex();
                         }
@@ -140,41 +124,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                     var thread = new Thread(() =>
                     {
-                        var mutex = new Mutex(initiallyOwned: true, name: mutexName, createdNew: out created);
-                        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                        using (var stream = new NamedPipeServerStream(pipeName))
                         {
-                            using (var stream = new NamedPipeServerStream(pipeName))
-                            {
-                                readyMre.Set();
+                            var mutex = new Mutex(initiallyOwned: true, name: mutexName, createdNew: out created);
+                            readyMre.Set();
 
-                                stream.WaitForConnection();
-                                connected = true;
+                            stream.WaitForConnection();
+                            connected = true;
 
-                                // Client is waiting for a response.  Close the mutex now.  Then close the connection 
-                                // so the client gets an error.
-                                mutex.ReleaseMutex();
-                                mutex.Dispose();
-                                stream.Close();
-                            }
+                            // Client is waiting for a response.  Close the mutex now.  Then close the connection 
+                            // so the client gets an error.
+                            mutex.ReleaseMutex();
+                            mutex.Dispose();
+                            stream.Close();
+
+                            doneMre.WaitOne();
                         }
-                        else
-                        {
-                            using (var stream = UnixDomainSocket.CreateServer(pipeName))
-                            {
-                                readyMre.Set();
-                                using (stream.WaitOne().Result)
-                                {
-                                    connected = true;
-
-                                    // Client is waiting for a response.  Close the mutex now.  Then close the connection 
-                                    // so the client gets an error.
-                                    mutex.ReleaseMutex();
-                                    mutex.Dispose();
-                                }
-                            }
-                        }
-
-                        doneMre.WaitOne();
                     });
 
                     // Block until the mutex and named pipe is setup.

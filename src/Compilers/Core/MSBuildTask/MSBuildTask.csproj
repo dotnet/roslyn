@@ -51,9 +51,6 @@
     <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>UnicodeCharacterUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\UnixDomainSocket.cs">
-      <Link>UnixDomainSocket.cs</Link>
-    </Compile>
     <Compile Update="ErrorString.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -79,9 +76,7 @@
     <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
     <PackageReference Include="System.IO.FileSystem.DriveInfo" Version="$(SystemIOFileSystemDriveInfoVersion)" />
     <PackageReference Include="System.IO.Pipes" Version="$(SystemIOPipesVersion)" />
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" />
     <PackageReference Include="System.Linq" Version="$(SystemLinqVersion)" />
-    <PackageReference Include="System.Net.Sockets" Version="$(SystemNetSocketsVersion)" />
     <PackageReference Include="System.Reflection" Version="$(SystemReflectionVersion)" />
     <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" />
     <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SystemSecurityCryptographyAlgorithmsVersion)" />

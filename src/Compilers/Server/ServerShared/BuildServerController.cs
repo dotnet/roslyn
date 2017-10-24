@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected abstract IClientConnectionHost CreateClientConnectionHost(string pipeName);
 
-        protected abstract Stream ConnectForShutdown(string pipeName, int timeout);
+        protected abstract Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout);
 
         /// <summary>
         /// Was a server running with the specified session key during the execution of this call?
@@ -97,27 +97,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var realTimeout = timeout != null
                     ? (int)timeout.Value.TotalMilliseconds
                     : Timeout.Infinite;
-                using (var client = ConnectForShutdown(pipeName, realTimeout))
+                using (var client = await ConnectForShutdownAsync(pipeName, realTimeout).ConfigureAwait(false))
                 {
-                    if (client != null)
-                    {
-                        var request = BuildRequest.CreateShutdown();
-                        await request.WriteAsync(client, cancellationToken).ConfigureAwait(false);
-                        var response = await BuildResponse.ReadAsync(client, cancellationToken).ConfigureAwait(false);
-                        var shutdownResponse = (ShutdownBuildResponse)response;
+                    var request = BuildRequest.CreateShutdown();
+                    await request.WriteAsync(client, cancellationToken).ConfigureAwait(false);
+                    var response = await BuildResponse.ReadAsync(client, cancellationToken).ConfigureAwait(false);
+                    var shutdownResponse = (ShutdownBuildResponse)response;
 
-                        if (waitForProcess)
+                    if (waitForProcess)
+                    {
+                        try
                         {
-                            try
-                            {
-                                var process = Process.GetProcessById(shutdownResponse.ServerProcessId);
-                                process.WaitForExit();
-                            }
-                            catch (Exception)
-                            {
-                                // There is an inherent race here with the server process.  If it has already shutdown
-                                // by the time we try to access it then the operation has succeed.
-                            }
+                            var process = Process.GetProcessById(shutdownResponse.ServerProcessId);
+                            process.WaitForExit();
+                        }
+                        catch (Exception)
+                        {
+                            // There is an inherent race here with the server process.  If it has already shutdown
+                            // by the time we try to access it then the operation has succeed.
                         }
                     }
                 }

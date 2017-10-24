@@ -47,9 +47,6 @@
     <Compile Include="..\..\Shared\Vbc.cs">
       <Link>Vbc.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\UnixDomainSocket.cs">
-      <Link>UnixDomainSocket.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />

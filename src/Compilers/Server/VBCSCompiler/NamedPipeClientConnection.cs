@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                 }
             });
+            listenThread.IsBackground = true;
             listenThread.Start();
 
             // Create a tasks that waits indefinitely (-1) and completes only when cancelled.
@@ -133,10 +134,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             CompilerServerLogger.Log("Constructing pipe '{0}'.", pipeName);
 
+#if NET46
             SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
             PipeSecurity security = new PipeSecurity();
 
-#if NET46
             // Restrict access to just this account.  
             PipeAccessRule rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
             security.AddAccessRule(rule);
@@ -213,17 +214,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private static bool ClientAndOurIdentitiesMatch(NamedPipeServerStream pipeStream)
         {
-            var serverIdentity = GetIdentity(impersonating: false);
+            if (PlatformInformation.IsWindows)
+            {
+                var serverIdentity = GetIdentity(impersonating: false);
 
-            Tuple<string, bool> clientIdentity = null;
-            pipeStream.RunAsClient(() => { clientIdentity = GetIdentity(impersonating: true); });
+                Tuple<string, bool> clientIdentity = null;
+                pipeStream.RunAsClient(() => { clientIdentity = GetIdentity(impersonating: true); });
 
-            CompilerServerLogger.Log($"Server identity = '{serverIdentity.Item1}', server elevation='{serverIdentity.Item2}'.");
-            CompilerServerLogger.Log($"Client identity = '{clientIdentity.Item1}', client elevation='{serverIdentity.Item2}'.");
+                CompilerServerLogger.Log($"Server identity = '{serverIdentity.Item1}', server elevation='{serverIdentity.Item2}'.");
+                CompilerServerLogger.Log($"Client identity = '{clientIdentity.Item1}', client elevation='{serverIdentity.Item2}'.");
 
-            return
-                StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.Item1, clientIdentity.Item1) &&
-                serverIdentity.Item2 == clientIdentity.Item2;
+                return
+                    StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.Item1, clientIdentity.Item1) &&
+                    serverIdentity.Item2 == clientIdentity.Item2;
+            }
+            else
+            {
+                return pipeStream.GetImpersonationUserName() == Environment.UserName;
+            }
         }
 
         /// <summary>

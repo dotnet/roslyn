@@ -48,15 +48,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ICompilerServerHost compilerServerHost,
             string pipeName)
         {
-
-            if (PlatformInformation.IsWindows)
-            {
-                return new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
-            }
-            else
-            {
-                return new DomainSocketClientConnectionHost(compilerServerHost, pipeName);
-            }
+            return new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
         }
 
         protected internal override TimeSpan? GetKeepAliveTimeout()
@@ -90,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        protected override Stream ConnectForShutdown(string pipeName, int timeout)
+        protected override Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout)
         {
-            return BuildServerConnection.TryConnectToServer(pipeName, timeout, cancellationToken: default);
+            return Task.FromResult<Stream>(BuildServerConnection.TryConnectToServer(pipeName, timeout, cancellationToken: default));
         }
 
         protected override string GetDefaultPipeName()
