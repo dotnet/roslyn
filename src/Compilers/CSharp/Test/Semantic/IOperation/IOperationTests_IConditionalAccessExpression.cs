@@ -26,13 +26,13 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-IConditionalAccessOperation (OperationKind.ConditionalAccess, IsExpression, Type: System.String) (Syntax: 'o?.ToString()')
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.String) (Syntax: 'o?.ToString()')
   Operation: 
-    ILocalReferenceOperation: o (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'o')
+    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
   WhenNotNull: 
-    IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, IsExpression, Type: System.String) (Syntax: '.ToString()')
+    IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
       Instance Receiver: 
-        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'o')
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: System.Object, IsImplicit) (Syntax: 'o')
       Arguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -58,13 +58,13 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-IConditionalAccessOperation (OperationKind.ConditionalAccess, IsExpression, Type: System.Int32?) (Syntax: 'c1?.Prop1')
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Int32?) (Syntax: 'c1?.Prop1')
   Operation: 
-    ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: C1) (Syntax: 'c1')
+    ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1) (Syntax: 'c1')
   WhenNotNull: 
-    IPropertyReferenceOperation: System.Int32 C1.Prop1 { get; } (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: '.Prop1')
+    IPropertyReferenceOperation: System.Int32 C1.Prop1 { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.Prop1')
       Instance Receiver: 
-        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, IsExpression, Type: C1, IsImplicit) (Syntax: 'c1')
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C1, IsImplicit) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

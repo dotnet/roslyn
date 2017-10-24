@@ -27,11 +27,11 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitOperation (OperationKind.Await, IsExpression, Type: System.Void) (Syntax: 'Await M2()')
+IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'Await M2()')
   Expression: 
-    IInvocationOperation ( Function C.M2() As System.Threading.Tasks.Task) (OperationKind.Invocation, IsExpression, Type: System.Threading.Tasks.Task) (Syntax: 'M2()')
+    IInvocationOperation ( Function C.M2() As System.Threading.Tasks.Task) (OperationKind.Invocation, Type: System.Threading.Tasks.Task) (Syntax: 'M2()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
       Arguments(0)
 ]]>.Value
 
@@ -54,9 +54,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitOperation (OperationKind.Await, IsExpression, Type: System.Void) (Syntax: 'Await t')
+IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'Await t')
   Expression: 
-    IParameterReferenceOperation: t (OperationKind.ParameterReference, IsExpression, Type: System.Threading.Tasks.Task) (Syntax: 't')
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task) (Syntax: 't')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -79,9 +79,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitOperation (OperationKind.Await, IsExpression, Type: System.Int32) (Syntax: 'Await t')
+IAwaitOperation (OperationKind.Await, Type: System.Int32) (Syntax: 'Await t')
   Expression: 
-    IParameterReferenceOperation: t (OperationKind.ParameterReference, IsExpression, Type: System.Threading.Tasks.Task(Of System.Int32)) (Syntax: 't')
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task(Of System.Int32)) (Syntax: 't')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -103,9 +103,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitOperation (OperationKind.Await, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'Await UndefinedTask')
+IAwaitOperation (OperationKind.Await, Type: System.Void, IsInvalid) (Syntax: 'Await UndefinedTask')
   Expression: 
-    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'UndefinedTask')
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'UndefinedTask')
       Children(0)
 ]]>.Value
 
@@ -132,9 +132,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitOperation (OperationKind.Await, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'Await i')
+IAwaitOperation (OperationKind.Await, Type: System.Void, IsInvalid) (Syntax: 'Await i')
   Expression: 
-    IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
+    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -160,9 +160,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitOperation (OperationKind.Await, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'Await')
+IAwaitOperation (OperationKind.Await, Type: System.Void, IsInvalid) (Syntax: 'Await')
   Expression: 
-    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: null, IsInvalid) (Syntax: '')
+    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
 ]]>.Value
 
@@ -189,13 +189,13 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null, IsInvalid) (Syntax: 'Await t')
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'Await t')
   Expression: 
-    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Await t')
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Await t')
       Children(2):
-          IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Await')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Await')
             Children(0)
-          IParameterReferenceOperation: t (OperationKind.ParameterReference, IsExpression, Type: System.Threading.Tasks.Task, IsInvalid) (Syntax: 't')
+          IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task, IsInvalid) (Syntax: 't')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

@@ -46,33 +46,33 @@ public class Cls
             var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
             compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
-@"IInvocationOperation (void Cls.Test1(params System.Int32[] x)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Test1(null)')
+@"IInvocationOperation (void Cls.Test1(params System.Int32[] x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test1(null)')
   Instance Receiver: 
     null
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32[]) (Syntax: 'null')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'null')
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
 
             compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IInvocationOperation (void Cls.Test2(System.Int32 y, params System.Int32[] x)) (OperationKind.Invocation, IsExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
+@"IInvocationOperation (void Cls.Test2(System.Int32 y, params System.Int32[] x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
   Instance Receiver: 
     null
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: System.Object, IsInvalid) (Syntax: 'new object()')
-        IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'new object()')
+        IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'new object()')
           Arguments(0)
           Initializer: 
             null
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: null) (Syntax: 'null')
-        ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'null')
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
         }

@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a reference to a tuple with one or more elements.
+    /// Represents a tuple with one or more elements.
     /// <para>
     /// Current usage:
     ///  (1) C# tuple expression.

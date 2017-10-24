@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         /// <remarks>
         /// If you need conversion information that is language specific, use either
-        /// <see cref="T:Microsoft.CodeAnalysis.CSharp.IConversionExpressionExtensions.GetConversion(IConversionOperation)"/> or
-        /// <see cref="T:Microsoft.CodeAnalysis.VisualBasic.GetConversion(IConversionOperation)"/>.
+        /// <see cref="T:Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetConversion(IConversionOperation)"/> or
+        /// <see cref="T:Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetConversion(IConversionOperation)"/>.
         /// </remarks>
 #pragma warning restore RS0010 // Avoid using cref tags with a prefix
         CommonConversion Conversion { get; }

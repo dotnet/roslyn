@@ -84,13 +84,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, IsExpression, Type: TestEnum, Constant: 6) (Syntax: 'TestEnum.Fi ... .Visibility')
+IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: TestEnum, Constant: 6) (Syntax: 'TestEnum.Fi ... .Visibility')
   Left: 
-    IFieldReferenceOperation: TestEnum.FilePath (Static) (OperationKind.FieldReference, IsExpression, Type: TestEnum, Constant: 2) (Syntax: 'TestEnum.FilePath')
+    IFieldReferenceOperation: TestEnum.FilePath (Static) (OperationKind.FieldReference, Type: TestEnum, Constant: 2) (Syntax: 'TestEnum.FilePath')
       Instance Receiver: 
         null
   Right: 
-    IFieldReferenceOperation: TestEnum.Visibility (Static) (OperationKind.FieldReference, IsExpression, Type: TestEnum, Constant: 4) (Syntax: 'TestEnum.Visibility')
+    IFieldReferenceOperation: TestEnum.Visibility (Static) (OperationKind.FieldReference, Type: TestEnum, Constant: 4) (Syntax: 'TestEnum.Visibility')
       Instance Receiver: 
         null
 ";
@@ -539,50 +539,50 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (2 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'if (zero) ... Write('b');')
+IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (zero) ... Write('b');')
     Condition: 
-      IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.UnaryOperator, IsExpression, Type: System.Boolean, IsImplicit) (Syntax: 'zero')
+      IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'zero')
         Operand: 
-          IParameterReferenceOperation: zero (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'zero')
+          IParameterReferenceOperation: zero (OperationKind.ParameterReference, Type: S) (Syntax: 'zero')
     WhenTrue: 
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write('a');')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write('a');')
         Expression: 
-          IInvocationOperation (void System.Console.Write(System.Char value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write('a')')
+          IInvocationOperation (void System.Console.Write(System.Char value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write('a')')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Char) (Syntax: ''a'')
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Char, Constant: a) (Syntax: ''a'')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a) (Syntax: ''a'')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     WhenFalse: 
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write('b');')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write('b');')
         Expression: 
-          IInvocationOperation (void System.Console.Write(System.Char value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write('b')')
+          IInvocationOperation (void System.Console.Write(System.Char value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write('b')')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Char) (Syntax: ''b'')
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Char, Constant: b) (Syntax: ''b'')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: b) (Syntax: ''b'')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Wri ... 'g' : 'h');')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... 'g' : 'h');')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Char value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Wri ...  'g' : 'h')')
+      IInvocationOperation (void System.Console.Write(System.Char value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ...  'g' : 'h')')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Char) (Syntax: 'one ? 'g' : 'h'')
-              IConditionalOperation (OperationKind.Conditional, IsExpression, Type: System.Char) (Syntax: 'one ? 'g' : 'h'')
+              IConditionalOperation (OperationKind.Conditional, Type: System.Char) (Syntax: 'one ? 'g' : 'h'')
                 Condition: 
-                  IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.UnaryOperator, IsExpression, Type: System.Boolean, IsImplicit) (Syntax: 'one')
+                  IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'one')
                     Operand: 
-                      IParameterReferenceOperation: one (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'one')
+                      IParameterReferenceOperation: one (OperationKind.ParameterReference, Type: S) (Syntax: 'one')
                 WhenTrue: 
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Char, Constant: g) (Syntax: ''g'')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: g) (Syntax: ''g'')
                 WhenFalse: 
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Char, Constant: h) (Syntax: ''h'')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: h) (Syntax: ''h'')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -672,86 +672,86 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (5 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(+a);')
+IBlockOperation (5 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(+a);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(+a)')
+      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(+a)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: '+a')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '+a')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '+a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.UnaryOperator, IsExpression, Type: S) (Syntax: '+a')
+                  IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '+a')
                     Operand: 
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(-a);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(-a);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(-a)')
+      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(-a)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: '-a')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '-a')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '-a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.UnaryOperator, IsExpression, Type: S) (Syntax: '-a')
+                  IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '-a')
                     Operand: 
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(~a);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(~a);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(~a)')
+      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(~a)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: '~a')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '~a')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '~a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.UnaryOperator, IsExpression, Type: S) (Syntax: '~a')
+                  IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '~a')
                     Operand: 
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(!a);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(!a);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(!a)')
+      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(!a)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: '!a')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '!a')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '!a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.UnaryOperator, IsExpression, Type: S) (Syntax: '!a')
+                  IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '!a')
                     Operand: 
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(+~!-a);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(+~!-a);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(+~!-a)')
+      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(+~!-a)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: '+~!-a')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '+~!-a')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '+~!-a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.UnaryOperator, IsExpression, Type: S) (Syntax: '+~!-a')
+                  IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '+~!-a')
                     Operand: 
-                      IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.UnaryOperator, IsExpression, Type: S) (Syntax: '~!-a')
+                      IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '~!-a')
                         Operand: 
-                          IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.UnaryOperator, IsExpression, Type: S) (Syntax: '!-a')
+                          IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '!-a')
                             Operand: 
-                              IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.UnaryOperator, IsExpression, Type: S) (Syntax: '-a')
+                              IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '-a')
                                 Operand: 
-                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -792,65 +792,65 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (4 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(++a);')
+IBlockOperation (4 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(++a);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(++a)')
+      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(++a)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: '++a')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '++a')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '++a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IIncrementOrDecrementOperation (Prefix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.Increment, IsExpression, Type: S) (Syntax: '++a')
+                  IIncrementOrDecrementOperation (Prefix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.Increment, Type: S) (Syntax: '++a')
                     Target: 
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(a++);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(a++);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
+      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(a++)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: 'a++')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'a++')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'a++')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.Increment, IsExpression, Type: S) (Syntax: 'a++')
+                  IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.Increment, Type: S) (Syntax: 'a++')
                     Target: 
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(--a);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(--a);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
+      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(--a)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: '--a')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '--a')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '--a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IIncrementOrDecrementOperation (Prefix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.Decrement, IsExpression, Type: S) (Syntax: '--a')
+                  IIncrementOrDecrementOperation (Prefix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.Decrement, Type: S) (Syntax: '--a')
                     Target: 
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(a--);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(a--);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
+      IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(a--)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: 'a--')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'a--')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'a--')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.Decrement, IsExpression, Type: S) (Syntax: 'a--')
+                  IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.Decrement, Type: S) (Syntax: 'a--')
                     Target: 
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -894,66 +894,66 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IBlockOperation (4 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(++a);')
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IBlockOperation (4 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(++a);')
       Expression: 
-        IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(++a)')
+        IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(++a)')
           Instance Receiver: 
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: '++a')
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '++a')
+                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '++a')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IIncrementOrDecrementOperation (Prefix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.Increment, IsExpression, Type: S) (Syntax: '++a')
+                    IIncrementOrDecrementOperation (Prefix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.Increment, Type: S) (Syntax: '++a')
                       Target: 
-                        IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(a++);')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(a++);')
       Expression: 
-        IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
+        IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(a++)')
           Instance Receiver: 
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: 'a++')
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'a++')
+                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'a++')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.Increment, IsExpression, Type: S) (Syntax: 'a++')
+                    IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.Increment, Type: S) (Syntax: 'a++')
                       Target: 
-                        IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(--a);')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(--a);')
       Expression: 
-        IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
+        IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(--a)')
           Instance Receiver: 
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: '--a')
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '--a')
+                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '--a')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IIncrementOrDecrementOperation (Prefix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.Decrement, IsExpression, Type: S) (Syntax: '--a')
+                    IIncrementOrDecrementOperation (Prefix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.Decrement, Type: S) (Syntax: '--a')
                       Target: 
-                        IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(a--);')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(a--);')
       Expression: 
-        IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
+        IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(a--)')
           Instance Receiver: 
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Object) (Syntax: 'a--')
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'a--')
+                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'a--')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.Decrement, IsExpression, Type: S) (Syntax: 'a--')
+                    IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.Decrement, Type: S) (Syntax: 'a--')
                       Target: 
-                        IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -980,53 +980,53 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (4 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(++a);')
+IBlockOperation (4 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(++a);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(++a)')
+      IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(++a)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: '++a')
-              IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, IsExpression, Type: System.Int32) (Syntax: '++a')
+              IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++a')
                 Target: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(a++);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(a++);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
+      IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(a++)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'a++')
-              IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, IsExpression, Type: System.Int32) (Syntax: 'a++')
+              IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'a++')
                 Target: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(--a);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(--a);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
+      IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(--a)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: '--a')
-              IIncrementOrDecrementOperation (Prefix) (OperationKind.Decrement, IsExpression, Type: System.Int32) (Syntax: '--a')
+              IIncrementOrDecrementOperation (Prefix) (OperationKind.Decrement, Type: System.Int32) (Syntax: '--a')
                 Target: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(a--);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(a--);')
     Expression: 
-      IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
+      IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(a--)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'a--')
-              IIncrementOrDecrementOperation (Postfix) (OperationKind.Decrement, IsExpression, Type: System.Int32) (Syntax: 'a--')
+              IIncrementOrDecrementOperation (Postfix) (OperationKind.Decrement, Type: System.Int32) (Syntax: 'a--')
                 Target: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1056,54 +1056,54 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IBlockOperation (4 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(++a);')
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IBlockOperation (4 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(++a);')
       Expression: 
-        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(++a)')
+        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(++a)')
           Instance Receiver: 
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: '++a')
-                IIncrementOrDecrementOperation (Prefix, Checked) (OperationKind.Increment, IsExpression, Type: System.Int32) (Syntax: '++a')
+                IIncrementOrDecrementOperation (Prefix, Checked) (OperationKind.Increment, Type: System.Int32) (Syntax: '++a')
                   Target: 
-                    IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(a++);')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(a++);')
       Expression: 
-        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
+        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(a++)')
           Instance Receiver: 
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'a++')
-                IIncrementOrDecrementOperation (Postfix, Checked) (OperationKind.Increment, IsExpression, Type: System.Int32) (Syntax: 'a++')
+                IIncrementOrDecrementOperation (Postfix, Checked) (OperationKind.Increment, Type: System.Int32) (Syntax: 'a++')
                   Target: 
-                    IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(--a);')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(--a);')
       Expression: 
-        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
+        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(--a)')
           Instance Receiver: 
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: '--a')
-                IIncrementOrDecrementOperation (Prefix, Checked) (OperationKind.Decrement, IsExpression, Type: System.Int32) (Syntax: '--a')
+                IIncrementOrDecrementOperation (Prefix, Checked) (OperationKind.Decrement, Type: System.Int32) (Syntax: '--a')
                   Target: 
-                    IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.Write(a--);')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(a--);')
       Expression: 
-        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
+        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(a--)')
           Instance Receiver: 
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'a--')
-                IIncrementOrDecrementOperation (Postfix, Checked) (OperationKind.Decrement, IsExpression, Type: System.Int32) (Syntax: 'a--')
+                IIncrementOrDecrementOperation (Postfix, Checked) (OperationKind.Decrement, Type: System.Int32) (Syntax: 'a--')
                   Target: 
-                    IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1230,71 +1230,71 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: '(a >> 10) + ... m <= o >= p')
+IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: '(a >> 10) + ... m <= o >= p')
   Left: 
-    IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: '(a >> 10) + ... / e % f & g')
+    IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: '(a >> 10) + ... / e % f & g')
       Left: 
-        IBinaryOperation (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: '(a >> 10) + ... * d / e % f')
+        IBinaryOperation (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: '(a >> 10) + ... * d / e % f')
           Left: 
-            IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: '(a >> 10) + (b << 20)')
+            IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: '(a >> 10) + (b << 20)')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'a >> 10')
+                IBinaryOperation (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'a >> 10')
                   Left: 
-                    ILocalReferenceOperation: a (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'a')
+                    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: S) (Syntax: 'a')
                   Right: 
-                    ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'b << 20')
+                IBinaryOperation (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'b << 20')
                   Left: 
-                    ILocalReferenceOperation: b (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'b')
+                    ILocalReferenceOperation: b (OperationKind.LocalReference, Type: S) (Syntax: 'b')
                   Right: 
-                    ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
           Right: 
-            IBinaryOperation (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'c * d / e % f')
+            IBinaryOperation (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'c * d / e % f')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'c * d / e')
+                IBinaryOperation (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'c * d / e')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'c * d')
+                    IBinaryOperation (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'c * d')
                       Left: 
-                        ILocalReferenceOperation: c (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'c')
+                        ILocalReferenceOperation: c (OperationKind.LocalReference, Type: S) (Syntax: 'c')
                       Right: 
-                        ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'd')
+                        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: S) (Syntax: 'd')
                   Right: 
-                    ILocalReferenceOperation: e (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'e')
+                    ILocalReferenceOperation: e (OperationKind.LocalReference, Type: S) (Syntax: 'e')
               Right: 
-                ILocalReferenceOperation: f (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'f')
+                ILocalReferenceOperation: f (OperationKind.LocalReference, Type: S) (Syntax: 'f')
       Right: 
-        ILocalReferenceOperation: g (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'g')
+        ILocalReferenceOperation: g (OperationKind.LocalReference, Type: S) (Syntax: 'g')
   Right: 
-    IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'h ^ i == j  ... m <= o >= p')
+    IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'h ^ i == j  ... m <= o >= p')
       Left: 
-        ILocalReferenceOperation: h (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'h')
+        ILocalReferenceOperation: h (OperationKind.LocalReference, Type: S) (Syntax: 'h')
       Right: 
-        IBinaryOperation (BinaryOperatorKind.NotEquals) (OperatorMethod: S S.op_Inequality(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'i == j != k ... m <= o >= p')
+        IBinaryOperation (BinaryOperatorKind.NotEquals) (OperatorMethod: S S.op_Inequality(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'i == j != k ... m <= o >= p')
           Left: 
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: S S.op_Equality(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'i == j')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: S S.op_Equality(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'i == j')
               Left: 
-                ILocalReferenceOperation: i (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'i')
+                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: S) (Syntax: 'i')
               Right: 
-                ILocalReferenceOperation: j (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'j')
+                ILocalReferenceOperation: j (OperationKind.LocalReference, Type: S) (Syntax: 'j')
           Right: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperatorMethod: S S.op_GreaterThanOrEqual(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'k < l > m <= o >= p')
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperatorMethod: S S.op_GreaterThanOrEqual(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'k < l > m <= o >= p')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperatorMethod: S S.op_LessThanOrEqual(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'k < l > m <= o')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperatorMethod: S S.op_LessThanOrEqual(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'k < l > m <= o')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperatorMethod: S S.op_GreaterThan(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'k < l > m')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperatorMethod: S S.op_GreaterThan(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'k < l > m')
                       Left: 
-                        IBinaryOperation (BinaryOperatorKind.LessThan) (OperatorMethod: S S.op_LessThan(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: S) (Syntax: 'k < l')
+                        IBinaryOperation (BinaryOperatorKind.LessThan) (OperatorMethod: S S.op_LessThan(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'k < l')
                           Left: 
-                            ILocalReferenceOperation: k (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'k')
+                            ILocalReferenceOperation: k (OperationKind.LocalReference, Type: S) (Syntax: 'k')
                           Right: 
-                            ILocalReferenceOperation: l (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'l')
+                            ILocalReferenceOperation: l (OperationKind.LocalReference, Type: S) (Syntax: 'l')
                       Right: 
-                        ILocalReferenceOperation: m (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'm')
+                        ILocalReferenceOperation: m (OperationKind.LocalReference, Type: S) (Syntax: 'm')
                   Right: 
-                    ILocalReferenceOperation: o (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'o')
+                    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: S) (Syntax: 'o')
               Right: 
-                ILocalReferenceOperation: p (OperationKind.LocalReference, IsExpression, Type: S) (Syntax: 'p')
+                ILocalReferenceOperation: p (OperationKind.LocalReference, Type: S) (Syntax: 'p')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0660: 'S' defines operator == or operator != but does not override Object.Equals(object o)
@@ -1332,14 +1332,14 @@ class Test
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, IsExpression, Type: ?, IsInvalid) (Syntax: 'new C() + new B()')
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'new C() + new B()')
   Left: 
-    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
       Arguments(0)
       Initializer: 
         null
   Right: 
-    IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: B, IsInvalid) (Syntax: 'new B()')
+    IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B()')
       Arguments(0)
       Initializer: 
         null
@@ -1499,14 +1499,14 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 D<System.Object>.C.op_Addition(D<System.Object>.C x, D<System.Object>.C y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 D<System.Object>.C.op_Addition(D<System.Object>.C x, D<System.Object>.C y)) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
   Left: 
-    ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: D<System.Object>.C) (Syntax: 'x')
+    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: D<System.Object>.C) (Syntax: 'x')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: D<System.Object>.C, IsImplicit) (Syntax: 'y')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: D<System.Object>.C, IsImplicit) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILocalReferenceOperation: y (OperationKind.LocalReference, IsExpression, Type: D<dynamic>.C) (Syntax: 'y')
+        ILocalReferenceOperation: y (OperationKind.LocalReference, Type: D<dynamic>.C) (Syntax: 'y')
 ";
             // Dev11 reports error CS0121: The call is ambiguous between the following methods or properties: 
             // 'D<object>.C.operator+(D<object>.C, D<object>.C)' and 'D<dynamic>.C.operator +(D<dynamic>.C, D<dynamic>.C)'
@@ -1539,11 +1539,11 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, IsExpression, Type: ?, IsInvalid) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x + y')
   Left: 
-    ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: D<System.Object>.C, IsInvalid) (Syntax: 'x')
+    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: D<System.Object>.C, IsInvalid) (Syntax: 'x')
   Right: 
-    ILocalReferenceOperation: y (OperationKind.LocalReference, IsExpression, Type: D<dynamic>.C, IsInvalid) (Syntax: 'y')
+    ILocalReferenceOperation: y (OperationKind.LocalReference, Type: D<dynamic>.C, IsInvalid) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0034: Operator '+' is ambiguous on operands of type 'D<object>.C' and 'D<dynamic>.C'
@@ -1817,111 +1817,111 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (3 statements, 3 locals) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
+IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Locals: Local_1: System.Int32 x
     Local_2: System.Int32? q
     Local_3: System.Boolean[] b
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'int x = xint + 123;')
+  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int x = xint + 123;')
     IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x = xint + 123')
       Variables: Local_1: System.Int32 x
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= xint + 123')
-          IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 X<System.Int32>.op_Addition(X<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32) (Syntax: 'xint + 123')
+          IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 X<System.Int32>.op_Addition(X<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'xint + 123')
             Left: 
-              IParameterReferenceOperation: xint (OperationKind.ParameterReference, IsExpression, Type: X<System.Int32>) (Syntax: 'xint')
+              IParameterReferenceOperation: xint (OperationKind.ParameterReference, Type: X<System.Int32>) (Syntax: 'xint')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 123) (Syntax: '123')
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'int? q = ne ... new int?();')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int? q = ne ... new int?();')
     IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'q = new Q<i ...  new int?()')
       Variables: Local_1: System.Int32? q
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Q<int ...  new int?()')
-          IBinaryOperation (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: System.Int32 Q<System.Int32>.op_Addition(Q<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32?) (Syntax: 'new Q<int>? ...  new int?()')
+          IBinaryOperation (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: System.Int32 Q<System.Int32>.op_Addition(Q<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperator, Type: System.Int32?) (Syntax: 'new Q<int>? ...  new int?()')
             Left: 
-              IObjectCreationOperation (Constructor: Q<System.Int32>?..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Q<System.Int32>?) (Syntax: 'new Q<int>?()')
+              IObjectCreationOperation (Constructor: Q<System.Int32>?..ctor()) (OperationKind.ObjectCreation, Type: Q<System.Int32>?) (Syntax: 'new Q<int>?()')
                 Arguments(0)
                 Initializer: 
                   null
             Right: 
-              IObjectCreationOperation (Constructor: System.Int32?..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: System.Int32?) (Syntax: 'new int?()')
+              IObjectCreationOperation (Constructor: System.Int32?..ctor()) (OperationKind.ObjectCreation, Type: System.Int32?) (Syntax: 'new int?()')
                 Arguments(0)
                 Initializer: 
                   null
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'bool[] b = ... };')
+  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'bool[] b = ... };')
     IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'b = ... }')
       Variables: Local_1: System.Boolean[] b
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ... }')
-          IArrayCreationOperation (OperationKind.ArrayCreation, IsExpression, Type: System.Boolean[]) (Syntax: '{ ... }')
+          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Boolean[]) (Syntax: '{ ... }')
             Dimension Sizes(1):
-                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 8, IsImplicit) (Syntax: '{ ... }')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 8, IsImplicit) (Syntax: '{ ... }')
             Initializer: 
               IArrayInitializerOperation (8 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ ... }')
                 Element Values(8):
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S x, S y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 's1 == s2')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S x, S y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's1 == s2')
                       Left: 
-                        IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
+                        IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
                       Right: 
-                        IParameterReferenceOperation: s2 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's2')
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 's1 == s3')
+                        IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S) (Syntax: 's2')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's1 == s3')
                       Left: 
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: S?, IsImplicit) (Syntax: 's1')
+                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, IsImplicit) (Syntax: 's1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
+                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
                       Right: 
-                        IParameterReferenceOperation: s3 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's3')
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 's1 == null')
+                        IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: S?) (Syntax: 's3')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's1 == null')
                       Left: 
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: S?, IsImplicit) (Syntax: 's1')
+                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, IsImplicit) (Syntax: 's1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
+                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
                       Right: 
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: S?, Constant: null, IsImplicit) (Syntax: 'null')
+                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, Constant: null, IsImplicit) (Syntax: 'null')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'null')
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 's3 == s1')
+                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's3 == s1')
                       Left: 
-                        IParameterReferenceOperation: s3 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's3')
+                        IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: S?) (Syntax: 's3')
                       Right: 
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: S?, IsImplicit) (Syntax: 's1')
+                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, IsImplicit) (Syntax: 's1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 's3 == s4')
+                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's3 == s4')
                       Left: 
-                        IParameterReferenceOperation: s3 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's3')
+                        IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: S?) (Syntax: 's3')
                       Right: 
-                        IParameterReferenceOperation: s4 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's4')
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 's3 == null')
+                        IParameterReferenceOperation: s4 (OperationKind.ParameterReference, Type: S?) (Syntax: 's4')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's3 == null')
                       Left: 
-                        IParameterReferenceOperation: s3 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's3')
+                        IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: S?) (Syntax: 's3')
                       Right: 
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: S?, Constant: null, IsImplicit) (Syntax: 'null')
+                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, Constant: null, IsImplicit) (Syntax: 'null')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'null')
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'null == s1')
+                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'null == s1')
                       Left: 
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: S?, Constant: null, IsImplicit) (Syntax: 'null')
+                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, Constant: null, IsImplicit) (Syntax: 'null')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'null')
+                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
                       Right: 
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: S?, IsImplicit) (Syntax: 's1')
+                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, IsImplicit) (Syntax: 's1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'null == s3')
+                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'null == s3')
                       Left: 
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: S?, Constant: null, IsImplicit) (Syntax: 'null')
+                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, Constant: null, IsImplicit) (Syntax: 'null')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'null')
+                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
                       Right: 
-                        IParameterReferenceOperation: s3 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's3')
+                        IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: S?) (Syntax: 's3')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0458: The result of the expression is always 'null' of type 'int?'
@@ -2031,77 +2031,77 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (10 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a += b;')
+IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a += b;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a += b')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a += b')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: b (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'b')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a -= c;')
+          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: S) (Syntax: 'b')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a -= c;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a -= c')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a -= c')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: c (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'c')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a *= d;')
+          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: S) (Syntax: 'c')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a *= d;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a *= d')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a *= d')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: d (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'd')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a /= e;')
+          IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: S) (Syntax: 'd')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a /= e;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a /= e')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a /= e')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: e (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'e')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a %= f;')
+          IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: S) (Syntax: 'e')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a %= f;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a %= f')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a %= f')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: f (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'f')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a <<= 10;')
+          IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: S) (Syntax: 'f')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a <<= 10;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a <<= 10')
+      ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a <<= 10')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a >>= 20;')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a >>= 20;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a >>= 20')
+      ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a >>= 20')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a &= g;')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a &= g;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a &= g')
+      ICompoundAssignmentOperation (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a &= g')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: g (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'g')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a |= h;')
+          IParameterReferenceOperation: g (OperationKind.ParameterReference, Type: S) (Syntax: 'g')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a |= h;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a |= h')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a |= h')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: h (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'h')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a ^= i;')
+          IParameterReferenceOperation: h (OperationKind.ParameterReference, Type: S) (Syntax: 'h')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a ^= i;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a ^= i')
+      ICompoundAssignmentOperation (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a ^= i')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'i')
+          IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: S) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2150,77 +2150,77 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (10 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a += b;')
+IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a += b;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a += b')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a += b')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: b (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'b')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a -= c;')
+          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: S) (Syntax: 'b')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a -= c;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a -= c')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a -= c')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: c (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'c')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a *= d;')
+          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: S) (Syntax: 'c')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a *= d;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a *= d')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a *= d')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: d (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'd')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a /= e;')
+          IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: S) (Syntax: 'd')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a /= e;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a /= e')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a /= e')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: e (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'e')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a %= f;')
+          IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: S) (Syntax: 'e')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a %= f;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a %= f')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a %= f')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: f (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'f')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a <<= 10;')
+          IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: S) (Syntax: 'f')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a <<= 10;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a <<= 10')
+      ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a <<= 10')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a >>= 20;')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a >>= 20;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a >>= 20')
+      ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a >>= 20')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a &= g;')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a &= g;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a &= g')
+      ICompoundAssignmentOperation (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a &= g')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: g (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'g')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a |= h;')
+          IParameterReferenceOperation: g (OperationKind.ParameterReference, Type: S) (Syntax: 'g')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a |= h;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a |= h')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a |= h')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: h (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'h')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a ^= i;')
+          IParameterReferenceOperation: h (OperationKind.ParameterReference, Type: S) (Syntax: 'h')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a ^= i;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.CompoundAssignment, IsExpression, Type: S) (Syntax: 'a ^= i')
+      ICompoundAssignmentOperation (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.CompoundAssignment, Type: S) (Syntax: 'a ^= i')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 'i')
+          IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: S) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2250,77 +2250,77 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (10 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a += b;')
+IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a += b;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a += b')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a += b')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: b (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'b')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a -= c;')
+          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a -= c;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Subtract) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a -= c')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Subtract) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a -= c')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: c (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'c')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a *= d;')
+          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a *= d;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Multiply) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a *= d')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Multiply) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a *= d')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: d (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'd')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a /= e;')
+          IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a /= e;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Divide) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a /= e')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Divide) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a /= e')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: e (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'e')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a %= f;')
+          IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'e')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a %= f;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Remainder) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a %= f')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Remainder) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a %= f')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: f (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'f')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a <<= 10;')
+          IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'f')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a <<= 10;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a <<= 10')
+      ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a <<= 10')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
         Right: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a >>= 20;')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a >>= 20;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a >>= 20')
+      ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a >>= 20')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
         Right: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a &= g;')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a &= g;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.And) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a &= g')
+      ICompoundAssignmentOperation (BinaryOperatorKind.And) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a &= g')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: g (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'g')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a |= h;')
+          IParameterReferenceOperation: g (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'g')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a |= h;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Or) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a |= h')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Or) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a |= h')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: h (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'h')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a ^= i;')
+          IParameterReferenceOperation: h (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'h')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a ^= i;')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a ^= i')
+      ICompoundAssignmentOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a ^= i')
         Left: 
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
         Right: 
-          IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i')
+          IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2341,11 +2341,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ICompoundAssignmentOperation (BinaryOperatorKind.Add, IsLifted) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'a += b')
+ICompoundAssignmentOperation (BinaryOperatorKind.Add, IsLifted) (OperationKind.CompoundAssignment, Type: System.Int32, IsInvalid) (Syntax: 'a += b')
   Left: 
-    IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
   Right: 
-    IParameterReferenceOperation: b (OperationKind.ParameterReference, IsExpression, Type: System.Int32?, IsInvalid) (Syntax: 'b')
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32?, IsInvalid) (Syntax: 'b')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -2382,78 +2382,78 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IBlockOperation (10 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a += b;')
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a += b;')
       Expression: 
-        ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a += b')
+        ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a += b')
           Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'b')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a -= c;')
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a -= c;')
       Expression: 
-        ICompoundAssignmentOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a -= c')
+        ICompoundAssignmentOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a -= c')
           Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceOperation: c (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'c')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a *= d;')
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a *= d;')
       Expression: 
-        ICompoundAssignmentOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a *= d')
+        ICompoundAssignmentOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a *= d')
           Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceOperation: d (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'd')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a /= e;')
+            IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a /= e;')
       Expression: 
-        ICompoundAssignmentOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a /= e')
+        ICompoundAssignmentOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a /= e')
           Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceOperation: e (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'e')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a %= f;')
+            IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'e')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a %= f;')
       Expression: 
-        ICompoundAssignmentOperation (BinaryOperatorKind.Remainder) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a %= f')
+        ICompoundAssignmentOperation (BinaryOperatorKind.Remainder) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a %= f')
           Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceOperation: f (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'f')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a <<= 10;')
+            IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'f')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a <<= 10;')
       Expression: 
-        ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a <<= 10')
+        ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a <<= 10')
           Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a >>= 20;')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a >>= 20;')
       Expression: 
-        ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a >>= 20')
+        ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a >>= 20')
           Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a &= g;')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a &= g;')
       Expression: 
-        ICompoundAssignmentOperation (BinaryOperatorKind.And) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a &= g')
+        ICompoundAssignmentOperation (BinaryOperatorKind.And) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a &= g')
           Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceOperation: g (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'g')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a |= h;')
+            IParameterReferenceOperation: g (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'g')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a |= h;')
       Expression: 
-        ICompoundAssignmentOperation (BinaryOperatorKind.Or) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a |= h')
+        ICompoundAssignmentOperation (BinaryOperatorKind.Or) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a |= h')
           Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceOperation: h (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'h')
-    IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a ^= i;')
+            IParameterReferenceOperation: h (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'h')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a ^= i;')
       Expression: 
-        ICompoundAssignmentOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.CompoundAssignment, IsExpression, Type: System.Int32) (Syntax: 'a ^= i')
+        ICompoundAssignmentOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a ^= i')
           Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i')
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2619,112 +2619,112 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (14 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i1 = +s1;')
+IBlockOperation (14 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i1 = +s1;')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'i1 = +s1')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i1 = +s1')
         Left: 
-          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i1')
+          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: System.Int32 S.op_UnaryPlus(S s)) (OperationKind.UnaryOperator, IsExpression, Type: System.Int32) (Syntax: '+s1')
+          IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: System.Int32 S.op_UnaryPlus(S s)) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '+s1')
             Operand: 
-              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i2 = +s2;')
+              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i2 = +s2;')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32?) (Syntax: 'i2 = +s2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?) (Syntax: 'i2 = +s2')
         Left: 
-          IParameterReferenceOperation: i2 (OperationKind.ParameterReference, IsExpression, Type: System.Int32?) (Syntax: 'i2')
+          IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Plus, IsLifted) (OperatorMethod: System.Int32 S.op_UnaryPlus(S s)) (OperationKind.UnaryOperator, IsExpression, Type: System.Int32?) (Syntax: '+s2')
+          IUnaryOperation (UnaryOperatorKind.Plus, IsLifted) (OperatorMethod: System.Int32 S.op_UnaryPlus(S s)) (OperationKind.UnaryOperator, Type: System.Int32?) (Syntax: '+s2')
             Operand: 
-              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's2')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i1 = -s1;')
+              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i1 = -s1;')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'i1 = -s1')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i1 = -s1')
         Left: 
-          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i1')
+          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: System.Int32 S.op_UnaryNegation(S? s)) (OperationKind.UnaryOperator, IsExpression, Type: System.Int32) (Syntax: '-s1')
+          IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: System.Int32 S.op_UnaryNegation(S? s)) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-s1')
             Operand: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: S?, IsImplicit) (Syntax: 's1')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, IsImplicit) (Syntax: 's1')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i1 = -s2;')
+                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i1 = -s2;')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'i1 = -s2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i1 = -s2')
         Left: 
-          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i1')
+          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: System.Int32 S.op_UnaryNegation(S? s)) (OperationKind.UnaryOperator, IsExpression, Type: System.Int32) (Syntax: '-s2')
+          IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: System.Int32 S.op_UnaryNegation(S? s)) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-s2')
             Operand: 
-              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's2')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i1 = !s1;')
+              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i1 = !s1;')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'i1 = !s1')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i1 = !s1')
         Left: 
-          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i1')
+          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: System.Int32 S.op_LogicalNot(S s)) (OperationKind.UnaryOperator, IsExpression, Type: System.Int32) (Syntax: '!s1')
+          IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: System.Int32 S.op_LogicalNot(S s)) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '!s1')
             Operand: 
-              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i2 = !s2;')
+              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i2 = !s2;')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32?) (Syntax: 'i2 = !s2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?) (Syntax: 'i2 = !s2')
         Left: 
-          IParameterReferenceOperation: i2 (OperationKind.ParameterReference, IsExpression, Type: System.Int32?) (Syntax: 'i2')
+          IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Not, IsLifted) (OperatorMethod: System.Int32 S.op_LogicalNot(S s)) (OperationKind.UnaryOperator, IsExpression, Type: System.Int32?) (Syntax: '!s2')
+          IUnaryOperation (UnaryOperatorKind.Not, IsLifted) (OperatorMethod: System.Int32 S.op_LogicalNot(S s)) (OperationKind.UnaryOperator, Type: System.Int32?) (Syntax: '!s2')
             Operand: 
-              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's2')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i1 = ~s1;')
+              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i1 = ~s1;')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'i1 = ~s1')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i1 = ~s1')
         Left: 
-          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i1')
+          IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: System.Int32 S.op_OnesComplement(S s)) (OperationKind.UnaryOperator, IsExpression, Type: System.Int32) (Syntax: '~s1')
+          IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: System.Int32 S.op_OnesComplement(S s)) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '~s1')
             Operand: 
-              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i2 = ~s2;')
+              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i2 = ~s2;')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32?) (Syntax: 'i2 = ~s2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?) (Syntax: 'i2 = ~s2')
         Left: 
-          IParameterReferenceOperation: i2 (OperationKind.ParameterReference, IsExpression, Type: System.Int32?) (Syntax: 'i2')
+          IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.BitwiseNegation, IsLifted) (OperatorMethod: System.Int32 S.op_OnesComplement(S s)) (OperationKind.UnaryOperator, IsExpression, Type: System.Int32?) (Syntax: '~s2')
+          IUnaryOperation (UnaryOperatorKind.BitwiseNegation, IsLifted) (OperatorMethod: System.Int32 S.op_OnesComplement(S s)) (OperationKind.UnaryOperator, Type: System.Int32?) (Syntax: '~s2')
             Operand: 
-              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's2')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 's1++;')
+              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 's1++;')
     Expression: 
-      IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.Increment, IsExpression, Type: S) (Syntax: 's1++')
+      IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.Increment, Type: S) (Syntax: 's1++')
         Target: 
-          IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 's2++;')
+          IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 's2++;')
     Expression: 
-      IIncrementOrDecrementOperation (Postfix, IsLifted) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.Increment, IsExpression, Type: S?) (Syntax: 's2++')
+      IIncrementOrDecrementOperation (Postfix, IsLifted) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.Increment, Type: S?) (Syntax: 's2++')
         Target: 
-          IParameterReferenceOperation: s2 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's2')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: '++s1;')
+          IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '++s1;')
     Expression: 
-      IIncrementOrDecrementOperation (Prefix) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.Increment, IsExpression, Type: S) (Syntax: '++s1')
+      IIncrementOrDecrementOperation (Prefix) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.Increment, Type: S) (Syntax: '++s1')
         Target: 
-          IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: '++s2;')
+          IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '++s2;')
     Expression: 
-      IIncrementOrDecrementOperation (Prefix, IsLifted) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.Increment, IsExpression, Type: S?) (Syntax: '++s2')
+      IIncrementOrDecrementOperation (Prefix, IsLifted) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.Increment, Type: S?) (Syntax: '++s2')
         Target: 
-          IParameterReferenceOperation: s2 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's2')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 's1--;')
+          IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 's1--;')
     Expression: 
-      IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Decrement(S? s)) (OperationKind.Decrement, IsExpression, Type: S) (Syntax: 's1--')
+      IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Decrement(S? s)) (OperationKind.Decrement, Type: S) (Syntax: 's1--')
         Target: 
-          IParameterReferenceOperation: s1 (OperationKind.ParameterReference, IsExpression, Type: S) (Syntax: 's1')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 's2--;')
+          IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 's2--;')
     Expression: 
-      IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Decrement(S? s)) (OperationKind.Decrement, IsExpression, Type: S?) (Syntax: 's2--')
+      IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S S.op_Decrement(S? s)) (OperationKind.Decrement, Type: S?) (Syntax: 's2--')
         Target: 
-          IParameterReferenceOperation: s2 (OperationKind.ParameterReference, IsExpression, Type: S?) (Syntax: 's2')
+          IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type

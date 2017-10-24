@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a parenthesized operation that may change the semantics of the operand.
+    /// Represents a parenthesized operation.
     /// <para>
     /// Current usage:
     ///  (1) VB parenthesized expression.

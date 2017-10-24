@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>
     /// Current usage:
     ///  (1) C# throw expression in a throw statement or a standalone throw expression.
-    ///  (2) VB throw expression in a Throw statement.
+    ///  (2) VB expression in a Throw statement.
     /// </para>
     /// </summary>
     /// <remarks>

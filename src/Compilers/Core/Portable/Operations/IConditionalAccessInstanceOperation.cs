@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents the value of a conditionally-accessed operation within an operation containing a conditional access.
+    /// Represents the value of a conditionally-accessed operation within an operation containing an <see cref="IConditionalAccessOperation"/>.
     /// For a conditional access operation of the form <code>someExpr?.Member</code>, this operation is used as the InstanceReceiver for the right operation <code>Member</code>.
     /// See https://github.com/dotnet/roslyn/issues/21279#issuecomment-323153041 for more details.
     /// <para>

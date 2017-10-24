@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a conditionally accessed operation off an instance operation.
+    /// Represents a conditionally accessed operation off an <see cref="IConditionalAccessInstanceOperation"/>.
     /// <para>
     /// Current usage:
     ///  (1) C# conditional access expression (? or ?. operator).

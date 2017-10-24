@@ -43,9 +43,7 @@ Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Operations.Opera
 Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult> visitor, TArgument argument) -> TResult
 Microsoft.CodeAnalysis.IOperation.Children.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.IOperation.ConstantValue.get -> Microsoft.CodeAnalysis.Optional<object>
-Microsoft.CodeAnalysis.IOperation.IsExpression.get -> bool
 Microsoft.CodeAnalysis.IOperation.IsImplicit.get -> bool
-Microsoft.CodeAnalysis.IOperation.IsStatement.get -> bool
 Microsoft.CodeAnalysis.IOperation.Kind.get -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.IOperation.Language.get -> string
 Microsoft.CodeAnalysis.IOperation.Parent.get -> Microsoft.CodeAnalysis.IOperation

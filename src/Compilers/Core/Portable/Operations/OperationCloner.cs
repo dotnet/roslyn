@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, object argument)
         {
-            return new EventAssignmentExpression(Visit(operation.EventReference), Visit(operation.HandlerValue), operation.Adds, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new EventAssignmentOperation(Visit(operation.EventReference), Visit(operation.HandlerValue), operation.Adds, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitConditionalAccess(IConditionalAccessOperation operation, object argument)
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitConditional(IConditionalOperation operation, object argument)
         {
-            return new ConditionalOperation(Visit(operation.Condition), Visit(operation.WhenTrue), Visit(operation.WhenFalse), ((BaseConditionalOperation)operation).IsStatement, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ConditionalOperation(Visit(operation.Condition), Visit(operation.WhenTrue), Visit(operation.WhenFalse), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitCoalesce(ICoalesceOperation operation, object argument)
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitInvalid(IInvalidOperation operation, object argument)
         {
-            return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), ((BaseInvalidOperation)operation).IsStatement, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, object argument)

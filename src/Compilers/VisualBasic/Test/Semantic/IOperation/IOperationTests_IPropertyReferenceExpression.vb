@@ -29,9 +29,9 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IPropertyReferenceOperation: Property M1.C1.P1 As System.Object (OperationKind.PropertyReference, IsExpression, Type: System.Object) (Syntax: 'P1')
+IPropertyReferenceOperation: Property M1.C1.P1 As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'P1')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: M1.C2, IsImplicit) (Syntax: 'New C2 With ... New Object}')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1.C2, IsImplicit) (Syntax: 'New C2 With ... New Object}')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -61,9 +61,9 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IPropertyReferenceOperation: Property M1.C1.P1 As System.Object (OperationKind.PropertyReference, IsExpression, Type: System.Object) (Syntax: '.P1')
+IPropertyReferenceOperation: Property M1.C1.P1 As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: '.P1')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: M1.C2, IsImplicit) (Syntax: 'New C2 With {.P2 = .P1}')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1.C2, IsImplicit) (Syntax: 'New C2 With {.P2 = .P1}')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

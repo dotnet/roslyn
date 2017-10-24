@@ -36,18 +36,18 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2) (Syntax: 'New C2() Wi ... lo World!"}')
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2() Wi ... lo World!"}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2) (Syntax: 'With {.Fiel ... lo World!"}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2) (Syntax: 'With {.Fiel ... lo World!"}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.String) (Syntax: '.Field = "Hello World!"')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '.Field = "Hello World!"')
             Left: 
-              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, IsExpression, Type: System.String) (Syntax: 'Field')
+              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... lo World!"}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... lo World!"}')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -76,20 +76,20 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2) (Syntax: 'New C2() Wi ... HelloWorld}')
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2() Wi ... HelloWorld}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2) (Syntax: 'With {.Fiel ... HelloWorld}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2) (Syntax: 'With {.Fiel ... HelloWorld}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.String) (Syntax: '.Field = .HelloWorld')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '.Field = .HelloWorld')
             Left: 
-              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, IsExpression, Type: System.String) (Syntax: 'Field')
+              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... HelloWorld}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... HelloWorld}')
             Right: 
-              IFieldReferenceOperation: C2.HelloWorld As System.String (OperationKind.FieldReference, IsExpression, Type: System.String) (Syntax: '.HelloWorld')
+              IFieldReferenceOperation: C2.HelloWorld As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: '.HelloWorld')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... HelloWorld}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... HelloWorld}')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -115,10 +115,10 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2, IsInvalid) (Syntax: 'New C2() With {}')
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() With {}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2, IsInvalid) (Syntax: 'With {}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {}')
       Initializers(0)
 ]]>.Value
 
@@ -150,28 +150,28 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ...  Unknown()}')
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ...  Unknown()}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2, IsInvalid) (Syntax: 'With {. = U ...  Unknown()}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {. = U ...  Unknown()}')
       Initializers(2):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
                 Children(0)
             Right: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Unknown()')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown()')
                 Children(1):
-                    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Unknown')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown')
                       Children(0)
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
                 Children(0)
             Right: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Unknown()')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown()')
                 Children(1):
-                    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Unknown')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown')
                       Children(0)
 ]]>.Value
 
@@ -212,18 +212,18 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2, IsInvalid) (Syntax: 'New C2() With {.Field}')
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() With {.Field}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2, IsInvalid) (Syntax: 'With {.Field}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {.Field}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.Field')
             Left: 
-              IFieldReferenceOperation: C2.Field As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
+              IFieldReferenceOperation: C2.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() With {.Field}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() With {.Field}')
             Right: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: null, IsInvalid) (Syntax: '')
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
 ]]>.Value
 
@@ -258,18 +258,18 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2, IsInvalid) (Syntax: 'New C2() With {.Field =}')
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() With {.Field =}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2, IsInvalid) (Syntax: 'With {.Field =}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {.Field =}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field =')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.Field =')
             Left: 
-              IFieldReferenceOperation: C2.Field As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'Field')
+              IFieldReferenceOperation: C2.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() With {.Field =}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() With {.Field =}')
             Right: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: null, IsInvalid) (Syntax: '')
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
 ]]>.Value
 
@@ -302,26 +302,26 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... Field = 23}')
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... Field = 23}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2, IsInvalid) (Syntax: 'With {Key .Field = 23}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {Key .Field = 23}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
                 Children(0)
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, IsExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
+              IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
                 Left: 
-                  IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .Field')
+                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .Field')
                     Children(1):
-                        IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field')
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Key .Field')
                           Children(1):
-                              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Key')
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Key')
                                 Children(0)
                 Right: 
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -357,25 +357,25 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... ield = "b"}')
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... ield = "b"}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2, IsInvalid) (Syntax: 'With {.Fiel ... ield = "b"}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {.Fiel ... ield = "b"}')
       Initializers(2):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.String) (Syntax: '.Field = "a"')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '.Field = "a"')
             Left: 
-              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, IsExpression, Type: System.String) (Syntax: 'Field')
+              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... ield = "b"}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... ield = "b"}')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "a") (Syntax: '"a"')
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.String, IsInvalid) (Syntax: '.Field = "b"')
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "a") (Syntax: '"a"')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '.Field = "b"')
             Left: 
-              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, IsExpression, Type: System.String, IsInvalid) (Syntax: 'Field')
+              IFieldReferenceOperation: C2.Field As System.String (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... ield = "b"}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... ield = "b"}')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "b") (Syntax: '"b"')
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "b") (Syntax: '"b"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -406,12 +406,12 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'New Object( ... ield = "a"}')
+IObjectCreationOperation (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'New Object( ... ield = "a"}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'With {.Field = "a"}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Object, IsInvalid) (Syntax: 'With {.Field = "a"}')
       Initializers(1):
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "a", IsInvalid) (Syntax: '"a"')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "a", IsInvalid) (Syntax: '"a"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -476,18 +476,18 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... lo World!"}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... lo World!"}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.String, IsInvalid) (Syntax: '.Field1 = "Hello World!"')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '.Field1 = "Hello World!"')
             Left: 
-              IFieldReferenceOperation: C1.Field1 As System.String (Static) (OperationKind.FieldReference, IsExpression, Type: System.String, IsInvalid) (Syntax: 'Field1')
+              IFieldReferenceOperation: C1.Field1 As System.String (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'Field1')
                 Instance Receiver: 
                   null
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -516,26 +516,26 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... r(.Field1)}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... r(.Field1)}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... r(.Field1)}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... r(.Field1)}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
                 Children(1):
-                    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Field1')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Field1')
                       Children(1):
-                          IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... r(.Field1)}')
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... r(.Field1)}')
             Right: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Bar(.Field1)')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Bar(.Field1)')
                 Children(2):
-                    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Bar')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Bar')
                       Children(0)
-                    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '.Field1')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field1')
                       Children(1):
-                          IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... r(.Field1)}')
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... r(.Field1)}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -574,23 +574,23 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... Field = 23}')
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... Field = 23}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2, IsInvalid) (Syntax: 'With {.Field = 23}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {.Field = 23}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: ?, IsInvalid) (Syntax: '.Field = 23')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.Field = 23')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '.Field = 23')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field = 23')
                 Children(1):
-                    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
+                    IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'Field')
                       Children(1):
-                          IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... Field = 23}')
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... Field = 23}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: ?, IsImplicit) (Syntax: '23')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '23')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -621,23 +621,23 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1, IsInvalid) (Syntax: 'With {.Goo  ... lo World!"}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Goo  ... lo World!"}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
                 Children(1):
                     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Goo')
                       Children(1):
-                          IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -670,18 +670,18 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1, IsInvalid) (Syntax: 'With {.X =  ... lo World!"}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.X =  ... lo World!"}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void, IsInvalid) (Syntax: '.X = "Hello World!"')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '.X = "Hello World!"')
             Left: 
-              IPropertyReferenceOperation: ReadOnly Property C1.X As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String, IsInvalid) (Syntax: 'X')
+              IPropertyReferenceOperation: ReadOnly Property C1.X As System.String (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -710,23 +710,23 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1, IsInvalid) (Syntax: 'With {.X =  ... lo World!"}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.X =  ... lo World!"}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: ?, IsInvalid) (Syntax: '.X = "Hello World!"')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.X = "Hello World!"')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'X')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'X')
                 Children(1):
-                    IFieldReferenceOperation: C1.X As System.String (OperationKind.FieldReference, IsExpression, Type: System.String, IsInvalid) (Syntax: 'X')
+                    IFieldReferenceOperation: C1.X As System.String (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'X')
                       Instance Receiver: 
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
+                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -761,18 +761,18 @@ Module Module1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... .X = "goo"}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... .X = "goo"}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1, IsInvalid) (Syntax: 'With {.X = "goo"}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.X = "goo"}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void, IsInvalid) (Syntax: '.X = "goo"')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '.X = "goo"')
             Left: 
-              IPropertyReferenceOperation: Property C1.X As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String, IsInvalid) (Syntax: 'X')
+              IPropertyReferenceOperation: Property C1.X As System.String (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... .X = "goo"}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... .X = "goo"}')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -803,57 +803,57 @@ Module Module1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockOperation (4 statements, 1 locals) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
+IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As C3
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
+  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
     IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x')
       Variables: Local_1: x As C3
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New C3() ... .X = "goo"}')
-          IObjectCreationOperation (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')
+          IObjectCreationOperation (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreation, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')
             Arguments(0)
             Initializer: 
-              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C3, IsInvalid) (Syntax: 'With {.X = "goo"}')
+              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C3, IsInvalid) (Syntax: 'With {.X = "goo"}')
                 Initializers(1):
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
                       Left: 
-                        IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
                           Children(1):
-                              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'X')
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'X')
                                 Children(1):
-                                    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ... .X = "goo"}')
+                                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ... .X = "goo"}')
                       Right: 
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: ?, IsImplicit) (Syntax: '"goo"')
+                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '"goo"')
                           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo") (Syntax: '"goo"')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: C3, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C3, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
         Left: 
-          ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: C3) (Syntax: 'x')
+          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C3) (Syntax: 'x')
         Right: 
-          IObjectCreationOperation (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ...  Unknown()}')
+          IObjectCreationOperation (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreation, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ...  Unknown()}')
             Arguments(0)
             Initializer: 
-              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C3, IsInvalid) (Syntax: 'With {.X = Unknown()}')
+              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C3, IsInvalid) (Syntax: 'With {.X = Unknown()}')
                 Initializers(1):
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
                       Left: 
-                        IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
                           Children(1):
-                              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'X')
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'X')
                                 Children(1):
-                                    IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ...  Unknown()}')
+                                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ...  Unknown()}')
                       Right: 
-                        IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Unknown()')
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown()')
                           Children(1):
-                              IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'Unknown')
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown')
                                 Children(0)
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, IsStatement, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -909,7 +909,7 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, IsExpression, Type: T) (Syntax: 'New T() With {.Bar = 23}')
+ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T() With {.Bar = 23}')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -943,18 +943,18 @@ Class C2
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1(Of T)..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1(Of T)) (Syntax: 'New C1(Of T ... ld = New T}')
+IObjectCreationOperation (Constructor: Sub C1(Of T)..ctor()) (OperationKind.ObjectCreation, Type: C1(Of T)) (Syntax: 'New C1(Of T ... ld = New T}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1(Of T)) (Syntax: 'With {.Field = New T}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1(Of T)) (Syntax: 'With {.Field = New T}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: T) (Syntax: '.Field = New T')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: T) (Syntax: '.Field = New T')
             Left: 
-              IFieldReferenceOperation: C1(Of T).Field As T (OperationKind.FieldReference, IsExpression, Type: T) (Syntax: 'Field')
+              IFieldReferenceOperation: C1(Of T).Field As T (OperationKind.FieldReference, Type: T) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1(Of T), IsImplicit) (Syntax: 'New C1(Of T ... ld = New T}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1(Of T), IsImplicit) (Syntax: 'New C1(Of T ... ld = New T}')
             Right: 
-              ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, IsExpression, Type: T) (Syntax: 'New T')
+              ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -998,20 +998,20 @@ End Class
 ]]>)
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1) (Syntax: 'New C1() Wi ... d = .Field}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1() Wi ... d = .Field}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1) (Syntax: 'With {.Field = .Field}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.Field = .Field}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: '.Field = .Field')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.Field = .Field')
             Left: 
-              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'Field')
+              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... d = .Field}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... d = .Field}')
             Right: 
-              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: '.Field')
+              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... d = .Field}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... d = .Field}')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1046,23 +1046,23 @@ Class C2
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ...  = .Field2}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ...  = .Field2}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1, IsInvalid) (Syntax: 'With {.Field = .Field2}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Field = .Field2}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field = .Field2')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.Field = .Field2')
             Left: 
-              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'Field')
+              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ...  = .Field2}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ...  = .Field2}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '.Field2')
+                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field2')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ...  = .Field2}')
+                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ...  = .Field2}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1109,36 +1109,36 @@ End Class
 ]]>)
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1) (Syntax: 'New C1() Wi ... ield = 42}}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1() Wi ... ield = 42}}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1) (Syntax: 'With {.Fiel ... ield = 42}}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.Fiel ... ield = 42}}')
       Initializers(2):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: '.Field = 23')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.Field = 23')
             Left: 
-              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'Field')
+              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... ield = 42}}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... ield = 42}}')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: C2) (Syntax: '.FieldC2 =  ... Field = 42}')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C2) (Syntax: '.FieldC2 =  ... Field = 42}')
             Left: 
-              IFieldReferenceOperation: C1.FieldC2 As C2 (OperationKind.FieldReference, IsExpression, Type: C2) (Syntax: 'FieldC2')
+              IFieldReferenceOperation: C1.FieldC2 As C2 (OperationKind.FieldReference, Type: C2) (Syntax: 'FieldC2')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... ield = 42}}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... ield = 42}}')
             Right: 
-              IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2) (Syntax: 'New C2() Wi ... Field = 42}')
+              IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2() Wi ... Field = 42}')
                 Arguments(0)
                 Initializer: 
-                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2) (Syntax: 'With {.Field = 42}')
+                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2) (Syntax: 'With {.Field = 42}')
                     Initializers(1):
-                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: '.Field = 42')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.Field = 42')
                           Left: 
-                            IFieldReferenceOperation: C2.Field As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'Field')
+                            IFieldReferenceOperation: C2.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
                               Instance Receiver: 
-                                IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... Field = 42}')
+                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... Field = 42}')
                           Right: 
-                            ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 42) (Syntax: '42')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1170,41 +1170,41 @@ Class C3
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... = .Field2}}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... = .Field2}}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... = .Field2}}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... = .Field2}}')
       Initializers(2):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: '.Field1 = 23')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.Field1 = 23')
             Left: 
-              IFieldReferenceOperation: C1.Field1 As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'Field1')
+              IFieldReferenceOperation: C1.Field1 As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field1')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... = .Field2}}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... = .Field2}}')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: C2, IsInvalid) (Syntax: '.FieldC2 =  ...  = .Field2}')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C2, IsInvalid) (Syntax: '.FieldC2 =  ...  = .Field2}')
             Left: 
-              IFieldReferenceOperation: C1.FieldC2 As C2 (OperationKind.FieldReference, IsExpression, Type: C2) (Syntax: 'FieldC2')
+              IFieldReferenceOperation: C1.FieldC2 As C2 (OperationKind.FieldReference, Type: C2) (Syntax: 'FieldC2')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... = .Field2}}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... = .Field2}}')
             Right: 
-              IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ...  = .Field2}')
+              IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ...  = .Field2}')
                 Arguments(0)
                 Initializer: 
-                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2, IsInvalid) (Syntax: 'With {.Field1 = .Field2}')
+                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2, IsInvalid) (Syntax: 'With {.Field1 = .Field2}')
                     Initializers(1):
-                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field1 = .Field2')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.Field1 = .Field2')
                           Left: 
-                            IFieldReferenceOperation: C2.Field1 As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'Field1')
+                            IFieldReferenceOperation: C2.Field1 As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field1')
                               Instance Receiver: 
-                                IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ...  = .Field2}')
+                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ...  = .Field2}')
                           Right: 
-                            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
+                            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
                               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
-                                IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: '.Field2')
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field2')
                                   Children(1):
-                                      IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ...  = .Field2}')
+                                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ...  = .Field2}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1253,33 +1253,33 @@ End Class
 ]]>)
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1) (Syntax: 'New C1 With ... d Function}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1 With ... d Function}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1) (Syntax: 'With {.Fiel ... d Function}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.Fiel ... d Function}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Func(Of System.Int32)) (Syntax: '.Field2 = F ... nd Function')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func(Of System.Int32)) (Syntax: '.Field2 = F ... nd Function')
             Left: 
-              IFieldReferenceOperation: C1.Field2 As System.Func(Of System.Int32) (OperationKind.FieldReference, IsExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Field2')
+              IFieldReferenceOperation: C1.Field2 As System.Func(Of System.Int32) (OperationKind.FieldReference, Type: System.Func(Of System.Int32)) (Syntax: 'Field2')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1 With ... d Function}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1 With ... d Function}')
             Right: 
-              IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function()  ... nd Function')
+              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function()  ... nd Function')
                 Target: 
-                  IAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunction, IsExpression, Type: null) (Syntax: 'Function()  ... nd Function')
-                    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, IsStatement, Type: null, IsImplicit) (Syntax: 'Function()  ... nd Function')
+                  IAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function()  ... nd Function')
+                    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.Int32
-                      IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'Return .Field')
+                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return .Field')
                         ReturnedValue: 
-                          IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: '.Field')
+                          IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.Field')
                             Instance Receiver: 
-                              IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1 With ... d Function}')
-                      ILabeledOperation (Label: exit) (OperationKind.Labeled, IsStatement, Type: null) (Syntax: 'End Function')
+                              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1 With ... d Function}')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'End Function')
+                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'End Function')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1314,20 +1314,20 @@ End Class
 23
 ]]>)
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1) (Syntax: 'New C1() Wi ... ivateField}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1() Wi ... ivateField}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1) (Syntax: 'With {.Fiel ... ivateField}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.Fiel ... ivateField}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: '.Field = PrivateField')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.Field = PrivateField')
             Left: 
-              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'Field')
+              IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... ivateField}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... ivateField}')
             Right: 
-              IFieldReferenceOperation: C2.PrivateField As System.Int32 (OperationKind.FieldReference, IsExpression, Type: System.Int32) (Syntax: 'PrivateField')
+              IFieldReferenceOperation: C2.PrivateField As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'PrivateField')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsImplicit) (Syntax: 'PrivateField')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'PrivateField')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1386,23 +1386,23 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1) (Syntax: 'New C1() Wi ... lo World!"}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1() Wi ... lo World!"}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1) (Syntax: 'With {.X =  ... lo World!"}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.X =  ... lo World!"}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void) (Syntax: '.X = "Hello World!"')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.X = "Hello World!"')
             Left: 
-              IPropertyReferenceOperation: WriteOnly Property C1.X([p As System.Int32 = 23]) As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'X')
+              IPropertyReferenceOperation: WriteOnly Property C1.X([p As System.Int32 = 23]) As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
                 Arguments(1):
                     IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'X')
-                      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 23, IsImplicit) (Syntax: 'X')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23, IsImplicit) (Syntax: 'X')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1440,30 +1440,30 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C1) (Syntax: 'New C1() Wi ... n(.ROProp)}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1() Wi ... n(.ROProp)}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C1) (Syntax: 'With {.X =  ... n(.ROProp)}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1) (Syntax: 'With {.X =  ... n(.ROProp)}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void) (Syntax: '.X = .Insta ... on(.ROProp)')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.X = .Insta ... on(.ROProp)')
             Left: 
-              IPropertyReferenceOperation: WriteOnly Property C1.X([p As System.Int32 = 23]) As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'X')
+              IPropertyReferenceOperation: WriteOnly Property C1.X([p As System.Int32 = 23]) As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... n(.ROProp)}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... n(.ROProp)}')
                 Arguments(1):
                     IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'X')
-                      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 23, IsImplicit) (Syntax: 'X')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23, IsImplicit) (Syntax: 'X')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Right: 
-              IInvocationOperation ( Function C1.InstanceFunction(p As System.String) As System.String) (OperationKind.Invocation, IsExpression, Type: System.String) (Syntax: '.InstanceFu ... on(.ROProp)')
+              IInvocationOperation ( Function C1.InstanceFunction(p As System.String) As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: '.InstanceFu ... on(.ROProp)')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... n(.ROProp)}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... n(.ROProp)}')
                 Arguments(1):
                     IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null) (Syntax: '.ROProp')
-                      IPropertyReferenceOperation: ReadOnly Property C1.ROProp As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: '.ROProp')
+                      IPropertyReferenceOperation: ReadOnly Property C1.ROProp As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: '.ROProp')
                         Instance Receiver: 
-                          IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... n(.ROProp)}')
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1() Wi ... n(.ROProp)}')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1506,20 +1506,20 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub s1..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: s1) (Syntax: 'New s1 With {.x = s1.x}')
+IObjectCreationOperation (Constructor: Sub s1..ctor()) (OperationKind.ObjectCreation, Type: s1) (Syntax: 'New s1 With {.x = s1.x}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: s1) (Syntax: 'With {.x = s1.x}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: s1) (Syntax: 'With {.x = s1.x}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void) (Syntax: '.x = s1.x')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.x = s1.x')
             Left: 
-              IPropertyReferenceOperation: Property s1.x As System.Int32 (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+              IPropertyReferenceOperation: Property s1.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: s1, IsImplicit) (Syntax: 'As New s1 W ... {.x = s1.x}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: s1, IsImplicit) (Syntax: 'As New s1 W ... {.x = s1.x}')
             Right: 
-              IPropertyReferenceOperation: Property s1.x As System.Int32 (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: 's1.x')
+              IPropertyReferenceOperation: Property s1.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1.x')
                 Instance Receiver: 
-                  ILocalReferenceOperation: s1 (OperationKind.LocalReference, IsExpression, Type: s1) (Syntax: 's1')
+                  ILocalReferenceOperation: s1 (OperationKind.LocalReference, Type: s1) (Syntax: 's1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1556,61 +1556,61 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: C2) (Syntax: 'New C2 With ... d Function}')
+IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2 With ... d Function}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: C2) (Syntax: 'With {.Fiel ... d Function}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C2) (Syntax: 'With {.Fiel ... d Function}')
       Initializers(2):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field = Fu ... nd Function')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func(Of System.Object)) (Syntax: '.Field = Fu ... nd Function')
             Left: 
-              IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, IsExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field')
+              IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: 'Field')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
             Right: 
-              IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.Func(Of System.Object), IsImplicit) (Syntax: 'Function()' ... nd Function')
+              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Object), IsImplicit) (Syntax: 'Function()' ... nd Function')
                 Target: 
-                  IAnonymousFunctionOperation (Symbol: Function () As System.Object) (OperationKind.AnonymousFunction, IsExpression, Type: null) (Syntax: 'Function()' ... nd Function')
-                    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, IsStatement, Type: null, IsImplicit) (Syntax: 'Function()' ... nd Function')
+                  IAnonymousFunctionOperation (Symbol: Function () As System.Object) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function()' ... nd Function')
+                    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function()' ... nd Function')
                       Locals: Local_1: <anonymous local> As System.Object
-                      IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'Return .Field')
+                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return .Field')
                         ReturnedValue: 
-                          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '.Field')
+                          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '.Field')
                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                             Operand: 
-                              IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, IsExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
+                              IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: 
-                                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
-                      ILabeledOperation (Label: exit) (OperationKind.Labeled, IsStatement, Type: null) (Syntax: 'End Function')
+                                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'End Function')
+                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'End Function')
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field2 = F ... nd Function')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object) (Syntax: 'End Function')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func(Of System.Object)) (Syntax: '.Field2 = F ... nd Function')
             Left: 
-              IFieldReferenceOperation: C2.Field2 As System.Func(Of System.Object) (OperationKind.FieldReference, IsExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field2')
+              IFieldReferenceOperation: C2.Field2 As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: 'Field2')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
             Right: 
-              IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.Func(Of System.Object), IsImplicit) (Syntax: 'Function() ... nd Function')
+              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Object), IsImplicit) (Syntax: 'Function() ... nd Function')
                 Target: 
-                  IAnonymousFunctionOperation (Symbol: Function () As System.Object) (OperationKind.AnonymousFunction, IsExpression, Type: null) (Syntax: 'Function() ... nd Function')
-                    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, IsStatement, Type: null, IsImplicit) (Syntax: 'Function() ... nd Function')
+                  IAnonymousFunctionOperation (Symbol: Function () As System.Object) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function() ... nd Function')
+                    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function() ... nd Function')
                       Locals: Local_1: <anonymous local> As System.Object
-                      IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'Return .Field')
+                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return .Field')
                         ReturnedValue: 
-                          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: '.Field')
+                          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '.Field')
                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                             Operand: 
-                              IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, IsExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
+                              IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: 
-                                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
-                      ILabeledOperation (Label: exit) (OperationKind.Labeled, IsStatement, Type: null) (Syntax: 'End Function')
+                                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'End Function')
+                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'End Function')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1644,26 +1644,26 @@ Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub cust..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: cust) (Syntax: 'New cust With {.x = !a}')
+IObjectCreationOperation (Constructor: Sub cust..ctor()) (OperationKind.ObjectCreation, Type: cust) (Syntax: 'New cust With {.x = !a}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: cust) (Syntax: 'With {.x = !a}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: cust) (Syntax: 'With {.x = !a}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int64) (Syntax: '.x = !a')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int64) (Syntax: '.x = !a')
             Left: 
-              IFieldReferenceOperation: cust.x As System.Int64 (OperationKind.FieldReference, IsExpression, Type: System.Int64) (Syntax: 'x')
+              IFieldReferenceOperation: cust.x As System.Int64 (OperationKind.FieldReference, Type: System.Int64) (Syntax: 'x')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: cust, IsImplicit) (Syntax: 'New cust With {.x = !a}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: cust, IsImplicit) (Syntax: 'New cust With {.x = !a}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int64, IsImplicit) (Syntax: '!a')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: '!a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IPropertyReferenceOperation: ReadOnly Property cust.scen5(arg As System.String) As System.Int32 (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: '!a')
+                  IPropertyReferenceOperation: ReadOnly Property cust.scen5(arg As System.String) As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '!a')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: cust, IsImplicit) (Syntax: 'New cust With {.x = !a}')
+                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: cust, IsImplicit) (Syntax: 'New cust With {.x = !a}')
                     Arguments(1):
                         IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
-                          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "a") (Syntax: 'a')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "a") (Syntax: 'a')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1703,21 +1703,21 @@ Class C2
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub scen2..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: scen2) (Syntax: 'New scen2 W ... .Scen2 = 5}')
+IObjectCreationOperation (Constructor: Sub scen2..ctor()) (OperationKind.ObjectCreation, Type: scen2) (Syntax: 'New scen2 W ... .Scen2 = 5}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: scen2) (Syntax: 'With {.Scen2 = 5}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: scen2) (Syntax: 'With {.Scen2 = 5}')
       Initializers(1):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Void) (Syntax: '.Scen2 = 5')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.Scen2 = 5')
             Left: 
-              IPropertyReferenceOperation: Property scen2.Scen2 As System.Int16 (OperationKind.PropertyReference, IsExpression, Type: System.Int16) (Syntax: 'Scen2')
+              IPropertyReferenceOperation: Property scen2.Scen2 As System.Int16 (OperationKind.PropertyReference, Type: System.Int16) (Syntax: 'Scen2')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: scen2, IsImplicit) (Syntax: 'New scen2 W ... .Scen2 = 5}')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: scen2, IsImplicit) (Syntax: 'New scen2 W ... .Scen2 = 5}')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int16, Constant: 5, IsImplicit) (Syntax: '5')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, Constant: 5, IsImplicit) (Syntax: '5')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

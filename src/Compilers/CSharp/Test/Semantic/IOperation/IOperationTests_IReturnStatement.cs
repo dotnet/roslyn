@@ -25,7 +25,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'return;')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return;')
   ReturnedValue: 
     null
 ";
@@ -47,9 +47,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'return true;')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return true;')
   ReturnedValue: 
-    ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -71,9 +71,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IReturnOperation (OperationKind.YieldReturn, IsStatement, Type: null) (Syntax: 'yield return 0;')
+IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield return 0;')
   ReturnedValue: 
-    ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -96,7 +96,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IReturnOperation (OperationKind.YieldBreak, IsStatement, Type: null) (Syntax: 'yield break;')
+IReturnOperation (OperationKind.YieldBreak, Type: null) (Syntax: 'yield break;')
   ReturnedValue: 
     null
 ";
@@ -119,12 +119,12 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IReturnOperation (OperationKind.Return, IsStatement, Type: null, IsInvalid) (Syntax: 'return 0.0;')
+IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return 0.0;')
   ReturnedValue: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (6,26): error CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type

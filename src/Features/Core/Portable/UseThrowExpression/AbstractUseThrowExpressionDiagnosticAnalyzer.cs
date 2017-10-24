@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                     semanticModel, throwStatement.Parent.Parent, cancellationToken);
             }
 
-            if (containingOperation is IConditionalOperation conditionalOperation && conditionalOperation.IsStatement)
+            if (containingOperation is IConditionalOperation conditionalOperation)
             {
                 return conditionalOperation;
             }

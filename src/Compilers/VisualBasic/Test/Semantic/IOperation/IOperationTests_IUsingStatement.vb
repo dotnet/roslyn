@@ -103,14 +103,14 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using c1 As ... End Using')
+IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Using c1 As ... s C = New C')
+    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1 As ... s C = New C')
       IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
         Variables: Local_1: c1 As Program.C
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
-            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C) (Syntax: 'New C')
+            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
@@ -118,23 +118,23 @@ IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using c
         Variables: Local_1: c2 As Program.C
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
-            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C) (Syntax: 'New C')
+            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Using c1 As ... End Using')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1 As ... End Using')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1')
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -165,30 +165,30 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using c1 As ... End Using')
+IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Using c1 As C = New C')
+    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1 As C = New C')
       IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
         Variables: Local_1: c1 As Program.C
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
-            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C) (Syntax: 'New C')
+            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Using c1 As ... End Using')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1 As ... End Using')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1')
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -219,30 +219,30 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using c1 As ... End Using')
+IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Using c1 As New C')
+    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1 As New C')
       IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
         Variables: Local_1: c1 As Program.C
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
-            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C) (Syntax: 'New C')
+            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Using c1 As ... End Using')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1 As ... End Using')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1')
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -273,31 +273,31 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using c1, c ... End Using')
+IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1, c ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Using c1, c2 As New C')
+    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1, c2 As New C')
       IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1, c2 As New C')
         Variables: Local_1: c1 As Program.C
           Local_2: c2 As Program.C
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
-            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C) (Syntax: 'New C')
+            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Using c1, c ... End Using')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1, c ... End Using')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1')
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -329,22 +329,22 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using c1'BI ... End Using')
+IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1'BI ... End Using')
   Resources: 
-    ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+    ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Using c1'BI ... End Using')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1'BI ... End Using')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1')
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -375,9 +375,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null, IsInvalid) (Syntax: 'Using c1, c ... End Using')
+IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1, c ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null, IsInvalid) (Syntax: 'Using c1, c2')
+    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Using c1, c2')
       IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1')
         Variables: Local_1: c1 As System.Object
         Initializer: 
@@ -387,15 +387,15 @@ IUsingOperation (OperationKind.Using, IsStatement, Type: null, IsInvalid) (Synta
         Initializer: 
           null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Using c1, c ... End Using')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Using c1, c ... End Using')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1')
-                  ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'c1')
+                  ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'c1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -441,27 +441,27 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using c1'BI ... End Using')
+IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1'BI ... End Using')
   Resources: 
-    ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+    ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Using c1'BI ... End Using')
-      IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using c2 ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1'BI ... End Using')
+      IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c2 ... End Using')
         Resources: 
-          ILocalReferenceOperation: c2 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c2')
+          ILocalReferenceOperation: c2 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c2')
         Body: 
-          IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Using c2 ... End Using')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c2 ... End Using')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
               Expression: 
-                IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
                   Instance Receiver: 
                     null
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1')
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+                            ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -491,14 +491,14 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using c1 =  ... End Using')
+IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 =  ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Using c1 =  ... c3 As New C')
+    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1 =  ... c3 As New C')
       IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
         Variables: Local_1: c1 As Program.C
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
-            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C) (Syntax: 'New C')
+            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
@@ -507,23 +507,23 @@ IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using c
           Local_2: c3 As Program.C
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
-            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C) (Syntax: 'New C')
+            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Using c1 =  ... End Using')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1 =  ... End Using')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1')
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -554,14 +554,14 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null, IsInvalid) (Syntax: 'Using c1 =  ... End Using')
+IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 =  ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null, IsInvalid) (Syntax: 'Using c1 = New C, c2')
+    IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Using c1 = New C, c2')
       IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
         Variables: Local_1: c1 As Program.C
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
-            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C) (Syntax: 'New C')
+            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
@@ -570,18 +570,18 @@ IUsingOperation (OperationKind.Using, IsStatement, Type: null, IsInvalid) (Synta
         Initializer: 
           null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Using c1 =  ... End Using')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Using c1 =  ... End Using')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1')
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -616,30 +616,30 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null, IsInvalid) (Syntax: 'Using c1 As ... End Using')
+IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 As ... End Using')
   Resources: 
-    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null, IsInvalid) (Syntax: 'Using c1 As New C')
+    IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Using c1 As New C')
       IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1')
         Variables: Local_1: c1 As Program.C
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New C')
-            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C, IsInvalid) (Syntax: 'New C')
+            IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C, IsInvalid) (Syntax: 'New C')
               Arguments(0)
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Using c1 As ... End Using')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Using c1 As ... End Using')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1')
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+                      ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -668,12 +668,12 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null, IsInvalid) (Syntax: 'Using'BIND: ... End Using')
+IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using'BIND: ... End Using')
   Resources: 
-    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: null, IsInvalid) (Syntax: '')
+    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Using'BIND: ... End Using')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Using'BIND: ... End Using')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -700,14 +700,14 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null, IsInvalid) (Syntax: 'Using Nothi ... End Using')
+IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using Nothi ... End Using')
   Resources: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, Constant: null, IsInvalid, IsImplicit) (Syntax: 'Nothing')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsInvalid, IsImplicit) (Syntax: 'Nothing')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'Nothing')
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'Nothing')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Using Nothi ... End Using')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Using Nothi ... End Using')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -745,14 +745,14 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingOperation (OperationKind.Using, IsStatement, Type: null) (Syntax: 'Using GetC( ... End Using')
+IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using GetC( ... End Using')
   Resources: 
-    IInvocationOperation (Function Program.GetC() As Program.C) (OperationKind.Invocation, IsExpression, Type: Program.C) (Syntax: 'GetC()')
+    IInvocationOperation (Function Program.GetC() As Program.C) (OperationKind.Invocation, Type: Program.C) (Syntax: 'GetC()')
       Instance Receiver: 
         null
       Arguments(0)
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Using GetC( ... End Using')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Using GetC( ... End Using')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -782,12 +782,12 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Using c1 =  ...  c2 = New C')
+IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Using c1 =  ...  c2 = New C')
   IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1')
     Variables: Local_1: c1 As Program.C
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
-        IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C) (Syntax: 'New C')
+        IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
           Arguments(0)
           Initializer: 
             null
@@ -795,7 +795,7 @@ IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: c2 As Program.C
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
-        IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Program.C) (Syntax: 'New C')
+        IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
           Arguments(0)
           Initializer: 
             null
@@ -898,7 +898,7 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Program.C) (Syntax: 'c1')
+ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -929,9 +929,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine()')
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine()')
   Expression: 
-    IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+    IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine()')
       Instance Receiver: 
         null
       Arguments(0)

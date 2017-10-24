@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
             Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
-            Return New EventAssignmentExpression(
+            Return New EventAssignmentOperation(
                 eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=statement.WasCompilerGenerated)
         End Function
 

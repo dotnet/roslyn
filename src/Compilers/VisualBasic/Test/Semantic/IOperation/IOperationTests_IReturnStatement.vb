@@ -20,7 +20,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'Return')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return')
   ReturnedValue: 
     null
 ]]>.Value
@@ -41,9 +41,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'Return True')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return True')
   ReturnedValue: 
-    ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
+    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -62,9 +62,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnOperation (OperationKind.YieldReturn, IsStatement, Type: null) (Syntax: 'Yield 0')
+IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'Yield 0')
   ReturnedValue: 
-    ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -84,7 +84,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'Return')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return')
   ReturnedValue: 
     null
 ]]>.Value
@@ -107,12 +107,12 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnOperation (OperationKind.Return, IsStatement, Type: null, IsInvalid) (Syntax: 'Return 0.0')
+IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'Return 0.0')
   ReturnedValue: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Byte, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

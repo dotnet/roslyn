@@ -6,8 +6,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a constituent string literal part of an interpolated string operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# interpolated string literal.
-    ///  (2) VB interpolated string literal.
+    ///  (1) C# interpolated string text.
+    ///  (2) VB interpolated string text.
     /// </para>
     /// </summary>
     /// <remarks>

@@ -68,15 +68,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Kind
             LogString($"{nameof(OperationKind)}.{operation.Kind}");
 
-            if (operation.IsExpression)
-            {
-                LogString(", IsExpression");
-            }
-            else if(operation.IsStatement)
-            {
-                LogString(", IsStatement");
-            }
-
             // Type
             LogString(", ");
             LogType(operation.Type);

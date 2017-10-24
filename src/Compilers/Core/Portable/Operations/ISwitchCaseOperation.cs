@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a switch case section with one or more case clauses to match and one or more operations to execute within the section.
     /// <para>
     /// Current usage:
-    ///  (1) C# switch section with a case clause and set of statements to execute.
+    ///  (1) C# switch section for one or more case clause and set of statements to execute.
     ///  (2) VB case block with a case statement for one or more case clause and set of statements to execute.
     /// </para>
     /// </summary>
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface ISwitchCaseOperation : IOperation
     {
         /// <summary>
-        /// Clauses of the case. For C# there is one clause per case, but for VB there can be multiple.
+        /// Clauses of the case.
         /// </summary>
         ImmutableArray<ICaseClauseOperation> Clauses { get; }
         /// <summary>

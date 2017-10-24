@@ -47,7 +47,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1')
-  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -65,7 +65,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.i2 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 2')
-  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -83,7 +83,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IPropertyInitializerOperation (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= 1')
-  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -102,7 +102,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IParameterInitializerOperation (Parameter: [p1 As System.Int32 = 0]) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= 0')
-  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -128,10 +128,10 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IParameterInitializerOperation (Parameter: [ParamArray p2 As System.Int32() = Nothing]) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= Nothing')
-  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'Nothing')
+  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'Nothing')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
-      ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -156,7 +156,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.x As System.Object) (OperationKind.FieldInitializer, Type: null) (Syntax: 'As New Object')
-  IObjectCreationOperation (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: System.Object) (Syntax: 'New Object')
+  IObjectCreationOperation (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'New Object')
     Arguments(0)
     Initializer: 
       null
@@ -201,11 +201,11 @@ End Class]]>.Value
 
 Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
-  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
-      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: 
-      IInvocationOperation (Function C.F() As System.Int32) (OperationKind.Invocation, IsExpression, Type: System.Int32) (Syntax: 'F()')
+      IInvocationOperation (Function C.F() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: 
           null
         Arguments(0)
@@ -230,11 +230,11 @@ End Class]]>.Value
 
 Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.i1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
-  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
-      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: 
-      IInvocationOperation (Function C.F() As System.Int32) (OperationKind.Invocation, IsExpression, Type: System.Int32) (Syntax: 'F()')
+      IInvocationOperation (Function C.F() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: 
           null
         Arguments(0)
@@ -259,11 +259,11 @@ End Class]]>.Value
 
 Dim expectedOperationTree = <![CDATA[
 IPropertyInitializerOperation (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= 1 + F()')
-  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
-      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: 
-      IInvocationOperation (Function C.F() As System.Int32) (OperationKind.Invocation, IsExpression, Type: System.Int32) (Syntax: 'F()')
+      IInvocationOperation (Function C.F() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: 
           null
         Arguments(0)
@@ -289,7 +289,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1')
-  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -312,7 +312,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.i2 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 2')
-  ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -332,10 +332,10 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.s1 As System.Byte) (OperationKind.FieldInitializer, Type: null, IsInvalid) (Syntax: '= 0.0')
-  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Byte, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
-      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+      ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -359,10 +359,10 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.s1 As System.Byte) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 0')
-  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Byte, Constant: 0, IsImplicit) (Syntax: '0')
+  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 0, IsImplicit) (Syntax: '0')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
-      ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

@@ -30,12 +30,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public static IConditionalOperation CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            var isStatement = false;
             return new ConditionalOperation(
                 condition,
                 whenTrue,
                 whenFalse,
-                isStatement,
                 semanticModel,
                 syntax,
                 resultType,
@@ -95,8 +93,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public static IInvalidOperation CreateInvalidExpression(SemanticModel semanticModel, SyntaxNode syntax, ImmutableArray<IOperation> children, bool isImplicit)
         {
-            var isStatement = false;
-            return new InvalidOperation(children, isStatement, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
+            return new InvalidOperation(children, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
     }
 }

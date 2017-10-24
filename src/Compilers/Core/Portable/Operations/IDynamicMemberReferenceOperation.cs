@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
         /// <summary>
-        /// The containing type of this operation. In C#, this will always be null.
+        /// The containing type of the referenced member. In C#, this will always be null.
         /// </summary>
         ITypeSymbol ContainingType { get; }
     }

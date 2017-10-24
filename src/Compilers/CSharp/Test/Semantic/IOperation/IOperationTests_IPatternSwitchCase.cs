@@ -283,14 +283,14 @@ IPatternCaseClauseOperation (Label Symbol: case X y when x != null:) (CaseKind.P
   Pattern: 
     IDeclarationPatternOperation (Declared Symbol: X y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y')
   Guard Expression: 
-    IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'x != null')
+    IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x != null')
       Left: 
-        IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'x')
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
       Right: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'null')
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -320,9 +320,9 @@ IPatternCaseClauseOperation (Label Symbol: case X y when x is X z :) (CaseKind.P
   Pattern: 
     IDeclarationPatternOperation (Declared Symbol: X y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y')
   Guard Expression: 
-    IIsPatternOperation (OperationKind.IsPattern, IsExpression, Type: System.Boolean) (Syntax: 'x is X z')
+    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is X z')
       Expression: 
-        IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'x')
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
       Pattern: 
         IDeclarationPatternOperation (Declared Symbol: X z) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X z')
 ";
@@ -354,7 +354,7 @@ IPatternCaseClauseOperation (Label Symbol: case X y when :) (CaseKind.Pattern) (
   Pattern: 
     IDeclarationPatternOperation (Declared Symbol: X y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y')
   Guard Expression: 
-    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: null, IsInvalid) (Syntax: '')
+    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -389,10 +389,10 @@ IPatternCaseClauseOperation (Label Symbol: case X y when x:) (CaseKind.Pattern) 
   Pattern: 
     IDeclarationPatternOperation (Declared Symbol: X y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y')
   Guard Expression: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'object' to 'bool'. An explicit conversion exists (are you missing a cast?)
@@ -422,13 +422,13 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IIsPatternOperation (OperationKind.IsPattern, IsExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is true')
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'x is true')
   Expression: 
-    IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'x')
   Pattern: 
     IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: 'true')
       Value: 
-        ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
+        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0150: A constant value is expected
@@ -489,7 +489,7 @@ IPatternCaseClauseOperation (Label Symbol: case typeof(X):) (CaseKind.Pattern) (
   Pattern: 
     IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: 'case typeof(X):')
       Value: 
-        ITypeOfOperation (OperationKind.TypeOf, IsExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof(X)')
+        ITypeOfOperation (OperationKind.TypeOf, Type: System.Type, IsInvalid) (Syntax: 'typeof(X)')
           TypeOperand: X
   Guard Expression: 
     null
@@ -636,7 +636,7 @@ class X
             string expectedOperationTree = @"
 ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case /*</bind>*/')
   Value: 
-    IInvalidOperation (OperationKind.Invalid, IsExpression, Type: null, IsInvalid) (Syntax: '')
+    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -686,9 +686,9 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchOperation (3 cases) (OperationKind.Switch, IsStatement, Type: null, IsInvalid) (Syntax: 'switch (p) ... }')
+ISwitchOperation (3 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'switch (p) ... }')
   Switch expression: 
-    IParameterReferenceOperation: p (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'p')
+    IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
   Sections:
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'case int x: ... break;')
           Clauses:
@@ -698,7 +698,7 @@ ISwitchOperation (3 cases) (OperationKind.Switch, IsStatement, Type: null, IsInv
                 Guard Expression: 
                   null
           Body:
-              IBranchOperation (BranchKind.Break) (OperationKind.Branch, IsStatement, Type: null) (Syntax: 'break;')
+              IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null, IsInvalid) (Syntax: 'case int y: ... break;')
           Clauses:
               IPatternCaseClauseOperation (Label Symbol: case int y:) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case int y:')
@@ -707,7 +707,7 @@ ISwitchOperation (3 cases) (OperationKind.Switch, IsStatement, Type: null, IsInv
                 Guard Expression: 
                   null
           Body:
-              IBranchOperation (BranchKind.Break) (OperationKind.Branch, IsStatement, Type: null) (Syntax: 'break;')
+              IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'case X z: ... break;')
           Clauses:
               IPatternCaseClauseOperation (Label Symbol: case X z:) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case X z:')
@@ -716,7 +716,7 @@ ISwitchOperation (3 cases) (OperationKind.Switch, IsStatement, Type: null, IsInv
                 Guard Expression: 
                   null
           Body:
-              IBranchOperation (BranchKind.Break) (OperationKind.Branch, IsStatement, Type: null) (Syntax: 'break;')
+              IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8120: The switch case has already been handled by a previous case.

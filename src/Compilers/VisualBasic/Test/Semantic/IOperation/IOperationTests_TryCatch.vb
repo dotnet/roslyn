@@ -27,16 +27,16 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i = 0')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 0')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'i = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 0')
             Left: 
-              IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i')
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ... Throw ex')
         Locals: Local_1: ex As System.Exception
@@ -46,26 +46,26 @@ ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T
             Initializer: 
               null
         Filter: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'i > 0')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
             Left: 
-              IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i')
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Handler: 
-          IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch ex As ... Throw ex')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Throw ex')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch ex As ... Throw ex')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Throw ex')
               Expression: 
-                IThrowOperation (OperationKind.Throw, IsExpression, Type: System.Exception) (Syntax: 'Throw ex')
-                  ILocalReferenceOperation: ex (OperationKind.LocalReference, IsExpression, Type: System.Exception) (Syntax: 'ex')
+                IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'Throw ex')
+                  ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
   Finally: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Finally ... i = 1')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i = 1')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally ... i = 1')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'i = 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
             Left: 
-              IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i')
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -92,17 +92,17 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockOperation (3 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Private Sub ... End Sub')
-  ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try ... End Try')
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Private Sub ... End Sub')
+  ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try ... End Try')
     Body: 
-      IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try ... End Try')
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i = 0')
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Try ... End Try')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 0')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'i = 0')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 0')
               Left: 
-                IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i')
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
               Right: 
-                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
     Catch clauses(1):
         ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ... Throw ex')
           Locals: Local_1: ex As System.Exception
@@ -112,30 +112,30 @@ IBlockOperation (3 statements) (OperationKind.Block, IsStatement, Type: null) (S
               Initializer: 
                 null
           Filter: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'i > 0')
+            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
               Left: 
-                IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i')
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
               Right: 
-                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Handler: 
-            IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch ex As ... Throw ex')
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Throw ex')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch ex As ... Throw ex')
+              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Throw ex')
                 Expression: 
-                  IThrowOperation (OperationKind.Throw, IsExpression, Type: System.Exception) (Syntax: 'Throw ex')
-                    ILocalReferenceOperation: ex (OperationKind.LocalReference, IsExpression, Type: System.Exception) (Syntax: 'ex')
+                  IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'Throw ex')
+                    ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
     Finally: 
-      IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Finally ... i = 1')
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'i = 1')
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally ... i = 1')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'i = 1')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
               Left: 
-                IParameterReferenceOperation: i (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'i')
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
               Right: 
-                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, IsStatement, Type: null) (Syntax: 'End Sub')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, IsStatement, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -159,9 +159,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... IOException')
         Locals: Local_1: e As System.IO.IOException
@@ -173,7 +173,7 @@ ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch e As  ... IOException')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch e As  ... IOException')
   Finally: 
     null
 ]]>.Value
@@ -197,9 +197,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
         Locals: Local_1: e As System.IO.IOException
@@ -209,21 +209,21 @@ ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T
             Initializer: 
               null
         Filter: 
-          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
+          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
             Left: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IPropertyReferenceOperation: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'e.Message')
+                  IPropertyReferenceOperation: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
                     Instance Receiver: 
-                      ILocalReferenceOperation: e (OperationKind.LocalReference, IsExpression, Type: System.IO.IOException) (Syntax: 'e')
+                      ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
   Finally: 
     null
 ]]>.Value
@@ -248,9 +248,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(2):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... IOException')
         Locals: Local_1: e As System.IO.IOException
@@ -262,7 +262,7 @@ ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch e As  ... IOException')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch e As  ... IOException')
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
         Locals: Local_1: e As System.Exception
         ExceptionDeclarationOrExpression: 
@@ -271,21 +271,21 @@ ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T
             Initializer: 
               null
         Filter: 
-          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
+          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
             Left: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IPropertyReferenceOperation: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'e.Message')
+                  IPropertyReferenceOperation: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
                     Instance Receiver: 
-                      ILocalReferenceOperation: e (OperationKind.LocalReference, IsExpression, Type: System.Exception) (Syntax: 'e')
+                      ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'e')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
   Finally: 
     null
 ]]>.Value
@@ -310,9 +310,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(2):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... IOException')
         Locals: Local_1: e As System.IO.IOException
@@ -324,7 +324,7 @@ ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch e As  ... IOException')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch e As  ... IOException')
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
         Locals: Local_1: e As System.IO.IOException
         ExceptionDeclarationOrExpression: 
@@ -333,21 +333,21 @@ ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T
             Initializer: 
               null
         Filter: 
-          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
+          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
             Left: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IPropertyReferenceOperation: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'e.Message')
+                  IPropertyReferenceOperation: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
                     Instance Receiver: 
-                      ILocalReferenceOperation: e (OperationKind.LocalReference, IsExpression, Type: System.IO.IOException) (Syntax: 'e')
+                      ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
   Finally: 
     null
 ]]>.Value
@@ -375,19 +375,19 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: ?) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch System')
         ExceptionDeclarationOrExpression: 
-          IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'System')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'System')
             Children(1):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'System')
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Catch System')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Catch System')
   Finally: 
     null
 ]]>.Value
@@ -419,17 +419,17 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e')
         ExceptionDeclarationOrExpression: 
-          ILocalReferenceOperation: e (OperationKind.LocalReference, IsExpression, Type: System.IO.IOException) (Syntax: 'e')
+          ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch e')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch e')
   Finally: 
     null
 ]]>.Value
@@ -453,17 +453,17 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e')
         ExceptionDeclarationOrExpression: 
-          IParameterReferenceOperation: e (OperationKind.ParameterReference, IsExpression, Type: System.IO.IOException) (Syntax: 'e')
+          IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.IO.IOException) (Syntax: 'e')
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch e')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch e')
   Finally: 
     null
 ]]>.Value
@@ -489,19 +489,19 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null, IsInvalid) (Syntax: 'Try 'BIND:" ... End Try')
+ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try 'BIND:" ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Try 'BIND:" ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Try 'BIND:" ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch e')
         ExceptionDeclarationOrExpression: 
-          IFieldReferenceOperation: C.e As System.IO.IOException (OperationKind.FieldReference, IsExpression, Type: System.IO.IOException, IsInvalid) (Syntax: 'e')
+          IFieldReferenceOperation: C.e As System.IO.IOException (OperationKind.FieldReference, Type: System.IO.IOException, IsInvalid) (Syntax: 'e')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'e')
+              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'e')
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Catch e')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Catch e')
   Finally: 
     null
 ]]>.Value
@@ -529,18 +529,18 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: ?) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch e')
         ExceptionDeclarationOrExpression: 
-          IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid) (Syntax: 'e')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'e')
             Children(0)
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Catch e')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Catch e')
   Finally: 
     null
 ]]>.Value
@@ -572,21 +572,21 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: ?) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch M2')
         ExceptionDeclarationOrExpression: 
-          IInvalidOperation (OperationKind.Invalid, IsExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'M2')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'M2')
             Children(1):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
                   Children(1):
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Catch M2')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Catch M2')
   Finally: 
     null
 ]]>.Value
@@ -617,9 +617,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch')
         ExceptionDeclarationOrExpression: 
@@ -627,7 +627,7 @@ ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch')
   Finally: 
     null
 ]]>.Value
@@ -652,20 +652,20 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(0)
   Finally: 
-    IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Finally ... riteLine(s)')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(s)')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally ... riteLine(s)')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(s)')
         Expression: 
-          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
+          IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
             Instance Receiver: 
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 's')
-                  IParameterReferenceOperation: s (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 's')
+                  IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -690,19 +690,19 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
       Locals: Local_1: i As System.Int32
-      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Dim i As Integer = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim i As Integer = 0')
         IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i')
           Variables: Local_1: i As System.Int32
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Catch clauses(0)
   Finally: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Finally')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -725,9 +725,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ... Integer = 0')
         Locals: Local_1: ex As System.Exception
@@ -739,14 +739,14 @@ ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T
         Filter: 
           null
         Handler: 
-          IBlockOperation (1 statements, 1 locals) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch ex As ... Integer = 0')
+          IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Catch ex As ... Integer = 0')
             Locals: Local_1: i As System.Int32
-            IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Dim i As Integer = 0')
+            IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim i As Integer = 0')
               IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i')
                 Variables: Local_1: i As System.Int32
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
-                    ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Finally: 
     null
 ]]>.Value
@@ -771,19 +771,19 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(0)
   Finally: 
-    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Finally ... Integer = 0')
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Finally ... Integer = 0')
       Locals: Local_1: i As System.Int32
-      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, IsStatement, Type: null) (Syntax: 'Dim i As Integer = 0')
+      IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim i As Integer = 0')
         IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i')
           Variables: Local_1: i As System.Int32
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -805,9 +805,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryOperation (OperationKind.Try, IsStatement, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
+ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.Int32) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch i As Integer')
         Locals: Local_1: i As System.Int32
@@ -819,7 +819,7 @@ ITryOperation (OperationKind.Try, IsStatement, Type: null, IsInvalid) (Syntax: '
         Filter: 
           null
         Handler: 
-          IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null, IsInvalid) (Syntax: 'Catch i As Integer')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Catch i As Integer')
   Finally: 
     null
 ]]>.Value
@@ -855,21 +855,21 @@ ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.Cat
       Initializer: 
         null
   Filter: 
-    IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
+    IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
       Left: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IPropertyReferenceOperation: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'e.Message')
+            IPropertyReferenceOperation: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
               Instance Receiver: 
-                ILocalReferenceOperation: e (OperationKind.LocalReference, IsExpression, Type: System.IO.IOException) (Syntax: 'e')
+                ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
       Right: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
   Handler: 
-    IBlockOperation (0 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -892,15 +892,15 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: 'Finally'BIN ... riteLine(s)')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(s)')
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally'BIN ... riteLine(s)')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(s)')
     Expression: 
-      IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
+      IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
         Instance Receiver: 
           null
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 's')
-              IParameterReferenceOperation: s (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 's')
+              IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -924,7 +924,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParameterReferenceOperation: e (OperationKind.ParameterReference, IsExpression, Type: System.Exception) (Syntax: 'e')
+IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'e')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -990,19 +990,19 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
+IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
   Left: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IPropertyReferenceOperation: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'e.Message')
+        IPropertyReferenceOperation: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
           Instance Receiver: 
-            ILocalReferenceOperation: e (OperationKind.LocalReference, IsExpression, Type: System.IO.IOException) (Syntax: 'e')
+            ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILiteralOperation (OperationKind.Literal, IsExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1094,14 +1094,14 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(s)')
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(s)')
   Expression: 
-    IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
+    IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
       Instance Receiver: 
         null
       Arguments(1):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 's')
-            IParameterReferenceOperation: s (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 's')
+            IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1126,17 +1126,17 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(e)')
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(e)')
   Expression: 
-    IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(e)')
+    IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(e)')
       Instance Receiver: 
         null
       Arguments(1):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'e')
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Object, IsImplicit) (Syntax: 'e')
+            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'e')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                ILocalReferenceOperation: e (OperationKind.LocalReference, IsExpression, Type: System.IO.IOException) (Syntax: 'e')
+                ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1161,14 +1161,14 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'Console.WriteLine(s)')
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(s)')
   Expression: 
-    IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
+    IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
       Instance Receiver: 
         null
       Arguments(1):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 's')
-            IParameterReferenceOperation: s (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 's')
+            IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value

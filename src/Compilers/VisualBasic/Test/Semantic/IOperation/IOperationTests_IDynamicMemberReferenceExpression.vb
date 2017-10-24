@@ -21,12 +21,12 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'd.F')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'd.F')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.F')
+    IDynamicMemberReferenceOperation (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.F')
       Type Arguments(0)
       Instance Receiver: 
-        ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -51,13 +51,13 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'd.F(Of String)')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'd.F(Of String)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.F(Of String)')
+    IDynamicMemberReferenceOperation (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.F(Of String)')
       Type Arguments(1):
         Symbol: System.String
       Instance Receiver: 
-        ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -82,13 +82,13 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'd.F(Of)')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object, IsInvalid) (Syntax: 'd.F(Of)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'd.F(Of)')
+    IDynamicMemberReferenceOperation (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object, IsInvalid) (Syntax: 'd.F(Of)')
       Type Arguments(1):
         Symbol: ?
       Instance Receiver: 
-        ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -117,12 +117,12 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'd.F()')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'd.F()')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.F')
+    IDynamicMemberReferenceOperation (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.F')
       Type Arguments(0)
       Instance Receiver: 
-        ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -147,14 +147,14 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'd.F(')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object, IsInvalid) (Syntax: 'd.F(')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.F')
+    IDynamicMemberReferenceOperation (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.F')
       Type Arguments(0)
       Instance Receiver: 
-        ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
   Arguments(1):
-      IInvalidOperation (OperationKind.Invalid, IsExpression, Type: null, IsInvalid) (Syntax: '')
+      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
         Children(0)
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -186,13 +186,13 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'd.GetValue(Of String)()')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'd.GetValue(Of String)()')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.GetValue(Of String)')
+    IDynamicMemberReferenceOperation (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.GetValue(Of String)')
       Type Arguments(1):
         Symbol: System.String
       Instance Receiver: 
-        ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -217,14 +217,14 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'd.GetValue( ...  Integer)()')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'd.GetValue( ...  Integer)()')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.GetValue( ... g, Integer)')
+    IDynamicMemberReferenceOperation (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.GetValue( ... g, Integer)')
       Type Arguments(2):
         Symbol: System.String
         Symbol: System.Int32
       Instance Receiver: 
-        ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -249,14 +249,14 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'd.GetValue(Of String,)()')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object, IsInvalid) (Syntax: 'd.GetValue(Of String,)()')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object, IsInvalid) (Syntax: 'd.GetValue(Of String,)')
+    IDynamicMemberReferenceOperation (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object, IsInvalid) (Syntax: 'd.GetValue(Of String,)')
       Type Arguments(2):
         Symbol: System.String
         Symbol: ?
       Instance Receiver: 
-        ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+        ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -285,15 +285,15 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'd.Prop1.Prop2')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'd.Prop1.Prop2')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "Prop2", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.Prop1.Prop2')
+    IDynamicMemberReferenceOperation (Member Name: "Prop2", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.Prop1.Prop2')
       Type Arguments(0)
       Instance Receiver: 
-        IDynamicMemberReferenceOperation (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.Prop1')
+        IDynamicMemberReferenceOperation (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.Prop1')
           Type Arguments(0)
           Instance Receiver: 
-            ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+            ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -318,17 +318,17 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'd.Method1().Method2()')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'd.Method1().Method2()')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "Method2", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.Method1().Method2')
+    IDynamicMemberReferenceOperation (Member Name: "Method2", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.Method1().Method2')
       Type Arguments(0)
       Instance Receiver: 
-        IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'd.Method1()')
+        IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'd.Method1()')
           Expression: 
-            IDynamicMemberReferenceOperation (Member Name: "Method1", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.Method1')
+            IDynamicMemberReferenceOperation (Member Name: "Method1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.Method1')
               Type Arguments(0)
               Instance Receiver: 
-                ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+                ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
           Arguments(0)
           ArgumentNames(0)
           ArgumentRefKinds: null
@@ -356,15 +356,15 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'd.Prop1.Method2()')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'd.Prop1.Method2()')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "Method2", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.Prop1.Method2')
+    IDynamicMemberReferenceOperation (Member Name: "Method2", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.Prop1.Method2')
       Type Arguments(0)
       Instance Receiver: 
-        IDynamicMemberReferenceOperation (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'd.Prop1')
+        IDynamicMemberReferenceOperation (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.Prop1')
           Type Arguments(0)
           Instance Receiver: 
-            ILocalReferenceOperation: d (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'd')
+            ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -395,14 +395,14 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'fun(x)')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'fun(x)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "fun", Containing Type: Module1) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'fun')
+    IDynamicMemberReferenceOperation (Member Name: "fun", Containing Type: Module1) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'fun')
       Type Arguments(0)
       Instance Receiver: 
         null
   Arguments(1):
-      ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'x')
+      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Object) (Syntax: 'x')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -433,14 +433,14 @@ Module Module1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: System.Object) (Syntax: 'c1.fun(x)')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'c1.fun(x)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "fun", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: System.Object) (Syntax: 'c1.fun')
+    IDynamicMemberReferenceOperation (Member Name: "fun", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'c1.fun')
       Type Arguments(0)
       Instance Receiver: 
-        ILocalReferenceOperation: c1 (OperationKind.LocalReference, IsExpression, Type: Module1.C1) (Syntax: 'c1')
+        ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Module1.C1) (Syntax: 'c1')
   Arguments(1):
-      ILocalReferenceOperation: x (OperationKind.LocalReference, IsExpression, Type: System.Object) (Syntax: 'x')
+      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Object) (Syntax: 'x')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value

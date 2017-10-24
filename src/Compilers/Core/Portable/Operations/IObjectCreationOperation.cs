@@ -23,10 +23,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IMethodSymbol Constructor { get; }
         /// <summary>
-        /// Object or collection initializer, if any.
-        /// </summary>
-        IObjectOrCollectionInitializerOperation Initializer { get; }
-        /// <summary>
         /// Arguments of the object creation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
@@ -34,6 +30,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         ImmutableArray<IArgumentOperation> Arguments { get; }
+        /// <summary>
+        /// Object or collection initializer, if any.
+        /// </summary>
+        IObjectOrCollectionInitializerOperation Initializer { get; }
     }
 }
 

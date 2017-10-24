@@ -24,14 +24,14 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-ITupleOperation (OperationKind.Tuple, IsExpression, Type: (System.Int32 x, System.Int32)) (Syntax: '(x, x + y)')
+ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32)) (Syntax: '(x, x + y)')
   Elements(2):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
-      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, IsExpression, Type: System.Int32) (Syntax: 'x + y')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
         Left: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
+          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(6,13): warning CS0219: The variable 'tuple' is assigned but its value is never used
@@ -74,15 +74,15 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, IsExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y) = point')
+IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y) = point')
   Left: 
-    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, IsExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
-      ITupleOperation (OperationKind.Tuple, IsExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
+      ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
         Elements(2):
-            ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'x')
-            ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, IsExpression, Type: System.Int32) (Syntax: 'y')
+            ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+            ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   Right: 
-    IParameterReferenceOperation: point (OperationKind.ParameterReference, IsExpression, Type: Point) (Syntax: 'point')
+    IParameterReferenceOperation: point (OperationKind.ParameterReference, Type: Point) (Syntax: 'point')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -103,26 +103,26 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, IsExpression, Type: <anonymous type: System.Int32 Amount, System.String Message>) (Syntax: 'new { Amoun ... ello"" + y }')
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 Amount, System.String Message>) (Syntax: 'new { Amoun ... ello"" + y }')
   Initializers(2):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'Amount = x')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Amount = x')
         Left: 
-          IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 Amount, System.String Message>.Amount { get; } (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: 'Amount')
+          IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 Amount, System.String Message>.Amount { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Amount')
             Instance Receiver: 
               null
         Right: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.String) (Syntax: 'Message = ""Hello"" + y')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Message = ""Hello"" + y')
         Left: 
-          IPropertyReferenceOperation: System.String <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'Message')
+          IPropertyReferenceOperation: System.String <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Message')
             Instance Receiver: 
               null
         Right: 
-          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, IsExpression, Type: System.String) (Syntax: '""Hello"" + y')
+          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '""Hello"" + y')
             Left: 
-              ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""Hello"") (Syntax: '""Hello""')
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Hello"") (Syntax: '""Hello""')
             Right: 
-              IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 'y')
+              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -153,27 +153,27 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-ITranslatedQueryOperation (OperationKind.TranslatedQuery, IsExpression, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from cust i ... t cust.Name')
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from cust i ... t cust.Name')
   Expression: 
-    IInvocationOperation (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<Customer, System.String>(this System.Collections.Generic.IEnumerable<Customer> source, System.Func<Customer, System.String> selector)) (OperationKind.Invocation, IsExpression, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select cust.Name')
+    IInvocationOperation (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<Customer, System.String>(this System.Collections.Generic.IEnumerable<Customer> source, System.Func<Customer, System.String> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select cust.Name')
       Instance Receiver: 
         null
       Arguments(2):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: System.Collections.Generic.IEnumerable<Customer>, IsImplicit) (Syntax: 'from cust in customers')
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Collections.Generic.IEnumerable<Customer>, IsImplicit) (Syntax: 'from cust in customers')
+            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<Customer>, IsImplicit) (Syntax: 'from cust in customers')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                IParameterReferenceOperation: customers (OperationKind.ParameterReference, IsExpression, Type: System.Collections.Generic.List<Customer>) (Syntax: 'customers')
+                IParameterReferenceOperation: customers (OperationKind.ParameterReference, Type: System.Collections.Generic.List<Customer>) (Syntax: 'customers')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: System.Func<Customer, System.String>, IsImplicit) (Syntax: 'cust.Name')
-            IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.Func<Customer, System.String>, IsImplicit) (Syntax: 'cust.Name')
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<Customer, System.String>, IsImplicit) (Syntax: 'cust.Name')
               Target: 
-                IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, IsExpression, Type: null, IsImplicit) (Syntax: 'cust.Name')
-                  IBlockOperation (1 statements) (OperationKind.Block, IsStatement, Type: null, IsImplicit) (Syntax: 'cust.Name')
-                    IReturnOperation (OperationKind.Return, IsStatement, Type: null, IsImplicit) (Syntax: 'cust.Name')
+                IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'cust.Name')
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'cust.Name')
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'cust.Name')
                       ReturnedValue: 
-                        IPropertyReferenceOperation: System.String Customer.Name { get; set; } (OperationKind.PropertyReference, IsExpression, Type: System.String) (Syntax: 'cust.Name')
+                        IPropertyReferenceOperation: System.String Customer.Name { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'cust.Name')
                           Instance Receiver: 
                             IOperation:  (OperationKind.None, Type: null) (Syntax: 'cust')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -205,62 +205,62 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: Class..ctor()) (OperationKind.ObjectCreation, IsExpression, Type: Class) (Syntax: 'new Class() ... { X = z } }')
+IObjectCreationOperation (Constructor: Class..ctor()) (OperationKind.ObjectCreation, Type: Class) (Syntax: 'new Class() ... { X = z } }')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: Class) (Syntax: '{ X = x, Y  ... { X = z } }')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Class) (Syntax: '{ X = x, Y  ... { X = z } }')
       Initializers(4):
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'X = x')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = x')
             Left: 
-              IPropertyReferenceOperation: System.Int32 Class.X { get; set; } (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: 'X')
+              IPropertyReferenceOperation: System.Int32 Class.X { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class) (Syntax: 'X')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class) (Syntax: 'X')
             Right: 
-              IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
-          IMemberInitializerOperation (OperationKind.MemberInitializer, IsExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y = { x, y, 3 }')
+              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+          IMemberInitializerOperation (OperationKind.MemberInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y = { x, y, 3 }')
             InitializedMember: 
-              IPropertyReferenceOperation: System.Collections.Generic.List<System.Int32> Class.Y { get; set; } (OperationKind.PropertyReference, IsExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y')
+              IPropertyReferenceOperation: System.Collections.Generic.List<System.Int32> Class.Y { get; set; } (OperationKind.PropertyReference, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class) (Syntax: 'Y')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class) (Syntax: 'Y')
             Initializer: 
-              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ x, y, 3 }')
+              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ x, y, 3 }')
                 Initializers(3):
-                    ICollectionElementInitializerOperation (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, IsExpression, Type: System.Void, IsImplicit) (Syntax: 'x')
+                    ICollectionElementInitializerOperation (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: 'x')
                       Arguments(1):
-                          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
-                    ICollectionElementInitializerOperation (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, IsExpression, Type: System.Void, IsImplicit) (Syntax: 'y')
+                          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                    ICollectionElementInitializerOperation (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: 'y')
                       Arguments(1):
-                          IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
-                    ICollectionElementInitializerOperation (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, IsExpression, Type: System.Void, IsImplicit) (Syntax: '3')
+                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+                    ICollectionElementInitializerOperation (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '3')
                       Arguments(1):
-                          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-          IMemberInitializerOperation (OperationKind.MemberInitializer, IsExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z = { { x, y } }')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+          IMemberInitializerOperation (OperationKind.MemberInitializer, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z = { { x, y } }')
             InitializedMember: 
-              IPropertyReferenceOperation: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Class.Z { get; set; } (OperationKind.PropertyReference, IsExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z')
+              IPropertyReferenceOperation: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Class.Z { get; set; } (OperationKind.PropertyReference, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class) (Syntax: 'Z')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class) (Syntax: 'Z')
             Initializer: 
-              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: '{ { x, y } }')
+              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: '{ { x, y } }')
                 Initializers(1):
-                    ICollectionElementInitializerOperation (AddMethod: void System.Collections.Generic.Dictionary<System.Int32, System.Int32>.Add(System.Int32 key, System.Int32 value)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, IsExpression, Type: System.Void, IsImplicit) (Syntax: '{ x, y }')
+                    ICollectionElementInitializerOperation (AddMethod: void System.Collections.Generic.Dictionary<System.Int32, System.Int32>.Add(System.Int32 key, System.Int32 value)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '{ x, y }')
                       Arguments(2):
-                          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
-                          IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
-          IMemberInitializerOperation (OperationKind.MemberInitializer, IsExpression, Type: Class) (Syntax: 'C = { X = z }')
+                          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+          IMemberInitializerOperation (OperationKind.MemberInitializer, Type: Class) (Syntax: 'C = { X = z }')
             InitializedMember: 
-              IPropertyReferenceOperation: Class Class.C { get; set; } (OperationKind.PropertyReference, IsExpression, Type: Class) (Syntax: 'C')
+              IPropertyReferenceOperation: Class Class.C { get; set; } (OperationKind.PropertyReference, Type: Class) (Syntax: 'C')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class) (Syntax: 'C')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class) (Syntax: 'C')
             Initializer: 
-              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: Class) (Syntax: '{ X = z }')
+              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Class) (Syntax: '{ X = z }')
                 Initializers(1):
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, IsExpression, Type: System.Int32) (Syntax: 'X = z')
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = z')
                       Left: 
-                        IPropertyReferenceOperation: System.Int32 Class.X { get; set; } (OperationKind.PropertyReference, IsExpression, Type: System.Int32) (Syntax: 'X')
+                        IPropertyReferenceOperation: System.Int32 Class.X { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
                           Instance Receiver: 
-                            IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class) (Syntax: 'X')
+                            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class) (Syntax: 'X')
                       Right: 
-                        IParameterReferenceOperation: z (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'z')
+                        IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'z')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -287,17 +287,17 @@ class Class
 }
 ";
             string expectedOperationTree = @"
-IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: System.Action) (Syntax: 'new Action( ... })')
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'new Action( ... })')
   Target: 
-    IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, IsExpression, Type: null) (Syntax: '() => ... }')
-      IBlockOperation (2 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, IsStatement, Type: null) (Syntax: 'a();')
+    IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '() => ... }')
+      IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a();')
           Expression: 
-            IInvocationOperation (virtual void System.Action.Invoke()) (OperationKind.Invocation, IsExpression, Type: System.Void) (Syntax: 'a()')
+            IInvocationOperation (virtual void System.Action.Invoke()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'a()')
               Instance Receiver: 
-                IParameterReferenceOperation: a (OperationKind.ParameterReference, IsExpression, Type: System.Action) (Syntax: 'a')
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a')
               Arguments(0)
-        IReturnOperation (OperationKind.Return, IsStatement, Type: null, IsImplicit) (Syntax: '{ ... }')
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ ... }')
           ReturnedValue: 
             null
 ";
@@ -328,11 +328,11 @@ class Class
 }
 ";
             string expectedOperationTree = @"
-IDelegateCreationOperation (OperationKind.DelegateCreation, IsExpression, Type: Class.Delegate) (Syntax: 'new Delegate(Method2)')
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Class.Delegate) (Syntax: 'new Delegate(Method2)')
   Target: 
-    IMethodReferenceOperation: void Class.Method2(System.Int32 x, System.Int32 y) (OperationKind.MethodReference, IsExpression, Type: null) (Syntax: 'Method2')
+    IMethodReferenceOperation: void Class.Method2(System.Int32 x, System.Int32 y) (OperationKind.MethodReference, Type: null) (Syntax: 'Method2')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class, IsImplicit) (Syntax: 'Method2')
+        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'Method2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -357,9 +357,9 @@ class Class
 }
 ";
             string expectedOperationTree = @"
-IInvalidOperation (OperationKind.Invalid, IsExpression, Type: Class.Delegate, IsInvalid) (Syntax: 'new Delegate(x)')
+IInvalidOperation (OperationKind.Invalid, Type: Class.Delegate, IsInvalid) (Syntax: 'new Delegate(x)')
   Children(1):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0149: Method name expected
@@ -388,20 +388,20 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: Class) (Syntax: '{ X = { { x, y } } }')
+IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Class) (Syntax: '{ X = { { x, y } } }')
   Initializers(1):
-      IMemberInitializerOperation (OperationKind.MemberInitializer, IsExpression, Type: dynamic) (Syntax: 'X = { { x, y } }')
+      IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic) (Syntax: 'X = { { x, y } }')
         InitializedMember: 
-          IPropertyReferenceOperation: dynamic Class.X { get; set; } (OperationKind.PropertyReference, IsExpression, Type: dynamic) (Syntax: 'X')
+          IPropertyReferenceOperation: dynamic Class.X { get; set; } (OperationKind.PropertyReference, Type: dynamic) (Syntax: 'X')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, IsExpression, Type: Class) (Syntax: 'X')
+              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class) (Syntax: 'X')
         Initializer: 
-          IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, IsExpression, Type: dynamic) (Syntax: '{ { x, y } }')
+          IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic) (Syntax: '{ { x, y } }')
             Initializers(1):
-                ICollectionElementInitializerOperation (IsDynamic: True) (OperationKind.CollectionElementInitializer, IsExpression, Type: System.Void) (Syntax: '{ x, y }')
+                ICollectionElementInitializerOperation (IsDynamic: True) (OperationKind.CollectionElementInitializer, Type: System.Void) (Syntax: '{ x, y }')
                   Arguments(2):
-                      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
-                      IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
+                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -422,8 +422,8 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-INameOfOperation (OperationKind.NameOf, IsExpression, Type: System.String, Constant: ""x"") (Syntax: 'nameof(x)')
-  IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: ""x"") (Syntax: 'nameof(x)')
+  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -446,7 +446,7 @@ class Class1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: '*x')
   Children(1):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32*) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32*) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -482,7 +482,7 @@ IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= array')
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'array')
         Children(1):
-            IParameterReferenceOperation: array (OperationKind.ParameterReference, IsExpression, Type: System.Int32[]) (Syntax: 'array')
+            IParameterReferenceOperation: array (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'array')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -509,7 +509,7 @@ class Class1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: '__reftype(x)')
   Children(1):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.TypedReference) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.TypedReference) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -532,7 +532,7 @@ class Class1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: '__makeref(x)')
   Children(1):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Type) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Type) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -555,7 +555,7 @@ class Class1
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: '__refvalue(x, int)')
   Children(1):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.TypedReference) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.TypedReference) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -580,11 +580,11 @@ IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, 
   Variables: Local_1: dynamic y
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= d[x]')
-      IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, IsExpression, Type: dynamic) (Syntax: 'd[x]')
+      IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: 'd[x]')
         Expression: 
-          IParameterReferenceOperation: d (OperationKind.ParameterReference, IsExpression, Type: dynamic) (Syntax: 'd')
+          IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
         Arguments(1):
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
         ArgumentNames(0)
         ArgumentRefKinds(0)
 ";
@@ -607,14 +607,14 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: dynamic) (Syntax: 'x.M(y)')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'x.M(y)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: ""M"", Containing Type: null) (OperationKind.DynamicMemberReference, IsExpression, Type: dynamic) (Syntax: 'x.M')
+    IDynamicMemberReferenceOperation (Member Name: ""M"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'x.M')
       Type Arguments(0)
       Instance Receiver: 
-        IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: dynamic) (Syntax: 'x')
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'x')
   Arguments(1):
-      IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
+      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
@@ -637,11 +637,11 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationOperation (OperationKind.DynamicInvocation, IsExpression, Type: dynamic) (Syntax: 'x(y)')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'x(y)')
   Expression: 
-    IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: dynamic) (Syntax: 'x')
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'x')
   Arguments(1):
-      IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
+      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
@@ -667,9 +667,9 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, IsExpression, Type: Class) (Syntax: 'new Class(x)')
+IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: Class) (Syntax: 'new Class(x)')
   Arguments(1):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: dynamic) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'x')
   ArgumentNames(0)
   ArgumentRefKinds(0)
   Initializer: 
@@ -698,7 +698,7 @@ internal class Class
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'stackalloc int[x]')
   Children(1):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -725,34 +725,34 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, IsExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""String "") (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x,20}')
         Expression: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
         Alignment: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
         FormatString: 
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and "") (Syntax: ' and ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{y:D3}')
         Expression: 
-          IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'y')
+          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
         Alignment: 
           null
         FormatString: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
         Expression: 
-          ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: 
           null
         FormatString: 
@@ -779,12 +779,12 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IThrowOperation (OperationKind.Throw, IsExpression, Type: null) (Syntax: 'throw new A ... (nameof(x))')
-  IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, IsExpression, Type: System.ArgumentNullException) (Syntax: 'new Argumen ... (nameof(x))')
+IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw new A ... (nameof(x))')
+  IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException) (Syntax: 'new Argumen ... (nameof(x))')
     Arguments(1):
         IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: System.String) (Syntax: 'nameof(x)')
-          INameOfOperation (OperationKind.NameOf, IsExpression, Type: System.String, Constant: ""x"") (Syntax: 'nameof(x)')
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.String) (Syntax: 'x')
+          INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: ""x"") (Syntax: 'nameof(x)')
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Initializer: 
@@ -819,13 +819,13 @@ ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, T
           Pattern: 
             IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
           Guard Expression: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, IsExpression, Type: System.Boolean) (Syntax: 'x >= 10')
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x >= 10')
               Left: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
               Right: 
-                ILiteralOperation (OperationKind.Literal, IsExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
     Body:
-        IBranchOperation (BranchKind.Break) (OperationKind.Branch, IsStatement, Type: null) (Syntax: 'break;')
+        IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -891,14 +891,14 @@ class P
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'x && y')
   Children(2):
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: B, IsImplicit) (Syntax: 'x')
+      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsImplicit) (Syntax: 'x')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: C) (Syntax: 'x')
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: B, IsImplicit) (Syntax: 'y')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
+      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsImplicit) (Syntax: 'y')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: C) (Syntax: 'y')
+          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -979,8 +979,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: '__arglist(x, y)')
   Children(2):
-      IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Int32) (Syntax: 'x')
-      IParameterReferenceOperation: y (OperationKind.ParameterReference, IsExpression, Type: System.Boolean) (Syntax: 'y')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1001,9 +1001,9 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IIsPatternOperation (OperationKind.IsPattern, IsExpression, Type: System.Boolean) (Syntax: 'x is int y')
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is int y')
   Expression: 
-    IParameterReferenceOperation: x (OperationKind.ParameterReference, IsExpression, Type: System.Object) (Syntax: 'x')
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
   Pattern: 
     IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y')
 ";
@@ -1037,36 +1037,36 @@ class Class
 
 ";
             string expectedOperationTree = @"
-ILocalFunctionOperation (Symbol: System.Collections.Generic.IEnumerable<T> Iterator()) (OperationKind.LocalFunction, IsStatement, Type: null) (Syntax: 'IEnumerable ... }')
-  IBlockOperation (2 statements) (OperationKind.Block, IsStatement, Type: null) (Syntax: '{ ... }')
-    IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, IsStatement, Type: null) (Syntax: 'foreach (va ... rn element;')
+ILocalFunctionOperation (Symbol: System.Collections.Generic.IEnumerable<T> Iterator()) (OperationKind.LocalFunction, Type: null) (Syntax: 'IEnumerable ... }')
+  IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+    IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... rn element;')
       Locals: Local_1: T element
       LoopControlVariable: 
-        ILocalReferenceOperation: element (IsDeclaration: True) (OperationKind.LocalReference, IsExpression, Type: T, Constant: null) (Syntax: 'foreach (va ... rn element;')
+        ILocalReferenceOperation: element (IsDeclaration: True) (OperationKind.LocalReference, Type: T, Constant: null) (Syntax: 'foreach (va ... rn element;')
       Collection: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, IsExpression, Type: System.Collections.Generic.IEnumerable<T>, IsImplicit) (Syntax: 'source')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<T>, IsImplicit) (Syntax: 'source')
           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IParameterReferenceOperation: source (OperationKind.ParameterReference, IsExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+            IParameterReferenceOperation: source (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
       Body: 
-        IConditionalOperation (OperationKind.Conditional, IsStatement, Type: null) (Syntax: 'if (predica ... rn element;')
+        IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (predica ... rn element;')
           Condition: 
-            IInvocationOperation (virtual System.Boolean System.Func<T, System.Boolean>.Invoke(T arg)) (OperationKind.Invocation, IsExpression, Type: System.Boolean) (Syntax: 'predicate(element)')
+            IInvocationOperation (virtual System.Boolean System.Func<T, System.Boolean>.Invoke(T arg)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'predicate(element)')
               Instance Receiver: 
-                IParameterReferenceOperation: predicate (OperationKind.ParameterReference, IsExpression, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
+                IParameterReferenceOperation: predicate (OperationKind.ParameterReference, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: T) (Syntax: 'element')
-                    ILocalReferenceOperation: element (OperationKind.LocalReference, IsExpression, Type: T) (Syntax: 'element')
+                    ILocalReferenceOperation: element (OperationKind.LocalReference, Type: T) (Syntax: 'element')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           WhenTrue: 
-            IReturnOperation (OperationKind.YieldReturn, IsStatement, Type: null) (Syntax: 'yield return element;')
+            IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield return element;')
               ReturnedValue: 
-                ILocalReferenceOperation: element (OperationKind.LocalReference, IsExpression, Type: T) (Syntax: 'element')
+                ILocalReferenceOperation: element (OperationKind.LocalReference, Type: T) (Syntax: 'element')
           WhenFalse: 
             null
       NextVariables(0)
-    IReturnOperation (OperationKind.YieldBreak, IsStatement, Type: null, IsImplicit) (Syntax: '{ ... }')
+    IReturnOperation (OperationKind.YieldBreak, Type: null, IsImplicit) (Syntax: '{ ... }')
       ReturnedValue: 
         null
 ";

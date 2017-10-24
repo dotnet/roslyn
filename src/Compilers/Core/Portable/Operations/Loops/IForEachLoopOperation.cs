@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>
     /// Current usage:
     ///  (1) C# 'foreach' loop statement
-    ///  (2) VB 'For Each' loop statement or 'Do Until' loop statement
+    ///  (2) VB 'For Each' loop statement
     /// </para>
     /// </summary>
     /// <remarks>

@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Operations
     ///  (1) C# nested collection element initializer expression within a collection initializer.
     ///      For example, given a collection initializer "new Class() { Y = { { x, y, 3 } } }",
     ///      nested collection element initializer for Y, i.e. "{ { x, y, 3 } }" is represented by this operation.
+    ///  (2) VB nested collection element initializer expression within a collection initializer.
     /// </para>
     /// </summary>
     /// <remarks>

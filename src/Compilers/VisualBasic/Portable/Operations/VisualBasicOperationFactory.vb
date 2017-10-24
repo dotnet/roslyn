@@ -503,7 +503,6 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidOperation
             Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundBadExpression.ChildBoundNodes.SelectAsArray(Function(n) Create(n)))
-            Dim isStatement As Boolean = False
             Dim syntax As SyntaxNode = boundBadExpression.Syntax
             ' We match semantic model here: If the Then expression IsMissing, we have a null type, rather than the ErrorType Of the bound node.
             Dim type As ITypeSymbol = If(syntax.IsMissing, Nothing, boundBadExpression.Type)
@@ -511,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             ' if child has syntax node point to same syntax node as bad expression, then this invalid expression Is implicit
             Dim isImplicit = boundBadExpression.WasCompilerGenerated OrElse boundBadExpression.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadExpression.Syntax)
-            Return New LazyInvalidOperation(children, isStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyInvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IOperation
@@ -639,12 +638,11 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.Condition))
             Dim whenTrue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenTrue))
             Dim whenFalse As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenFalse))
-            Dim isStatement As Boolean = False
             Dim syntax As SyntaxNode = boundTernaryConditionalExpression.Syntax
             Dim type As ITypeSymbol = boundTernaryConditionalExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTernaryConditionalExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundTernaryConditionalExpression.WasCompilerGenerated
-            Return New LazyConditionalOperation(condition, whenTrue, whenFalse, isStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyConditionalOperation(condition, whenTrue, whenFalse, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundTypeOfOperation(boundTypeOf As BoundTypeOf) As IIsTypeOperation
@@ -951,12 +949,11 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundIfStatement.Condition))
             Dim ifTrueStatement As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundIfStatement.Consequence))
             Dim ifFalseStatement As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundIfStatement.AlternativeOpt))
-            Dim isStatement As Boolean = True
             Dim syntax As SyntaxNode = boundIfStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundIfStatement.WasCompilerGenerated
-            Return New LazyConditionalOperation(condition, ifTrueStatement, ifFalseStatement, isStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyConditionalOperation(condition, ifTrueStatement, ifFalseStatement, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundSelectStatementOperation(boundSelectStatement As BoundSelectStatement) As ISwitchOperation
@@ -1207,14 +1204,13 @@ Namespace Microsoft.CodeAnalysis.Operations
 
                     Return builder.ToImmutableAndFree()
                 End Function)
-            Dim isStatement As Boolean = True
             Dim syntax As SyntaxNode = boundBadStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
 
             ' if child has syntax node point to same syntax node as bad statement, then this invalid statement is implicit
             Dim isImplicit = boundBadStatement.WasCompilerGenerated OrElse boundBadStatement.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadStatement.Syntax)
-            Return New LazyInvalidOperation(children, isStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyInvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundReturnStatementOperation(boundReturnStatement As BoundReturnStatement) As IReturnOperation
@@ -1388,8 +1384,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             If eventInvocation Is Nothing OrElse eventInvocation.ReceiverOpt Is Nothing Then
                 Debug.Assert(boundRaiseEventStatement.HasErrors)
                 Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() ImmutableArray.Create(Create(boundRaiseEventStatement.EventInvocation)))
-                Dim isStatement As Boolean = True
-                Return New LazyInvalidOperation(children, isStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+                Return New LazyInvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
 
             Dim receiver = eventInvocation.ReceiverOpt

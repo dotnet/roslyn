@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>
     /// Current usage:
     ///  (1) C# event assignment expression.
-    ///  (2) VB event assignment expression.
+    ///  (2) VB Add/Remove handler statement.
     /// </para>
     /// </summary>
     /// <remarks>
