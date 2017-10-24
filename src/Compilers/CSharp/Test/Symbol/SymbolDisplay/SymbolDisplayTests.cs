@@ -11,12 +11,61 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SymbolDisplayTests : CSharpTestBase
     {
+        [Fact]
+        [WorkItem(22507, "https://github.com/dotnet/roslyn/issues/22507")]
+        public void Repro22507()
+        {
+            var text = @"
+using System;
+
+[Flags]
+public enum SomeTypes : long
+{
+    Default = 0,
+    TypeA = 2,
+    TypeB = 4,
+    TypeC = 1024,
+    TypeD = 1048576,
+    TypeE = 2097152,
+    TypeF = 33554432,
+    TypeG = 67108864,
+    TypeH = 134217728,
+    TypeI = 1073741824,
+    TypeJ = 2147483648,
+    TypeK = 4294967296,
+    TypeL = 1099511627776,
+    TypeM = 2199023255552,
+    TypeN = 4398046511104,
+    TypeO = 1125899906842624,
+    TypeP = 2251799813685248,
+    TypeQ = 4503599627370496,
+    TypeR = 9007199254740992,
+    TypeS = 18014398509481984,
+    TypeT = 2305843009213693952
+}
+";
+            TestSymbolDescription(
+                text,
+                g => g.GetTypeMembers("SomeTypes").Single().GetField("TypeF"),
+                SymbolDisplayFormat.MinimallyQualifiedFormat
+                    .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue),
+                "SomeTypes.TypeF = 33554432",
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NumericLiteral);
+        }
+
         [Fact]
         public void TestClassNameOnlySimple()
         {
