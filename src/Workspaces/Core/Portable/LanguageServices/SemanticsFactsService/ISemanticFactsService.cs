@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 
         bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
 
