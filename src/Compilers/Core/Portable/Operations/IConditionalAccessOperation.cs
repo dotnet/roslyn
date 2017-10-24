@@ -3,7 +3,8 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a conditionally accessed operation off an <see cref="IConditionalAccessInstanceOperation"/>.
+    /// Represents a conditionally accessed operation. Note that <see cref="IConditionalAccessInstanceOperation"/> is used to refer to the value
+    /// of <see cref="Operation"/> within <see cref="WhenNotNull"/>.
     /// <para>
     /// Current usage:
     ///  (1) C# conditional access expression (? or ?. operator).
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IConditionalAccessOperation : IOperation
     {
         /// <summary>
-        /// Operation that will be evaulated and accessed if non null.
+        /// Operation that will be evaluated and accessed if non null.
         /// </summary>
         IOperation Operation { get; }
         /// <summary>
