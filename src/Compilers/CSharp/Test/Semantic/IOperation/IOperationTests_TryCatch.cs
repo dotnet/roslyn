@@ -49,8 +49,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
       ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Exce ... }')
         Locals: Local_1: System.Exception ex
         ExceptionDeclarationOrExpression: 
-          IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(Exception ex)')
-            Variables: Local_1: System.Exception ex
+          ISingleVariableDeclaration (Symbol: System.Exception ex) (OperationKind.SingleVariableDeclaration) (Syntax: '(Exception ex)')
             Initializer: 
               null
         Filter: 
@@ -122,8 +121,7 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
         ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Exce ... }')
           Locals: Local_1: System.Exception ex
           ExceptionDeclarationOrExpression: 
-            IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(Exception ex)')
-              Variables: Local_1: System.Exception ex
+            ISingleVariableDeclaration (Symbol: System.Exception ex) (OperationKind.SingleVariableDeclaration) (Syntax: '(Exception ex)')
               Initializer: 
                 null
           Filter: 
@@ -179,8 +177,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
       ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.IO.IOException e
         ExceptionDeclarationOrExpression: 
-          IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(System.IO. ... xception e)')
-            Variables: Local_1: System.IO.IOException e
+          ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
             Initializer: 
               null
         Filter: 
@@ -225,8 +222,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
       ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.IO.IOException e
         ExceptionDeclarationOrExpression: 
-          IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(System.IO. ... xception e)')
-            Variables: Local_1: System.IO.IOException e
+          ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
             Initializer: 
               null
         Filter: 
@@ -279,8 +275,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
       ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.IO.IOException e
         ExceptionDeclarationOrExpression: 
-          IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(System.IO. ... xception e)')
-            Variables: Local_1: System.IO.IOException e
+          ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
             Initializer: 
               null
         Filter: 
@@ -290,8 +285,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
       ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.Exception e
         ExceptionDeclarationOrExpression: 
-          IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(System.Exception e)')
-            Variables: Local_1: System.Exception e
+          ISingleVariableDeclaration (Symbol: System.Exception e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.Exception e)')
             Initializer: 
               null
         Filter: 
@@ -348,8 +342,7 @@ ITryStatement (OperationKind.TryStatement, IsInvalid) (Syntax: 'try ... }')
       ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.IO.IOException e
         ExceptionDeclarationOrExpression: 
-          IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(System.IO. ... xception e)')
-            Variables: Local_1: System.IO.IOException e
+          ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
             Initializer: 
               null
         Filter: 
@@ -359,8 +352,7 @@ ITryStatement (OperationKind.TryStatement, IsInvalid) (Syntax: 'try ... }')
       ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause, IsInvalid) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.IO.IOException e
         ExceptionDeclarationOrExpression: 
-          IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '(System.IO. ... xception e)')
-            Variables: Local_1: System.IO.IOException e
+          ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: '(System.IO. ... xception e)')
             Initializer: 
               null
         Filter: 
@@ -539,9 +531,8 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
   Body: 
     IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 i
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0;')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -599,9 +590,8 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
         Handler: 
           IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
             Locals: Local_1: System.Int32 i
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0;')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-                Variables: Local_1: System.Int32 i
+            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0;')
+              ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
                 Initializer: 
                   IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -691,8 +681,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
         Locals: Local_1: System.Exception e
           Local_2: System.String s
         ExceptionDeclarationOrExpression: 
-          IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(Exception e)')
-            Variables: Local_1: System.Exception e
+          ISingleVariableDeclaration (Symbol: System.Exception e) (OperationKind.SingleVariableDeclaration) (Syntax: '(Exception e)')
             Initializer: 
               null
         Filter: 
@@ -742,9 +731,8 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
   Finally: 
     IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 i
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0;')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -780,8 +768,7 @@ class C
 ICatchClause (Exception type: System.Int32) (OperationKind.CatchClause, IsInvalid) (Syntax: 'catch (int  ... }')
   Locals: Local_1: System.Int32 e
   ExceptionDeclarationOrExpression: 
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '(int e)')
-      Variables: Local_1: System.Int32 e
+    ISingleVariableDeclaration (Symbol: System.Int32 e) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: '(int e)')
       Initializer: 
         null
   Filter: 
@@ -823,8 +810,7 @@ class C
 ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
   Locals: Local_1: System.IO.IOException e
   ExceptionDeclarationOrExpression: 
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(System.IO. ... xception e)')
-      Variables: Local_1: System.IO.IOException e
+    ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
       Initializer: 
         null
   Filter: 
@@ -865,8 +851,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(System.IO. ... xception e)')
-  Variables: Local_1: System.IO.IOException e
+ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
   Initializer: 
     null
 ";

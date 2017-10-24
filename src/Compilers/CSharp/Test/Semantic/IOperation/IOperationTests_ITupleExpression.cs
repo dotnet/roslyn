@@ -54,9 +54,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, int) t = (1, 2);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, 2)')
-    Variables: Local_1: (System.Int32, System.Int32) t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, int) t = (1, 2);')
+  ISingleVariableDeclaration (Symbol: (System.Int32, System.Int32) t) (OperationKind.SingleVariableDeclaration) (Syntax: 't = (1, 2)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, 2)')
         ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
@@ -119,9 +118,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, uint) t = (1, 2);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, 2)')
-    Variables: Local_1: (System.UInt32, System.UInt32) t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, uint) t = (1, 2);')
+  ISingleVariableDeclaration (Symbol: (System.UInt32, System.UInt32) t) (OperationKind.SingleVariableDeclaration) (Syntax: 't = (1, 2)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, 2)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32), IsImplicit) (Syntax: '(1, 2)')
@@ -197,9 +195,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(long, long) t = (a, b);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (a, b)')
-    Variables: Local_1: (System.Int64, System.Int64) t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(long, long) t = (a, b);')
+  ISingleVariableDeclaration (Symbol: (System.Int64, System.Int64) t) (OperationKind.SingleVariableDeclaration) (Syntax: 't = (a, b)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (a, b)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int64, System.Int64), IsImplicit) (Syntax: '(a, b)')
@@ -271,9 +268,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, stri ...  (1, null);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, null)')
-    Variables: Local_1: (System.UInt32, System.String) t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, stri ...  (1, null);')
+  ISingleVariableDeclaration (Symbol: (System.UInt32, System.String) t) (OperationKind.SingleVariableDeclaration) (Syntax: 't = (1, null)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, null)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String), IsImplicit) (Syntax: '(1, null)')
@@ -339,9 +335,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var t = (A: 1, B: 2);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (A: 1, B: 2)')
-    Variables: Local_1: (System.Int32 A, System.Int32 B) t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var t = (A: 1, B: 2);')
+  ISingleVariableDeclaration (Symbol: (System.Int32 A, System.Int32 B) t) (OperationKind.SingleVariableDeclaration) (Syntax: 't = (A: 1, B: 2)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (A: 1, B: 2)')
         ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 A, System.Int32 B)) (Syntax: '(A: 1, B: 2)')
@@ -398,9 +393,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int A, int ... t = (1, 2);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, 2)')
-    Variables: Local_1: (System.Int32 A, System.Int32 B) t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int A, int ... t = (1, 2);')
+  ISingleVariableDeclaration (Symbol: (System.Int32 A, System.Int32 B) t) (OperationKind.SingleVariableDeclaration) (Syntax: 't = (1, 2)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, 2)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 A, System.Int32 B), IsImplicit) (Syntax: '(1, 2)')
@@ -473,9 +467,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ... , B: null);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (A: 1, B: null)')
-    Variables: Local_1: (System.Int16, System.String) t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ... , B: null);')
+  ISingleVariableDeclaration (Symbol: (System.Int16, System.String) t) (OperationKind.SingleVariableDeclaration) (Syntax: 't = (A: 1, B: null)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (A: 1, B: null)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(A: 1, B: null)')
@@ -603,9 +596,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ...  C(0), c1);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (new C(0), c1)')
-    Variables: Local_1: (System.Int16, System.String) t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ...  C(0), c1);')
+  ISingleVariableDeclaration (Symbol: (System.Int16, System.String) t) (OperationKind.SingleVariableDeclaration) (Syntax: 't = (new C(0), c1)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (new C(0), c1)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(new C(0), c1)')
@@ -713,9 +705,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C t = (0, null);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (0, null)')
-    Variables: Local_1: C t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C t = (0, null);')
+  ISingleVariableDeclaration (Symbol: C t) (OperationKind.SingleVariableDeclaration) (Syntax: 't = (0, null)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (0, null)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C C.op_Implicit((System.Int32, System.String) x)) (OperationKind.ConversionExpression, Type: C, IsImplicit) (Syntax: '(0, null)')
@@ -810,9 +801,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, string) t = c1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = c1')
-    Variables: Local_1: (System.Int32, System.String) t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, string) t = c1;')
+  ISingleVariableDeclaration (Symbol: (System.Int32, System.String) t) (OperationKind.SingleVariableDeclaration) (Syntax: 't = c1')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= c1')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: (System.Int32, System.String) C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: (System.Int32, System.String), IsImplicit) (Syntax: 'c1')
@@ -931,9 +921,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: '(short, str ...  C(0), c1);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 't = (new C(0), c1)')
-    Variables: Local_1: (System.Int16, System.String) t
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: '(short, str ...  C(0), c1);')
+  ISingleVariableDeclaration (Symbol: (System.Int16, System.String) t) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 't = (new C(0), c1)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (new C(0), c1)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int16, System.String), IsInvalid, IsImplicit) (Syntax: '(new C(0), c1)')

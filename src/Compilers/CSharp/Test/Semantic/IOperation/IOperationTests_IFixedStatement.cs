@@ -35,9 +35,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'fixed(int * ... }')
   Children(2):
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int *p = &i')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p = &i')
-          Variables: Local_1: System.Int32* p
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int *p = &i')
+        ISingleVariableDeclaration (Symbol: System.Int32* p) (OperationKind.SingleVariableDeclaration) (Syntax: 'p = &i')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i')
               IOperation:  (OperationKind.None) (Syntax: '&i')
@@ -106,9 +105,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = &i1, p2 = &i2')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &i1')
-          Variables: Local_1: System.Int32* p1
+      IVariableDeclarationGroup (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = &i1, p2 = &i2')
+        ISingleVariableDeclaration (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration) (Syntax: 'p1 = &i1')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i1')
               IOperation:  (OperationKind.None) (Syntax: '&i1')
@@ -118,8 +116,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
                         IFieldReferenceExpression: System.Int32 C.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i1')
                           Instance Receiver: 
                             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'i1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = &i2')
-          Variables: Local_1: System.Int32* p2
+        ISingleVariableDeclaration (Symbol: System.Int32* p2) (OperationKind.SingleVariableDeclaration) (Syntax: 'p2 = &i2')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i2')
               IOperation:  (OperationKind.None) (Syntax: '&i2')
@@ -183,9 +180,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = &i1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &i1')
-          Variables: Local_1: System.Int32* p1
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = &i1')
+        ISingleVariableDeclaration (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration) (Syntax: 'p1 = &i1')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i1')
               IOperation:  (OperationKind.None) (Syntax: '&i1')
@@ -197,9 +193,8 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
                             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'i1')
       IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
         Children(2):
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p2 = &i2')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = &i2')
-                Variables: Local_1: System.Int32* p2
+            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p2 = &i2')
+              ISingleVariableDeclaration (Symbol: System.Int32* p2) (OperationKind.SingleVariableDeclaration) (Syntax: 'p2 = &i2')
                 Initializer: 
                   IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i2')
                     IOperation:  (OperationKind.None) (Syntax: '&i2')
@@ -258,9 +253,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int* p1 =')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'p1 =')
-          Variables: Local_1: System.Int32* p1
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int* p1 =')
+        ISingleVariableDeclaration (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'p1 =')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '=')
               IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
@@ -313,9 +307,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = &i1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &i1')
-          Variables: Local_1: System.Int32* p1
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = &i1')
+        ISingleVariableDeclaration (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration) (Syntax: 'p1 = &i1')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i1')
               IOperation:  (OperationKind.None) (Syntax: '&i1')

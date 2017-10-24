@@ -1828,8 +1828,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'y = (x, x,  ... ) = new C()')
-  Variables: Local_1: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y
+ISingleVariableDeclaration (Symbol: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y) (OperationKind.SingleVariableDeclaration) (Syntax: 'y = (x, x,  ... ) = new C()')
   Initializer: 
     IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (x, x, x, ... ) = new C()')
       IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)) (Syntax: '(x, x, x, x ... ) = new C()')
@@ -3903,9 +3902,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const (int  ... ) = (1, 2);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '= (1, 2)')
-    Variables: Local_1: (System.Int32 x, System.Int32 y) 
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const (int  ... ) = (1, 2);')
+  ISingleVariableDeclaration (Symbol: (System.Int32 x, System.Int32 y) ) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: '= (1, 2)')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (1, 2)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')

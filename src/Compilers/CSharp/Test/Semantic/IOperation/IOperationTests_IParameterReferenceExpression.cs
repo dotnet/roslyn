@@ -476,8 +476,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p = array')
-  Variables: Local_1: System.Int32* p
+ISingleVariableDeclaration (Symbol: System.Int32* p) (OperationKind.SingleVariableDeclaration) (Syntax: 'p = array')
   Initializer: 
     IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= array')
       IOperation:  (OperationKind.None) (Syntax: 'array')
@@ -576,8 +575,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'y = d[x]')
-  Variables: Local_1: dynamic y
+ISingleVariableDeclaration (Symbol: dynamic y) (OperationKind.SingleVariableDeclaration) (Syntax: 'y = d[x]')
   Initializer: 
     IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= d[x]')
       IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'd[x]')

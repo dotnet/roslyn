@@ -144,9 +144,8 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
   Body: 
     IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value = ++index')
-          Variables: Local_1: System.Int32 value
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
+        ISingleVariableDeclaration (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration) (Syntax: 'value = ++index')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ++index')
               IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
@@ -206,9 +205,8 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
   Body: 
     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value = ++index')
-          Variables: Local_1: System.Int32 value
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
+        ISingleVariableDeclaration (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration) (Syntax: 'value = ++index')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ++index')
               IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
@@ -281,9 +279,8 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
   Body: 
     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value = ++index')
-          Variables: Local_1: System.Int32 value
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
+        ISingleVariableDeclaration (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration) (Syntax: 'value = ++index')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ++index')
               IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
@@ -573,9 +570,8 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement, IsInvalid) (S
   Body: 
     IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value = ++index')
-          Variables: Local_1: System.Int32 value
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
+        ISingleVariableDeclaration (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration) (Syntax: 'value = ++index')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ++index')
               IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
@@ -737,9 +733,8 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
           IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
             Target: 
               ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
-          Variables: Local_1: System.Int32 j
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0;')
+        ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -822,9 +817,8 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
           IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
             Target: 
               ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
-          Variables: Local_1: System.Int32 j
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0;')
+        ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')

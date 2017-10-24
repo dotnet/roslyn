@@ -33,9 +33,8 @@ class C : IDisposable
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
   Resources: 
-    IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c = new C()')
-      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c = new C()')
-        Variables: Local_1: C c
+    IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c = new C()')
+      ISingleVariableDeclaration (Symbol: C c) (OperationKind.SingleVariableDeclaration) (Syntax: 'c = new C()')
         Initializer: 
           IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
             IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
@@ -89,17 +88,15 @@ class C : IDisposable
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (C c1 ... }')
   Resources: 
-    IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C c1 = new  ... 2 = new C()')
-      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
-        Variables: Local_1: C c1
+    IVariableDeclarationGroup (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C c1 = new  ... 2 = new C()')
+      ISingleVariableDeclaration (Symbol: C c1) (OperationKind.SingleVariableDeclaration) (Syntax: 'c1 = new C()')
         Initializer: 
           IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
             IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
               Arguments(0)
               Initializer: 
                 null
-      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2 = new C()')
-        Variables: Local_1: C c2
+      ISingleVariableDeclaration (Symbol: C c2) (OperationKind.SingleVariableDeclaration) (Syntax: 'c2 = new C()')
         Initializer: 
           IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
             IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
@@ -201,9 +198,8 @@ class C : IDisposable
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
   Resources: 
-    IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c1 = new C()')
-      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
-        Variables: Local_1: C c1
+    IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c1 = new C()')
+      ISingleVariableDeclaration (Symbol: C c1) (OperationKind.SingleVariableDeclaration) (Syntax: 'c1 = new C()')
         Initializer: 
           IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
             IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
@@ -213,9 +209,8 @@ IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
   Body: 
     IUsingStatement (OperationKind.UsingStatement) (Syntax: 'using (var  ... }')
       Resources: 
-        IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c2 = new C()')
-          IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2 = new C()')
-            Variables: Local_1: C c2
+        IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c2 = new C()')
+          ISingleVariableDeclaration (Symbol: C c2) (OperationKind.SingleVariableDeclaration) (Syntax: 'c2 = new C()')
             Initializer: 
               IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
                 IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
@@ -336,17 +331,15 @@ class C : IDisposable
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (var  ... }')
   Resources: 
-    IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var c1 = ne ... 2 = new C()')
-      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'c1 = new C()')
-        Variables: Local_1: C c1
+    IVariableDeclarationGroup (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var c1 = ne ... 2 = new C()')
+      ISingleVariableDeclaration (Symbol: C c1) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'c1 = new C()')
         Initializer: 
           IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new C()')
             IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
               Arguments(0)
               Initializer: 
                 null
-      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'c2 = new C()')
-        Variables: Local_1: C c2
+      ISingleVariableDeclaration (Symbol: C c2) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'c2 = new C()')
         Initializer: 
           IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new C()')
             IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
@@ -415,18 +408,16 @@ class C : IDisposable
 IBlockStatement (5 statements, 2 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: C c1
     Local_2: C c2
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c1 = new C();')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
-      Variables: Local_1: C c1
+  IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c1 = new C();')
+    ISingleVariableDeclaration (Symbol: C c1) (OperationKind.SingleVariableDeclaration) (Syntax: 'c1 = new C()')
       Initializer: 
         IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
           IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
             Arguments(0)
             Initializer: 
               null
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c2 = new C();')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c2 = new C()')
-      Variables: Local_1: C c2
+  IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c2 = new C();')
+    ISingleVariableDeclaration (Symbol: C c2) (OperationKind.SingleVariableDeclaration) (Syntax: 'c2 = new C()')
       Initializer: 
         IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
           IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
@@ -512,9 +503,8 @@ class C
             string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (var  ... }')
   Resources: 
-    IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var c1 = new C()')
-      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'c1 = new C()')
-        Variables: Local_1: C c1
+    IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var c1 = new C()')
+      ISingleVariableDeclaration (Symbol: C c1) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'c1 = new C()')
         Initializer: 
           IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new C()')
             IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
@@ -767,9 +757,8 @@ class C : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c = new C()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c = new C()')
-    Variables: Local_1: C c
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var c = new C()')
+  ISingleVariableDeclaration (Symbol: C c) (OperationKind.SingleVariableDeclaration) (Syntax: 'c = new C()')
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
         IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')
@@ -880,8 +869,7 @@ class C : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c1 = new C()')
-  Variables: Local_1: C c1
+ISingleVariableDeclaration (Symbol: C c1) (OperationKind.SingleVariableDeclaration) (Syntax: 'c1 = new C()')
   Initializer: 
     IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C()')
       IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C()')

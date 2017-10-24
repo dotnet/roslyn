@@ -38,9 +38,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -564,9 +563,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int k = 200')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'k = 200')
-          Variables: Local_1: System.Int32 k
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int k = 200')
+        ISingleVariableDeclaration (Symbol: System.Int32 k) (OperationKind.SingleVariableDeclaration) (Syntax: 'k = 200')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 200')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 200) (Syntax: '200')
@@ -658,9 +656,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 10')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 10')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 10')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 10')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 10')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -710,9 +707,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -739,9 +735,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
-                Variables: Local_1: System.Int32 j
+            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
+              ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 0')
                 Initializer: 
                   IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -793,9 +788,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -822,9 +816,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
-                Variables: Local_1: System.Int32 j
+            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
+              ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 0')
                 Initializer: 
                   IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -882,9 +875,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -911,9 +903,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             Right: 
               ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = i + 1')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = i + 1')
-                Variables: Local_1: System.Int32 j
+            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = i + 1')
+              ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = i + 1')
                 Initializer: 
                   IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i + 1')
                     IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
@@ -970,9 +961,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -999,9 +989,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
-                Variables: Local_1: System.Int32 j
+            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
+              ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 0')
                 Initializer: 
                   IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1066,9 +1055,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1095,9 +1083,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 1')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 1')
-                Variables: Local_1: System.Int32 j
+            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 1')
+              ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 1')
                 Initializer: 
                   IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1187,9 +1174,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1216,9 +1202,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
-                Variables: Local_1: System.Int32 j
+            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
+              ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 0')
                 Initializer: 
                   IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1284,9 +1269,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1313,9 +1297,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
-                Variables: Local_1: System.Int32 j
+            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
+              ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 0')
                 Initializer: 
                   IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1363,9 +1346,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1381,9 +1363,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
         Before:
-            IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
-              IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
-                Variables: Local_1: System.Int32 j
+            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0')
+              ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 0')
                 Initializer: 
                   IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1425,14 +1406,12 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0, j = 1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0, j = 1')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 1')
-          Variables: Local_1: System.Int32 j
+        ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 1')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1494,9 +1473,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
           Right: 
             ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1611,9 +1589,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (F 
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'F f = new F ... s = ""abc"" }')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'f = new F { ... s = ""abc"" }')
-          Variables: Local_1: F f
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'F f = new F ... s = ""abc"" }')
+        ISingleVariableDeclaration (Symbol: F f) (OperationKind.SingleVariableDeclaration) (Syntax: 'f = new F { ... s = ""abc"" }')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new F { i ... s = ""abc"" }')
               IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'new F { i = ... s = ""abc"" }')
@@ -1763,9 +1740,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (va
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var i = 1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 1')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var i = 1')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 1')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1818,9 +1794,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (IE
   Condition: 
     null
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'IEnumerable ... select w')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'str = from  ... select w')
-          Variables: Local_1: System.Collections.Generic.IEnumerable<System.String> str
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'IEnumerable ... select w')
+        ISingleVariableDeclaration (Symbol: System.Collections.Generic.IEnumerable<System.String> str) (OperationKind.SingleVariableDeclaration) (Syntax: 'str = from  ... select w')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= from x in ... select w')
               ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x in "" ... select w')
@@ -1967,9 +1942,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2109,9 +2083,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (e 
   Body: 
     IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Func<System.Int32, System.Int32> lambda
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var lambda  ... .Compile();')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'lambda = e.Compile()')
-          Variables: Local_1: System.Func<System.Int32, System.Int32> lambda
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var lambda  ... .Compile();')
+        ISingleVariableDeclaration (Symbol: System.Func<System.Int32, System.Int32> lambda) (OperationKind.SingleVariableDeclaration) (Syntax: 'lambda = e.Compile()')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= e.Compile()')
               IInvocationExpression ( System.Func<System.Int32, System.Int32> System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>.Compile()) (OperationKind.InvocationExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'e.Compile()')
@@ -2168,9 +2141,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 1')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 1')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 1')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 1')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -2207,9 +2179,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
   Body: 
     IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Func<System.Int32, System.Int32> lambda
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var lambda  ... .Compile();')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'lambda = e.Compile()')
-          Variables: Local_1: System.Func<System.Int32, System.Int32> lambda
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var lambda  ... .Compile();')
+        ISingleVariableDeclaration (Symbol: System.Func<System.Int32, System.Int32> lambda) (OperationKind.SingleVariableDeclaration) (Syntax: 'lambda = e.Compile()')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= e.Compile()')
               IInvocationExpression ( System.Func<System.Int32, System.Int32> System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>.Compile()) (OperationKind.InvocationExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'e.Compile()')
@@ -2273,9 +2244,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (C1
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C1 i = new C1()')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = new C1()')
-          Variables: Local_1: C1 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C1 i = new C1()')
+        ISingleVariableDeclaration (Symbol: C1 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = new C1()')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new C1()')
               IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1) (Syntax: 'new C1()')
@@ -2321,9 +2291,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = i++')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = i++')
-          Variables: Local_1: System.Int32 j
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = i++')
+        ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = i++')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i++')
               IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
@@ -2379,9 +2348,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = ++i')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = ++i')
-          Variables: Local_1: System.Int32 j
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = ++i')
+        ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = ++i')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ++i')
               IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
@@ -2437,9 +2405,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2502,9 +2469,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-          Variables: Local_1: System.Int32 i
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2589,14 +2555,12 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100, IsInvalid) (Syntax: '100')
   Before:
-      IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int k = 0, j = 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'k = 0')
-          Variables: Local_1: System.Int32 k
+      IVariableDeclarationGroup (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int k = 0, j = 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 k) (OperationKind.SingleVariableDeclaration) (Syntax: 'k = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
-          Variables: Local_1: System.Int32 j
+        ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2646,9 +2610,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (va
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before:
-      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var j = int ...  i) ? i : 0')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = int.Try ...  i) ? i : 0')
-          Variables: Local_1: System.Int32 j
+      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var j = int ...  i) ? i : 0')
+        ISingleVariableDeclaration (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration) (Syntax: 'j = int.Try ...  i) ? i : 0')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= int.TryPa ...  i) ? i : 0')
               IConditionalExpression (OperationKind.ConditionalExpression, Type: System.Int32) (Syntax: 'int.TryPars ...  i) ? i : 0')
