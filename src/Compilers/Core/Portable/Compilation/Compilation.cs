@@ -2460,14 +2460,10 @@ namespace Microsoft.CodeAnalysis
                     return ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics);
                 };
 
-                Func<Stream> getPortablePdbStream = () =>
-                {
-                    return ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics);
-                };
-
-                if (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null) {
-                    getPortablePdbStream = null;
-                }
+                Func<Stream> getPortablePdbStream =
+                    moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null
+                    ? null
+                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
 
                 try
                 {
