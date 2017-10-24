@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -315,7 +316,10 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             }
 
             words = ApplyCapitalization(words);
-
+            if (CapitalizationScheme == Capitalization.AllUpper && !string.IsNullOrEmpty(WordSeparator))
+            {
+                words = Regex.Split(name, @"(?<!^)(?=[A-Z])");
+            }
             return Prefix + string.Join(WordSeparator, words) + Suffix;
         }
 
