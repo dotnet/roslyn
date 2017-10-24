@@ -2743,6 +2743,7 @@ Done:
                         candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                         GoTo Bailout
                     Else
+                        parameterToArgumentMap(paramIndex) = i
                         paramIndex += 1
                     End If
 
@@ -3063,14 +3064,14 @@ Bailout:
                 Dim argument = If(argIndex = -1, Nothing, arguments(argIndex))
                 Dim defaultArgument As BoundExpression = Nothing
 
-                If argument Is Nothing Then
+                If argument Is Nothing OrElse argument.Kind = BoundKind.OmittedArgument Then
 
                     ' Deal with Optional arguments.
                     If diagnostics Is Nothing Then
                         diagnostics = DiagnosticBag.GetInstance()
                     End If
 
-                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, methodOrPropertyGroup.Syntax, diagnostics, callerInfoOpt)
+                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, diagnostics, callerInfoOpt)
 
                     If defaultArgument IsNot Nothing AndAlso Not diagnostics.HasAnyErrors Then
                         Debug.Assert(Not diagnostics.AsEnumerable().Any())

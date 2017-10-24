@@ -59,13 +59,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return GetChildOfBadExpressionBoundNode([operator].UnderlyingExpression, index)
         End Function
 
-        Friend Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As ImmutableArray(Of IArgument)
+        Friend Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol), invocationWasCompilerGenerated As Boolean) As ImmutableArray(Of IArgument)
             Dim argumentsLength As Integer = boundArguments.Length
             Debug.Assert(argumentsLength = parameters.Length)
 
             Dim arguments As ArrayBuilder(Of IArgument) = ArrayBuilder(Of IArgument).GetInstance(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
-                arguments.Add(DeriveArgument(index, boundArguments(index), parameters))
+                arguments.Add(DeriveArgument(index, boundArguments(index), parameters, invocationWasCompilerGenerated))
             Next
 
             Return arguments.ToImmutableAndFree()
@@ -84,8 +84,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New Conversion(Conversions.Identity)
         End Function
 
-        Private Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As IArgument
-            Dim isImplicit As Boolean = argument.WasCompilerGenerated
+        Private Function DeriveArgument(
+            index As Integer,
+            argument As BoundExpression,
+            parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol),
+            invocationWasCompilerGenerated As Boolean
+        ) As IArgument
+            Dim isImplicit As Boolean = argument.WasCompilerGenerated AndAlso argument.Syntax.Kind <> SyntaxKind.OmittedArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Dim byRefArgument = DirectCast(argument, BoundByRefArgumentWithCopyBack)
@@ -101,20 +106,25 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         isImplicit)
                 Case Else
                     Dim lastParameterIndex = parameters.Length - 1
-                    Dim kind As ArgumentKind
+                    Dim kind As ArgumentKind = ArgumentKind.Explicit
 
-                    If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
-                        ' TODO: figure out if this is true:
-                        '       a compiler generated argument for a ParamArray parameter is created iff
-                        '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
-                        '       https://github.com/dotnet/roslyn/issues/18550
-                        kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
-                    Else
-                        ' TODO: figure our if this is true:
-                        '       a compiler generated argument for an Optional parameter is created iff
-                        '       the argument is omitted from the source
-                        '       https://github.com/dotnet/roslyn/issues/18550
-                        kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
+                    If argument.WasCompilerGenerated AndAlso Not invocationWasCompilerGenerated Then
+
+                        If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
+                            ' TODO: figure out if this is true:
+                            '       a compiler generated argument for a ParamArray parameter is created iff
+                            '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
+                            '       https://github.com/dotnet/roslyn/issues/18550
+                            If argument.Kind = BoundKind.ArrayCreation Then
+                                kind = ArgumentKind.ParamArray
+                            End If
+                        Else
+                            ' TODO: figure our if this is true:
+                            '       a compiler generated argument for an Optional parameter is created iff
+                            '       the argument is omitted from the source
+                            '       https://github.com/dotnet/roslyn/issues/18550
+                            kind = ArgumentKind.DefaultValue
+                        End If
                     End If
 
                     Dim value = Create(argument)
@@ -137,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             isImplicit As Boolean) As IArgument
 
             ' put argument syntax to argument operation
-            Dim argument = TryCast(value.Syntax?.Parent, ArgumentSyntax)
+            Dim argument = If(value.Syntax.Kind = SyntaxKind.OmittedArgument, value.Syntax, TryCast(value.Syntax?.Parent, ArgumentSyntax))
 
             ' if argument syntax doesn't exist, then this operation is implicit
             Return New VisualBasicArgument(
@@ -285,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentExpression(
-                eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=statement.WasCompilerGenerated)
+                eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
         End Function
 
         Private Shared Function IsDelegateCreation(conversionKind As ConversionKind, conversionSyntax As SyntaxNode, operand As BoundNode, targetType As TypeSymbol) As Boolean

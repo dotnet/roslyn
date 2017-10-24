@@ -75,7 +75,7 @@ End Module
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = x + 10')
   Expression: 
-    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid, IsImplicit) (Syntax: 'x = x + 10')
       Left: 
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
       Right: 
@@ -108,7 +108,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
   Expression: 
-    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2) (Syntax: 'x = x + y')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsImplicit) (Syntax: 'x = x + y')
       Left: 
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
       Right: 
@@ -137,7 +137,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = -x')
   Expression: 
-    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = -x')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid, IsImplicit) (Syntax: 'x = -x')
       Left: 
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
       Right: 
@@ -197,7 +197,7 @@ End Module
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
   Expression: 
-    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x += y')
+    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'x += y')
       Left: 
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
       Right: 
@@ -224,7 +224,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b')
   Expression: 
-    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignmentExpression, Type: B2) (Syntax: 'a += b')
+    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignmentExpression, Type: B2, IsImplicit) (Syntax: 'a += b')
       Left: 
         ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'a')
       Right: 
