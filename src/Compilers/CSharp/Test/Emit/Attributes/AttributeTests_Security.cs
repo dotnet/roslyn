@@ -1302,7 +1302,21 @@ namespace N
                     // Verify assembly security attribute for unsafe dll
                     Assert.Equal(1, assemblySecurityAttributes.Count());
                     Cci.SecurityAttribute securityAttribute = assemblySecurityAttributes.Single();
-                    AttributeTests_Synthesized.VerifySkipVerificationSecurityAttribute(securityAttribute, compilation);
+                    var securityPermissionsAttribute = (CSharpAttributeData)securityAttribute.Attribute;
+
+                    Assert.Equal(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityPermissionAttribute), securityPermissionsAttribute.AttributeClass);
+                    Assert.Equal(compilation.GetWellKnownTypeMember(WellKnownMember.System_Security_Permissions_SecurityPermissionAttribute__ctor), securityPermissionsAttribute.AttributeConstructor);
+
+                    var assemblyAttributeArgument = securityPermissionsAttribute.CommonConstructorArguments.Single();
+                    Assert.Equal(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction), assemblyAttributeArgument.Type);
+                    Assert.Equal(DeclarativeSecurityAction.RequestMinimum, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.RequestMinimum, (DeclarativeSecurityAction)(int)assemblyAttributeArgument.Value);
+
+                    var assemblyAttributeNamedArgument = securityPermissionsAttribute.CommonNamedArguments.Single();
+                    Assert.Equal("SkipVerification", assemblyAttributeNamedArgument.Key);
+                    var assemblyAttributeNamedArgumentValue = assemblyAttributeNamedArgument.Value;
+                    Assert.Equal(compilation.GetSpecialType(SpecialType.System_Boolean), assemblyAttributeNamedArgumentValue.Type);
+                    Assert.Equal(true, assemblyAttributeNamedArgumentValue.Value);
 
                     // Get System.Security.Permissions.PrincipalPermissionAttribute
                     var emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "PrincipalPermissionAttribute");

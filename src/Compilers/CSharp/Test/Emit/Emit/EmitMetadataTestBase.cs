@@ -98,37 +98,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             using (var metadata = ModuleMetadata.CreateFromImage(compilation.EmitToArray()))
             {
-                var metadataReader = metadata.Module.GetMetadataReader();
-
-                Assert.Equal(expectedEntries.Length, metadataReader.DeclarativeSecurityAttributes.Count);
-
-                var actualEntries = new List<DeclSecurityEntry>(expectedEntries.Length);
-
-                int i = 0;
-                foreach (var actualHandle in metadataReader.DeclarativeSecurityAttributes)
-                {
-                    var actual = metadataReader.GetDeclarativeSecurityAttribute(actualHandle);
-                    var expected = expectedEntries[i];
-
-                    var actualPermissionSetBytes = metadataReader.GetBlobBytes(actual.PermissionSet);
-                    var actualPermissionSet = new string(actualPermissionSetBytes.Select(b => (char)b).ToArray());
-                    string actualParentName;
-                    SymbolKind actualParentKind;
-                    GetAttributeParentNameAndKind(metadataReader, actual.Parent, out actualParentName, out actualParentKind);
-
-                    actualEntries.Add(new DeclSecurityEntry()
-                    {
-                        ActionFlags = actual.Action,
-                        ParentNameOpt = actualParentName,
-                        PermissionSet = actualPermissionSet,
-                        ParentKind = actualParentKind
-                    });
-
-                    i++;
-                }
-
-                AssertEx.SetEqual(actualEntries, expectedEntries);
+                ValidateDeclSecurity(metadata.Module.GetMetadataReader(), expectedEntries);
             }
+        }
+
+        /// <summary>
+        /// Validate the contents of the DeclSecurity metadata table.
+        /// </summary>
+        internal static void ValidateDeclSecurity(MetadataReader metadataReader, params DeclSecurityEntry[] expectedEntries)
+        {
+            Assert.Equal(expectedEntries.Length, metadataReader.DeclarativeSecurityAttributes.Count);
+
+            var actualEntries = new List<DeclSecurityEntry>(expectedEntries.Length);
+
+            int i = 0;
+            foreach (var actualHandle in metadataReader.DeclarativeSecurityAttributes)
+            {
+                var actual = metadataReader.GetDeclarativeSecurityAttribute(actualHandle);
+                var expected = expectedEntries[i];
+
+                var actualPermissionSetBytes = metadataReader.GetBlobBytes(actual.PermissionSet);
+                var actualPermissionSet = new string(actualPermissionSetBytes.Select(b => (char)b).ToArray());
+                string actualParentName;
+                SymbolKind actualParentKind;
+                GetAttributeParentNameAndKind(metadataReader, actual.Parent, out actualParentName, out actualParentKind);
+
+                actualEntries.Add(new DeclSecurityEntry()
+                {
+                    ActionFlags = actual.Action,
+                    ParentNameOpt = actualParentName,
+                    PermissionSet = actualPermissionSet,
+                    ParentKind = actualParentKind
+                });
+
+                i++;
+            }
+
+            AssertEx.SetEqual(actualEntries, expectedEntries);
         }
 
         private static void GetAttributeParentNameAndKind(MetadataReader metadataReader, EntityHandle token, out string name, out SymbolKind kind)
