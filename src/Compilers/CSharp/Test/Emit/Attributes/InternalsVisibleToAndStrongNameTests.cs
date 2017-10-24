@@ -1390,7 +1390,8 @@ public class C {}";
                 .WithCryptoKeyFile(s_keyPairFile);
             var emitOptions = EmitOptions.Default.WithOutputNameOverride("a.dll");
 
-            ImmutableArray<byte> EmitAndGetPublicKey(StrongNameProvider provider) {
+            ImmutableArray<byte> EmitAndGetPublicKey(StrongNameProvider provider)
+            {
                 var options = commonOptions.WithStrongNameProvider(s_defaultPortableProvider);
                 var compilation = CreateStandardCompilation(s, options: options);
                 var stream = compilation.EmitToStream(emitOptions);
