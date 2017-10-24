@@ -163,13 +163,13 @@ class B2 : A<object?>
 @"public interface I<T>
 {
 }
-public class A : I<object>
+public class A : I<(object X, object Y)>
 {
 }
-public class B : I<object?>
+public class B : I<(object X, object? Y)>
 {
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("I`1");
@@ -179,17 +179,12 @@ public class B : I<object?>
                 AssertNoNullableAttribute(type.GetAttributes());
                 type = module.ContainingAssembly.GetTypeByMetadataName("B");
                 AssertNoNullableAttribute(type.Interfaces.Single().GetAttributes());
-                // No [Nullable] attribute on 'B' but there should be a [Nullable]
-                // attribute on the interfaceimpl.
+                // No [Nullable] or [TupleElementNames] attributes on 'B' but
+                // there should be attributes on the interfaceimpl.
                 AssertNoNullableAttribute(type.GetAttributes());
             });
-            var image = comp.EmitToArray();
-            using (var reader = new PEReader(image))
-            {
-                var metadataReader = reader.GetMetadataReader();
-                var attributes = metadataReader.GetCustomAttributeRows().Select(metadataReader.GetCustomAttributeName).ToArray();
-                Assert.True(attributes.Contains("NullableAttribute"));
-            }
+            AssertAttribute(comp, "NullableAttribute");
+            AssertAttribute(comp, "TupleElementNamesAttribute");
             var source2 =
 @"class C
 {
@@ -276,7 +271,25 @@ public class B : I<object?>
         }
 
         [Fact]
-        public void EmitAttribute_OperatorType()
+        public void EmitAttribute_PropertyParameters()
+        {
+            var source =
+@"public class C
+{
+    public object this[object x, object? y] => throw new System.NotImplementedException();
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                var property = (PropertySymbol)type.GetMembers("this[]").Single();
+                AssertNoNullableAttribute(property.Parameters[0].GetAttributes());
+                AssertNullableAttribute(property.Parameters[1].GetAttributes());
+            });
+        }
+
+        [Fact]
+        public void EmitAttribute_OperatorReturnType()
         {
             var source =
 @"public class C
@@ -305,24 +318,8 @@ public class B : I<object?>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("C");
                 var method = (MethodSymbol)type.GetMembers("op_Addition").Single();
+                AssertNoNullableAttribute(method.Parameters[0].GetAttributes());
                 AssertNullableAttribute(method.Parameters[1].GetAttributes());
-            });
-        }
-
-        [Fact]
-        public void EmitAttribute_PropertyParameters()
-        {
-            var source =
-@"public class C
-{
-    public object this[object x, object? y] => null;
-}";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                var property = (PropertySymbol)type.GetMembers("this[]").Single();
-                AssertNullableAttribute(property.Parameters[1].GetAttributes());
             });
         }
 
@@ -352,6 +349,392 @@ public class B : I<object?>
             });
         }
 
+        [Fact]
+        public void EmitAttribute_LambdaReturnType()
+        {
+            var source =
+@"delegate T D<T>();
+class C
+{
+    static void F<T>(D<T> d)
+    {
+    }
+    static void G(object o)
+    {
+        F(() =>
+        {
+            if (o != new object()) return o;
+            return null;
+        });
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Use AssertNullableAttribute(method.GetReturnTypeAttributes()). 
+            AssertAttribute(comp);
+        }
+
+        [Fact]
+        public void EmitAttribute_LambdaParameters()
+        {
+            var source =
+@"delegate void D<T>(T t);
+class C
+{
+    static void F<T>(D<T> d)
+    {
+    }
+    static void G()
+    {
+        F((object? o) => { });
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Use AssertNullableAttribute(method.Parameters[0].GetAttributes()). 
+            AssertAttribute(comp);
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunctionReturnType()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        object?[] L() => throw new System.NotImplementedException();
+        L();
+    }
+}";
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular8,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("C").GetMethod("<M>g__L|0_0");
+                    AssertNullableAttribute(method.GetReturnTypeAttributes());
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunctionParameters()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        void L(object? x, object y) { }
+        L(null, 2);
+    }
+}";
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular8,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("C").GetMethod("<M>g__L|0_0");
+                    AssertNullableAttribute(method.Parameters[0].GetAttributes());
+                    AssertNoNullableAttribute(method.Parameters[1].GetAttributes());
+                });
+        }
+
+        [Fact]
+        public void UseSiteError_LambdaReturnType()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct IntPtr { }
+    public class MulticastDelegate { }
+}";
+            var comp0 = CreateCompilation(source0);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"delegate T D<T>();
+class C
+{
+    static void F<T>(D<T> d)
+    {
+    }
+    static void G(object o)
+    {
+        F(() =>
+        {
+            if (o != new object()) return o;
+            return null;
+        });
+    }
+}";
+            var comp = CreateCompilation(
+                source,
+                references: new[] { ref0 },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_BaseClass()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B : A<object?>
+{
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (4,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // class B : A<object?>
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 7));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes: Synthesize [Nullable] for interface
+        // implementations. See TypeSymbolExtensions.GetTypeRefWithAttributes.
+        [Fact(Skip = "TODO")]
+        public void ModuleMissingAttribute_Interface()
+        {
+            var source =
+@"interface I<T>
+{
+}
+class C : I<(object X, object? Y)>
+{
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            comp.VerifyEmitDiagnostics(
+                // (4,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // class C : I<(object X, object? Y)>
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 7));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_MethodReturnType()
+        {
+            var source =
+@"class C
+{
+    object? F() => null;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     object? F() => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 5));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_MethodParameters()
+        {
+            var source =
+@"class C
+{
+    void F(object?[] c) { }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     void F(object?[] c) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?[] c").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 12));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_ConstructorParameters()
+        {
+            var source =
+@"class C
+{
+    C(object?[] c) { }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (3,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     C(object?[] c) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?[] c").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 7));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_PropertyType()
+        {
+            var source =
+@"class C
+{
+    object? P => null;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     object? P => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 5));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_PropertyParameters()
+        {
+            var source =
+@"class C
+{
+    object this[object x, object? y] => throw new System.NotImplementedException();
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (3,27): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     object this[object x, object? y] => throw new System.NotImplementedException();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object? y").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 27));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_OperatorReturnType()
+        {
+            var source =
+@"class C
+{
+    public static object? operator+(C a, C b) => null;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (3,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     public static object? operator+(C a, C b) => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 19));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_OperatorParameters()
+        {
+            var source =
+@"class C
+{
+    public static object operator+(C a, object?[] b) => a;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (3,41): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     public static object operator+(C a, object?[] b) => a;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?[] b").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 41));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_DelegateReturnType()
+        {
+            var source =
+@"delegate object? D();";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (1,10): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // delegate object? D();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 10));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_DelegateParameters()
+        {
+            var source =
+@"delegate void D(object?[] o);";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (1,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // delegate void D(object?[] o);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?[] o").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 17));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_LambdaReturnType()
+        {
+            var source =
+@"delegate T D<T>();
+class C
+{
+    static void F<T>(D<T> d)
+    {
+    }
+    static void G(object o)
+    {
+        F(() =>
+        {
+            if (o != new object()) return o;
+            return null;
+        });
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (9,14): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         F(() =>
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=>").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(9, 14));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_LambdaParameters()
+        {
+            var source =
+@"delegate void D<T>(T t);
+class C
+{
+    static void F<T>(D<T> d)
+    {
+    }
+    static void G()
+    {
+        F((object? o) => { });
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (9,12): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         F((object? o) => { });
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object? o").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(9, 12));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_LocalFunctionReturnType()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        object?[] L() => throw new System.NotImplementedException();
+        L();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (5,24): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         void L(object? x, object y) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(5, 24));
+        }
+
+        [Fact]
+        public void ModuleMissingAttribute_LocalFunctionParameters()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        void L(object? x, object y) { }
+        L(null, 2);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         void L(object? x, object y) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object? x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(5, 16)
+        }
+
         private static void AssertNoNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
             Assert.Equal(0, attributes.Length);
@@ -361,6 +744,17 @@ public class B : I<object?>
         {
             var attributeType = attributes.Single().AttributeClass;
             Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", attributeType.ToTestDisplayString());
+        }
+
+        private static void AssertAttribute(CSharpCompilation comp, string attributeName = "NullableAttribute")
+        {
+            var image = comp.EmitToArray();
+            using (var reader = new PEReader(image))
+            {
+                var metadataReader = reader.GetMetadataReader();
+                var attributes = metadataReader.GetCustomAttributeRows().Select(metadataReader.GetCustomAttributeName).ToArray();
+                Assert.True(attributes.Contains(attributeName));
+            }
         }
     }
 }

@@ -645,6 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool IsManagedType { get; }
 
+        // PROTOTYPE(NullableReferenceTypes): Implement with VisitType extension method.
         internal abstract bool ContainsNullableReferenceTypes();
 
         internal abstract void AddNullableTransforms(ArrayBuilder<bool> transforms);

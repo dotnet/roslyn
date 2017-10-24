@@ -505,7 +505,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
-            this.EnsureNullableAttributeExistsIfNecessary(this.Type, diagnostics);
+            if (this.Type.ContainsNullableReferenceTypes())
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, ErrorLocation, modifyCompilation: true);
+            }
         }
 
         internal sealed override bool HasSpecialName

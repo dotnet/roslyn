@@ -973,11 +973,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes,
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
-
-            if (type.ContainsNullableReferenceTypes())
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
-            }
         }
 
         internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)

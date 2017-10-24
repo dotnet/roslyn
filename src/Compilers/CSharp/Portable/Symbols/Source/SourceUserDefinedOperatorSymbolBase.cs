@@ -649,10 +649,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-            this.EnsureNullableAttributeExistsIfNecessary(ReturnType, diagnostics);
-            ParameterHelpers.EnsureNullableAttributeExistsIfNecessary(Parameters, diagnostics);
+            if (ReturnType.ContainsNullableReferenceTypes())
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, ReturnTypeSyntax.Location, modifyCompilation: true);
+            }
+            ParameterHelpers.EnsureNullableAttributeExistsIfNecessary(Parameters, diagnostics, modifyCompilation: true);
         }
     }
 }

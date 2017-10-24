@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _needsGeneratedIsByRefLikeAttribute_Value;
         private bool _needsGeneratedNullableAttribute_Value;
 
-        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
-        private bool _needsGeneratedIsByRefLikeAttribute_IsFrozen;
-        private bool _needsGeneratedNullableAttribute_IsFrozen;
+        private bool _needsGeneratedAttributes_IsFrozen;
 
         /// <summary>
         /// Returns a value indicating whether this compilation has a member that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
+                _needsGeneratedAttributes_IsFrozen = true;
                 return _needsGeneratedIsReadOnlyAttribute_Value;
             }
         }
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                _needsGeneratedIsByRefLikeAttribute_IsFrozen = true;
+                _needsGeneratedAttributes_IsFrozen = true;
                 return _needsGeneratedIsByRefLikeAttribute_Value;
             }
         }
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                _needsGeneratedNullableAttribute_IsFrozen = true;
+                _needsGeneratedAttributes_IsFrozen = true;
                 return _needsGeneratedNullableAttribute_Value;
             }
         }
@@ -462,37 +460,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
-        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForRefReadOnly)
+        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            Debug.Assert(!modifyCompilationForRefReadOnly || !_needsGeneratedIsReadOnlyAttribute_IsFrozen);
+            Debug.Assert(!modifyCompilation || !_needsGeneratedAttributes_IsFrozen);
 
             var isNeeded = CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnostics, location);
 
-            if (isNeeded && modifyCompilationForRefReadOnly)
+            if (isNeeded && modifyCompilation)
             {
                 _needsGeneratedIsReadOnlyAttribute_Value = true;
             }
         }
 
-        internal void EnsureIsByRefLikeAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForIsByRefLike)
+        internal void EnsureIsByRefLikeAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            Debug.Assert(!modifyCompilationForIsByRefLike || !_needsGeneratedIsByRefLikeAttribute_IsFrozen);
+            Debug.Assert(!modifyCompilation || !_needsGeneratedAttributes_IsFrozen);
 
             var isNeeded = CheckIfIsByRefLikeAttributeShouldBeEmbedded(diagnostics, location);
 
-            if (isNeeded && modifyCompilationForIsByRefLike)
+            if (isNeeded && modifyCompilation)
             {
                 _needsGeneratedIsByRefLikeAttribute_Value = true;
             }
         }
 
-        internal void EnsureNullableAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForNullable)
+        internal void EnsureNullableAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
-            Debug.Assert(!modifyCompilationForNullable || !_needsGeneratedNullableAttribute_IsFrozen);
+            Debug.Assert(!modifyCompilation || !_needsGeneratedAttributes_IsFrozen);
 
             var isNeeded = CheckIfNullableAttributeShouldBeEmbedded(diagnostics, location);
 
-            if (isNeeded && modifyCompilationForNullable)
+            if (isNeeded && modifyCompilation)
             {
                 _needsGeneratedNullableAttribute_Value = true;
             }

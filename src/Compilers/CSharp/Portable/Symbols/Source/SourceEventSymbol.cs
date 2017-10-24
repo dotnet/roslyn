@@ -682,7 +682,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             this.CheckModifiersAndType(diagnostics);
             this.Type.CheckAllConstraints(conversions, this.Locations[0], diagnostics);
-            this.EnsureNullableAttributeExistsIfNecessary(this.Type, diagnostics);
+
+            if (this.Type.ContainsNullableReferenceTypes())
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, this.Locations[0], modifyCompilation: true);
+            }
         }
     }
 }

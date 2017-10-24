@@ -1161,6 +1161,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
+
+            var type = this.ReturnType;
+            if (type.ContainsNullableReferenceTypes())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
+            }
         }
 
         IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] arguments)

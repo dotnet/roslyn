@@ -156,8 +156,9 @@ namespace Roslyn.Test.Utilities
             switch (token.Kind)
             {
                 case HandleKind.TypeReference:
-                    var typeRef = reader.GetTypeReference((TypeReferenceHandle)token);
-                    return typeRef.Name;
+                    return reader.GetTypeReference((TypeReferenceHandle)token).Name;
+                case HandleKind.TypeDefinition:
+                    return reader.GetTypeDefinition((TypeDefinitionHandle)token).Name;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(token.Kind);
             }
@@ -174,8 +175,20 @@ namespace Roslyn.Test.Utilities
 
         public static string GetCustomAttributeName(this MetadataReader reader, CustomAttributeRow row)
         {
-            var constructor = reader.GetMemberReference((MemberReferenceHandle)row.ConstructorToken);
-            var strHandle = reader.GetName(constructor.Parent);
+            EntityHandle parent;
+            var token = row.ConstructorToken;
+            switch (token.Kind)
+            {
+                case HandleKind.MemberReference:
+                    parent = reader.GetMemberReference((MemberReferenceHandle)token).Parent;
+                    break;
+                case HandleKind.MethodDefinition:
+                    parent = reader.GetMethodDefinition((MethodDefinitionHandle)token).GetDeclaringType();
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(token.Kind);
+            }
+            var strHandle = reader.GetName(parent);
             return reader.GetString(strHandle);
         }
 

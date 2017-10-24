@@ -42,19 +42,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
+        private bool _needsGeneratedNullableAttribute_Value;
 
-        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
+        private bool _needsGeneratedAttributes_IsFrozen;
 
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
         /// The value is set during lowering the symbols that need that attribute, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
-        internal bool NeedsGeneratedIsReadOnlyAttribute
+        protected bool NeedsGeneratedIsReadOnlyAttribute
         {
             get
             {
-                _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
+                _needsGeneratedAttributes_IsFrozen = true;
                 return Compilation.NeedsGeneratedIsReadOnlyAttribute || _needsGeneratedIsReadOnlyAttribute_Value;
             }
         }
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsByRefLikeAttribute to be generated during emit phase.
         /// </summary>
-        internal bool NeedsGeneratedIsByRefLikeAttribute
+        protected bool NeedsGeneratedIsByRefLikeAttribute
         {
             get
             {
@@ -70,11 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal bool NeedsGeneratedNullableAttribute
+        protected bool NeedsGeneratedNullableAttribute
         {
             get
             {
-                return Compilation.NeedsGeneratedNullableAttribute;
+                _needsGeneratedAttributes_IsFrozen = true;
+                return Compilation.NeedsGeneratedNullableAttribute || _needsGeneratedNullableAttribute_Value;
             }
         }
 
@@ -1532,6 +1534,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal void EnsureIsReadOnlyAttributeExists()
         {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
             if (_needsGeneratedIsReadOnlyAttribute_Value || Compilation.NeedsGeneratedIsReadOnlyAttribute)
             {
                 return;
@@ -1540,8 +1544,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Don't report any errors. They should be reported during binding.
             if (Compilation.CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
             {
-                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
                 _needsGeneratedIsReadOnlyAttribute_Value = true;
+            }
+        }
+
+        internal void EnsureNullableAttributeExists()
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
+            if (_needsGeneratedNullableAttribute_Value || Compilation.NeedsGeneratedNullableAttribute)
+            {
+                return;
+            }
+
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfNullableAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            {
+                _needsGeneratedNullableAttribute_Value = true;
             }
         }
     }

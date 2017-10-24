@@ -708,6 +708,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
+            Location GetTypeLocation() => CSharpSyntaxNode.Type.Location;
+
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // property name location for any such errors. We'll do the same for return
             // type errors but for parameter errors, we'll use the parameter location.
@@ -721,13 +723,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, CSharpSyntaxNode.Type.Location, modifyCompilationForRefReadOnly: true);
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetTypeLocation(), modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-            this.EnsureNullableAttributeExistsIfNecessary(this.Type, diagnostics);
-            ParameterHelpers.EnsureNullableAttributeExistsIfNecessary(this.Parameters, diagnostics);
+            if (this.Type.ContainsNullableReferenceTypes())
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, GetTypeLocation(), modifyCompilation: true);
+            }
+
+            ParameterHelpers.EnsureNullableAttributeExistsIfNecessary(this.Parameters, diagnostics, modifyCompilation: true);
         }
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)

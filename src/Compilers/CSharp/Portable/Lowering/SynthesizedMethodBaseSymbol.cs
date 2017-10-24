@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameters = this.BaseMethodParameters;
             foreach (var p in parameters)
             {
-                builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type.TypeSymbol), ordinal++, p.RefKind, p.Name));
+                builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type), ordinal++, p.RefKind, p.Name));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
-        internal static void EnsureIsReadOnlyAttributeExists(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilationForRefReadOnly)
+        internal static void EnsureIsReadOnlyAttributeExists(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
         {
             foreach (var parameter in parameters)
             {
@@ -126,16 +126,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // These parameters might not come from a compilation (example: lambdas evaluated in EE).
                     // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
-                    parameter.DeclaringCompilation?.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilationForRefReadOnly);
+                    parameter.DeclaringCompilation?.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
                 }
             }
         }
 
-        internal static void EnsureNullableAttributeExistsIfNecessary(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        internal static void EnsureNullableAttributeExistsIfNecessary(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
         {
             foreach (var parameter in parameters)
             {
-                parameter.EnsureNullableAttributeExistsIfNecessary(parameter.Type, diagnostics);
+                if (parameter.Type.ContainsNullableReferenceTypes())
+                {
+                    parameter.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                }
             }
         }
 
