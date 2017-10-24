@@ -1015,7 +1015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' and put the initializer on the BoundAsNewDeclaration. The local declarations are marked as initialized by the as-new.
                     Dim var0 As BoundLocalDeclaration = locals(0)
                     Dim asNewInitializer = var0.InitializerOpt
-                    locals(0) = var0.Update(var0.LocalSymbol, Nothing, True)
+                    locals(0) = var0.Update(var0.LocalSymbol, Nothing, True, var0.ArrayCreationOpt)
 #If DEBUG Then
                     For i = 0 To names.Count - 1
                         Debug.Assert(locals(i).InitializedByAsNew)
@@ -1069,6 +1069,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim valueExpression As BoundExpression = Nothing
             Dim declType As TypeSymbol = Nothing
             Dim boundArrayBounds As ImmutableArray(Of BoundExpression) = Nothing
+            Dim boundArrayCreation As BoundArrayCreation = Nothing
 
             If name.ArrayBounds IsNot Nothing Then
                 ' So as not to trigger order of simple name binding checks, must bind array bounds before initializer.
@@ -1195,6 +1196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If name.ArrayBounds IsNot Nothing Then
                 ' It is an error to have both array bounds and an initializer expression
+                boundArrayCreation = New BoundArrayCreation(name, boundArrayBounds, Nothing, type)
                 If valueExpression IsNot Nothing Then
                     If Not isInitializedByAsNew Then
                         ReportDiagnostic(diagnostics, name, ERRID.ERR_InitWithExplicitArraySizes)
@@ -1203,7 +1205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(valueExpression.Kind = BoundKind.BadExpression)
                     End If
                 Else
-                    valueExpression = New BoundArrayCreation(name, boundArrayBounds, Nothing, type)
+                    valueExpression = boundArrayCreation
                 End If
             End If
 
@@ -1224,7 +1226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return New BoundLocalDeclaration(name, symbol, valueExpression, isInitializedByAsNew)
+            Return New BoundLocalDeclaration(name, symbol, valueExpression, isInitializedByAsNew, boundArrayCreation)
         End Function
 
         ''' <summary>

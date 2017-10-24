@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundLocalDeclaration
 
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, initializerOpt As BoundExpression)
-            MyClass.New(syntax, localSymbol, initializerOpt, False, False)
+            MyClass.New(syntax, localSymbol, initializerOpt, False, Nothing, False)
         End Sub
 
 #If DEBUG Then
