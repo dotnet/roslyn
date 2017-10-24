@@ -6,23 +6,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     internal static class OperationFactory
     {
-        public static IVariableDeclaration CreateVariableDeclaration(ILocalSymbol variable, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax)
-        {
-            return CreateVariableDeclaration(ImmutableArray.Create(variable), initializer, semanticModel, syntax);
-        }
-
-        public static VariableDeclaration CreateVariableDeclaration(ImmutableArray<ILocalSymbol> variables, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax)
-        {
-            return new VariableDeclaration(
-                variables,
-                initializer,
-                semanticModel,
-                syntax,
-                type: null,
-                constantValue: default(Optional<object>),
-                isImplicit: false); // variable declaration is always explicit
-        }
-
         public static IVariableInitializer CreateVariableInitializer(SyntaxNode syntax, IOperation initializerValue, SemanticModel semanticModel, bool isImplicit)
         {
             return new VariableInitializer(initializerValue, semanticModel, syntax, type: null, constantValue: default, isImplicit: isImplicit);

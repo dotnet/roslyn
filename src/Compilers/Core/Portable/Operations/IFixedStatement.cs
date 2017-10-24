@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Variables to be fixed.
         /// </summary>
-        IVariableDeclarationStatement Variables { get; }
+        IVariableDeclarationGroup Variables { get; }
         /// <summary>
         /// Body of the fixed, over which the variables are fixed.
         /// </summary>

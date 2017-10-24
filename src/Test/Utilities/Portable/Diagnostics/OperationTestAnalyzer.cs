@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     var declarationStatement = (IVariableDeclarationStatement)operationContext.Operation;
+                     var declarationStatement = (IVariableDeclarationGroup)operationContext.Operation;
                      if (declarationStatement.GetDeclaredVariables().Count() > 3)
                      {
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      {
                          if (decl.Initializer != null && !decl.Initializer.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                          {
-                             foreach (var symbol in decl.Variables)
+                             foreach (var symbol in decl.GetDeclaredVariables())
                              {
                                  Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
                              }

@@ -387,23 +387,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitBlockStatement(operation);
         }
 
-        public override void VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
+        public override void VisitVariableDeclarationGroup(IVariableDeclarationGroup operation)
         {
             var variablesCountStr = $"{operation.Declarations.Length} declarations";
-            LogString($"{nameof(IVariableDeclarationStatement)} ({variablesCountStr})");
+            LogString($"{nameof(IVariableDeclarationGroup)} ({variablesCountStr})");
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitVariableDeclarationStatement(operation);
+            base.VisitVariableDeclarationGroup(operation);
         }
 
-        public override void VisitVariableDeclaration(IVariableDeclaration operation)
+        public override void VisitSingleVariableDeclaration(ISingleVariableDeclaration operation)
         {
-            var symbolsCountStr = $"{operation.Variables.Length} variables";
-            LogString($"{nameof(IVariableDeclaration)} ({symbolsCountStr})");
+            LogString($"{nameof(ISingleVariableDeclaration)} (");
+            LogSymbol(operation.Symbol, "Symbol");
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            LogLocals(operation.Variables, header: "Variables");
+            Visit(operation.Initializer, "Initializer");
+        }
 
+        public override void VisitMultiVariableDeclaration(IMultiVariableDeclaration operation)
+        {
+            var variableCount = operation.Declarations.Length;
+            LogString($"{nameof(IMultiVariableDeclaration)} ({variableCount} declarations)");
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Declarations, "Declarations", false);
             Visit(operation.Initializer, "Initializer");
         }
 

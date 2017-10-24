@@ -5152,7 +5152,7 @@ IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.Conve
             public static SyntaxNode ReturnStatementSelector(SyntaxNode syntaxNode) => ((ReturnStatementSyntax)syntaxNode).Expression;
 
             public static IOperation IVariableDeclarationStatementSelector(IOperation operation) =>
-                ((IVariableDeclarationStatement)operation).Declarations.Single().Initializer;
+                ((IVariableDeclarationGroup)operation).Declarations.Single().Initializer;
 
             public static IOperation IVariableDeclarationSelector(IOperation operation) =>
                 ((IVariableDeclaration)operation).Initializer.Value;
@@ -5235,7 +5235,7 @@ IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.Conve
 
                 switch (operation)
                 {
-                    case IVariableDeclarationStatement _:
+                    case IVariableDeclarationGroup _:
                         return IVariableDeclarationStatementSelector(operation);
                     case IVariableDeclaration _:
                         return IVariableDeclarationSelector(operation);

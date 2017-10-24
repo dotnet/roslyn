@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Gets all the declared local variables in the given <paramref name="declarationStatement"/>.
         /// </summary>
         /// <param name="declarationStatement">Variable declaration statement</param>
-        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationStatement declarationStatement)
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationGroup declarationStatement)
         {
             if (declarationStatement == null)
             {
@@ -109,10 +109,31 @@ namespace Microsoft.CodeAnalysis.Semantics
             var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
             foreach (IVariableDeclaration group in declarationStatement.Declarations)
             {
-                foreach (ILocalSymbol symbol in group.Variables)
-                {
-                    arrayBuilder.Add(symbol);
-                }
+                arrayBuilder.AddRange(group.GetDeclaredVariables());
+            }
+
+            return arrayBuilder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclaration declaration)
+        {
+            if (declaration == null)
+            {
+                throw new ArgumentNullException(nameof(declaration));
+            }
+
+            var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
+            switch (declaration.Kind)
+            {
+                case OperationKind.SingleVariableDeclaration:
+                    arrayBuilder.Add(((ISingleVariableDeclaration)declaration).Symbol);
+                    break;
+                case OperationKind.MultiVariableDeclaration:
+                    foreach (var decl in ((IMultiVariableDeclaration)declaration).Declarations)
+                    {
+                        arrayBuilder.Add(decl.Symbol);
+                    }
+                    break;
             }
 
             return arrayBuilder.ToImmutableAndFree();

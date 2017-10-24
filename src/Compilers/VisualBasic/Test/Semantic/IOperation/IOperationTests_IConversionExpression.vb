@@ -2389,7 +2389,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByt
 
             Dim verifier = New ExpectedSymbolVerifier(operationSelector:=
                                                         Function(operation As IOperation) As IConversionExpression
-                                                            Dim initializer As IVariableInitializer = DirectCast(operation, IVariableDeclarationStatement).Declarations.Single().Initializer
+                                                            Dim initializer As IVariableInitializer = DirectCast(operation, IVariableDeclarationGroup).Declarations.Single().Initializer
                                                             Dim initializerValue As IOperation = initializer.Value
                                                             Return DirectCast(initializerValue, IInvalidExpression).Children.Cast(Of IConversionExpression).Single()
                                                         End Function)
@@ -2833,7 +2833,7 @@ BC36755: 'Action(Of Object)' cannot be converted to 'Action(Of Integer)' because
                 Else
                     Select Case operation.Kind
                         Case OperationKind.VariableDeclarationStatement
-                            Return DirectCast(operation, IVariableDeclarationStatement).Declarations.Single().Initializer.Value
+                            Return DirectCast(operation, IVariableDeclarationGroup).Declarations.Single().Initializer.Value
                         Case OperationKind.ReturnStatement
                             Return DirectCast(operation, IReturnStatement).ReturnedValue
                         Case Else

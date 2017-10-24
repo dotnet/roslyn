@@ -1154,7 +1154,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     If boundCatchBlock.LocalOpt IsNot Nothing AndAlso
                         boundCatchBlock.ExceptionSourceOpt?.Kind = BoundKind.Local AndAlso
                         boundCatchBlock.LocalOpt Is DirectCast(boundCatchBlock.ExceptionSourceOpt, BoundLocal).LocalSymbol Then
-                        Return OperationFactory.CreateVariableDeclaration(boundCatchBlock.LocalOpt, initializer:=Nothing, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax)
+                        Return New SingleVariableDeclaration(boundCatchBlock.LocalOpt, initializer:=Nothing, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=False)
                     Else
                         Return Create(boundCatchBlock.ExceptionSourceOpt)
                     End If
@@ -1251,7 +1251,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyWhileLoopStatement(condition, body, locals, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationStatement
+        Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationGroup
             Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclaration)) = New Lazy(Of ImmutableArray(Of IVariableDeclaration))(Function() GetVariableDeclarationStatementVariables(boundDimStatement.LocalDeclarations))
             Dim syntax As SyntaxNode = boundDimStatement.Syntax
             Dim type As ITypeSymbol = Nothing

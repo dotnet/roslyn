@@ -232,21 +232,43 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclaration)
+            ' Group the declarations by their VariableDeclaratorSyntaxes. The issue we're compensating for here is that the
+            ' the declarations that are BoundLocalDeclaration nodes have a ModifiedIdentifierSyntax as their syntax nodes,
+            ' not a VariableDeclaratorSyntax. We want to group BoundLocalDeclarations by their parent VariableDeclaratorSyntax
+            ' nodes, and deduplicate based on that. As an example:
+            '
+            ' Dim x, y = 1
+            '
+            ' This is an error scenario, but if we just use the BoundLocalDeclaration.Syntax.Parent directly, without deduplicating,
+            ' we'll end up with two ISingleVariableDeclarations that have the same syntax node. So, we group by VariableDeclaratorSyntax
+            ' to put x and y in the same IMutliVariableDeclaration
+            Dim groupedDeclarations = declarations.GroupBy(Function(declaration)
+                                                               If declaration.Kind = BoundKind.LocalDeclaration AndAlso
+                                                                  declaration.Syntax.IsKind(SyntaxKind.ModifiedIdentifier) Then
+                                                                   Debug.Assert(declaration.Syntax.Parent.IsKind(SyntaxKind.VariableDeclarator))
+                                                                   Return declaration.Syntax.Parent
+                                                               Else
+                                                                   Return declaration.Syntax
+                                                               End If
+                                                           End Function)
+
             Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
-            For Each base In declarations
-                If base.Kind = BoundKind.LocalDeclaration Then
-                    Dim declaration = DirectCast(base, BoundLocalDeclaration)
-                    Dim initializer As IVariableInitializer = Nothing
-                    If declaration.InitializerOpt IsNot Nothing Then
-                        Debug.Assert(TypeOf declaration.Syntax Is ModifiedIdentifierSyntax)
-                        Dim initializerValue As IOperation = Create(declaration.InitializerOpt)
-                        Dim variableDeclaratorSyntax = TryCast(declaration.Syntax.Parent, VariableDeclaratorSyntax)
-                        Dim initializerSyntax As SyntaxNode = Nothing
-                        If variableDeclaratorSyntax IsNot Nothing Then
-                            initializerSyntax = If(declaration.InitializedByAsNew,
-                                DirectCast(variableDeclaratorSyntax.AsClause, SyntaxNode),
-                                variableDeclaratorSyntax.Initializer)
-                        End If
+            For Each declarationGroup In groupedDeclarations
+                Dim first = declarationGroup.First()
+                Dim singleDeclarations As ImmutableArray(Of ISingleVariableDeclaration) = Nothing
+                Dim initializer As IVariableInitializer = Nothing
+                If first.Kind = BoundKind.LocalDeclaration Then
+                    singleDeclarations = declarationGroup.Cast(Of BoundLocalDeclaration).SelectAsArray(AddressOf GetSingleVariableDeclaration)
+
+                    ' The initializer we use for this group is the initializer attached to the last declaration in this declarator, as that's
+                    ' where it will be parsed in an error case.
+                    ' Initializer is only created if it's not the array initializer for the variable. That initializer is the initializer
+                    ' of the SingleVariableDeclaration child.
+                    Dim last = DirectCast(declarationGroup.Last(), BoundLocalDeclaration)
+                    If last.InitializerOpt IsNot Nothing AndAlso last.InitializerOpt IsNot last.ArrayCreationOpt Then
+                        Debug.Assert(TypeOf last.Syntax Is ModifiedIdentifierSyntax)
+                        Dim initializerValue As IOperation = Create(last.InitializerOpt)
+                        Dim initializerSyntax As SyntaxNode = DirectCast(last.Syntax.Parent, VariableDeclaratorSyntax).Initializer
 
                         Dim isImplicit As Boolean = False
                         If initializerSyntax Is Nothing Then
@@ -256,21 +278,42 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         End If
                         initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit)
                     End If
-                    builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, initializer, _semanticModel, declaration.Syntax))
-                ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
-                    Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
-                    Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
+                ElseIf first.Kind = BoundKind.AsNewLocalDeclarations Then
+                    Dim asNewDeclarations = DirectCast(first, BoundAsNewLocalDeclarations)
+                    singleDeclarations = asNewDeclarations.LocalDeclarations.SelectAsArray(AddressOf GetSingleVariableDeclaration)
                     Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
                     Dim initializerValue As IOperation = Create(asNewDeclarations.Initializer)
-                    Dim initializer As IVariableInitializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit:=False)
-                    builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, initializer, _semanticModel, asNewDeclarations.Syntax))
+                    initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit:=False)
                 End If
+
+                builder.Add(New MultiVariableDeclaration(singleDeclarations,
+                                                         initializer,
+                                                         _semanticModel,
+                                                         declarationGroup.Key,
+                                                         type:=Nothing,
+                                                         constantValue:=Nothing,
+                                                         isImplicit:=False))
             Next
 
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationStatement
+        Private Function GetSingleVariableDeclaration(boundLocalDeclaration As BoundLocalDeclaration) As ISingleVariableDeclaration
+            Dim initializer As Lazy(Of IVariableInitializer) = New Lazy(Of IVariableInitializer)(
+                Function()
+                    If boundLocalDeclaration.ArrayCreationOpt IsNot Nothing Then
+                        Dim arrayBoundsSyntax = DirectCast(boundLocalDeclaration.Syntax, ModifiedIdentifierSyntax).ArrayBounds
+                        Dim initializerValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLocalDeclaration.ArrayCreationOpt))
+                        Return New LazyVariableInitializer(initializerValue, _semanticModel, arrayBoundsSyntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+                    Else
+                        Return Nothing
+                    End If
+                End Function)
+
+            Return New LazySingleVariableDeclaration(boundLocalDeclaration.LocalSymbol, initializer, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
+        End Function
+
+        Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationGroup
             Return New VariableDeclarationStatement(
                             GetVariableDeclarationStatementVariables(resourceList),
                             _semanticModel,

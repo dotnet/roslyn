@@ -55,19 +55,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitBlockStatement(operation);
         }
 
-        public override void VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
+        public override void VisitVariableDeclarationGroup(IVariableDeclarationGroup operation)
         {
-            base.VisitVariableDeclarationStatement(operation);
+            base.VisitVariableDeclarationGroup(operation);
         }
 
-        public override void VisitVariableDeclaration(IVariableDeclaration operation)
+        public override void VisitSingleVariableDeclaration(ISingleVariableDeclaration operation)
         {
-            foreach (var symbol in operation.Variables)
-            {
-                // empty loop body, just want to make sure it won't crash.
-            }
+            var symbol = operation.Symbol;
 
-            base.VisitVariableDeclaration(operation);
+            base.VisitSingleVariableDeclaration(operation);
+        }
+
+        public override void VisitMultiVariableDeclaration(IMultiVariableDeclaration operation)
+        {
+            base.VisitMultiVariableDeclaration(operation);
         }
 
         public override void VisitSwitchStatement(ISwitchStatement operation)

@@ -1424,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IFixedStatement CreateBoundFixedStatementOperation(BoundFixedStatement boundFixedStatement)
         {
-            Lazy<IVariableDeclarationStatement> variables = new Lazy<IVariableDeclarationStatement>(() => (IVariableDeclarationStatement)Create(boundFixedStatement.Declarations));
+            Lazy<IVariableDeclarationGroup> variables = new Lazy<IVariableDeclarationGroup>(() => (IVariableDeclarationGroup)Create(boundFixedStatement.Declarations));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundFixedStatement.Body));
             SyntaxNode syntax = boundFixedStatement.Syntax;
             ITypeSymbol type = null;
@@ -1548,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyVariableDeclarationStatement(declarations, _semanticModel, varStatement, type, constantValue, isImplicit);
         }
 
-        private IVariableDeclarationStatement CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
+        private IVariableDeclarationGroup CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
         {
             Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() =>
                 boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration => (IVariableDeclaration)CreateVariableDeclaration(declaration)));

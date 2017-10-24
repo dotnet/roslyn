@@ -30,12 +30,17 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
+        public virtual void VisitVariableDeclarationGroup(IVariableDeclarationGroup operation)
         {
             DefaultVisit(operation);
         }
 
-        public virtual void VisitVariableDeclaration(IVariableDeclaration operation)
+        public virtual void VisitSingleVariableDeclaration(ISingleVariableDeclaration operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitMultiVariableDeclaration(IMultiVariableDeclaration operation)
         {
             DefaultVisit(operation);
         }
@@ -504,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
-        
+
         public virtual void VisitRaiseEventStatement(IRaiseEventStatement operation)
         {
             DefaultVisit(operation);
@@ -545,12 +550,17 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitVariableDeclarationStatement(IVariableDeclarationStatement operation, TArgument argument)
+        public virtual TResult VisitVariableDeclarationGroup(IVariableDeclarationGroup operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitVariableDeclaration(IVariableDeclaration operation, TArgument argument)
+        public virtual TResult VisitSingleVariableDeclaration(ISingleVariableDeclaration operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitMultiVariableDeclaration(IMultiVariableDeclaration operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -1019,10 +1029,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return DefaultVisit(operation, argument);
         }
-        
+
         public virtual TResult VisitRaiseEventStatement(IRaiseEventStatement operation, TArgument argument)
         {
-            return DefaultVisit(operation, argument); 
+            return DefaultVisit(operation, argument);
         }
     }
 }

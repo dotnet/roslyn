@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         InvalidStatement = 0x1,
         /// <summary>Indicates an <see cref="IBlockStatement"/>.</summary>
         BlockStatement = 0x2,
-        /// <summary>Indicates an <see cref="IVariableDeclarationStatement"/>.</summary>
+        /// <summary>Indicates an <see cref="IVariableDeclarationGroup"/>.</summary>
         VariableDeclarationStatement = 0x3,
         /// <summary>Indicates an <see cref="ISwitchStatement"/>.</summary>
         SwitchStatement = 0x4,
@@ -210,8 +210,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IArrayInitializer"/>.</summary>
         ArrayInitializer = 0x405,
 
-        /// <summary>Indicates an <see cref="IVariableDeclaration"/>.</summary>
-        VariableDeclaration = 0x406,
+        // Unused 0x406
 
         /// <summary>Indicates an <see cref="IArgument"/>.</summary>
         Argument = 0x407,
@@ -233,5 +232,10 @@ namespace Microsoft.CodeAnalysis
         ConstantPattern = 0x40d,
         /// <summary>Indicates an <see cref="IDeclarationPattern"/>.</summary>
         DeclarationPattern = 0x40e,
+
+        /// <summary>Indicates an <see cref="ISingleVariableDeclaration"/>.</summary>
+        SingleVariableDeclaration = 0x40f,
+        /// <summary>Indicates an <see cref="IMultiVariableDeclaration"/>.</summary>
+        MultiVariableDeclaration = 0x410
     }
 }

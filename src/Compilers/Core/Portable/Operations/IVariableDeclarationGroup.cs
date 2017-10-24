@@ -5,17 +5,22 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a local variable declaration.
+    /// Represents a local variable declaration statement.
     /// </summary>
+    /// <para>
+    /// Current Usage:
+    ///   (1) C# Local declaration statement
+    ///   (2) VB Dim statement
+    /// </para>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IVariableDeclaration : IOperation
+    public interface IVariableDeclarationGroup : IOperation
     {
         /// <summary>
-        /// Optional initializer of the variable.
+        /// Variables declared by the statement.
         /// </summary>
-        IVariableInitializer Initializer { get; }
+        ImmutableArray<IVariableDeclaration> Declarations { get; }
     }
 }

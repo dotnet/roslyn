@@ -1904,7 +1904,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
         }
 
-        protected abstract IVariableDeclarationStatement VariablesImpl { get; }
+        protected abstract IVariableDeclarationGroup VariablesImpl { get; }
         protected abstract IOperation BodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -1923,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Variables to be fixed.
         /// </summary>
-        public IVariableDeclarationStatement Variables => Operation.SetParentOperation(VariablesImpl, this);
+        public IVariableDeclarationGroup Variables => Operation.SetParentOperation(VariablesImpl, this);
         /// <summary>
         /// Body of the fixed, over which the variables are fixed.
         /// </summary>
@@ -1943,14 +1943,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class FixedStatement : BaseFixedStatement, IFixedStatement
     {
-        public FixedStatement(IVariableDeclarationStatement variables, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public FixedStatement(IVariableDeclarationGroup variables, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             VariablesImpl = variables;
             BodyImpl = body;
         }
 
-        protected override IVariableDeclarationStatement VariablesImpl { get; }
+        protected override IVariableDeclarationGroup VariablesImpl { get; }
         protected override IOperation BodyImpl { get; }
     }
 
@@ -1959,16 +1959,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyFixedStatement : BaseFixedStatement, IFixedStatement
     {
-        private readonly Lazy<IVariableDeclarationStatement> _lazyVariables;
+        private readonly Lazy<IVariableDeclarationGroup> _lazyVariables;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyFixedStatement(Lazy<IVariableDeclarationStatement> variables, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyFixedStatement(Lazy<IVariableDeclarationGroup> variables, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyVariables = variables ?? throw new System.ArgumentNullException(nameof(variables));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        protected override IVariableDeclarationStatement VariablesImpl => _lazyVariables.Value;
+        protected override IVariableDeclarationGroup VariablesImpl => _lazyVariables.Value;
 
         protected override IOperation BodyImpl => _lazyBody.Value;
     }
@@ -5568,17 +5568,28 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseVariableDeclaration : Operation, IVariableDeclaration
     {
-        protected BaseVariableDeclaration(ImmutableArray<ILocalSymbol> variables, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.VariableDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseVariableDeclaration(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Variables = variables;
         }
-        /// <summary>
-        /// Symbols declared by the declaration. In VB, it's possible to declare multiple variables with the
-        /// same initializer. In C#, this will always have a single symbol.
-        /// </summary>
-        public ImmutableArray<ILocalSymbol> Variables { get; }
         protected abstract IVariableInitializer InitializerImpl { get; }
+
+        /// <summary>
+        /// Optional initializer of the variable.
+        /// </summary>
+        public IVariableInitializer Initializer => Operation.SetParentOperation(InitializerImpl, this);
+    }
+
+    internal abstract partial class BaseSingleVariableDeclaration : BaseVariableDeclaration, ISingleVariableDeclaration
+    {
+        protected BaseSingleVariableDeclaration(ILocalSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.SingleVariableDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Symbol = symbol;
+        }
+
+        public ILocalSymbol Symbol { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -5590,27 +5601,24 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
 
-        /// <summary>
-        /// Optional initializer of the variable.
-        /// </summary>
-        public IVariableInitializer Initializer => Operation.SetParentOperation(InitializerImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitVariableDeclaration(this);
+            visitor.VisitSingleVariableDeclaration(this);
         }
+
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitVariableDeclaration(this, argument);
+            return visitor.VisitSingleVariableDeclaration(this, argument);
         }
     }
 
     /// <summary>
     /// Represents a local variable declaration.
     /// </summary>
-    internal sealed partial class VariableDeclaration : BaseVariableDeclaration, IVariableDeclaration
+    internal sealed partial class SingleVariableDeclaration : BaseSingleVariableDeclaration
     {
-        public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(variables, semanticModel, syntax, type, constantValue, isImplicit)
+        public SingleVariableDeclaration(ILocalSymbol symbol, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InitializerImpl = initializer;
         }
@@ -5621,11 +5629,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration.
     /// </summary>
-    internal sealed partial class LazyVariableDeclaration : BaseVariableDeclaration, IVariableDeclaration
+    internal sealed partial class LazySingleVariableDeclaration : BaseSingleVariableDeclaration
     {
         private readonly Lazy<IVariableInitializer> _lazyInitializer;
 
-        public LazyVariableDeclaration(ImmutableArray<ILocalSymbol> variables, Lazy<IVariableInitializer> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(variables, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySingleVariableDeclaration(ILocalSymbol symbol, Lazy<IVariableInitializer> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
@@ -5633,10 +5642,77 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected override IVariableInitializer InitializerImpl => _lazyInitializer.Value;
     }
 
+    internal abstract partial class BaseMultiVariableDeclaration : BaseVariableDeclaration, IMultiVariableDeclaration
+    {
+        protected BaseMultiVariableDeclaration(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.MultiVariableDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
+        public ImmutableArray<ISingleVariableDeclaration> Declarations => Operation.SetParentOperation(DeclarationsImpl, this);
+        protected abstract ImmutableArray<ISingleVariableDeclaration> DeclarationsImpl { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var declaration in Declarations)
+                {
+                    yield return declaration;
+                }
+
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitMultiVariableDeclaration(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitMultiVariableDeclaration(this, argument);
+        }
+    }
+
+    internal partial class MultiVariableDeclaration : BaseMultiVariableDeclaration
+    {
+        public MultiVariableDeclaration(ImmutableArray<ISingleVariableDeclaration> declarations, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            DeclarationsImpl = declarations;
+            InitializerImpl = initializer;
+        }
+
+        protected override ImmutableArray<ISingleVariableDeclaration> DeclarationsImpl { get; }
+
+        protected override IVariableInitializer InitializerImpl { get; }
+    }
+
+    internal partial class LazyMultiVariableDeclaration : BaseMultiVariableDeclaration
+    {
+        private readonly Lazy<ImmutableArray<ISingleVariableDeclaration>> _lazyDeclarations;
+        private readonly Lazy<IVariableInitializer> _lazyInitializer;
+
+        public LazyMultiVariableDeclaration(Lazy<ImmutableArray<ISingleVariableDeclaration>> declarations, Lazy<IVariableInitializer> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyDeclarations = declarations;
+            _lazyInitializer = initializer;
+        }
+
+        protected override ImmutableArray<ISingleVariableDeclaration> DeclarationsImpl => _lazyDeclarations.Value;
+
+        protected override IVariableInitializer InitializerImpl => _lazyInitializer.Value;
+    }
+
     /// <summary>
     /// Represents a local variable declaration statement.
     /// </summary>
-    internal abstract partial class BaseVariableDeclarationStatement : Operation, IVariableDeclarationStatement
+    internal abstract partial class BaseVariableDeclarationStatement : Operation, IVariableDeclarationGroup
     {
         protected BaseVariableDeclarationStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.VariableDeclarationStatement, semanticModel, syntax, type, constantValue, isImplicit)
@@ -5663,18 +5739,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ImmutableArray<IVariableDeclaration> Declarations => Operation.SetParentOperation(DeclarationsImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitVariableDeclarationStatement(this);
+            visitor.VisitVariableDeclarationGroup(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitVariableDeclarationStatement(this, argument);
+            return visitor.VisitVariableDeclarationGroup(this, argument);
         }
     }
 
     /// <summary>
     /// Represents a local variable declaration statement.
     /// </summary>
-    internal sealed partial class VariableDeclarationStatement : BaseVariableDeclarationStatement, IVariableDeclarationStatement
+    internal sealed partial class VariableDeclarationStatement : BaseVariableDeclarationStatement, IVariableDeclarationGroup
     {
         public VariableDeclarationStatement(ImmutableArray<IVariableDeclaration> declarations, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
@@ -5688,7 +5764,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration statement.
     /// </summary>
-    internal sealed partial class LazyVariableDeclarationStatement : BaseVariableDeclarationStatement, IVariableDeclarationStatement
+    internal sealed partial class LazyVariableDeclarationStatement : BaseVariableDeclarationStatement, IVariableDeclarationGroup
     {
         private readonly Lazy<ImmutableArray<IVariableDeclaration>> _lazyDeclarations;
 

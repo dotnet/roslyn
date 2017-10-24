@@ -39,14 +39,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new BlockStatement(VisitArray(operation.Statements), operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitVariableDeclarationStatement(IVariableDeclarationStatement operation, object argument)
+        public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroup operation, object argument)
         {
             return new VariableDeclarationStatement(VisitArray(operation.Declarations), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitVariableDeclaration(IVariableDeclaration operation, object argument)
+        public override IOperation VisitSingleVariableDeclaration(ISingleVariableDeclaration operation, object argument)
         {
-            return new VariableDeclaration(operation.Variables, Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new SingleVariableDeclaration(operation.Symbol, Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitMultiVariableDeclaration(IMultiVariableDeclaration operation, object argument)
+        {
+            return new MultiVariableDeclaration(VisitArray(operation.Declarations), Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSwitchStatement(ISwitchStatement operation, object argument)

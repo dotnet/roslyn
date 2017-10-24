@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         IVariableInitializer initializer = (IVariableInitializer)operationContext.Operation;
                                         if (initializer.Parent is IVariableDeclaration variableDeclaration)
                                         {
-                                            foreach (ILocalSymbol local in variableDeclaration.Variables)
+                                            foreach (ILocalSymbol local in variableDeclaration.GetDeclaredVariables())
                                             {
                                                 AssignTo(local, local.Type, localsSourceTypes, initializer.Value);
                                             }

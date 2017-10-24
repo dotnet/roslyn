@@ -383,7 +383,7 @@ class Program
             var variableDeclaration = syntaxTree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var lambdaSyntax = (LambdaExpressionSyntax)variableDeclaration.Declaration.Variables.Single().Initializer.Value;
 
-            var variableDeclarationOperation = (IVariableDeclarationStatement)semanticModel.GetOperationInternal(variableDeclaration);
+            var variableDeclarationOperation = (IVariableDeclarationGroup)semanticModel.GetOperationInternal(variableDeclaration);
             var variableTreeLambdaOperation = (IAnonymousFunctionExpression)variableDeclarationOperation.Declarations.Single().Initializer.Value;
             var lambdaOperation = (IAnonymousFunctionExpression)semanticModel.GetOperationInternal(lambdaSyntax);
 
@@ -391,7 +391,7 @@ class Program
             // return the same bound node.
             Assert.Same(variableTreeLambdaOperation, lambdaOperation);
 
-            var variableDeclarationOperationSecondRequest = (IVariableDeclarationStatement)semanticModel.GetOperationInternal(variableDeclaration);
+            var variableDeclarationOperationSecondRequest = (IVariableDeclarationGroup)semanticModel.GetOperationInternal(variableDeclaration);
             var variableTreeLambdaOperationSecondRequest = (IAnonymousFunctionExpression)variableDeclarationOperation.Declarations.Single().Initializer.Value;
             var lambdaOperationSecondRequest = (IAnonymousFunctionExpression)semanticModel.GetOperationInternal(lambdaSyntax);
 

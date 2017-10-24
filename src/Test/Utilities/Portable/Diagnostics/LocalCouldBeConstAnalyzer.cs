@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         operationBlockContext.RegisterOperationAction(
                             (operationContext) =>
                             {
-                                IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
+                                IVariableDeclarationGroup declaration = (IVariableDeclarationGroup)operationContext.Operation;
                                 foreach (IVariableDeclaration variable in declaration.Declarations)
                                 {
-                                    foreach (ILocalSymbol local in variable.Variables)
+                                    foreach (ILocalSymbol local in variable.GetDeclaredVariables())
                                     {
                                         if (!local.IsConst && !assignedToLocals.Contains(local))
                                         {
