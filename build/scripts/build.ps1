@@ -129,10 +129,6 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
         $args += " /bl:$logFile"
     }
 
-    if ($cibuild) { 
-        $args += " /p:PathMap=`"$($repoDir)=q:\roslyn`" /p:Feature=pdb-path-determinism" 
-    }
-
     if ($official) {
         $args += " /p:OfficialBuild=true"
     }

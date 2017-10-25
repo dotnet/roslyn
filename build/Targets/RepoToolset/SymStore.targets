@@ -1,5 +1,10 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project>
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
   <PropertyGroup>
     <_DeployToSymStoreTargetName Condition="'$(TargetFrameworks)' == ''">_InnerDeployToSymStore</_DeployToSymStoreTargetName>
     <_DeployToSymStoreTargetName Condition="'$(TargetFrameworks)' != ''">_OuterDeployToSymStore</_DeployToSymStoreTargetName>
@@ -23,7 +28,7 @@
     <PropertyGroup>
       <_TargetPdbPath />
       <_TargetPdbPath Condition="'$(DebugType)' != 'embedded'">$([System.IO.Path]::ChangeExtension($(TargetPath), '.pdb'))</_TargetPdbPath>
-      
+
       <_SymStoreOutputDir>$(ArtifactsSymStoreDirectory)$(MSBuildProjectName)\$(TargetFramework)\</_SymStoreOutputDir>
       <_SymStorePdbPath>$(_SymStoreOutputDir)$(TargetName).pdb</_SymStorePdbPath>
       <_SymStoreAssemblyPath>$(_SymStoreOutputDir)$(TargetName)$(TargetExt)</_SymStoreAssemblyPath>
@@ -35,6 +40,7 @@
   <!-- 
     Convert Portable and Embedded PDBs. 
     We publish converted PDBs to Symbol Store so that WinDBG can find them when debugging crash dumps.
+    Convert source link to srcsvr so that both WinDBG and VS can open the source files.
   -->
   <Target Name="_DeployPortableSymbolsToSymStore"
           AfterTargets="_InnerDeployToSymStore"
@@ -47,7 +53,7 @@
       <_PdbConverterCommandLineArgs>"$(TargetPath)" /out "$(_SymStorePdbPath)" /verbose</_PdbConverterCommandLineArgs>
     </PropertyGroup>
 
-    <Error Text="Attempt to publish Portable PDB to SymStore without conversion -- UsingToolPdbConverter property is false in project $(MSBuildProjectName)"
+    <Error Text="Attempt to publish Portable PDB to SymStore without conversion: UsingToolPdbConverter property is false in project $(MSBuildProjectName)"
            Condition="'$(UsingToolPdbConverter)' != 'true'"
            ContinueOnError="false"/>
 
