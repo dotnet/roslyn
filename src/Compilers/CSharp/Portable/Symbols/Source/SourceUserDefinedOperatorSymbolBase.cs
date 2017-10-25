@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, ReturnTypeSyntax.Location, modifyCompilation: true);
             }
-            ParameterHelpers.EnsureNullableAttributeExistsIfNecessary(Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
         }
     }
 }

@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, GetTypeLocation(), modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureNullableAttributeExistsIfNecessary(this.Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureNullableAttributeExists(this.Parameters, diagnostics, modifyCompilation: true);
         }
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)

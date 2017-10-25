@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
             }
 
-            ParameterHelpers.EnsureNullableAttributeExistsIfNecessary(lambdaSymbol.Parameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureNullableAttributeExists(lambdaSymbol.Parameters, diagnostics, modifyCompilation: false);
 
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 
