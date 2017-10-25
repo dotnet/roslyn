@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -312,6 +313,14 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             if (!string.IsNullOrEmpty(WordSeparator))
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
+            }
+
+            if (CapitalizationScheme == Capitalization.AllUpper && !string.IsNullOrEmpty(WordSeparator))
+            {
+                if (words.Count() == 1) // Only Split if words have not been split before 
+                {
+                    words = Regex.Split(name, @"(?<!^)(?=[A-Z])");
+                }
             }
 
             words = ApplyCapitalization(words);
