@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents an operation with two operands and a binary operator that produces a result with the same type as at least one of the operands.
+    /// Represents an operation with two operands and a binary operator that produces a result with a non-null type.
     /// <para>
     /// Current usage:
     ///  (1) C# binary operator expression.

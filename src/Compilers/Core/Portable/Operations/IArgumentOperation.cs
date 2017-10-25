@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>
     /// Current usage:
     ///  (1) C# argument to an invocation expression, object creation expression, etc.
-    ///  (2) VB arguments to an invocation expression, object creation expression, etc.
+    ///  (2) VB argument to an invocation expression, object creation expression, etc.
     /// </para>
     /// </summary>
     /// <remarks>

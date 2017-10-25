@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>
     /// Current usage:
     ///  (1) C# field initializer with equals value clause.
-    ///  (2) VB field(s) initializer with equals value clause or AsNew clause. Multiple fields can be iniatialized with AsNew clause in VB.
+    ///  (2) VB field(s) initializer with equals value clause or AsNew clause. Multiple fields can be initialized with AsNew clause in VB.
     /// </para>
     /// </summary>
     /// <remarks>
