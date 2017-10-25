@@ -314,10 +314,15 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
             }
-            if(CapitalizationScheme == Capitalization.AllLower && !string.IsNullOrEmpty(WordSeparator))
+
+            if (CapitalizationScheme == Capitalization.AllLower && !string.IsNullOrEmpty(WordSeparator))
             {
-                words = Regex.Split(name, @"(?<!^)(?=[A-Z])");
+                if (words.Count() == 1) // Only Split if words have not been split before 
+                {
+                    words = Regex.Split(name, @"(?<!^)(?=[A-Z])");
+                }
             }
+
             words = ApplyCapitalization(words);
 
             return Prefix + string.Join(WordSeparator, words) + Suffix;
