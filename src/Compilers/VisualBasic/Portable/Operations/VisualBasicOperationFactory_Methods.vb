@@ -268,10 +268,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     If last.InitializerOpt IsNot Nothing AndAlso last.InitializerOpt IsNot last.ArrayCreationOpt Then
                         Debug.Assert(TypeOf last.Syntax Is ModifiedIdentifierSyntax)
                         Dim initializerValue As IOperation = Create(last.InitializerOpt)
-                        Dim initializerSyntax As SyntaxNode = DirectCast(last.Syntax.Parent, VariableDeclaratorSyntax).Initializer
+                        Dim declaratorSyntax = DirectCast(last.Syntax.Parent, VariableDeclaratorSyntax)
+                        Dim initializerSyntax As SyntaxNode = declaratorSyntax.Initializer
 
+                        ' As New clauses with a single variable are bound as BoundLocalDeclarations, so adjust appropriately
                         Dim isImplicit As Boolean = False
-                        If initializerSyntax Is Nothing Then
+                        If initializerSyntax Is Nothing AndAlso
+                           declaratorSyntax.AsClause IsNot Nothing AndAlso
+                           declaratorSyntax.AsClause.IsKind(SyntaxKind.AsNewClause) Then
+                            initializerSyntax = declaratorSyntax.AsClause
+                        ElseIf initializerSyntax Is Nothing Then
                             ' There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
                             initializerSyntax = initializerValue.Syntax
                             isImplicit = True
