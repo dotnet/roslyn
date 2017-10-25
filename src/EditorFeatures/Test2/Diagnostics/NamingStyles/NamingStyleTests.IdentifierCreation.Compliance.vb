@@ -258,6 +258,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.AllUpper)
             TestNameCompliance(namingStyle, "私AB23CのDE家")
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestAllUpperWithWordSeperation()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.AllUpper)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "ThisIsMyMethod", "THIS_IS_MY_METHOD")
+        End Sub
+
 #End Region
 
 #Region "alllower"
@@ -307,6 +314,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Public Sub TestAllLowerAllowsUncasedCharacters()
             Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.AllLower)
             TestNameCompliance(namingStyle, "私ab23cのde家")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestAllLowerWithWordSeperation()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.AllLower)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "ThisIsMyMethod", "this_is_my_method")
         End Sub
 #End Region
     End Class
