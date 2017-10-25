@@ -416,10 +416,12 @@ class C
             string expectedOperationTree = @"
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: '((string[])c)[x]')
   Array reference: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: System.String[] C.op_Explicit(C c)) (OperationKind.ConversionExpression, Type: System.String[]) (Syntax: '(string[])c')
-      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String[] C.op_Explicit(C c))
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.String[]) (Syntax: '((string[])c)')
       Operand: 
-        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+        IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: System.String[] C.op_Explicit(C c)) (OperationKind.ConversionExpression, Type: System.String[]) (Syntax: '(string[])c')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String[] C.op_Explicit(C c))
+          Operand: 
+            IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   Indices(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";

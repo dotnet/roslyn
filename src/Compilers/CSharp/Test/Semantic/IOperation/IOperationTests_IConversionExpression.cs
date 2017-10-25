@@ -4056,8 +4056,10 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid
       IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I2, IsInvalid) (Syntax: '(I2)()')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-            Children(0)
+          IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null, IsInvalid) (Syntax: '()')
+            Operand: 
+              IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ')'

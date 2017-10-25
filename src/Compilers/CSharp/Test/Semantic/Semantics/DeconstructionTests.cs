@@ -885,10 +885,12 @@ class C
             string expectedOperationTree = @"
 IInvocationExpression (virtual System.String (System.Int32, System.String).ToString()) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: '((int, stri ... .ToString()')
   Instance Receiver: 
-    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.String), IsInvalid) (Syntax: '(int, string)')
-      Elements(2):
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'int')
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'string')
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: (System.Int32, System.String), IsInvalid) (Syntax: '((int, string))')
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.String), IsInvalid) (Syntax: '(int, string)')
+          Elements(2):
+              IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'int')
+              IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'string')
   Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -2118,14 +2120,16 @@ class C
             string expectedOperationTree = @"
 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '(var(x, y)) ... reate(1, 2)')
   Left: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'var(x, y)')
-      Children(3):
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'var')
-            Children(0)
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
-            Children(0)
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y')
-            Children(0)
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid) (Syntax: '(var(x, y))')
+      Operand: 
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'var(x, y)')
+          Children(3):
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'var')
+                Children(0)
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
+                Children(0)
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y')
+                Children(0)
   Right: 
     IInvocationExpression (Pair<System.Int32, System.Int32> Pair.Create<System.Int32, System.Int32>(System.Int32 item1, System.Int32 item2)) (OperationKind.InvocationExpression, Type: Pair<System.Int32, System.Int32>) (Syntax: 'Pair.Create(1, 2)')
       Instance Receiver: 

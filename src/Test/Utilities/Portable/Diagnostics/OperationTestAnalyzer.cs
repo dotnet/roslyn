@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      var addressOfOperation = (IAddressOfExpression)operationContext.Operation;
                      operationContext.ReportDiagnostic(Diagnostic.Create(AddressOfDescriptor, addressOfOperation.Syntax.GetLocation()));
 
-                     if (addressOfOperation.Reference.Kind == OperationKind.InvalidExpression && addressOfOperation.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
+                     if (addressOfOperation.Reference.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(InvalidAddressOfReferenceDescriptor, addressOfOperation.Reference.Syntax.GetLocation()));
                      }

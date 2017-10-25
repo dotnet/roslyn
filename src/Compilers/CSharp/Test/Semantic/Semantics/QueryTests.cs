@@ -1250,23 +1250,25 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                               ReturnedValue: 
                                 IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(x + y / 10 ...  / 100) < 6')
                                   Left: 
-                                    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y / 10 + z / 100')
-                                      Left: 
-                                        IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y / 10')
+                                    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(x + y / 10 + z / 100)')
+                                      Operand: 
+                                        IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y / 10 + z / 100')
                                           Left: 
-                                            IOperation:  (OperationKind.None) (Syntax: 'x')
-                                          Right: 
-                                            IBinaryOperatorExpression (BinaryOperatorKind.Divide) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'y / 10')
+                                            IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y / 10')
                                               Left: 
-                                                IOperation:  (OperationKind.None) (Syntax: 'y')
+                                                IOperation:  (OperationKind.None) (Syntax: 'x')
                                               Right: 
-                                                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-                                      Right: 
-                                        IBinaryOperatorExpression (BinaryOperatorKind.Divide) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'z / 100')
-                                          Left: 
-                                            IOperation:  (OperationKind.None) (Syntax: 'z')
+                                                IBinaryOperatorExpression (BinaryOperatorKind.Divide) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'y / 10')
+                                                  Left: 
+                                                    IOperation:  (OperationKind.None) (Syntax: 'y')
+                                                  Right: 
+                                                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
                                           Right: 
-                                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
+                                            IBinaryOperatorExpression (BinaryOperatorKind.Divide) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'z / 100')
+                                              Left: 
+                                                IOperation:  (OperationKind.None) (Syntax: 'z')
+                                              Right: 
+                                                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
                                   Right: 
                                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: '6')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4078,11 +4080,13 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                       ReturnedValue: 
                         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func<System.Int32, System.Int32>, IsInvalid) (Syntax: '(Func<int, int>)(a => 1)')
                           Target: 
-                            IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'a => 1')
-                              IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: '1')
-                                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '1')
-                                  ReturnedValue: 
-                                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null, IsInvalid) (Syntax: '(a => 1)')
+                              Operand: 
+                                IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'a => 1')
+                                  IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: '1')
+                                    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '1')
+                                      ReturnedValue: 
+                                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";

@@ -118,17 +118,19 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (Action)(() => F())')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)(() => F())')
           Target: 
-            IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => F()')
-              IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'F()')
-                IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'F()')
-                  Expression: 
-                    IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
-                      Instance Receiver: 
+            IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null) (Syntax: '(() => F())')
+              Operand: 
+                IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => F()')
+                  IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'F()')
+                    IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'F()')
+                      Expression: 
+                        IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
+                          Instance Receiver: 
+                            null
+                          Arguments(0)
+                    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'F()')
+                      ReturnedValue: 
                         null
-                      Arguments(0)
-                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'F()')
-                  ReturnedValue: 
-                    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -290,17 +292,19 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
           Operand: 
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)(() => F())')
               Target: 
-                IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => F()')
-                  IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
-                    IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
-                      Expression: 
-                        IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
-                          Instance Receiver: 
+                IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null, IsInvalid) (Syntax: '(() => F())')
+                  Operand: 
+                    IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => F()')
+                      IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
+                        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
+                          Expression: 
+                            IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
+                              Instance Receiver: 
+                                null
+                              Arguments(0)
+                        IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
+                          ReturnedValue: 
                             null
-                          Arguments(0)
-                    IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
-                      ReturnedValue: 
-                        null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'System.Action' to 'System.Action<int>'
@@ -338,14 +342,16 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (Action<i ... (() => F())')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: '(Action<int>)(() => F())')
           Target: 
-            IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => F()')
-              IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
-                IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
-                  Expression: 
-                    IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
-                      Instance Receiver: 
-                        null
-                      Arguments(0)
+            IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null, IsInvalid) (Syntax: '(() => F())')
+              Operand: 
+                IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => F()')
+                  IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
+                    IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
+                      Expression: 
+                        IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
+                          Instance Receiver: 
+                            null
+                          Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1593: Delegate 'Action<int>' does not take 0 arguments

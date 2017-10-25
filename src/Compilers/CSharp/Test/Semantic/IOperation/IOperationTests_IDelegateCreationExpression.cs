@@ -159,11 +159,13 @@ class Program
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)(() => { })')
   Target: 
-    IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
-      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-        IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
-          ReturnedValue: 
-            null
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null) (Syntax: '(() => { })')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
+          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+            IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
+              ReturnedValue: 
+                null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -187,14 +189,16 @@ class Program
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)(() => 1)')
   Target: 
-    IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => 1')
-      IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '1')
-        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '1')
-          Expression: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-        IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '1')
-          ReturnedValue: 
-            null
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null, IsInvalid) (Syntax: '(() => 1)')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => 1')
+          IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '1')
+            IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '1')
+              Expression: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '1')
+              ReturnedValue: 
+                null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
@@ -222,8 +226,10 @@ class Program
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)((int i) => { })')
   Target: 
-    IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-      IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null, IsInvalid) (Syntax: '((int i) => { })')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(int i) => { }')
+          IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1593: Delegate 'Action' does not take 1 arguments
@@ -1277,11 +1283,13 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
   Target: 
     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)(() => { })')
       Target: 
-        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
-          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-            IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
-              ReturnedValue: 
-                null
+        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null) (Syntax: '(() => { })')
+          Operand: 
+            IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
+              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
+                  ReturnedValue: 
+                    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1307,14 +1315,16 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
   Children(1):
       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)(() => 1)')
         Target: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => 1')
-            IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '1')
-              IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '1')
-                Expression: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '1')
-                ReturnedValue: 
-                  null
+          IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null, IsInvalid) (Syntax: '(() => 1)')
+            Operand: 
+              IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => 1')
+                IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '1')
+                  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '1')
+                    Expression: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                  IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '1')
+                    ReturnedValue: 
+                      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
@@ -1344,8 +1354,10 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
   Children(1):
       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)((int i) => { })')
         Target: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-            IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
+          IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: null, IsInvalid) (Syntax: '((int i) => { })')
+            Operand: 
+              IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(int i) => { }')
+                IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1593: Delegate 'Action' does not take 1 arguments
