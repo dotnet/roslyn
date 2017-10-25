@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -159,6 +159,84 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (Sys
 
             VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 parseOptions: TestOptions.Script);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
+        [Fact]
+        public void IFieldReferenceExpression_ImplicitThis ()
+        {
+            string source = @"
+class C
+{
+    int i;
+    void M()
+    {
+        /*<bind>*/i/*</bind>*/ = 1;
+        i++;
+    }
+}
+";
+            string expectedOperationTree = @"
+IFieldReferenceExpression: System.Int32 C.i (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'i')";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
+        [Fact]
+        public void IFieldReferenceExpression_ExplicitThis()
+        {
+            string source = @"
+class C
+{
+    int i;
+    void M()
+    {
+        /*<bind>*/this.i/*</bind>*/ = 1;
+        i++;
+    }
+}
+";
+            string expectedOperationTree = @"
+IFieldReferenceExpression: System.Int32 C.i (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'this.i')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'this')";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
+        [Fact]
+        public void IFieldReferenceExpression_base()
+        {
+            string source = @"
+class C
+{
+    protected int i;
+}
+class B : C
+{
+    void M()
+    {
+        /*<bind>*/base.i/*</bind>*/ = 1;
+        i++;
+    }
+}
+";
+            string expectedOperationTree = @"
+IFieldReferenceExpression: System.Int32 C.i (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'base.i')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'base')";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }
