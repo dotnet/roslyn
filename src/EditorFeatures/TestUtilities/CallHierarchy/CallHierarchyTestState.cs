@@ -158,6 +158,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         internal void SearchRoot(CallHierarchyItem root, string displayName, Action<CallHierarchyItem> verify, CallHierarchySearchScope scope, IImmutableSet<Document> documents = null)
         {
             var callback = new MockSearchCallback(verify);
+            
+            // Assert we have the category before we try to find it to give better diagnosing
+            Assert.Contains(displayName, root.SupportedSearchCategories.Select(c => c.DisplayName));
             var category = root.SupportedSearchCategories.First(c => c.DisplayName == displayName).Name;
             if (documents != null)
             {
@@ -174,6 +177,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         internal void SearchRoot(CallHierarchyItem root, string displayName, Action<ICallHierarchyNameItem> verify, CallHierarchySearchScope scope, IImmutableSet<Document> documents = null)
         {
             var callback = new MockSearchCallback(verify);
+            
+            // Assert we have the category before we try to find it to give better diagnosing
+            Assert.Contains(displayName, root.SupportedSearchCategories.Select(c => c.DisplayName));
             var category = root.SupportedSearchCategories.First(c => c.DisplayName == displayName).Name;
             if (documents != null)
             {
