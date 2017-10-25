@@ -532,5 +532,18 @@
     <PublishOutputToSymStore Condition="'$(Nonshipping)' == 'true'">false</PublishOutputToSymStore>
     <ArtifactsSymStoreDirectory Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\SymStore\</ArtifactsSymStoreDirectory>
   </PropertyGroup>
+
   <Import Project="RepoToolset\SymStore.targets" />
+
+  <Import Project="RepoToolset\SourceLink.targets" Condition="'$(EnableSourceLink)' == 'true' and '$(GitHeadSha)' != ''"/>
+
+  <PropertyGroup>
+    <PathMap Condition="'$(DeterministicSourceRoot)' != ''">$(RepoRoot)=$(DeterministicSourceRoot)</PathMap>
+  </PropertyGroup>
+
+  <Target Name="_CheckForSpaces"
+          BeforeTargets="CoreCompile">
+    <Error Text="PathMap, DeterministicSourceRoot and RepoRoot shall not contain spaces (https://github.com/dotnet/roslyn/issues/22835)" 
+           Condition="$(PathMap.Contains(' '))" />
+  </Target>
 </Project>

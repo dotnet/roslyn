@@ -85,5 +85,4 @@
     
     <InformationalVersion>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(CommitHashDisplay)</InformationalVersion>
   </PropertyGroup>
->>>>>>> 8cc5f89526... Commit SHA refactoring
 </Project>
