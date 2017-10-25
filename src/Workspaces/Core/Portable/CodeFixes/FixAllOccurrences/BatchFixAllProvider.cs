@@ -58,10 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (diagnosticsAndCodeActions.Length > 0)
                 {
                     var functionId = FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Merge;
-                    using (Logger.LogBlock(
-                        functionId,
-                        KeyValueLogMessage.Create(LogType.UserAction, m => m[FixAllLogger.CorrelationId] = fixAllState.CorrelationId),
-                        cancellationToken))
+                    using (Logger.LogBlock(functionId, FixAllLogger.CreateCorrelationLogMessage(fixAllState.CorrelationId), cancellationToken))
                     {
                         FixAllLogger.LogFixesToMergeStats(functionId, fixAllState.CorrelationId, diagnosticsAndCodeActions.Length);
                         return await TryGetMergedFixAsync(
@@ -80,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var fixesBag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
             using (Logger.LogBlock(
                 FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Fixes,
-                KeyValueLogMessage.Create(LogType.UserAction, m => m[FixAllLogger.CorrelationId] = fixAllState.CorrelationId),
+                FixAllLogger.CreateCorrelationLogMessage(fixAllState.CorrelationId),
                 cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -143,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var bag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Fixes,
-                    KeyValueLogMessage.Create(LogType.UserAction, m => m[FixAllLogger.CorrelationId] = fixAllState.CorrelationId),
+                    FixAllLogger.CreateCorrelationLogMessage(fixAllState.CorrelationId),
                     cancellationToken))
                 {
                     var projects = projectsAndDiagnosticsToFixMap.Keys;

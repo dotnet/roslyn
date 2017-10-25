@@ -146,5 +146,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 m[TotalFixesToMerge] = count;
             }));
         }
+
+        public static LogMessage CreateCorrelationLogMessage(int correlationId)
+        {
+            return KeyValueLogMessage.Create(LogType.UserAction, m => m[CorrelationId] = correlationId);
+        }
     }
 }

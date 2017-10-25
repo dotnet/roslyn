@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
-                    KeyValueLogMessage.Create(LogType.UserAction, m => m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId),
+                    FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
                     cancellationToken))
                 {
                     var allDiagnostics = ImmutableArray<Diagnostic>.Empty;
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Diagnostics,
-                    KeyValueLogMessage.Create(LogType.UserAction, m => m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId),
+                    FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
                     fixAllContext.CancellationToken))
                 {
                     var project = fixAllContext.Project;

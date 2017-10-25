@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             this.AssertIsForeground();
 
-            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, KeyValueLogMessage.Create(LogType.UserAction, m => m[FixAllLogger.CorrelationId] = _fixAllState.CorrelationId), cancellationToken))
+            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, FixAllLogger.CreateCorrelationLogMessage(_fixAllState.CorrelationId), cancellationToken))
             {
                 base.InnerInvoke(progressTracker, cancellationToken);
             }
