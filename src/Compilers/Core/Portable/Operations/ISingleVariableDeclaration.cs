@@ -8,9 +8,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <para>
     /// Current Usage:
     ///   (1) C# variable declarator
-    ///   (2) VB single variable declaration
+    ///   (2) C# catch variable declaration
+    ///   (3) VB single variable declaration
+    ///   (4) VB catch variable declaration
     /// </para>
     /// <remarks>
+    /// In VB, the initializer for this node is only ever used for explicit array bounds initializers.
+    ///
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>

@@ -9,8 +9,11 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     /// <para>
     /// Current Usage:
-    ///   (1) C# Local declaration statement
-    ///   (2) VB Dim statement
+    ///   (1) C# local declaration statement
+    ///   (2) C# fixed statement
+    ///   (3) C# using statement
+    ///   (4) VB Dim statement
+    ///   (5) VB Using statement
     /// </para>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to

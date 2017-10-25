@@ -9,9 +9,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     /// <para>
     /// Current Usage:
-    ///   (1) VB As New statements
-    ///   (2) VB multiple declarations in a single declarator
+    ///   (1) VB Dim statement declaration groups
+    ///   (2) VB Using statement variable declarations
     /// </para>
+    /// <remarks>
+    /// The initializer of this node is applied to all individual declarations in <see cref="Declarations"/>. There cannot
+    /// be initializers in both locations except in invalid code scenarios.
+    ///
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IMultiVariableDeclaration : IVariableDeclaration
     {
         /// <summary>
