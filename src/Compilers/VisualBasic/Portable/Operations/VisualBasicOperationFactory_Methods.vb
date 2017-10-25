@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim initializer As Lazy(Of IVariableInitializer) = New Lazy(Of IVariableInitializer)(
                 Function()
                     If boundLocalDeclaration.ArrayCreationOpt IsNot Nothing Then
-                        Dim arrayBoundsSyntax = DirectCast(boundLocalDeclaration.Syntax, ModifiedIdentifierSyntax).ArrayBounds
+                        Dim arrayBoundsSyntax = boundLocalDeclaration.Syntax
                         Dim initializerValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLocalDeclaration.ArrayCreationOpt))
                         Return New LazyVariableInitializer(initializerValue, _semanticModel, arrayBoundsSyntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
                     Else
