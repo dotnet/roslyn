@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
@@ -16,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
     {
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
-        private readonly Project _project;
-        private readonly SymbolKey _symbol;
+        private readonly ProjectId _projectId;
+        private readonly SymbolKey _symbolKey;
 
         protected readonly CallHierarchyProvider Provider;
         protected readonly string SymbolName;
@@ -25,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         // For Testing only
         internal IImmutableSet<Document> Documents;
 
-        protected AbstractCallFinder(ISymbol symbol, Project project, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+        protected AbstractCallFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
         {
             _asyncListener = asyncListener;
-            _symbol = symbol.GetSymbolKey();
+            _symbolKey = symbol.GetSymbolKey();
             this.SymbolName = symbol.Name;
-            _project = project;
+            _projectId = projectId;
             this.Provider = provider;
         }
 
@@ -48,51 +50,64 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
             _cancellationSource.Cancel();
         }
 
-        public void StartSearch(CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
+        public void StartSearch(Workspace workspace, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
         {
-            Task.Run(() => SearchAsync(callback, searchScope, _cancellationSource.Token), _cancellationSource.Token);
-        }
-
-        private async Task SearchAsync(ICallHierarchySearchCallback callback, CallHierarchySearchScope scope, CancellationToken cancellationToken)
-        {
-            callback.ReportProgress(0, 1);
-
             var asyncToken = _asyncListener.BeginAsyncOperation(this.GetType().Name + ".Search");
 
-            // Follow the search task with task that lets the callback know we're done and which
-            // marks the async operation as complete.  Note that we pass CancellationToken.None
-            // here.  That's intentional.  This operation is *not* cancellable.
-
-            var workspace = _project.Solution.Workspace;
-            var currentProject = workspace.CurrentSolution.GetProject(_project.Id);
-            var compilation = await currentProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var resolution = _symbol.Resolve(compilation, cancellationToken: cancellationToken);
-
-            var documents = this.Documents ?? IncludeDocuments(scope, currentProject);
-
-            var currentSymbol = resolution.Symbol;
-
-            if (currentSymbol == null)
+            // NOTE: This task has CancellationToken.None specified, since it must complete no matter what
+            // so the callback is appropriately notified that the search has terminated.
+            Task.Run(async () =>
             {
-                return;
+                // The error message to show if we had an error. null will mean we succeeded.
+                string completionErrorMessage = null;
+                try
+                {
+                    await SearchAsync(workspace, searchScope, callback, _cancellationSource.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    completionErrorMessage = EditorFeaturesResources.Canceled;
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                    completionErrorMessage = e.Message;
+                }
+                finally
+                {
+                    if (completionErrorMessage != null)
+                    {
+                        callback.SearchFailed(completionErrorMessage);
+                    }
+                    else
+                    {
+                        callback.SearchSucceeded();
+                    }
+                }
+            }, CancellationToken.None).CompletesAsyncOperation(asyncToken);
+        }
+
+        private async Task SearchAsync(Workspace workspace, CallHierarchySearchScope scope, ICallHierarchySearchCallback callback, CancellationToken cancellationToken)
+        {
+            var project = workspace.CurrentSolution.GetProject(_projectId);
+            
+            if (project == null)
+            {
+                throw new Exception(string.Format(WorkspacesResources.The_symbol_0_cannot_be_located_within_the_current_solution, SymbolName));
             }
 
-            await SearchWorkerAsync(currentSymbol, currentProject, callback, documents, cancellationToken).SafeContinueWith(
-                t =>
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var resolution = _symbolKey.Resolve(compilation, cancellationToken: cancellationToken);
+
+            var symbol = resolution.Symbol;
+
+            if (symbol == null)
             {
-                callback.ReportProgress(1, 1);
+                throw new Exception(string.Format(WorkspacesResources.The_symbol_0_cannot_be_located_within_the_current_solution, SymbolName));
+            }
 
-                if (t.Status == TaskStatus.RanToCompletion)
-                {
-                    callback.SearchSucceeded();
-                }
-                else
-                {
-                    callback.SearchFailed(EditorFeaturesResources.Canceled);
-                }
+            var documents = this.Documents ?? IncludeDocuments(scope, project);
 
-                asyncToken.Dispose();
-            }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).ConfigureAwait(false);
+            await SearchWorkerAsync(symbol, project, callback, documents, cancellationToken).ConfigureAwait(false);
         }
 
         private IImmutableSet<Document> IncludeDocuments(CallHierarchySearchScope scope, Project project)

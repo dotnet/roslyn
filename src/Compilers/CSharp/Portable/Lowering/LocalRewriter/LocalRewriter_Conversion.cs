@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             explicitCastInCode: false,
                             constantValueOpt: default(ConstantValue),
                             type: type,
-                            hasErrors: !conversion.IsValid);
+                            hasErrors: !conversion.IsValid) { WasCompilerGenerated = true };
         }
 
         /// <summary>

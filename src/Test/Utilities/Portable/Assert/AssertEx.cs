@@ -287,7 +287,11 @@ namespace Roslyn.Test.Utilities
         public static void SetEqual<T>(IEnumerable<T> actual, params T[] expected)
         {
             var expectedSet = new HashSet<T>(expected);
-            Assert.True(expectedSet.SetEquals(actual), string.Format("Expected: {0}\nActual: {1}", ToString(expected), ToString(actual)));
+            if (!expectedSet.SetEquals(actual))
+            {
+                // If they're not set equals, then they're not "regular" equals either.
+                Assert.Equal(expected, actual);
+            }
         }
 
         public static void None<T>(IEnumerable<T> actual, Func<T, bool> predicate)

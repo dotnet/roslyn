@@ -740,13 +740,13 @@ IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitia
   Initializers(2):
       IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
         Children(2):
-            IOperation:  (OperationKind.None, IsInvalid) (Syntax: '"Hello World!"')
+            IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
               Children(1):
                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
       IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Errors wil ... er element"')
         Children(2):
-            IOperation:  (OperationKind.None, IsInvalid) (Syntax: '"Errors wil ... er element"')
+            IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: '"Errors wil ... er element"')
               Children(1):
                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Errors will be shown for each initializer element", IsInvalid) (Syntax: '"Errors wil ... er element"')
@@ -1152,7 +1152,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionar
       Initializers(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '{1}')
             Children(2):
-                IOperation:  (OperationKind.None, IsInvalid) (Syntax: '{1}')
+                IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: '{1}')
                   Children(1):
                       IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: 'New Diction ...  From {{1}}')
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')

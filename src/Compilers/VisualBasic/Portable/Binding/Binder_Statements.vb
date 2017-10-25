@@ -1184,11 +1184,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If type.IsArrayType Then
                         ' Arrays cannot be declared with AsNew syntax
                         ReportDiagnostic(diagnostics, asNew.NewExpression.NewKeyword, ERRID.ERR_AsNewArray)
-                        valueExpression = BadExpression(asNew, valueExpression, type)
+                        valueExpression = BadExpression(asNew, valueExpression, type).MakeCompilerGenerated()
                     ElseIf valueExpression IsNot Nothing AndAlso Not valueExpression.HasErrors AndAlso
                            Not type.IsSameTypeIgnoringAll(valueExpression.Type) Then
                         ' An error must have been reported elsewhere.    
-                        valueExpression = BadExpression(asNew, valueExpression, valueExpression.Type)
+                        valueExpression = BadExpression(asNew, valueExpression, valueExpression.Type).MakeCompilerGenerated()
                     End If
                 End If
 
@@ -1196,7 +1196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If name.ArrayBounds IsNot Nothing Then
                 ' It is an error to have both array bounds and an initializer expression
-                boundArrayCreation = New BoundArrayCreation(name, boundArrayBounds, Nothing, type)
+                boundArrayCreation = New BoundArrayCreation(name, boundArrayBounds, Nothing, type).MakeCompilerGenerated()
                 If valueExpression IsNot Nothing Then
                     If Not isInitializedByAsNew Then
                         ReportDiagnostic(diagnostics, name, ERRID.ERR_InitWithExplicitArraySizes)
@@ -2140,7 +2140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 expr = BindCompoundAssignment(node, op1, op2, binaryTokenKind, operatorKind, diagnostics)
             End If
 
-            Return New BoundExpressionStatement(node, expr)
+            Return New BoundExpressionStatement(node, expr.MakeCompilerGenerated())
         End Function
 
         Private Function BindMidAssignmentStatement(node As AssignmentStatementSyntax, diagnostics As DiagnosticBag) As BoundExpressionStatement
@@ -2211,7 +2211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New BoundExpressionStatement(node, New BoundAssignmentOperator(node, target, placeholder, right, False,
                                                                                   Compilation.GetSpecialType(SpecialType.System_Void),
-                                                                                  hasErrors:=isError))
+                                                                                  hasErrors:=isError).MakeCompilerGenerated())
         End Function
 
         Private Function BindAddRemoveHandlerStatement(node As AddRemoveHandlerStatementSyntax, diagnostics As DiagnosticBag) As BoundAddRemoveHandlerStatement
@@ -2544,7 +2544,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    ImmutableArray.Create(fireMethod),
                                                    LookupResultKind.Good,
                                                    receiver,
-                                                   QualificationKind.QualifiedViaValue)
+                                                   QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
 
             'NOTE: Dev10 allows and ignores type characters on the event here.
             Dim invocation = BindInvocationExpression(node,
@@ -4349,7 +4349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function BindWithBlock(node As WithBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
             Dim binder As Binder = Me.GetBinder(DirectCast(node, VisualBasicSyntaxNode))
-            Return Binder.CreateBoundWithBlock(node, binder, diagnostics)
+            Return binder.CreateBoundWithBlock(node, binder, diagnostics)
         End Function
 
         Protected Overridable Function CreateBoundWithBlock(node As WithBlockSyntax, boundBlockBinder As Binder, diagnostics As DiagnosticBag) As BoundStatement

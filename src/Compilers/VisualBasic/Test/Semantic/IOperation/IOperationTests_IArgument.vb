@@ -196,8 +196,8 @@ IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Dou
   Instance Receiver: 
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(3):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, IsImplicit) (Syntax: 'M2')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument) (Syntax: '')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: 'b:=1.0')
@@ -1081,12 +1081,12 @@ End Class]]>.Value
             Dim result = GetOperationAndSyntaxForTest(Of InvocationExpressionSyntax)(compilation, fileName)
 
             Dim expectedInKind = ConversionKind.Widening Or ConversionKind.UserDefined
-            Dim exptectedInMethod = compilation.GetSymbolsWithName(Function (name As string)
+            Dim exptectedInMethod = compilation.GetSymbolsWithName(Function(name As String)
                                                                        Return name = "op_Implicit"
                                                                    End Function, SymbolFilter.Member).Single()
 
             Dim expectedOutKind = ConversionKind.Narrowing Or ConversionKind.UserDefined
-            Dim expectedOutMethod = compilation.GetSymbolsWithName(Function (name As string)
+            Dim expectedOutMethod = compilation.GetSymbolsWithName(Function(name As String)
                                                                        Return name = "op_Explicit"
                                                                    End Function, SymbolFilter.Member).Single()
 
@@ -1258,8 +1258,8 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(1, , 2)')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument, IsImplicit) (Syntax: 'M2')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
+          IArgument (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument) (Syntax: '')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument) (Syntax: '2')
@@ -1430,7 +1430,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
         ISingleVariableDeclaration (Symbol: a As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'a(0 To 20)')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'a(0 To 20)')
-              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 20)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'a(0 To 20)')
                 Dimension Sizes(1):
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 21, IsImplicit) (Syntax: '0 To 20')
                       Left: 

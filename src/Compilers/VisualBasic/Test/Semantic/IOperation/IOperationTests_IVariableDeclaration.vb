@@ -626,7 +626,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
         ISingleVariableDeclaration (Symbol: i1 As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'i1(2)')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'i1(2)')
-              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'i1(2)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'i1(2)')
                 Dimension Sizes(1):
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
                       Left: 
@@ -697,7 +697,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
         ISingleVariableDeclaration (Symbol: i1 As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'i1(2)')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'i1(2)')
-              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'i1(2)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'i1(2)')
                 Dimension Sizes(1):
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
                       Left: 
@@ -708,7 +708,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
                   null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'As New Integer')
           Children(1):
               IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
                 Arguments(0)
@@ -744,7 +744,7 @@ IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclarati
       ISingleVariableDeclaration (Symbol: a As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'a(0 To 4)')
         Initializer: 
           IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'a(0 To 4)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 4)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'a(0 To 4)')
               Dimension Sizes(1):
                   IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: '0 To 4')
                     Left: 
@@ -1117,7 +1117,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
         ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'x(1)')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'x(1)')
-              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x(1)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'x(1)')
                 Dimension Sizes(1):
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
                       Left: 
@@ -1128,7 +1128,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
                   null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'As New Integer')
           Children(1):
               IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
                 Arguments(0)
@@ -1165,7 +1165,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
         ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'x(1)')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsInvalid, IsImplicit) (Syntax: 'x(1)')
-              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsInvalid) (Syntax: 'x(1)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'x(1)')
                 Dimension Sizes(1):
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2, IsInvalid, IsImplicit) (Syntax: '1')
                       Left: 
@@ -1216,7 +1216,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
         ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'x(1)')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'x(1)')
-              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x(1)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'x(1)')
                 Dimension Sizes(1):
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
                       Left: 
@@ -1228,7 +1228,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
         ISingleVariableDeclaration (Symbol: y As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'y(2)')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'y(2)')
-              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'y(2)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'y(2)')
                 Dimension Sizes(1):
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
                       Left: 
@@ -1239,7 +1239,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
                   null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'As New Integer')
           Children(1):
               IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
                 Arguments(0)
@@ -1278,7 +1278,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
         ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'x(10)')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'x(10)')
-              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x(10)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'x(10)')
                 Dimension Sizes(1):
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
                       Left: 
@@ -1322,7 +1322,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
         ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'x%(10)')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'x%(10)')
-              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x%(10)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'x%(10)')
                 Dimension Sizes(1):
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
                       Left: 
@@ -1334,7 +1334,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
         ISingleVariableDeclaration (Symbol: y As System.String()) (OperationKind.SingleVariableDeclaration) (Syntax: 'y$(11)')
           Initializer: 
             IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'y$(11)')
-              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String()) (Syntax: 'y$(11)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String(), IsImplicit) (Syntax: 'y$(11)')
                 Dimension Sizes(1):
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 12, IsImplicit) (Syntax: '11')
                       Left: 
@@ -1543,7 +1543,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
             null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i1')
           Children(0)
 ]]>.Value
 
@@ -1581,7 +1581,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
             null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i1')
           Children(0)
 ]]>.Value
 
@@ -1870,7 +1870,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
             null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'i1')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsImplicit) (Syntax: 'i1')
           Children(0)
 ]]>.Value
 
@@ -1908,7 +1908,7 @@ IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationSta
             null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'i1')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsImplicit) (Syntax: 'i1')
           Children(0)
 ]]>.Value
 
@@ -1957,7 +1957,7 @@ IVariableDeclarationGroup (2 declarations) (OperationKind.VariableDeclarationSta
             null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid, IsImplicit) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, IsImplicit) (Syntax: '')
           Children(0)
 ]]>.Value
 
