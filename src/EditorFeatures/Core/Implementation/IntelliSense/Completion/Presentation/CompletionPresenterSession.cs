@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             ExecuteKeyboardCommand(IntellisenseKeyboardCommand.PageDown);
         }
 
-        public void ReportPerformance(bool force = false)
+        public void ReportPerformance()
         {
             // we only report once. after that, this becomes noop
             _logger?.Dispose();
