@@ -313,14 +313,13 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             if (!string.IsNullOrEmpty(WordSeparator))
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
-            }
 
-            if ((CapitalizationScheme == Capitalization.AllUpper || CapitalizationScheme == Capitalization.AllLower) 
-                && !string.IsNullOrEmpty(WordSeparator))
-            {
-                if (words.Count() == 1) // Only Split if words have not been split before 
+                if (CapitalizationScheme == Capitalization.AllUpper || CapitalizationScheme == Capitalization.AllLower)
                 {
-                    words = Regex.Split(name, @"(?<!^)(?=[A-Z])");
+                    if (words.Count() == 1) // Only Split if words have not been split before 
+                    {
+                        words = Regex.Split(name, @"(?<!^)(?=[A-Z])");
+                    }
                 }
             }
 
