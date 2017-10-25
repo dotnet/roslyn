@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a VB End statemnt.
+    /// Represents a VB End statement.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
