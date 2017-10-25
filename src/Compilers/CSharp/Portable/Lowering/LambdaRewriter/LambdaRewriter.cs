@@ -448,7 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     topLevelMethodId,
                     originalMethod,
                     closure.BlockSyntax,
-                    lambdaId);
+                    lambdaId,
+                    Diagnostics);
                 closure.SynthesizedLoweredMethod = synthesizedMethod;
             });
 

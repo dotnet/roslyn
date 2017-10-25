@@ -709,9 +709,9 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
             comp.VerifyEmitDiagnostics(
-                // (5,24): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
-                //         void L(object? x, object y) { }
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(5, 24));
+                // (5,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         object?[] L() => throw new System.NotImplementedException();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?[] L() => throw new System.NotImplementedException();").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(5, 9));
         }
 
         [Fact]
