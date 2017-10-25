@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -251,7 +251,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'c(d)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'c')
+    IDynamicMemberReferenceOperation (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object, IsImplicit) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: 
         IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
@@ -293,7 +293,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'c(d, d)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'c')
+    IDynamicMemberReferenceOperation (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object, IsImplicit) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: 
         IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
@@ -336,7 +336,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'c(x2:=e, x:=d)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'c')
+    IDynamicMemberReferenceOperation (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object, IsImplicit) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: 
         IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
@@ -382,7 +382,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'c(x2:=e, x:=d)')
   Expression: 
-    IDynamicMemberReferenceOperation (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'c')
+    IDynamicMemberReferenceOperation (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object, IsImplicit) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: 
         IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
@@ -517,7 +517,7 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Objec
   Expression: 
     IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'c(d)')
       Expression: 
-        IDynamicMemberReferenceOperation (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'c')
+        IDynamicMemberReferenceOperation (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object, IsImplicit) (Syntax: 'c')
           Type Arguments(0)
           Instance Receiver: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')

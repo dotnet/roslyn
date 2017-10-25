@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -271,7 +271,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x + y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x + y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -282,7 +282,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x - y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x - y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x - y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -293,7 +293,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x * y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x * y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x * y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -304,7 +304,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x / y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x / y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x / y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -324,7 +324,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x \ y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x \ y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x \ y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -335,7 +335,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Mod y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x Mod y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x Mod y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -346,7 +346,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x ^ y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x ^ y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x ^ y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -366,7 +366,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x = y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x = y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x = y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -380,7 +380,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x <> y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x <> y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x <> y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -394,7 +394,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x < y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x < y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x < y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -408,7 +408,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x > y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x > y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x > y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -422,7 +422,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x <= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x <= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x <= y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -436,7 +436,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x >= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x >= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x >= y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -450,7 +450,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Like y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x Like y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x Like y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -470,7 +470,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x & y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x & y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x & y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -479,18 +479,18 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'x & y')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: 'x')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: 'y')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x And y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x And y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x And y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -501,7 +501,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Or y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x Or y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x Or y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -512,7 +512,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Xor y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x Xor y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x Xor y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -523,7 +523,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x << 2')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x << 2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x << 2')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -534,7 +534,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x >> 3')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x >> 3')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x >> 3')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -545,7 +545,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = DirectC ... Object) = y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = DirectC ... Object) = y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = DirectC ... Object) = y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -565,7 +565,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = DirectC ... bject) <> y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = DirectC ... bject) <> y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = DirectC ... bject) <> y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -583,10 +583,10 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -652,7 +652,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x + y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x + y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -663,7 +663,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x - y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x - y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x - y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -674,7 +674,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x * y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x * y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x * y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -685,7 +685,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x / y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x / y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x / y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -705,7 +705,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x \ y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x \ y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x \ y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -716,7 +716,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Mod y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x Mod y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x Mod y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -727,7 +727,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x ^ y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x ^ y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x ^ y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -747,7 +747,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x = y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x = y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x = y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -761,7 +761,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x <> y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x <> y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x <> y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -775,7 +775,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x < y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x < y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x < y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -789,7 +789,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x > y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x > y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x > y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -803,7 +803,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x <= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x <= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x <= y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -817,7 +817,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x >= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x >= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x >= y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -831,7 +831,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Like y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x Like y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x Like y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -851,7 +851,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x & y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x & y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x & y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -860,18 +860,18 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Concatenate) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'x & y')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: 'x')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: 'y')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x And y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x And y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x And y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -882,7 +882,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Or y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x Or y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x Or y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -893,7 +893,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Xor y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x Xor y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x Xor y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -904,7 +904,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x << 2')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x << 2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x << 2')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -915,7 +915,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x >> 3')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x >> 3')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x >> 3')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -926,7 +926,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = DirectC ... Object) = y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = DirectC ... Object) = y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = DirectC ... Object) = y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -946,7 +946,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = DirectC ... bject) <> y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = DirectC ... bject) <> y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = DirectC ... bject) <> y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -964,10 +964,10 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -1005,7 +1005,7 @@ End Class]]>.Value
 IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M(x As  ... End Sub')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x = y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x = y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x = y')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -1019,7 +1019,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
                   IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x <> y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x <> y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x <> y')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -1033,7 +1033,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
                   IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x < y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x < y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x < y')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -1047,7 +1047,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
                   IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x > y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x > y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x > y')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -1061,7 +1061,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
                   IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x <= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x <= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x <= y')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -1075,7 +1075,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
                   IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x >= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = x >= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = x >= y')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -1089,7 +1089,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
                   IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = DirectC ... Object) = y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = DirectC ... Object) = y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = DirectC ... Object) = y')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -1109,7 +1109,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
                       IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = DirectC ... bject) <> y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'r = DirectC ... bject) <> y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'r = DirectC ... bject) <> y')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
@@ -1127,10 +1127,10 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -1178,28 +1178,28 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
               null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x += y')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x += y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x += y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x -= y')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x -= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x -= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x *= y')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x *= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x *= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x /= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x /= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1219,14 +1219,14 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x \= y')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x \= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x \= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x ^= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x ^= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1246,7 +1246,7 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x &= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x &= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1255,33 +1255,33 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String, IsImplicit) (Syntax: 'x &= y')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: 'x')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: 'y')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x <<= 2')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x <<= 2')
+      ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x <<= 2')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x >>= 3')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.RightShift, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x >>= 3')
+      ICompoundAssignmentOperation (BinaryOperatorKind.RightShift, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x >>= 3')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -1327,28 +1327,28 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
               null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x += y')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x += y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x += y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x -= y')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Subtract) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x -= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Subtract) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x -= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x *= y')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.Multiply) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x *= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.Multiply) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x *= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x /= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x /= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1368,14 +1368,14 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x \= y')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.IntegerDivide) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x \= y')
+      ICompoundAssignmentOperation (BinaryOperatorKind.IntegerDivide) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x \= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x ^= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x ^= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1395,7 +1395,7 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x &= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x &= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -1404,33 +1404,33 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Concatenate) (OperationKind.BinaryOperator, Type: System.String, IsImplicit) (Syntax: 'x &= y')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: 'x')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: 'y')
+                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x <<= 2')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x <<= 2')
+      ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x <<= 2')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x >>= 3')
     Expression: 
-      ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x >>= 3')
+      ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x >>= 3')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -1602,7 +1602,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x + y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x + y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1613,7 +1613,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x - y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x - y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x - y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1624,7 +1624,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x * y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x * y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x * y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1635,7 +1635,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x / y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x / y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x / y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1646,7 +1646,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x \ y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x \ y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x \ y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1657,7 +1657,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Mod y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x Mod y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x Mod y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1668,7 +1668,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x ^ y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x ^ y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x ^ y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1679,7 +1679,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x = y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x = y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x = y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1690,7 +1690,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x <> y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x <> y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x <> y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1701,7 +1701,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x < y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x < y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x < y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1712,7 +1712,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x > y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x > y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x > y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1723,7 +1723,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x <= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x <= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x <= y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1734,7 +1734,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x >= y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x >= y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x >= y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1745,7 +1745,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Like y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x Like y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x Like y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1756,7 +1756,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x & y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x & y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x & y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1767,7 +1767,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x And y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x And y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x And y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1778,7 +1778,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Or y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x Or y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x Or y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1789,7 +1789,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x Xor y')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x Xor y')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x Xor y')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1800,7 +1800,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: B2) (Syntax: 'y')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x << 2')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x << 2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x << 2')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1811,7 +1811,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x >> 3')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'r = x >> 3')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'r = x >> 3')
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: B2) (Syntax: 'r')
         Right: 
@@ -1820,10 +1820,10 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
               ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -1850,7 +1850,7 @@ End Class]]>.Value
 IBlockOperation (6 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M(c1 As ... End Sub')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = c1 Is c2')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'r = c1 Is c2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'r = c1 Is c2')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'r')
         Right: 
@@ -1867,7 +1867,7 @@ IBlockOperation (6 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M
                   IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = c1 IsNot c2')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'r = c1 IsNot c2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'r = c1 IsNot c2')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'r')
         Right: 
@@ -1884,7 +1884,7 @@ IBlockOperation (6 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M
                   IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = DirectC ... bject) = c2')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'r = DirectC ... bject) = c2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'r = DirectC ... bject) = c2')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'r')
         Right: 
@@ -1904,7 +1904,7 @@ IBlockOperation (6 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M
                       IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = DirectC ... ject) <> c2')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'r = DirectC ... ject) <> c2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'r = DirectC ... ject) <> c2')
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'r')
         Right: 
@@ -1922,10 +1922,10 @@ IBlockOperation (6 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value

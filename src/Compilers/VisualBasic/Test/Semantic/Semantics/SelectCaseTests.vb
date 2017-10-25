@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -665,7 +665,7 @@ ISwitchOperation (2 cases) (OperationKind.Switch, Type: null) (Syntax: 'Select C
                                 ReturnedValue: 
                                   ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'Function() 5')
           Body:
-              IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Case Functi ... e("Failed")')
+              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Case Functi ... e("Failed")')
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... e("Failed")')
                   Expression: 
                     IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... e("Failed")')
@@ -680,7 +680,7 @@ ISwitchOperation (2 cases) (OperationKind.Switch, Type: null) (Syntax: 'Select C
           Clauses:
               IDefaultCaseClauseOperation (CaseKind.Default) (OperationKind.CaseClause, Type: null) (Syntax: 'Case Else')
           Body:
-              IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Case Else ... Succeeded")')
+              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Case Else ... Succeeded")')
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Succeeded")')
                   Expression: 
                     IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Succeeded")')

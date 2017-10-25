@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Linq.Enumerable
 Imports System.Xml.Linq
@@ -157,7 +157,7 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
       Initializers(2):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '. = Unknown()')
                 Children(0)
             Right: 
               IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown()')
@@ -166,7 +166,7 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
                       Children(0)
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '. = Unknown()')
                 Children(0)
             Right: 
               IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown()')
@@ -309,7 +309,7 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
       Initializers(1):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .Field = 23')
                 Children(0)
             Right: 
               IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
@@ -523,7 +523,7 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
       Initializers(1):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Field1 = Bar(.Field1)')
                 Children(1):
                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Field1')
                       Children(1):
@@ -581,7 +581,7 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
       Initializers(1):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.Field = 23')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Field = 23')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Field = 23')
                 Children(1):
                     IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'Field')
                       Children(1):
@@ -628,7 +628,7 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
       Initializers(1):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
             Left: 
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Goo = "Hello World!"')
                 Children(1):
                     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Goo')
                       Children(1):
@@ -817,7 +817,7 @@ IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
                 Initializers(1):
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
                       Left: 
-                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.X = "goo"')
                           Children(1):
                               IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'X')
                                 Children(1):
@@ -829,7 +829,7 @@ IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
                             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
     Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C3, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C3, IsInvalid, IsImplicit) (Syntax: 'x = New C3( ...  Unknown()}')
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C3) (Syntax: 'x')
         Right: 
@@ -840,7 +840,7 @@ IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
                 Initializers(1):
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
                       Left: 
-                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.X = Unknown()')
                           Children(1):
                               IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'X')
                                 Children(1):
@@ -850,10 +850,10 @@ IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
                           Children(1):
                               IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Unknown')
                                 Children(0)
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -1274,12 +1274,12 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
                           IFieldReferenceOperation: C1.Field As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.Field')
                             Instance Receiver: 
                               IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'New C1 With ... d Function}')
-                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'End Function')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1580,12 +1580,12 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
                               IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
-                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object) (Syntax: 'End Function')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'End Function')
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func(Of System.Object)) (Syntax: '.Field2 = F ... nd Function')
             Left: 
               IFieldReferenceOperation: C2.Field2 As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: 'Field2')
@@ -1605,12 +1605,12 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
                               IFieldReferenceOperation: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReference, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
-                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object) (Syntax: 'End Function')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

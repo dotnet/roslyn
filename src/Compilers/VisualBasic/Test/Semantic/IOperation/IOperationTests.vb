@@ -75,7 +75,7 @@ End Module
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = x + 10')
   Expression: 
-    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
+    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsInvalid, IsImplicit) (Syntax: 'x = x + 10')
       Left: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
       Right: 
@@ -109,7 +109,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, Is
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = x + y')
   Expression: 
-    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2) (Syntax: 'x = x + y')
+    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsImplicit) (Syntax: 'x = x + y')
       Left: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
       Right: 
@@ -138,7 +138,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:="
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = -x')
   Expression: 
-    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsInvalid) (Syntax: 'x = -x')
+    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B2, IsInvalid, IsImplicit) (Syntax: 'x = -x')
       Left: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
       Right: 
@@ -198,7 +198,7 @@ End Module
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x += y')
   Expression: 
-    ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'x += y')
+    ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x += y')
       Left: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
       Right: 
@@ -225,7 +225,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a += b')
   Expression: 
-    ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignment, Type: B2) (Syntax: 'a += b')
+    ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignment, Type: B2, IsImplicit) (Syntax: 'a += b')
       Left: 
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: B2) (Syntax: 'a')
       Right: 
@@ -254,7 +254,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If x <> 
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If x <> 0 T ... End If')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If x <> 0 T ... End If')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(x)')
         Expression: 
           IInvocationOperation (Sub System.Console.Write(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(x)')
@@ -296,12 +296,12 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
   LimitValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   StepValue: 
-    IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1) (Syntax: 'For i = 0 T ... Next')
+    IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'For i = 0 T ... Next')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For i = 0 T ... Next')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i)')
         Expression: 
           IInvocationOperation (Sub System.Console.Write(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
@@ -587,7 +587,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If i = 0
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If i = 0 Th ... End If')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If i = 0 Th ... End If')
       IEndOperation (OperationKind.End, Type: null) (Syntax: 'End')
   WhenFalse: 
     null
@@ -644,7 +644,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If i = 0
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   WhenTrue: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If i = 0 Th ... End If')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If i = 0 Th ... End If')
       IStopOperation (OperationKind.Stop, Type: null) (Syntax: 'Stop')
   WhenFalse: 
     null
@@ -692,7 +692,7 @@ ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchCla
           Operand: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
   Handler: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Catch ex As ...  Is Nothing')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Catch ex As ...  Is Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -791,12 +791,12 @@ IAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind
     IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return 1')
       ReturnedValue: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
       Statement: 
         null
-    IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
       ReturnedValue: 
-        ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'End Function')
+        ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -824,10 +824,10 @@ IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, T
     IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return')
       ReturnedValue: 
         null
-    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
       Statement: 
         null
-    IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
       ReturnedValue: 
         null
 ]]>.Value

@@ -551,7 +551,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: i1 As System.Int32()
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'i1(2)')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'i1(2)')
+        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'i1(2)')
           Dimension Sizes(1):
               IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
                 Left: 
@@ -617,7 +617,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: i1 As System.Int32()
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer')
-        IInvalidOperation (OperationKind.Invalid, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
+        IInvalidOperation (OperationKind.Invalid, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'As New Integer')
           Children(1):
               IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
                 Arguments(0)
@@ -670,7 +670,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1 As ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Using c1 As ... End Using')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -810,7 +810,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: i1 As System.Int32
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer')
-        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'i1')
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i1')
           Children(0)
 ]]>.Value
 
@@ -843,7 +843,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
       Local_2: i2 As System.Int32
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer')
-        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'i1')
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i1')
           Children(0)
 ]]>.Value
 
@@ -1102,7 +1102,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: i1 As ?
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New')
-        IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'i1')
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'i1')
           Children(0)
 ]]>.Value
 
@@ -1135,7 +1135,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
       Local_2: i2 As ?
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New')
-        IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'i1')
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'i1')
           Children(0)
 ]]>.Value
 
@@ -1178,7 +1178,7 @@ IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1:  As System.Object
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: '')
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: '')
           Children(0)
 ]]>.Value
 

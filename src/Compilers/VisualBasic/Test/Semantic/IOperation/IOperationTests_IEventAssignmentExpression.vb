@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -30,7 +30,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
   Expression: 
-    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
+    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: 
         IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: 
@@ -69,7 +69,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
   Expression: 
-    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
+    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandl ... AddressOf M')
       Event Reference: 
         IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: 
@@ -108,7 +108,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
   Expression: 
-    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
+    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: 
         IEventReferenceOperation: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: 
@@ -147,7 +147,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
   Expression: 
-    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
+    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandl ... AddressOf M')
       Event Reference: 
         IEventReferenceOperation: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: 
@@ -186,7 +186,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'RemoveHandl ... AddressOf M')
   Expression: 
-    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsInvalid) (Syntax: 'RemoveHandl ... AddressOf M')
+    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'RemoveHandl ... AddressOf M')
       Event Reference: 
         IEventReferenceOperation: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: 
@@ -229,7 +229,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
   Expression: 
-    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
+    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: 
         IEventReferenceOperation: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReference, Type: System.Action) (Syntax: 'Me.TestEvent')
           Instance Receiver: 
@@ -271,7 +271,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'AddHandler  ... AddressOf M')
   Expression: 
-    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsInvalid) (Syntax: 'AddHandler  ... AddressOf M')
+    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: 
         IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action, IsInvalid) (Syntax: 'TestClass.TestEvent')
           Instance Receiver: 

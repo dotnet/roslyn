@@ -327,11 +327,11 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundLiteralOperation(boundLiteral As BoundLiteral) As ILiteralOperation
+        Private Function CreateBoundLiteralOperation(boundLiteral As BoundLiteral, Optional implicit As Boolean = False) As ILiteralOperation
             Dim syntax As SyntaxNode = boundLiteral.Syntax
             Dim type As ITypeSymbol = boundLiteral.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLiteral.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundLiteral.WasCompilerGenerated
+            Dim isImplicit As Boolean = boundLiteral.WasCompilerGenerated OrElse implicit
             Return New LiteralExpression(_semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -377,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Dim arguments As Lazy(Of ImmutableArray(Of IArgumentOperation)) = New Lazy(Of ImmutableArray(Of IArgumentOperation))(
                 Function()
-                    Return DeriveArguments(boundCall.Arguments, boundCall.Method.Parameters)
+                    Return DeriveArguments(boundCall.Arguments, boundCall.Method.Parameters, boundCall.WasCompilerGenerated)
                 End Function)
 
             Dim syntax As SyntaxNode = boundCall.Syntax
@@ -502,7 +502,8 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidOperation
-            Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundBadExpression.ChildBoundNodes.SelectAsArray(Function(n) Create(n)))
+            Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function() boundBadExpression.ChildBoundNodes.Select(Function(n) Create(n)).WhereNotNull().ToImmutableArray())
             Dim syntax As SyntaxNode = boundBadExpression.Syntax
             ' We match semantic model here: If the Then expression IsMissing, we have a null type, rather than the ErrorType Of the bound node.
             Dim type As ITypeSymbol = If(syntax.IsMissing, Nothing, boundBadExpression.Type)
@@ -694,7 +695,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Function()
                     Return If(boundObjectCreationExpression.ConstructorOpt Is Nothing,
                         ImmutableArray(Of IArgumentOperation).Empty,
-                        DeriveArguments(boundObjectCreationExpression.Arguments, boundObjectCreationExpression.ConstructorOpt.Parameters))
+                        DeriveArguments(boundObjectCreationExpression.Arguments, boundObjectCreationExpression.ConstructorOpt.Parameters, boundObjectCreationExpression.WasCompilerGenerated))
                 End Function)
 
             Dim syntax As SyntaxNode = boundObjectCreationExpression.Syntax
@@ -781,7 +782,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Function()
                     Return If(boundPropertyAccess.Arguments.Length = 0,
                         ImmutableArray(Of IArgumentOperation).Empty,
-                        DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters))
+                        DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters, boundPropertyAccess.WasCompilerGenerated))
                 End Function)
             Dim syntax As SyntaxNode = boundPropertyAccess.Syntax
             Dim type As ITypeSymbol = boundPropertyAccess.Type
@@ -1218,8 +1219,13 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim syntax As SyntaxNode = boundReturnStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Dim isImplicit As Boolean = boundReturnStatement.WasCompilerGenerated
+            Dim isImplicit As Boolean = boundReturnStatement.WasCompilerGenerated OrElse IsEndSubOrFunctionStatement(syntax)
             Return New LazyReturnStatement(OperationKind.Return, returnedValue, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Shared Function IsEndSubOrFunctionStatement(syntax As SyntaxNode) As Boolean
+            Return TryCast(syntax.Parent, MethodBlockBaseSyntax)?.EndBlockStatement Is syntax OrElse
+                   TryCast(syntax.Parent, MultiLineLambdaExpressionSyntax)?.EndSubOrFunctionStatement Is syntax
         End Function
 
         Private Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IExpressionStatementOperation
@@ -1229,7 +1235,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim statementType As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundThrowStatement.WasCompilerGenerated
-            Dim throwExpression As IOperation = New LazyThrowExpression(thrownObject, _semanticModel, syntax, expressionType, constantValue, isImplicit)
+            Dim throwExpression As IOperation = New LazyThrowExpression(thrownObject, _semanticModel, syntax, expressionType, constantValue, isImplicit:=True)
             Return New ExpressionStatement(throwExpression, _semanticModel, syntax, statementType, constantValue, isImplicit)
         End Function
 
@@ -1268,7 +1274,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim syntax As SyntaxNode = boundLabelStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Dim isImplicit As Boolean = boundLabelStatement.WasCompilerGenerated
+            Dim isImplicit As Boolean = boundLabelStatement.WasCompilerGenerated OrElse IsEndSubOrFunctionStatement(syntax)
             Return New LazyLabeledStatement(label, statement, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -1423,7 +1429,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Dim arguments As Lazy(Of ImmutableArray(Of IArgumentOperation)) = New Lazy(Of ImmutableArray(Of IArgumentOperation))(
                 Function()
-                    Return DeriveArguments(eventInvocation.Arguments, eventInvocation.Method.Parameters)
+                    Return DeriveArguments(eventInvocation.Arguments, eventInvocation.Method.Parameters, invocationWasCompilerGenerated:=False)
                 End Function)
 
             Return New LazyRaiseEventStatement(eventReference, arguments, _semanticModel, syntax, type, constantValue, isImplicit)
@@ -1473,7 +1479,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             If boundNode.Kind = BoundKind.Interpolation Then
                 Return DirectCast(Create(boundNode), IInterpolatedStringContentOperation)
             Else
-                Return CreateBoundInterpolatedStringTextOperation(boundNode)
+                Return CreateBoundInterpolatedStringTextOperation(DirectCast(boundNode, BoundLiteral))
             End If
         End Function
 
@@ -1488,12 +1494,12 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return New LazyInterpolation(expression, alignment, format, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundInterpolatedStringTextOperation(boundNode As BoundNode) As IInterpolatedStringTextOperation
-            Dim text As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundNode))
-            Dim syntax As SyntaxNode = boundNode.Syntax
+        Private Function CreateBoundInterpolatedStringTextOperation(boundLiteral As BoundLiteral) As IInterpolatedStringTextOperation
+            Dim text As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateBoundLiteralOperation(boundLiteral, implicit:=True))
+            Dim syntax As SyntaxNode = boundLiteral.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = Nothing
-            Dim isImplicit As Boolean = boundNode.WasCompilerGenerated
+            Dim isImplicit As Boolean = boundLiteral.WasCompilerGenerated
             Return New LazyInterpolatedStringText(text, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 

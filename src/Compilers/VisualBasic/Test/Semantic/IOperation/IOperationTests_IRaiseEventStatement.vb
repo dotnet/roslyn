@@ -122,14 +122,14 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Raise
   Children(1):
       IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'RaiseEvent TestEvent(1)')
         Children(2):
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'RaiseEvent TestEvent(1)')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'RaiseEvent TestEvent(1)')
               Children(1):
                   IFieldReferenceOperation: TestClass.TestEventEvent As System.Action (OperationKind.FieldReference, Type: System.Action, IsImplicit) (Syntax: 'TestEvent')
                     Instance Receiver: 
                       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
-            
+
             Dim expectedDiagnostics = <![CDATA[
 BC30057: Too many arguments to 'Public Event TestEvent As Action'.
         RaiseEvent TestEvent(1)'BIND:"RaiseEvent TestEvent(1)"

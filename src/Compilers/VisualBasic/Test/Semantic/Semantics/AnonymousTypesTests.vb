@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -160,10 +160,10 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                   IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{tr}')
                                     Element Values(1):
                                         IParameterReferenceOperation: tr (OperationKind.ParameterReference, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -734,10 +734,10 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
           IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')
             Initializers(1):
                 IOperation:  (OperationKind.None, Type: null) (Syntax: '<a/>.<__>')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -977,12 +977,12 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                                 Instance Receiver: 
                                   null
                             Arguments(0)
-                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.String) (Syntax: 'End Function')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1040,12 +1040,12 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                                             Children(1):
                                                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.a')
                                                   Children(0)
-                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.String) (Syntax: 'End Function')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1103,12 +1103,12 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                                             Children(1):
                                                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.x')
                                                   Children(0)
-                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.String) (Syntax: 'End Function')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1177,19 +1177,19 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                                                             Children(1):
                                                                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.x')
                                                                   Children(0)
-                                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+                                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                                         Statement: 
                                           null
-                                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+                                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
                                         ReturnedValue: 
-                                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.String) (Syntax: 'End Function')
+                                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'End Function')
                             Arguments(0)
-                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+                      ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.String) (Syntax: 'End Function')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -448,10 +448,10 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -728,13 +728,13 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
   Initializers(2):
       IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
         Children(2):
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '"Hello World!"')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
               Children(1):
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
       IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Errors wil ... er element"')
         Children(2):
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '"Errors wil ... er element"')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"Errors wil ... er element"')
               Children(1):
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Errors will be shown for each initializer element", IsInvalid) (Syntax: '"Errors wil ... er element"')
@@ -1140,7 +1140,7 @@ IObjectCreationOperation (Constructor: Sub System.Collections.Generic.Dictionary
       Initializers(1):
           IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '{1}')
             Children(2):
-                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '{1}')
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '{1}')
                   Children(1):
                       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: 'New Diction ...  From {{1}}')
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')

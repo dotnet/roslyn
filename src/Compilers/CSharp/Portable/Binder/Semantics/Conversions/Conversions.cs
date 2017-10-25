@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //cannot capture span-like types.
-            if (!method.IsStatic && methodGroup.Receiver.Type.IsByRefLikeType)
+            if (!method.IsStatic && methodGroup.Receiver?.Type?.IsByRefLikeType == true)
             {
                 return Conversion.NoConversion;
             }

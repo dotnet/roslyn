@@ -36,7 +36,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) 
   Left: 
     IPropertyReferenceOperation: System.Int32 C1.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P1')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2) (Syntax: 'P1')
+        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'P1')
   Right: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";

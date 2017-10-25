@@ -632,19 +632,15 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceOperation: System.Char System.String.this[System.Int32 index] { get; } (OperationKind.PropertyReference, Type: System.Char, IsInvalid) (Syntax: 'args[0][]')
-  Instance Receiver: 
-    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.String) (Syntax: 'args[0]')
-      Array reference: 
-        IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[]) (Syntax: 'args')
-      Indices(1):
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-  Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '')
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-          Children(0)
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidOperation (OperationKind.Invalid, Type: System.Char, IsInvalid) (Syntax: 'args[0][]')
+  Children(2):
+      IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.String) (Syntax: 'args[0]')
+        Array reference: 
+          IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[]) (Syntax: 'args')
+        Indices(1):
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+        Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0443: Syntax error; value expected
@@ -833,19 +829,15 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'args[y][
               Children(2):
                   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                     Children(0)
-                  IPropertyReferenceOperation: System.Char System.String.this[System.Int32 index] { get; } (OperationKind.PropertyReference, Type: System.Char, IsInvalid) (Syntax: 'args[y][]')
-                    Instance Receiver: 
-                      IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.String) (Syntax: 'args[y]')
-                        Array reference: 
-                          IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[]) (Syntax: 'args')
-                        Indices(1):
-                            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '')
-                          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-                            Children(0)
-                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IInvalidOperation (OperationKind.Invalid, Type: System.Char, IsInvalid) (Syntax: 'args[y][]')
+                    Children(2):
+                        IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.String) (Syntax: 'args[y]')
+                          Array reference: 
+                            IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[]) (Syntax: 'args')
+                          Indices(1):
+                              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                          Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0443: Syntax error; value expected

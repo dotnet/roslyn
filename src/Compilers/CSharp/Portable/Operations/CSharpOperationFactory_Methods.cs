@@ -134,22 +134,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
-            //TODO: https://github.com/dotnet/roslyn/issues/18722
-            //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
-            //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid 
-            //      invocation instead.
-            //      Note this check doesn't cover all scenarios. For example, when a parameter is a generic type but the type of the type argument 
-            //      is undefined.
-            if ((object)optionalParametersMethod == null
-                || boundNode.HasAnyErrors
-                || parameters.Any(p => p.Type.IsErrorType())
-                || optionalParametersMethod.GetUseSiteDiagnostic()?.DefaultSeverity == DiagnosticSeverity.Error)
-            {
-                // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
-                // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
-                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, arg));
-            }
-
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
                  operationFactory: this,
                  binder: binder,
@@ -160,6 +144,34 @@ namespace Microsoft.CodeAnalysis.Operations
                  expanded: expanded,
                  argsToParamsOpt: argumentsToParametersOpt,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
+        }
+
+        private IInvalidOperation CreateInvalidExpressionForHasArgumentsExpression(BoundNode receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression additionalNodeOpt, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        {
+            Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(
+                      () =>
+                      {
+                          ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance();
+
+                          if (receiverOpt != null 
+                             && (!receiverOpt.WasCompilerGenerated 
+                                 || (receiverOpt.Kind != BoundKind.ThisReference 
+                                    && receiverOpt.Kind != BoundKind.BaseReference 
+                                    && receiverOpt.Kind != BoundKind.ImplicitReceiver)))
+                          {
+                              builder.Add(Create(receiverOpt));
+                          }
+
+                          builder.AddRange(arguments.Select(a => Create(a)));
+
+                          if (additionalNodeOpt != null)
+                          {
+                              builder.Add(Create(additionalNodeOpt));
+                          }
+
+                          return builder.ToImmutableAndFree();
+                      });
+            return new LazyInvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(BoundAnonymousObjectCreationExpression expression)

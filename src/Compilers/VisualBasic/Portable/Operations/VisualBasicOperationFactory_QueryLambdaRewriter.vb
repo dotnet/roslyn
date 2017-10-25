@@ -48,19 +48,26 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return node
                 End If
 
-#If DEBUG Then
                 ' Range variable reference should be rewritten to a parameter reference or a property access.
                 ' We clone these bound nodes in QueryLambdaRewriterPass2 to avoid dag in the generated bound tree.
                 ' If the LocalRewriter is changed to generate more kind of bound nodes for range variables, we should handle these in QueryLambdaRewriterPass2.
                 ' Below assert helps us to stay in sync with the LocalRewriter.
                 Select Case expression.Kind
                     Case BoundKind.Parameter
+                        Dim parameter = DirectCast(expression, BoundParameter)
+                        expression = New BoundParameter(node.Syntax, parameter.ParameterSymbol, parameter.IsLValue, parameter.SuppressVirtualCalls, parameter.Type, parameter.HasErrors)
                     Case BoundKind.PropertyAccess
-                        Exit Select
+                        Dim access = DirectCast(expression, BoundPropertyAccess)
+                        expression = New BoundPropertyAccess(node.Syntax, access.PropertySymbol, access.PropertyGroupOpt, access.AccessKind,
+                                                             access.IsWriteable, access.IsWriteable, access.ReceiverOpt, access.Arguments,
+                                                             access.Type, access.HasErrors)
                     Case Else
                         Debug.Fail($"Unexpected bound kind '{expression.Kind}' generated for range variable rewrite by method '{NameOf(LocalRewriter.PopulateRangeVariableMapForQueryLambdaRewrite)}'")
                 End Select
-#End If
+
+                If node.WasCompilerGenerated Then
+                    expression.SetWasCompilerGenerated()
+                End If
 
                 Return expression
             End Function
@@ -78,7 +85,11 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Public Overrides Function VisitParameter(node As BoundParameter) As BoundNode
                 If node.ParameterSymbol?.ContainingSymbol.IsQueryLambdaMethod AndAlso Not _uniqueNodes.Add(node) Then
+                    Dim wasCompilerGenerated As Boolean = node.WasCompilerGenerated
                     node = New BoundParameter(node.Syntax, node.ParameterSymbol, node.IsLValue, node.SuppressVirtualCalls, node.Type, node.HasErrors)
+                    If wasCompilerGenerated Then
+                        node.MakeCompilerGenerated()
+                    End If
                 End If
 
                 Return node

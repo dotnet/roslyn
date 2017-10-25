@@ -1206,7 +1206,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: x As System.Int32()
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x(2)')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'x(2)')
+        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'x(2)')
           Dimension Sizes(1):
               IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
                 Left: 

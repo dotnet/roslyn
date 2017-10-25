@@ -21,12 +21,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly Compilation _compilation;
         private readonly IOperation _root;
         private readonly StringBuilder _builder;
+        private readonly Dictionary<SyntaxNode, IOperation> _explictNodeMap;
 
         private const string indent = "  ";
         private string _currentIndent;
         private bool _pendingIndent;
 
-        public OperationTreeVerifier(Compilation compilation, IOperation root, int initialIndent)
+        public OperationTreeVerifier(Compilation compilation, IOperation root, int initialIndent, bool trackExplicitNodes)
         {
             _compilation = compilation;
             _root = root;
@@ -34,6 +35,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             _currentIndent = new string(' ', initialIndent);
             _pendingIndent = true;
+
+            if (trackExplicitNodes)
+            {
+                _explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+            }
         }
 
         public static void Verify(Compilation compilation, IOperation operation, string expectedOperationTree, int initialIndent = 0)
@@ -44,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)
         {
-            var walker = new OperationTreeVerifier(compilation, operation, initialIndent);
+            var walker = new OperationTreeVerifier(compilation, operation, initialIndent, 
+                trackExplicitNodes: operation.Language == LanguageNames.VisualBasic);
             walker.Visit(operation);
             return walker._builder.ToString();
         }
@@ -243,6 +250,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return;
             }
 
+            if (_explictNodeMap != null && !operation.IsImplicit)
+            {
+                try
+                {
+                    _explictNodeMap.Add(operation.Syntax, operation);
+                }
+                catch (ArgumentException)
+                {
+                    Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
+                }
+            }
+
             if (operation != _root)
             {
                 Indent();
@@ -317,7 +336,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitChildren(IOperation operation)
         {
-            var children = operation.Children.WhereNotNull().ToImmutableArray();
+            Debug.Assert(operation.Children.All(o => o != null));
+
+            var children = operation.Children.ToImmutableArray();
             if (!children.IsEmpty || operation.Kind != OperationKind.None)
             {
                 VisitArray(children, "Children", logElementCount: true);
@@ -1298,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            VisitArrayCommon(operation.TypeArguments, "Type Arguments", logElementCount: true,logNullForDefault: false, arrayElementVisitor: VisitSymbolArrayElement);
+            VisitArrayCommon(operation.TypeArguments, "Type Arguments", logElementCount: true, logNullForDefault: false, arrayElementVisitor: VisitSymbolArrayElement);
 
             VisitInstance(operation.Instance);
         }

@@ -837,10 +837,10 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
           Target: 
             IAnonymousFunctionOperation (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub(i As In ... End Sub')
               IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub(i As In ... End Sub')
-                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
                   Statement: 
                     null
-                IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
                   ReturnedValue: 
                     null
 ]]>.Value
@@ -867,10 +867,10 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousFunctionOperation (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub(i As In ... End Sub')
   IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub(i As In ... End Sub')
-    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
       Statement: 
         null
-    IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
       ReturnedValue: 
         null
 ]]>.Value
@@ -903,10 +903,10 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
           Target: 
             IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
               IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
                   Statement: 
                     null
-                IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
                   ReturnedValue: 
                     null
 ]]>.Value
@@ -940,10 +940,10 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
           Target: 
             IAnonymousFunctionOperation (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
               IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... End Sub')
-                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid) (Syntax: 'End Sub')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'End Sub')
                   Statement: 
                     null
-                IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'End Sub')
+                IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'End Sub')
                   ReturnedValue: 
                     null
 ]]>.Value
@@ -986,12 +986,12 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
                 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return 1')
                   ReturnedValue: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                   Statement: 
                     null
-                IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
                   ReturnedValue: 
-                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'End Function')
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1028,12 +1028,12 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
                 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return 1')
                   ReturnedValue: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Function')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                   Statement: 
                     null
-                IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Function')
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
                   ReturnedValue: 
-                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'End Function')
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1065,10 +1065,10 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
           Target: 
             IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
               IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid) (Syntax: 'End Sub')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsInvalid, IsImplicit) (Syntax: 'End Sub')
                   Statement: 
                     null
-                IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'End Sub')
+                IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'End Sub')
                   ReturnedValue: 
                     null
 ]]>.Value

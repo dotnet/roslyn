@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -40,10 +40,10 @@ IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
   IgnoredCondition: 
     null
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'Do'BIND:"Do ... While i < 4')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... While i < 4')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'sum += ids(i)')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'sum += ids(i)')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'sum += ids(i)')
             Left: 
               ILocalReferenceOperation: sum (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'sum')
             Right: 
@@ -54,7 +54,7 @@ IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
                     ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'i += 1')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -90,10 +90,10 @@ IDoLoopOperation (DoLoopKind: DoUntilTopLoop) (LoopKind.Do) (OperationKind.Loop,
   IgnoredCondition: 
     null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Do Until X  ... Loop')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do Until X  ... Loop')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'X = X - 1')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = X - 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'X = X - 1')
             Left: 
               IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: 
@@ -136,7 +136,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
   Condition: 
     ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
   Body: 
-    IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'While condi ... End While')
+    IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While condi ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim value A ... ment(index)')
         IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value')
@@ -159,10 +159,10 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         WhenTrue: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If value >  ... End If')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If value >  ... End If')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = False')
               Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = False')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = False')
                   Left: 
                     ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
                   Right: 
@@ -203,17 +203,17 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'While i < 5 ... End While')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i < 5 ... End While')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'sum += i')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'sum += i')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'sum += i')
             Left: 
               ILocalReferenceOperation: sum (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'sum')
             Right: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'i += 1')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -247,7 +247,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
-    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'While True' ... End While')
+    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim value A ... ment(index)')
         IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value')
@@ -270,7 +270,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
         WhenTrue: 
-          IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'If value >  ... End If')
+          IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If value >  ... End If')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... oop break")')
               Expression: 
                 IInvocationOperation (Sub System.Console.WriteLine(value As System.String)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... oop break")')
@@ -322,7 +322,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
-    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'While True' ... End While')
+    IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim value A ... ment(index)')
         IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value')
@@ -345,10 +345,10 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
         WhenTrue: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If value >  ... End If')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If value >  ... End If')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Throw New S ... occurred.")')
               Expression: 
-                IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'Throw New S ... occurred.")')
+                IThrowOperation (OperationKind.Throw, Type: System.Exception, IsImplicit) (Syntax: 'Throw New S ... occurred.")')
                   IObjectCreationOperation (Constructor: Sub System.Exception..ctor(message As System.String)) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'New System. ... occurred.")')
                     Arguments(1):
                         IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: null) (Syntax: '"An excepti ...  occurred."')
@@ -416,7 +416,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'While (Inli ... End While')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While (Inli ... End While')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... , i, value)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... , i, value)')
@@ -443,7 +443,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'value -= 1')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'value -= 1')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'value -= 1')
             Left: 
               ILocalReferenceOperation: value (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'value')
             Right: 
@@ -474,7 +474,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Operand: 
         ILocalReferenceOperation: number (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'number')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'While numbe ... End While')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While numbe ... End While')
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -505,7 +505,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'While True' ... End While')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (number  ... End If')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(number Mod 2) = 0')
@@ -520,7 +520,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         WhenTrue: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (number  ... End If')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If (number  ... End If')
             IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return number')
               ReturnedValue: 
                 IParameterReferenceOperation: number (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'number')
@@ -528,7 +528,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'number += 1')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'number += 1')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'number += 1')
             Left: 
               IParameterReferenceOperation: number (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'number')
             Right: 
@@ -564,7 +564,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
-    IBlockOperation (4 statements) (OperationKind.Block, Type: null) (Syntax: 'While True' ... End While')
+    IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (number  ... End If')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(number Mod 2) = 0')
@@ -579,13 +579,13 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         WhenTrue: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If (number  ... End If')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If (number  ... End If')
             IBranchOperation (BranchKind.GoTo, Label: Even) (OperationKind.Branch, Type: null) (Syntax: 'GoTo Even')
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'number += 1')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'number += 1')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'number += 1')
             Left: 
               IParameterReferenceOperation: number (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'number')
             Right: 
@@ -625,7 +625,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: 
-    IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'While 'BIND ... End While')
+    IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'While 'BIND ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim value A ... ment(index)')
         IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value')
@@ -648,10 +648,10 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
         WhenTrue: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If value >  ... End If')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If value >  ... End If')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = False')
               Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = False')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = False')
                   Left: 
                     ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
                   Right: 
@@ -685,7 +685,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Operand: 
         ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'While (cond ... End While')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While (cond ... End While')
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
@@ -718,10 +718,10 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: 
-    IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'While i <=  ... End While')
+    IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i <=  ... End While')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'i += 1')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -734,7 +734,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 9) (Syntax: '9')
         WhenTrue: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'If i < 9 Th ... End If')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If i < 9 Th ... End If')
             IBranchOperation (BranchKind.Continue, Label: continue) (OperationKind.Branch, Type: null) (Syntax: 'Continue While')
         WhenFalse: 
           null
@@ -787,10 +787,10 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'While IsTru ... End While')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While IsTru ... End While')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'i += 1')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -839,11 +839,11 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: 
-    IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'While i < 1 ... End While')
+    IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i < 1 ... End While')
       Locals: Local_1: j As System.Int32
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'i += 1')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -862,10 +862,10 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         Body: 
-          IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'While j < 1 ... End While')
+          IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While j < 1 ... End While')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j += 1')
               Expression: 
-                ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'j += 1')
+                ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'j += 1')
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
@@ -925,11 +925,11 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: 
-    IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'While i < 1 ... End While')
+    IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i < 1 ... End While')
       Locals: Local_1: j As System.Int32
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'i += 1')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -948,17 +948,17 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         Body: 
-          IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'While j < 1 ... End While')
+          IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While j < 1 ... End While')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j += 1')
               Expression: 
-                ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'j += 1')
+                ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'j += 1')
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = i + j')
               Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + j')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = i + j')
                   Left: 
                     ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   Right: 
@@ -1022,7 +1022,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'While Syste ... End While')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While Syste ... End While')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(i)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
@@ -1062,10 +1062,10 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'While i > 0 ... End While')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While i > 0 ... End While')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i += 1')
         Expression: 
-          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'i += 1')
+          ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i += 1')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -1099,7 +1099,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Right: 
         ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean, Constant: True) (Syntax: 'b')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'While b = b ... End While')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While b = b ... End While')
       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return b')
         ReturnedValue: 
           ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean, Constant: True) (Syntax: 'b')
@@ -1157,13 +1157,13 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
           Right: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'While Syste ... End While')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'While Syste ... End While')
       ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try ... End Try')
         Body: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Try ... End Try')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try ... End Try')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'y = CSByte(x / 2)')
               Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.SByte) (Syntax: 'y = CSByte(x / 2)')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.SByte, IsImplicit) (Syntax: 'y = CSByte(x / 2)')
                   Left: 
                     ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.SByte) (Syntax: 'y')
                   Right: 
@@ -1186,7 +1186,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally ... Exception()')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Throw New S ... Exception()')
               Expression: 
-                IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'Throw New S ... Exception()')
+                IThrowOperation (OperationKind.Throw, Type: System.Exception, IsImplicit) (Syntax: 'Throw New S ... Exception()')
                   IObjectCreationOperation (Constructor: Sub System.Exception..ctor()) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'New System.Exception()')
                     Arguments(0)
                     Initializer: 
@@ -1225,7 +1225,7 @@ IDoLoopOperation (DoLoopKind: DoWhileTopLoop) (LoopKind.Do) (OperationKind.Loop,
   IgnoredCondition: 
     null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Do While G( ... Loop')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do While G( ... Loop')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(1)')
@@ -1270,7 +1270,7 @@ IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
   IgnoredCondition: 
     null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Do'BIND:"Do ... p While G()')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... p While G()')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(1)')
@@ -1312,10 +1312,10 @@ IDoLoopOperation (DoLoopKind: DoUntilBottomLoop) (LoopKind.Do) (OperationKind.Lo
   IgnoredCondition: 
     null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Do'BIND:"Do ... Until X < 0')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... Until X < 0')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'X = X - 1')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = X - 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'X = X - 1')
             Left: 
               IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: 
@@ -1362,7 +1362,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       Operand: 
         ILocalReferenceOperation: breakLoop (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'breakLoop')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'While Not b ... End While')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While Not b ... End While')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... te {0}", x)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(format As System.String, arg0 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Wri ... te {0}", x)')
@@ -1382,7 +1382,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'breakLoop = True')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'breakLoop = True')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'breakLoop = True')
             Left: 
               ILocalReferenceOperation: breakLoop (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'breakLoop')
             Right: 
@@ -1419,10 +1419,10 @@ IDoLoopOperation (DoLoopKind: None) (LoopKind.Do) (OperationKind.Loop, Type: nul
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Do While i  ... ntil i <= 0')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Do While i  ... ntil i <= 0')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = i + 1')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = i + 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = i + 1')
             Left: 
               IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Right: 

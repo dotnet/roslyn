@@ -144,6 +144,8 @@ string[] TestPackageNames = {
 var PreReleaseOnlyPackages = new HashSet<string>
 {
     "Microsoft.CodeAnalysis.Build.Tasks",
+    "Microsoft.CodeAnalysis.CSharp.CodeStyle",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeStyle",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",

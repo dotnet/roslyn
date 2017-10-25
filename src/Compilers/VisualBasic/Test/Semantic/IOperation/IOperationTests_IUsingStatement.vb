@@ -123,7 +123,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1 As ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Using c1 As ... End Using')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -177,7 +177,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1 As ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Using c1 As ... End Using')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -231,7 +231,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1 As ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Using c1 As ... End Using')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -286,7 +286,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1, c ... End 
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1, c ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Using c1, c ... End Using')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -333,7 +333,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1'BI ... End 
   Resources: 
     ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1'BI ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Using c1'BI ... End Using')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -387,7 +387,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1,
         Initializer: 
           null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Using c1, c ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Using c1, c ... End Using')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -445,12 +445,12 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1'BI ... End 
   Resources: 
     ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c1')
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1'BI ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Using c1'BI ... End Using')
       IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c2 ... End Using')
         Resources: 
           ILocalReferenceOperation: c2 (OperationKind.LocalReference, Type: Program.C) (Syntax: 'c2')
         Body: 
-          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c2 ... End Using')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Using c2 ... End Using')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
               Expression: 
                 IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -512,7 +512,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 =  ... End 
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Using c1 =  ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Using c1 =  ... End Using')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -570,7 +570,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 
         Initializer: 
           null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Using c1 =  ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Using c1 =  ... End Using')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -628,7 +628,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 
               Initializer: 
                 null
   Body: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Using c1 As ... End Using')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Using c1 As ... End Using')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(c1)')
         Expression: 
           IInvocationOperation (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(c1)')
@@ -673,7 +673,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using'BIN
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Using'BIND: ... End Using')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Using'BIND: ... End Using')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -707,7 +707,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using Not
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'Nothing')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Using Nothi ... End Using')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Using Nothi ... End Using')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -752,7 +752,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using GetC( ... End 
         null
       Arguments(0)
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Using GetC( ... End Using')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Using GetC( ... End Using')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

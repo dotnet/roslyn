@@ -3373,10 +3373,10 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
           Target: 
             IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
               IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
                   Statement: 
                     null
-                IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
                   ReturnedValue: 
                     null
 ]]>.Value
@@ -3402,10 +3402,10 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
   IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
-    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
       Statement: 
         null
-    IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
       ReturnedValue: 
         null
 ]]>.Value

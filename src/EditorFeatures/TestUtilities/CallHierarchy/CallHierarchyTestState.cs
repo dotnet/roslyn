@@ -245,8 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         {
             this.SearchRoot(root, searchCategory, (ICallHierarchyNameItem c) =>
                 {
-                    Assert.True(expectedCallers.Any());
-                    Assert.True(expectedCallers.Contains(ConvertToName(c)));
+                    Assert.Contains(ConvertToName(c), expectedCallers);
                 },
                 scope,
                 documents);
@@ -256,8 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         {
             this.SearchRoot(root, searchCategory, (CallHierarchyItem c) =>
                 {
-                    Assert.True(expectedCallers.Any());
-                    Assert.True(expectedCallers.Contains(ConvertToName(c)));
+                    Assert.Contains(ConvertToName(c), expectedCallers);
                 },
                 scope,
                 documents);

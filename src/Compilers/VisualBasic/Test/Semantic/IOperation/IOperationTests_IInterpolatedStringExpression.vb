@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -48,7 +48,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
   Parts(1):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'Only text part')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Only text part") (Syntax: 'Only text part')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Only text part", IsImplicit) (Syntax: 'Only text part')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -136,7 +136,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
   Parts(4):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ", IsImplicit) (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x}')
         Expression: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
@@ -146,7 +146,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and constant ", IsImplicit) (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
         Expression: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -181,7 +181,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
   Parts(6):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ", IsImplicit) (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x,20}')
         Expression: 
           IFieldReferenceOperation: [Class].x As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: 'x')
@@ -193,7 +193,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and ") (Syntax: ' and ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and ", IsImplicit) (Syntax: ' and ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{y:D3}')
         Expression: 
           IFieldReferenceOperation: [Class].y As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'y')
@@ -205,7 +205,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "D3") (Syntax: ':D3')
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and constant ", IsImplicit) (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
         Expression: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -239,7 +239,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
   Parts(2):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ", IsImplicit) (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x,20:D3}')
         Expression: 
           IFieldReferenceOperation: [Class].x As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: 'x')
@@ -279,7 +279,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
   Parts(6):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ", IsImplicit) (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x}')
         Expression: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.String) (Syntax: 'x')
@@ -289,7 +289,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and ") (Syntax: ' and ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and ", IsImplicit) (Syntax: ' and ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{M2(y)}')
         Expression: 
           IInvocationOperation ( Function [Class].M2(z As System.Int32) As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: 'M2(y)')
@@ -306,7 +306,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and constant ", IsImplicit) (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
         Expression: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -344,7 +344,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
   Parts(2):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ", IsImplicit) (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{M2($"{y}")}')
         Expression: 
           IInvocationOperation ( Function [Class].M2(z As System.String) As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2($"{y}")')
@@ -391,7 +391,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
   Parts(4):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "String ", IsImplicit) (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{x1}')
         Expression: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x1')
@@ -402,7 +402,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and constant ", IsImplicit) (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{[Class]}')
         Expression: 
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '[Class]')

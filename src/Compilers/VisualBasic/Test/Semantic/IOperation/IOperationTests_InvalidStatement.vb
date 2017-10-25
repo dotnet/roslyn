@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -57,7 +57,7 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'Select Case ... End Select')
   Switch expression: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
@@ -68,7 +68,7 @@ ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax
                 Value: 
                   null
           Body:
-              IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'Case 1')
+              IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Case 1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -94,7 +94,7 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'Select Case ... End Select')
   Switch expression: 
     IInvocationOperation (virtual Function System.Object.ToString() As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
@@ -108,7 +108,7 @@ ISwitchOperation (1 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax
                 Value: 
                   null
           Body:
-              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Case x ... Exit Select')
+              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Case x ... Exit Select')
                 IBranchOperation (BranchKind.Break, Label: exit) (OperationKind.Branch, Type: null) (Syntax: 'Exit Select')
 ]]>.Value
 
@@ -133,7 +133,7 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'If x = Noth ... End If')
   Condition: 
     IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x = Nothing')
@@ -148,7 +148,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'Nothing')
   WhenTrue: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'If x = Noth ... End If')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'If x = Noth ... End If')
   WhenFalse: 
     null
 ]]>.Value
@@ -176,13 +176,13 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'If Then'BIN ... Else')
   Condition: 
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   WhenTrue: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'If Then'BIN ... Else')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'If Then'BIN ... Else')
   WhenFalse: 
     IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'ElseIf x Th ... x')
       Condition: 
@@ -191,7 +191,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
           Operand: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
       WhenTrue: 
-        IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'ElseIf x Th ... x')
+        IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'ElseIf x Th ... x')
           IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x')
             Expression: 
               IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x')
@@ -242,12 +242,12 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid)
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   StepValue: 
-    IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For i As In ... Next i')
+    IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'For i As In ... Next i')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
   NextVariables(1):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
@@ -288,12 +288,12 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid)
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   StepValue: 
-    IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid) (Syntax: 'For Step (M ... Next')
+    IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'For Step (M ... Next')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -345,7 +345,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid)
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x')
           Children(0)
   Body: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'For i As In ... Next i')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
   NextVariables(1):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 ]]>.Value

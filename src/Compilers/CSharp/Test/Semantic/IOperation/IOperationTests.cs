@@ -60,21 +60,13 @@ public class Cls
 ");
 
             compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IInvocationOperation (void Cls.Test2(System.Int32 y, params System.Int32[] x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
-  Instance Receiver: 
-    null
-  Arguments(2):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: System.Object, IsInvalid) (Syntax: 'new object()')
-        IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'new object()')
-          Arguments(0)
-          Initializer: 
-            null
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Type: null) (Syntax: 'null')
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+@"IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
+  Children(2):
+      IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'new object()')
+        Arguments(0)
+        Initializer: 
+          null
+      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -139,7 +131,7 @@ public class C
         public void TestParentOperations()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
-
+            
             var compilation = CreateStandardCompilation(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

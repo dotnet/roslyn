@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -31,10 +31,10 @@ IWithOperation (OperationKind.None, Type: null) (Syntax: 'With c'BIND ... End Wi
   Value: 
     IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'With c'BIND ... End With')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'With c'BIND ... End With')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '.I = 0')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.I = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '.I = 0')
             Left: 
               IFieldReferenceOperation: C.I As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.I')
                 Instance Receiver: 
@@ -43,7 +43,7 @@ IWithOperation (OperationKind.None, Type: null) (Syntax: 'With c'BIND ... End Wi
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '.J = 0')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.J = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '.J = 0')
             Left: 
               IFieldReferenceOperation: C.J As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.J')
                 Instance Receiver: 
@@ -81,10 +81,10 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Priva
     Value: 
       IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
     Body: 
-      IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'With c ... End With')
+      IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'With c ... End With')
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '.I = 0')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.I = 0')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '.I = 0')
               Left: 
                 IFieldReferenceOperation: C.I As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.I')
                   Instance Receiver: 
@@ -93,17 +93,17 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Priva
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '.J = 0')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.J = 0')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '.J = 0')
               Left: 
                 IFieldReferenceOperation: C.J As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.J')
                   Instance Receiver: 
                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'c')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null) (Syntax: 'End Sub')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value

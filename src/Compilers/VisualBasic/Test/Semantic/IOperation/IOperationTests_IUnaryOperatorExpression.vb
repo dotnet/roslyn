@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -1860,7 +1860,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If x And
           Right: 
             ILocalReferenceOperation: y (OperationKind.LocalReference, Type: CustomType) (Syntax: 'y')
   WhenTrue: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'If x AndAls ... End If')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If x AndAls ... End If')
   WhenFalse: 
     null
 ]]>.Value
@@ -1913,7 +1913,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If x OrE
           Right: 
             ILocalReferenceOperation: y (OperationKind.LocalReference, Type: CustomType) (Syntax: 'y')
   WhenTrue: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: 'If x OrElse ... End If')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If x OrElse ... End If')
   WhenFalse: 
     null
 ]]>.Value
