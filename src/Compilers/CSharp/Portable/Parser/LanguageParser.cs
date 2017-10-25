@@ -945,10 +945,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
                     this.IsPossibleAttribute())
                 {
-                    // comma is optional, but if it is present it may be followed by another attribute
                     nodes.AddSeparator(this.EatToken());
 
-                    // check for legal trailing comma
+                    // Allow optional trailing comma.
                     if (this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
                     {
                         break;
@@ -1023,9 +1022,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 else if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
                                          this.IsPossibleAttributeArgument())
                                 {
-                                    // comma is optional, but if it is present it may be followed by another attribute argument
                                     argNodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
+                                    // Allow optional trailing comma.
                                     if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                                     {
                                         break;
@@ -1771,9 +1770,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
                              this.IsPossibleType())
                     {
-                        // Allow optional trailing comma.
                         list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
+                        // Allow optional trailing comma.
                         if (AtEndOfBaseList())
                         {
                             break;
@@ -3682,7 +3681,7 @@ tryAgain:
                             {
                                 nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
-                                // Check for optional trailing comma.
+                                // Allow optional trailing comma.
                                 if (this.CurrentToken.Kind == closeKind)
                                 {
                                     break;
@@ -5014,7 +5013,7 @@ tryAgain:
                     {
                         parameters.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
-                        // Check for optional trailing comma.
+                        // Allow optional trailing comma.
                         if (AtEndOfTypeParameterList())
                         {
                             break;
@@ -5423,8 +5422,9 @@ tryAgain:
                 else if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
                          this.IsPossibleType())
                 {
-                    // Check for optional trailing comma.
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
+                    // Allow optional trailing comma.
                     if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                     {
                         break;
@@ -9560,9 +9560,9 @@ tryAgain:
                             else if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
                                      this.IsPossibleArgumentExpression())
                             {
-                                // Check for optional trailing comma
                                 list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
+                                // Allow optional trailing comma.
                                 if (AtEndOfArgumentList())
                                 {
                                     break;
