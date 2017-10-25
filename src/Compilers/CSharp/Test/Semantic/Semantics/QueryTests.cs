@@ -58,7 +58,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         null
       Arguments(2):
           IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from i in c')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
@@ -129,7 +129,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 null
               Arguments(2):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from i in c')
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
+                    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
@@ -205,7 +205,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         null
       Arguments(2):
           IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from i in c')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
@@ -273,7 +273,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         null
       Arguments(2):
           IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from i in c')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
@@ -362,7 +362,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 null
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'c')
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c')
+                    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Object>) (Syntax: 'c')
@@ -432,7 +432,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 null
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'c')
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c')
+                    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Object>) (Syntax: 'c')
@@ -510,14 +510,14 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         null
       Arguments(5):
           IArgument (ArgumentKind.Explicit, Matching Parameter: outer) (OperationKind.Argument, IsImplicit) (Syntax: 'from x1 in c1')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from x1 in c1')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from x1 in c1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 'c2')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'c2')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'c2')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c2')
@@ -619,7 +619,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 null
               Arguments(2):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from i in c')
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
+                    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
@@ -713,14 +713,14 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         null
       Arguments(5):
           IArgument (ArgumentKind.Explicit, Matching Parameter: outer) (OperationKind.Argument, IsImplicit) (Syntax: 'from x1 in c1')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from x1 in c1')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from x1 in c1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 'c2')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'c2')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'c2')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c2')
@@ -761,7 +761,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                           Left: 
                             IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'x1 + "":""')
                               Left: 
-                                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'x1')
+                                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'x1')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: 
                                     IOperation:  (OperationKind.None) (Syntax: 'x1')
@@ -824,7 +824,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         null
       Arguments(3):
           IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from x in c1')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from x in c1')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from x in c1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c1')
@@ -837,7 +837,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                   IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'c2')
                     IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'c2')
                       ReturnedValue: 
-                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'c2')
+                        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'c2')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c2')
@@ -945,7 +945,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                 null
                               Arguments(1):
                                   IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'c1')
-                                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c1')
+                                    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c1')
                                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                       Operand: 
                                         ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c1')
@@ -1116,7 +1116,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                 null
                                               Arguments(1):
                                                   IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'c1')
-                                                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c1')
+                                                    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c1')
                                                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                       Operand: 
                                                         ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c1')
@@ -1136,7 +1136,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                             null
                                                           Arguments(1):
                                                               IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'c2')
-                                                                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c2')
+                                                                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c2')
                                                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                                   Operand: 
                                                                     ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c2')
@@ -1179,7 +1179,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                     null
                                                   Arguments(1):
                                                       IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'c3')
-                                                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c3')
+                                                        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c3')
                                                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                           Operand: 
                                                             ILocalReferenceExpression: c3 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c3')
@@ -1472,7 +1472,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                         null
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'c1')
-                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c1')
+                            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c1')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c1')
@@ -1492,7 +1492,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                     null
                                   Arguments(1):
                                       IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'c2')
-                                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c2')
+                                        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c2')
                                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                           Operand: 
                                             ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c2')
@@ -1535,7 +1535,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                             null
                           Arguments(1):
                               IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'c3')
-                                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c3')
+                                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c3')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: 
                                     ILocalReferenceExpression: c3 (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c3')
@@ -1789,7 +1789,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, Is
               null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'new int[] { 1 }')
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'new int[] { 1 }')
+                  IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'new int[] { 1 }')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new int[] { 1 }')
@@ -2708,7 +2708,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, Is
               null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'string.Empty')
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsInvalid, IsImplicit) (Syntax: 'string.Empty')
+                  IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsInvalid, IsImplicit) (Syntax: 'string.Empty')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
@@ -4057,7 +4057,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         null
       Arguments(2):
           IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from a in new[] { 1 }')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from a in new[] { 1 }')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from a in new[] { 1 }')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new[] { 1 }')
@@ -4120,7 +4120,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         null
       Arguments(2):
           IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from i in c')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
@@ -4172,7 +4172,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         null
       Arguments(2):
           IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from i in c')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from i in c')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')

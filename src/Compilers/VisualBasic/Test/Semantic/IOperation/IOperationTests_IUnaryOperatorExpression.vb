@@ -1438,7 +1438,7 @@ End Enum
             Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '+i')
   Operand: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'i')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: E) (Syntax: 'i')
@@ -1466,7 +1466,7 @@ End Enum
             Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-i')
   Operand: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'i')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: E) (Syntax: 'i')
@@ -1519,7 +1519,7 @@ End Enum
             Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '+Method()')
   Operand: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'Method()')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'Method()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IInvocationExpression ( Function A.Method() As E) (OperationKind.InvocationExpression, Type: E) (Syntax: 'Method()')
@@ -1550,7 +1550,7 @@ End Enum
             Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-Method()')
   Operand: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'Method()')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'Method()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IInvocationExpression ( Function A.Method() As E) (OperationKind.InvocationExpression, Type: E) (Syntax: 'Method()')
@@ -1970,7 +1970,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperatorMethod: Function BaseType.op_UnaryPlus(x As BaseType) As BaseType) (OperationKind.UnaryOperatorExpression, Type: BaseType) (Syntax: '+i')
   Operand: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: BaseType, IsImplicit) (Syntax: 'i')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: BaseType, IsImplicit) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType) (Syntax: 'i')

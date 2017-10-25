@@ -161,7 +161,7 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                           Instance Receiver: 
                             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'Property2')
                       Right: 
-                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid, IsImplicit) (Syntax: '1')
+                        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid, IsImplicit) (Syntax: '1')
                           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -269,7 +269,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.C
                     null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'new[] { x, y }')
-                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'new[] { x, y }')
+                        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'new[] { x, y }')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new[] { x, y }')

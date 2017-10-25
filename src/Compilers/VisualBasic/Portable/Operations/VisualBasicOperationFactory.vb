@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IOperation
             Dim syntax As SyntaxNode = boundTryCast.Syntax
             Dim type As ITypeSymbol = boundTryCast.Type
-            Dim isImplicit As Boolean = boundTryCast.WasCompilerGenerated
+            Dim isImplicit As Boolean = False ' Try Cast can never be an implicit operation
 
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
             Dim conversionInformation = CreateConversionOperand(boundTryCast.Operand, boundTryCast.ConversionKind, boundTryCast.Syntax, boundTryCast.Type)
@@ -531,17 +531,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
             End If
 
             Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundTryCast.ConversionKind, Nothing))
-            Dim isExplicitCastInCode As Boolean = True
             Dim isTryCast As Boolean = True
             Dim isChecked As Boolean = False
-            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicitCastInCode, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IOperation
             Dim syntax As SyntaxNode = boundDirectCast.Syntax
             Dim type As ITypeSymbol = boundDirectCast.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundDirectCast.WasCompilerGenerated
+            Dim isImplicit As Boolean = False ' Direct Cast can never be an implicit operation
 
             Dim conversionInformation = CreateConversionOperand(boundDirectCast.Operand, boundDirectCast.ConversionKind, boundDirectCast.Syntax, boundDirectCast.Type)
             Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
@@ -554,10 +553,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             End If
 
             Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundDirectCast.ConversionKind, Nothing))
-            Dim isExplicit As Boolean = True
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
-            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IOperation
@@ -592,10 +590,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             End If
 
             Dim conversion = New Conversion(New KeyValuePair(Of VisualBasic.ConversionKind, MethodSymbol)(boundConversion.ConversionKind, methodSymbol))
-            Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
-            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyVisualBasicConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundDelegateCreationExpressionOperation(boundDelegateCreationExpression As BoundDelegateCreationExpression) As IDelegateCreationExpression

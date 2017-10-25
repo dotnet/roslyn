@@ -780,11 +780,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                 else
                 {
                     Conversion conversion = boundConversion.Conversion;
-                    bool isExplicitCastInCode = boundConversion.ExplicitCastInCode;
                     bool isTryCast = false;
                     // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
                     bool isChecked = conversion.IsNumeric && boundConversion.Checked;
-                    return new LazyCSharpConversionExpression(operand, conversion, isExplicitCastInCode, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new LazyCSharpConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
                 }
             }
         }
@@ -794,13 +793,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundAsOperator.Operand));
             SyntaxNode syntax = boundAsOperator.Syntax;
             Conversion conversion = boundAsOperator.Conversion;
-            bool isExplicit = true;
             bool isTryCast = true;
             bool isChecked = false;
             ITypeSymbol type = boundAsOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAsOperator.ConstantValue);
-            bool isImplicit = boundAsOperator.WasCompilerGenerated;
-            return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+            bool isImplicit = false; // as expressions can never be implicitly created
+            return new LazyCSharpConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDelegateCreationExpression CreateBoundDelegateCreationExpressionOperation(BoundDelegateCreationExpression boundDelegateCreationExpression)

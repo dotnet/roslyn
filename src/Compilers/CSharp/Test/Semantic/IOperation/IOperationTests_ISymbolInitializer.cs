@@ -139,7 +139,7 @@ class C
 ";
             string expectedOperationTree = @"
 IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializer) (Syntax: '= null')
-  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
+  IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
@@ -385,7 +385,7 @@ class C
 ";
             string expectedOperationTree = @"
 IFieldInitializer (Field: System.Single C.f) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= 0.0')
-  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+  IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
@@ -414,7 +414,7 @@ class C
 ";
             string expectedOperationTree = @"
 IFieldInitializer (Field: System.Single C.f) (OperationKind.FieldInitializer) (Syntax: '= 0')
-  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsImplicit) (Syntax: '0')
+  IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsImplicit) (Syntax: '0')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')

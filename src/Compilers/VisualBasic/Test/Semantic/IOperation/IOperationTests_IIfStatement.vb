@@ -797,7 +797,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If () Then' ... End If')
   Condition: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '()')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid) (Syntax: '()')

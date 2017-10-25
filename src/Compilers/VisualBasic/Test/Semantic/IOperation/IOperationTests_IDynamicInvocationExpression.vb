@@ -472,7 +472,7 @@ IInvocationExpression (virtual Sub C.MySubDelegate.Invoke(x As System.Int32)) (O
     IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: C.MySubDelegate) (Syntax: 'd')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'o')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'o')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'o')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')

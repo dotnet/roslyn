@@ -417,7 +417,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: System.Action a
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= M1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M1')
@@ -637,7 +637,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
+IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M1')
@@ -667,7 +667,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)o.M1')
+IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)o.M1')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'o.M1')
@@ -1402,7 +1402,7 @@ class Program
             string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M1)')
   Children(1):
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
+      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M1')

@@ -39,7 +39,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i As In ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i As In ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i As In ... Next')
@@ -94,12 +94,12 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   InitialValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: '"1"')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: '"1"')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "1") (Syntax: '"1"')
   StepValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 's')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 's')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 's')
@@ -148,12 +148,12 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LoopControlVariable: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'i As Double')
   InitialValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 2, IsImplicit) (Syntax: '2')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 2, IsImplicit) (Syntax: '2')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   LimitValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 0, IsImplicit) (Syntax: '0')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 0, IsImplicit) (Syntax: '0')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -257,7 +257,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For AVarNam ... xt AVarName')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For AVarNam ... xt AVarName')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For AVarNam ... xt AVarName')
@@ -272,7 +272,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
         LimitValue: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         StepValue: 
-          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For B = 1 T ... Next B')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For B = 1 T ... Next B')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For B = 1 T ... Next B')
@@ -287,7 +287,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
               LimitValue: 
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
               StepValue: 
-                IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For C = 1 T ... Next C')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For C = 1 T ... Next C')
                   Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For C = 1 T ... Next C')
@@ -302,7 +302,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
                     LimitValue: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
                     StepValue: 
-                      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For D = 1 T ... Next D')
+                      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For D = 1 T ... Next D')
                         Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For D = 1 T ... Next D')
@@ -351,7 +351,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
@@ -366,7 +366,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
         LimitValue: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         StepValue: 
-          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = 1 T ... Next')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = 1 T ... Next')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = 1 T ... Next')
@@ -425,7 +425,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
@@ -444,7 +444,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
         LimitValue: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         StepValue: 
-          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = I + ... Next')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = I + ... Next')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = I + ... Next')
@@ -496,7 +496,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
@@ -511,7 +511,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
         LimitValue: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         StepValue: 
-          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = 1 T ... Next')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = 1 T ... Next')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = 1 T ... Next')
@@ -568,7 +568,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
       Instance Receiver: 
         null
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: e1, Constant: 1, IsImplicit) (Syntax: 'For x As e1 ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: e1, Constant: 1, IsImplicit) (Syntax: 'For x As e1 ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x As e1 ... Next')
@@ -609,7 +609,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LoopControlVariable: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
   InitialValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'P1(30 + i)')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'P1(30 + i)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IPropertyReferenceExpression: Property MyClass1.P1(x As System.Int64) As System.Byte (OperationKind.PropertyReferenceExpression, Type: System.Byte) (Syntax: 'P1(30 + i)')
@@ -617,7 +617,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MyClass1, IsImplicit) (Syntax: 'P1')
           Arguments(1):
               IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '30 + i')
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: '30 + i')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: '30 + i')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '30 + i')
@@ -630,7 +630,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 30) (Syntax: '30')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i As In ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i As In ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i As In ... Next')
@@ -665,7 +665,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LoopControlVariable: 
     ILocalReferenceExpression: global_x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'global_x As Integer')
   InitialValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 20, IsImplicit) (Syntax: 'global_y')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 20, IsImplicit) (Syntax: 'global_y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IFieldReferenceExpression: MyClass1.global_y As System.Int64 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int64, Constant: 20) (Syntax: 'global_y')
@@ -674,7 +674,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For global_ ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For global_ ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For global_ ... Next')
@@ -709,7 +709,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x As In ... o 10 : Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x As In ... o 10 : Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x As In ... o 10 : Next')
@@ -745,7 +745,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For Y = 1 T ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For Y = 1 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For Y = 1 T ... Next')
@@ -789,7 +789,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 42) (Syntax: '42')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For element ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For element ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For element ... Next')
@@ -833,7 +833,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i As In ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i As In ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i As In ... Next')
@@ -891,7 +891,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For X = 10  ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For X = 10  ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For X = 10  ... Next')
@@ -974,7 +974,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For A = 1 T ... Next B, A')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For A = 1 T ... Next B, A')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For A = 1 T ... Next B, A')
@@ -989,7 +989,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
         LimitValue: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         StepValue: 
-          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For B = A T ... Next B, A')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For B = A T ... Next B, A')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For B = A T ... Next B, A')
@@ -1029,7 +1029,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x = 12  ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x = 12  ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x = 12  ... Next')
@@ -1060,17 +1060,17 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LoopControlVariable: 
     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
   InitialValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '12')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '12')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
   LimitValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'y')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'For x = 12  ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'For x = 12  ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x = 12  ... Next')
@@ -1103,12 +1103,12 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   InitialValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
   LimitValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'y')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x = 12  ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x = 12  ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x = 12  ... Next')
@@ -1139,14 +1139,14 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LoopControlVariable: 
     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
   InitialValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '12')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '12')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
   LimitValue: 
     ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'For x = 12  ... Next')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'For x = 12  ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For x = 12  ... Next')
@@ -1182,7 +1182,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   StepValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 's')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 's')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
@@ -1214,12 +1214,12 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LoopControlVariable: 
     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
   InitialValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '12')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '12')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
   LimitValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'y')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
@@ -1255,12 +1255,12 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   InitialValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
   LimitValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'y')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
   StepValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 's')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 's')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
@@ -1292,7 +1292,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LoopControlVariable: 
     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
   InitialValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '12')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '12')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
@@ -1335,7 +1335,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For X = 0 T ... Next X')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For X = 0 T ... Next X')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For X = 0 T ... Next X')
@@ -1379,7 +1379,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For c.X = 0 ... Next c.X')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For c.X = 0 ... Next c.X')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For c.X = 0 ... Next c.X')

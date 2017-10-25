@@ -177,7 +177,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: System.String y
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= x.i1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x.i1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x.i1')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
@@ -223,7 +223,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: Program y
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (Program)x.i1')
-        IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '(Program)x.i1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '(Program)x.i1')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
@@ -415,7 +415,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 Program.x) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= Program')
-  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program')
+  IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program')
     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
@@ -452,18 +452,18 @@ IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Synt
   Element Values(2):
       IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ { 1, 1 } }')
         Element Values(1):
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '{ 1, 1 }')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '{ 1, 1 }')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '{ 1, 1 }')
                   Children(1):
                       IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ 1, 1 }')
                         Element Values(2):
-                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: '1')
+                            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: '1')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: '1')
+                            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: '1')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -506,14 +506,14 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: X[], IsIn
   Initializer: 
     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ { 1 } }')
       Element Values(1):
-          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: X, IsInvalid, IsImplicit) (Syntax: '{ 1 }')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: X, IsInvalid, IsImplicit) (Syntax: '{ 1 }')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '{ 1 }')
                 Children(1):
                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ 1 }')
                       Element Values(1):
-                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: '1')
+                          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: '1')
                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: 
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')

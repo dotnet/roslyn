@@ -638,7 +638,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
   Switch expression: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -647,7 +647,7 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: 'Function() 5')
                 Value: 
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Function() 5')
+                  IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Function() 5')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Function <generated method>() As System.Int32, IsImplicit) (Syntax: 'Function() 5')

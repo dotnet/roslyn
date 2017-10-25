@@ -34,10 +34,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 #pragma warning restore RS0010 // Avoid using cref tags with a prefix
         CommonConversion Conversion { get; }
         /// <summary>
-        /// True if and only if the conversion is indicated explicitly by a cast operation in the source code.
-        /// </summary>
-        bool IsExplicitInCode { get; }
-        /// <summary>
         /// False if the conversion will fail with a <see cref="InvalidCastException"/> at runtime if the cast fails. This is true for C#'s
         /// <code>as</code> operator and for VB's <code>TryCast</code> operator.
         /// </summary>

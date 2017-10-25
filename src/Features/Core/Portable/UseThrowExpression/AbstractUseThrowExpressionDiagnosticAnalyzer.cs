@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         private bool TryGetLocalOrParameterSymbol(
             IOperation operation, out ISymbol localOrParameter)
         {
-            if (operation is IConversionExpression conversion && !conversion.IsExplicitInCode)
+            if (operation is IConversionExpression conversion && conversion.IsImplicit)
             {
                 return TryGetLocalOrParameterSymbol(conversion.Operand, out localOrParameter);
             }

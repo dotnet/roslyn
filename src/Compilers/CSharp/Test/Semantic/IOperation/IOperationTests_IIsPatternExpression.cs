@@ -196,7 +196,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
   Pattern: 
     IConstantPattern (OperationKind.ConstantPattern) (Syntax: '(int)12.0')
       Value: 
-        IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 12) (Syntax: '(int)12.0')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 12) (Syntax: '(int)12.0')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 12) (Syntax: '12.0')
@@ -228,7 +228,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
   Pattern: 
     IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: '12.0')
       Value: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 12, IsInvalid, IsImplicit) (Syntax: '12.0')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 12, IsInvalid, IsImplicit) (Syntax: '12.0')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 12, IsInvalid) (Syntax: '12.0')
@@ -264,7 +264,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
   Pattern: 
     IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'null')
       Value: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'null')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')

@@ -28,7 +28,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: s As System.String
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Nothing')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -57,7 +57,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: s As System.Int32
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Nothing')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'Nothing')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -86,7 +86,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: s As System.Double
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -119,7 +119,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As Program.A
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, Constant: 0, IsImplicit) (Syntax: '0')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, Constant: 0, IsImplicit) (Syntax: '0')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -151,7 +151,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As Program.A
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, Constant: 1, IsImplicit) (Syntax: '1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, Constant: 1, IsImplicit) (Syntax: '1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -184,7 +184,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As Program.A
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= 1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, Constant: 1, IsInvalid, IsImplicit) (Syntax: '1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, Constant: 1, IsInvalid, IsImplicit) (Syntax: '1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -221,7 +221,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As Program.A
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, IsImplicit) (Syntax: 'i')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -256,7 +256,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As Program.A
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= i')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, IsInvalid, IsImplicit) (Syntax: 'i')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, IsInvalid, IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
@@ -324,7 +324,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Int32
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= b + c')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b + c')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b + c')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'b + c')
@@ -372,7 +372,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i As System.Int32
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= A.Two')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'A.Two')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'A.Two')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IFieldReferenceExpression: Program.A.Two (Static) (OperationKind.FieldReferenceExpression, Type: Program.A, Constant: 2) (Syntax: 'A.Two')
@@ -409,7 +409,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i As System.Single
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= A.Two')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 2, IsImplicit) (Syntax: 'A.Two')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 2, IsImplicit) (Syntax: 'A.Two')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IFieldReferenceExpression: Program.A.Two (Static) (OperationKind.FieldReferenceExpression, Type: Program.A, Constant: 2) (Syntax: 'A.Two')
@@ -445,7 +445,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i As System.Int32
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= A.Two')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 2, IsInvalid, IsImplicit) (Syntax: 'A.Two')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 2, IsInvalid, IsImplicit) (Syntax: 'A.Two')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IFieldReferenceExpression: Program.A.Two (Static) (OperationKind.FieldReferenceExpression, Type: Program.A, Constant: 2, IsInvalid) (Syntax: 'A.Two')
@@ -479,7 +479,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i As System.Single
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1.0')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 1, IsImplicit) (Syntax: '1.0')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 1, IsImplicit) (Syntax: '1.0')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
@@ -508,7 +508,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: s As System.String
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= b')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'b')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'b')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'b')
@@ -538,7 +538,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: s As System.String
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= b')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'b')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'b')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'b')
@@ -579,7 +579,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1 As Program.C1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= c2')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.C1, IsImplicit) (Syntax: 'c2')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.C1, IsImplicit) (Syntax: 'c2')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: Program.C2) (Syntax: 'c2')
@@ -615,7 +615,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1 As Program.C1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= c2')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.C1, IsInvalid, IsImplicit) (Syntax: 'c2')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.C1, IsInvalid, IsImplicit) (Syntax: 'c2')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: Program.C2, IsInvalid) (Syntax: 'c2')
@@ -656,7 +656,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As Program.I1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= c1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsImplicit) (Syntax: 'c1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsImplicit) (Syntax: 'c1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C1) (Syntax: 'c1')
@@ -692,7 +692,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As Program.I1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= c1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsInvalid, IsImplicit) (Syntax: 'c1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsInvalid, IsImplicit) (Syntax: 'c1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C1, IsInvalid) (Syntax: 'c1')
@@ -731,7 +731,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As Program.I1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= c1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsImplicit) (Syntax: 'c1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsImplicit) (Syntax: 'c1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C1) (Syntax: 'c1')
@@ -764,7 +764,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: o As System.Object
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'i')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: Program.I1) (Syntax: 'i')
@@ -802,7 +802,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1List As System.Collections.Generic.IEnumerable(Of Program.I1)
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i2List')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Program.I1), IsImplicit) (Syntax: 'i2List')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Program.I1), IsImplicit) (Syntax: 'i2List')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: i2List (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.IList(Of Program.I2)) (Syntax: 'i2List')
@@ -1419,7 +1419,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Array
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New Integer(1) {}')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsImplicit) (Syntax: 'New Integer(1) {}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsImplicit) (Syntax: 'New Integer(1) {}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer(1) {}')
@@ -1458,7 +1458,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Array
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New Integer(1)() {}')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsImplicit) (Syntax: 'New Integer(1)() {}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsImplicit) (Syntax: 'New Integer(1)() {}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()()) (Syntax: 'New Integer(1)() {}')
@@ -1497,7 +1497,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Array
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New Object')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsInvalid, IsImplicit) (Syntax: 'New Object')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsInvalid, IsImplicit) (Syntax: 'New Object')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IObjectCreationExpression (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'New Object')
@@ -1541,7 +1541,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1List As Program.C1()
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= c2List')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.C1(), IsImplicit) (Syntax: 'c2List')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.C1(), IsImplicit) (Syntax: 'c2List')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c2List (OperationKind.LocalReferenceExpression, Type: Program.C2()) (Syntax: 'c2List')
@@ -1579,7 +1579,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1List As Program.C1()
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= c2List')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.C1(), IsInvalid, IsImplicit) (Syntax: 'c2List')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.C1(), IsInvalid, IsImplicit) (Syntax: 'c2List')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c2List (OperationKind.LocalReferenceExpression, Type: Program.C2()(), IsInvalid) (Syntax: 'c2List')
@@ -1620,7 +1620,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1List As Program.C1()
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= c2List')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.C1(), IsInvalid, IsImplicit) (Syntax: 'c2List')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.C1(), IsInvalid, IsImplicit) (Syntax: 'c2List')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c2List (OperationKind.LocalReferenceExpression, Type: Program.C2(), IsInvalid) (Syntax: 'c2List')
@@ -1662,7 +1662,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1List As System.Collections.Generic.IEnumerable(Of Program.C1)
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= c2List')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Program.C1), IsImplicit) (Syntax: 'c2List')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Program.C1), IsImplicit) (Syntax: 'c2List')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c2List (OperationKind.LocalReferenceExpression, Type: Program.C2()) (Syntax: 'c2List')
@@ -1699,7 +1699,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1List As System.Collections.Generic.IEnumerable(Of Program.C1)
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= c2List')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Program.C1), IsInvalid, IsImplicit) (Syntax: 'c2List')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Program.C1), IsInvalid, IsImplicit) (Syntax: 'c2List')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c2List (OperationKind.LocalReferenceExpression, Type: Program.C2(), IsInvalid) (Syntax: 'c2List')
@@ -1739,7 +1739,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As Program.I1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= s1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsImplicit) (Syntax: 's1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsImplicit) (Syntax: 's1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: Program.S1) (Syntax: 's1')
@@ -1772,7 +1772,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: v1 As System.ValueType
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= s1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.ValueType, IsImplicit) (Syntax: 's1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.ValueType, IsImplicit) (Syntax: 's1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: Program.S1) (Syntax: 's1')
@@ -1808,7 +1808,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As Program.I1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= s1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsInvalid, IsImplicit) (Syntax: 's1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsInvalid, IsImplicit) (Syntax: 's1')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: Program.S1, IsInvalid) (Syntax: 's1')
@@ -1840,7 +1840,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i As System.Nullable(Of System.Int32)
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1870,7 +1870,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: l As System.Nullable(Of System.Int64)
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int64), IsImplicit) (Syntax: 'i')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int64), IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'i')
@@ -1898,7 +1898,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: l As System.Nullable(Of System.Int64)
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int64), IsImplicit) (Syntax: '1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int64), IsImplicit) (Syntax: '1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1935,7 +1935,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As Program.I1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= s1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsImplicit) (Syntax: 's1')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.I1, IsImplicit) (Syntax: 's1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of Program.S1)) (Syntax: 's1')
@@ -1964,7 +1964,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: s1 As System.String
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New Char(1) {}')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'New Char(1) {}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'New Char(1) {}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Char()) (Syntax: 'New Char(1) {}')
@@ -2001,7 +2001,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: s1 As System.String
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= "a"c')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: "a", IsImplicit) (Syntax: '"a"c')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: "a", IsImplicit) (Syntax: '"a"c')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: a) (Syntax: '"a"c')
@@ -2045,7 +2045,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1 As Module1.C1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= c3')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Module1.C1, IsImplicit) (Syntax: 'c3')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Module1.C1, IsImplicit) (Syntax: 'c3')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: c3 (OperationKind.LocalReferenceExpression, Type: Module1.C3) (Syntax: 'c3')
@@ -2084,7 +2084,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1 As Module1.C1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New T')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Module1.C1, IsImplicit) (Syntax: 'New T')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Module1.C1, IsImplicit) (Syntax: 'New T')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T) (Syntax: 'New T')
@@ -2123,7 +2123,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1 As Module1.C1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New T')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Module1.C1, IsInvalid, IsImplicit) (Syntax: 'New T')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Module1.C1, IsInvalid, IsImplicit) (Syntax: 'New T')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, IsInvalid) (Syntax: 'New T')
@@ -2166,7 +2166,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As Module1.I1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New T')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Module1.I1, IsImplicit) (Syntax: 'New T')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Module1.I1, IsImplicit) (Syntax: 'New T')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T) (Syntax: 'New T')
@@ -2198,7 +2198,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: t1 As T
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New U')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, IsImplicit) (Syntax: 'New U')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, IsImplicit) (Syntax: 'New U')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: U) (Syntax: 'New U')
@@ -2230,7 +2230,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: t1 As T
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New U')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, IsInvalid, IsImplicit) (Syntax: 'New U')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, IsInvalid, IsImplicit) (Syntax: 'New U')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: U, IsInvalid) (Syntax: 'New U')
@@ -2266,7 +2266,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: t1 As T
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Nothing')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, IsImplicit) (Syntax: 'Nothing')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -2299,7 +2299,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: l As System.Int64
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: 'i')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i')
@@ -2336,7 +2336,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: s As System.SByte
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= i')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid, IsImplicit) (Syntax: 'i')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid, IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 10000, IsInvalid) (Syntax: 'i')
@@ -2375,7 +2375,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= i')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i')
           Children(1):
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid, IsImplicit) (Syntax: 'i')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid, IsImplicit) (Syntax: 'i')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
@@ -2422,7 +2422,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: expr As System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Function(num) num < 5')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean)), IsImplicit) (Syntax: 'Function(num) num < 5')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean)), IsImplicit) (Syntax: 'Function(num) num < 5')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IAnonymousFunctionExpression (Symbol: Function (num As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function(num) num < 5')
@@ -2470,7 +2470,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: expr As System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Function(num) num')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean)), IsInvalid, IsImplicit) (Syntax: 'Function(num) num')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean)), IsInvalid, IsImplicit) (Syntax: 'Function(num) num')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IAnonymousFunctionExpression (Symbol: Function (num As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function(num) num')
@@ -2478,7 +2478,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Locals: Local_1: <anonymous local> As System.Boolean
                 IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: 'num')
                   ReturnedValue: 
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'num')
+                    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'num')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'num')
@@ -2517,7 +2517,7 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return i')
   ReturnedValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'i')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -2546,7 +2546,7 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return i')
   ReturnedValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid, IsImplicit) (Syntax: 'i')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid, IsImplicit) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
@@ -2579,7 +2579,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: formattable As System.IFormattable
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= $"{"Hello world!"}"')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.IFormattable, IsImplicit) (Syntax: '$"{"Hello world!"}"')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.IFormattable, IsImplicit) (Syntax: '$"{"Hello world!"}"')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{"Hello world!"}"')
@@ -2621,7 +2621,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1 As Program.C1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function Program.C1.op_Implicit(i As System.Int32) As Program.C1) (OperationKind.ConversionExpression, Type: Program.C1, IsImplicit) (Syntax: 'i')
+        IConversionExpression (TryCast: False, Unchecked) (OperatorMethod: Function Program.C1.op_Implicit(i As System.Int32) As Program.C1) (OperationKind.ConversionExpression, Type: Program.C1, IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function Program.C1.op_Implicit(i As System.Int32) As Program.C1)
           Operand: 
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -2655,7 +2655,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c1 As Program.C1
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function Program.C1.op_Implicit(i As System.Int64) As Program.C1) (OperationKind.ConversionExpression, Type: Program.C1, IsImplicit) (Syntax: 'i')
+        IConversionExpression (TryCast: False, Unchecked) (OperatorMethod: Function Program.C1.op_Implicit(i As System.Int64) As Program.C1) (OperationKind.ConversionExpression, Type: Program.C1, IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function Program.C1.op_Implicit(i As System.Int64) As Program.C1)
           Operand: 
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -2695,10 +2695,10 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: c2 As Program.C2
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= CType(c1, Integer)')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function Program.C2.op_Implicit(l As System.Int64) As Program.C2) (OperationKind.ConversionExpression, Type: Program.C2, IsImplicit) (Syntax: 'CType(c1, Integer)')
+        IConversionExpression (TryCast: False, Unchecked) (OperatorMethod: Function Program.C2.op_Implicit(l As System.Int64) As Program.C2) (OperationKind.ConversionExpression, Type: Program.C2, IsImplicit) (Syntax: 'CType(c1, Integer)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function Program.C2.op_Implicit(l As System.Int64) As Program.C2)
           Operand: 
-            IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: Function Program.C1.op_Implicit(i As Program.C1) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'CType(c1, Integer)')
+            IConversionExpression (TryCast: False, Unchecked) (OperatorMethod: Function Program.C1.op_Implicit(i As Program.C1) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'CType(c1, Integer)')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function Program.C1.op_Implicit(i As Program.C1) As System.Int32)
               Operand: 
                 ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Program.C1) (Syntax: 'c1')
@@ -2729,7 +2729,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: stringAction As System.Action(Of System.String)
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= objectAction')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.String), IsImplicit) (Syntax: 'objectAction')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.String), IsImplicit) (Syntax: 'objectAction')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action(Of System.Object)) (Syntax: 'objectAction')
@@ -2759,7 +2759,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: integerAction As System.Action(Of System.Int32)
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= objectAction')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'objectAction')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'objectAction')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action(Of System.Object), IsInvalid) (Syntax: 'objectAction')

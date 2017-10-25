@@ -211,14 +211,14 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
         Filter: 
           IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
             Left: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IPropertyReferenceExpression: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'e.Message')
                     Instance Receiver: 
                       ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -273,14 +273,14 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
         Filter: 
           IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
             Left: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IPropertyReferenceExpression: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'e.Message')
                     Instance Receiver: 
                       ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -335,14 +335,14 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
         Filter: 
           IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
             Left: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IPropertyReferenceExpression: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'e.Message')
                     Instance Receiver: 
                       ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -857,14 +857,14 @@ ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause)
   Filter: 
     IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
       Left: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IPropertyReferenceExpression: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'e.Message')
               Instance Receiver: 
                 ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
       Right: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -992,14 +992,14 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
   Left: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e.Message')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IPropertyReferenceExpression: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'e.Message')
           Instance Receiver: 
             ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
   Right: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -1133,7 +1133,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write
         null
       Arguments(1):
           IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'e')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'e')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')

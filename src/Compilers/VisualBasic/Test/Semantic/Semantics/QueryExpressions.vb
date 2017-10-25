@@ -5038,7 +5038,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
                                               IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 's')
                                                 IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 's')
                                                   ReturnedValue: 
-                                                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
+                                                    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
                                                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                       Operand: 
                                                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
@@ -5052,7 +5052,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
                                           IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 's')
                                             IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 's')
                                               ReturnedValue: 
-                                                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
+                                                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
                                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                   Operand: 
                                                     IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
@@ -5066,7 +5066,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
                                       IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 's')
                                         IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 's')
                                           ReturnedValue: 
-                                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
+                                            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
                                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                               Operand: 
                                                 IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
@@ -5091,7 +5091,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
                               IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 's')
                                 IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 's')
                                   ReturnedValue: 
-                                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
+                                    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
                                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       Operand: 
                                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
@@ -5105,7 +5105,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
                           IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 's')
                             IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 's')
                               ReturnedValue: 
-                                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
+                                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: 
                                     IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
@@ -5596,7 +5596,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
   Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)(selector As System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 's2 = s1 + 1')
       Instance Receiver: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
@@ -5656,7 +5656,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
       Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)(selector As System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 's2 = s1 + 1')
           Instance Receiver: 
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
@@ -5747,7 +5747,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
               Instance Receiver: 
                 IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)(selector As System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 's2 = s1 + 1')
                   Instance Receiver: 
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {3}')
+                    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {3}')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3}')
@@ -7361,7 +7361,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
   Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Join(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
       Instance Receiver: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 3}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1, 3}')
@@ -7374,7 +7374,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
       Arguments(4):
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2, 3}')
@@ -7453,7 +7453,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
       Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Join(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
           Instance Receiver: 
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
@@ -7465,7 +7465,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Arguments(4):
               IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2, 3}')
@@ -7517,7 +7517,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(4):
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {4, 5}')
@@ -8694,7 +8694,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
   Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupBy(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)(keySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group By s1 Into Group')
       Instance Receiver: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer ... 3, 4, 2, 3}')
@@ -8765,7 +8765,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
   Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupBy(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>)(keySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>), IsImplicit) (Syntax: 'Group By s1 Into Count()')
       Instance Receiver: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer ... 3, 4, 2, 3}')
@@ -8842,7 +8842,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
   Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupBy(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)(keySelector As System.Func(Of System.Int32, System.Int32), elementSelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
       Instance Receiver: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer ... 3, 4, 2, 3}')
@@ -8926,7 +8926,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
   Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupBy(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>)(keySelector As System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), elementSelector As System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), resultSelector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>), IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
       Instance Receiver: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer ... 3, 4, 2, 3}')
@@ -8973,7 +8973,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                           Initializers(2):
                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
-                              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'CStr(s1)')
+                              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'CStr(s1)')
                                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 Operand: 
                                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
@@ -9056,7 +9056,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           Instance Receiver: 
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of System.Int32)(selector As System.Func(Of System.Int32, System.Int32)) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Select s1 + 1')
               Instance Receiver: 
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 2}')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 2}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1, 2}')
@@ -9108,7 +9108,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(4):
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's1 In New I ... er() {1, 2}')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 2}')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 2}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1, 2}')
@@ -9742,7 +9742,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
   Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupJoin(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group Join  ...  Into Group')
       Instance Receiver: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 3}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1, 3}')
@@ -9755,7 +9755,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
       Arguments(4):
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2, 3}')
@@ -9842,7 +9842,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
       Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupJoin(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
           Instance Receiver: 
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
@@ -9854,7 +9854,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Arguments(4):
               IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2, 3}')
@@ -9906,7 +9906,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(4):
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {4, 5}')
@@ -10018,7 +10018,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           Expression: 
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupJoin(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>, System.Int32, <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)(inner As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>), IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
               Instance Receiver: 
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
@@ -10034,7 +10034,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                       Instance Receiver: 
                         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Join(Of System.Int32, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>), IsImplicit) (Syntax: 'Join ... 2 Equals s3')
                           Instance Receiver: 
-                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New Integer() {1}')
+                            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New Integer() {1}')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
@@ -10046,7 +10046,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                           Arguments(4):
                               IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's3 In New Integer() {1}')
-                                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's3 In New Integer() {1}')
+                                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's3 In New Integer() {1}')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: 
                                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
@@ -10093,7 +10093,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Arguments(4):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's4 In New Integer() {1}')
-                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's4 In New Integer() {1}')
+                            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's4 In New Integer() {1}')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
@@ -11266,7 +11266,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
   Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
       Instance Receiver: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New In ... er() {3, 4}')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New In ... er() {3, 4}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3, 4}')
@@ -11310,14 +11310,14 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: <anon
       Initializers(2):
           IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
             Instance Receiver: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IPlaceholderExpression (OperationKind.None, IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
             Arguments(0)
           IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Sum(selector As System.Func(Of System.Int32, System.Int32)) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Sum(y \ 2)')
             Instance Receiver: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IPlaceholderExpression (OperationKind.None, IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
@@ -11370,7 +11370,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           Instance Receiver: 
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'y In New In ... er() {1, 3}')
               Instance Receiver: 
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New In ... er() {3, 4}')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New In ... er() {3, 4}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3, 4}')
@@ -11389,7 +11389,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                           IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'New Integer() {1, 3}')
                             IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'New Integer() {1, 3}')
                               ReturnedValue: 
-                                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New In ... er() {1, 3}')
+                                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New In ... er() {1, 3}')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: 
                                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1, 3}')
@@ -11489,7 +11489,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           Instance Receiver: 
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'y In New Integer() {2}')
               Instance Receiver: 
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New Integer() {1}')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New Integer() {1}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
@@ -11507,7 +11507,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                           IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'New Integer() {2}')
                             IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'New Integer() {2}')
                               ReturnedValue: 
-                                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New Integer() {2}')
+                                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New Integer() {2}')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: 
                                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2}')
@@ -11540,7 +11540,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                       IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'New Integer() {3}')
                         IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'New Integer() {3}')
                           ReturnedValue: 
-                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'z In New Integer() {3}')
+                            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'z In New Integer() {3}')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3}')
@@ -11622,7 +11622,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
       Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of System.Int32)(selector As System.Func(Of System.Int32, System.Int32)) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Select x + 1')
           Instance Receiver: 
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New In ... er() {3, 4}')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New In ... er() {3, 4}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3, 4}')
@@ -11672,7 +11672,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                   Instance Receiver: 
                                                     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>).Distinct() As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Distinct')
                                                       Instance Receiver: 
-                                                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Order By x')
+                                                        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Order By x')
                                                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                           Operand: 
                                                             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>).OrderBy(Of System.Int32)(keySelector As System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, System.Int32)) As System.Linq.IOrderedEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Linq.IOrderedEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'x')
@@ -11683,7 +11683,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                       Instance Receiver: 
                                                                         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'y In New Integer() {2}')
                                                                           Instance Receiver: 
-                                                                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New Integer() {1}')
+                                                                            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New Integer() {1}')
                                                                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                                               Operand: 
                                                                                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
@@ -11701,7 +11701,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                                       IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'New Integer() {2}')
                                                                                         IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'New Integer() {2}')
                                                                                           ReturnedValue: 
-                                                                                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New Integer() {2}')
+                                                                                            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New Integer() {2}')
                                                                                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                                                               Operand: 
                                                                                                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2}')
@@ -11734,7 +11734,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                                   IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'New Integer() {3}')
                                                                                     IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'New Integer() {3}')
                                                                                       ReturnedValue: 
-                                                                                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'z In New Integer() {3}')
+                                                                                        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'z In New Integer() {3}')
                                                                                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                                                           Operand: 
                                                                                             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3}')

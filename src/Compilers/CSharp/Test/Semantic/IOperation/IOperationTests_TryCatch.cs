@@ -236,7 +236,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
                 Instance Receiver: 
                   ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
@@ -301,7 +301,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
                 Instance Receiver: 
                   ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
@@ -370,7 +370,7 @@ ITryStatement (OperationKind.TryStatement, IsInvalid) (Syntax: 'try ... }')
                 Instance Receiver: 
                   ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
@@ -834,7 +834,7 @@ ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause)
           Instance Receiver: 
             ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
       Right: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
@@ -924,7 +924,7 @@ IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOp
   Left: 
     IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 's')
   Right: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')

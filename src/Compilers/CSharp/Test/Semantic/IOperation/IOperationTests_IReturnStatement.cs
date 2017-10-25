@@ -121,7 +121,7 @@ class C
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return 0.0;')
   ReturnedValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')

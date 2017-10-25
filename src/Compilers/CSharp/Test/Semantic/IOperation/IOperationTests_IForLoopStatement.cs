@@ -1840,7 +1840,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (IE
                                       null
                                     Arguments(2):
                                         IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from x in ""123""')
-                                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
+                                          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
                                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                             Operand: 
                                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""123"") (Syntax: '""123""')
@@ -1902,7 +1902,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (IE
         LoopControlVariable: 
           ILocalReferenceExpression: item (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null) (Syntax: 'foreach (va ... }')
         Collection: 
-          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'str')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'str')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILocalReferenceExpression: str (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'str')
@@ -1995,7 +1995,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
                                   null
                                 Arguments(2):
                                     IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from x in ""123""')
-                                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
+                                      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
                                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                         Operand: 
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""123"") (Syntax: '""123""')
@@ -2088,7 +2088,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (e 
             Left: 
               ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>, IsImplicit) (Syntax: 'x => x * x')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>, IsImplicit) (Syntax: 'x => x * x')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'x => x * x')
@@ -2181,7 +2181,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             Left: 
               ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>, IsImplicit) (Syntax: 'x => x * x')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>, IsImplicit) (Syntax: 'x => x * x')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'x => x * x')
@@ -2263,12 +2263,12 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (C1
   Condition: 
     IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i == null')
       Left: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'i')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: C1) (Syntax: 'i')
       Right: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')

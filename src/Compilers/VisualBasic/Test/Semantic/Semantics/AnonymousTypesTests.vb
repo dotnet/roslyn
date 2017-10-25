@@ -122,7 +122,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
       Variables: Local_1: v1 As System.Object
       Initializer: 
         IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New With {.a = tr}')
-          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = tr}')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = tr}')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference>, IsInvalid) (Syntax: 'New With {.a = tr}')
@@ -139,7 +139,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
       Variables: Local_1: v2 As System.Object
       Initializer: 
         IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New With {.a = {{tr}}}')
-          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = {{tr}}}')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = {{tr}}}')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference(,)>, IsInvalid) (Syntax: 'New With {.a = {{tr}}}')
@@ -582,7 +582,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
             Instance Receiver: 
               null
         Right: 
-          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -1029,7 +1029,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .a.ToString()')
                         ReturnedValue: 
-                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '.a.ToString()')
+                          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '.a.ToString()')
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: 
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a.ToString()')
@@ -1092,7 +1092,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .x.ToString()')
                         ReturnedValue: 
-                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '.x.ToString()')
+                          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '.x.ToString()')
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: 
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString()')
@@ -1166,7 +1166,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                       Locals: Local_1: <anonymous local> As System.String
                                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .x.ToString()')
                                         ReturnedValue: 
-                                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '.x.ToString()')
+                                          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '.x.ToString()')
                                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                             Operand: 
                                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString()')

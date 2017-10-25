@@ -220,7 +220,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
                 Instance Receiver: 
                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsImplicit) (Syntax: 'X')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic, IsImplicit) (Syntax: '0')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic, IsImplicit) (Syntax: '0')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -463,31 +463,31 @@ IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreation
       Initializers(5):
           ICollectionElementInitializerExpression (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '1')
             Arguments(1):
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '1')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ICollectionElementInitializerExpression (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '2')
             Arguments(1):
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 2, IsImplicit) (Syntax: '2')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 2, IsImplicit) (Syntax: '2')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
           ICollectionElementInitializerExpression (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '3')
             Arguments(1):
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
           ICollectionElementInitializerExpression (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '4')
             Arguments(1):
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
           ICollectionElementInitializerExpression (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '5')
             Arguments(1):
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 5, IsImplicit) (Syntax: '5')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 5, IsImplicit) (Syntax: '5')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
@@ -561,31 +561,31 @@ IObjectCreationExpression (Constructor: B<System.Int64>..ctor()) (OperationKind.
       Initializers(5):
           ICollectionElementInitializerExpression (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '1')
             Arguments(1):
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '1')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ICollectionElementInitializerExpression (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '2')
             Arguments(1):
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 2, IsImplicit) (Syntax: '2')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 2, IsImplicit) (Syntax: '2')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
           ICollectionElementInitializerExpression (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '3')
             Arguments(1):
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
           ICollectionElementInitializerExpression (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '4')
             Arguments(1):
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
           ICollectionElementInitializerExpression (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '5')
             Arguments(1):
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 5, IsImplicit) (Syntax: '5')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 5, IsImplicit) (Syntax: '5')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')

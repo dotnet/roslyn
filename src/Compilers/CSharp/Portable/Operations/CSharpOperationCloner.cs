@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override IOperation VisitConversionExpression(IConversionExpression operation, object argument)
         {
-            return new CSharpConversionExpression(Visit(operation.Operand), operation.GetConversion(), operation.IsExplicitInCode, operation.IsTryCast, operation.IsChecked, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new CSharpConversionExpression(Visit(operation.Operand), operation.GetConversion(), operation.IsTryCast, operation.IsChecked, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }

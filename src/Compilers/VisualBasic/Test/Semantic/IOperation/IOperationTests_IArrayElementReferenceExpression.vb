@@ -277,7 +277,7 @@ IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression,
   Array reference: 
     IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'b')
+      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'b')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Byte) (Syntax: 'b')
@@ -305,7 +305,7 @@ IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression,
   Array reference: 
     IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'DirectCast(o, Integer)')
+      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'DirectCast(o, Integer)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
@@ -337,7 +337,7 @@ IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression,
   Array reference: 
     IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'c')
+      IConversionExpression (TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'c')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.Int32)
         Operand: 
           IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
@@ -369,7 +369,7 @@ IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression,
   Array reference: 
     IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Explicit(c As C) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'CType(c, Integer)')
+      IConversionExpression (TryCast: False, Unchecked) (OperatorMethod: Function C.op_Explicit(c As C) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'CType(c, Integer)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Explicit(c As C) As System.Int32)
         Operand: 
           IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
@@ -393,7 +393,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.String) (Syntax: 'DirectCast( ... tring())(x)')
   Array reference: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String()) (Syntax: 'DirectCast(o, String())')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String()) (Syntax: 'DirectCast(o, String())')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
@@ -423,7 +423,7 @@ IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression,
   Array reference: 
     IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
+      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
@@ -459,7 +459,7 @@ IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression,
   Array reference: 
     IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
   Indices(1):
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Explicit(c As C) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
+      IConversionExpression (TryCast: False, Unchecked) (OperatorMethod: Function C.op_Explicit(c As C) As System.Int32) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Explicit(c As C) As System.Int32)
         Operand: 
           IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')

@@ -90,7 +90,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
                 Pattern: 
                   IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'case 1:')
                     Value: 
-                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: '1')
+                      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: '1')
                         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -146,7 +146,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case 1:')
                 Value: 
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
+                  IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -183,14 +183,14 @@ class Program
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x = nul ... }')
   Condition: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x = null')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x = null')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: Program, IsInvalid) (Syntax: 'x = null')
           Left: 
             ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
           Right: 
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
@@ -238,7 +238,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... else')
   IfFalse: 
     IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x) x; ... else')
       Condition: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
@@ -294,7 +294,7 @@ class Program
             string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'for (P; x;) ... }')
   Condition: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')

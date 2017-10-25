@@ -587,7 +587,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                       Children(1):
                           IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... Field = 23}')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '23')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '23')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
@@ -634,7 +634,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                       Children(1):
                           IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
@@ -723,7 +723,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                       Instance Receiver: 
                         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '"Hello World!"')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
@@ -823,7 +823,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
                                 Children(1):
                                     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ... .X = "goo"}')
                       Right: 
-                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '"goo"')
+                        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '"goo"')
                           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
@@ -1057,7 +1057,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                 Instance Receiver: 
                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ...  = .Field2}')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field2')
@@ -1199,7 +1199,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                               Instance Receiver: 
                                 IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ...  = .Field2}')
                           Right: 
-                            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
+                            IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.Field2')
                               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field2')
@@ -1574,7 +1574,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                       Locals: Local_1: <anonymous local> As System.Object
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
                         ReturnedValue: 
-                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '.Field')
+                          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '.Field')
                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                             Operand: 
                               IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
@@ -1599,7 +1599,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                       Locals: Local_1: <anonymous local> As System.Object
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
                         ReturnedValue: 
-                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '.Field')
+                          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '.Field')
                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                             Operand: 
                               IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
@@ -1655,7 +1655,7 @@ IObjectCreationExpression (Constructor: Sub cust..ctor()) (OperationKind.ObjectC
                 Instance Receiver: 
                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: cust, IsImplicit) (Syntax: 'New cust With {.x = !a}')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: '!a')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: '!a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IPropertyReferenceExpression: ReadOnly Property cust.scen5(arg As System.String) As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '!a')
@@ -1714,7 +1714,7 @@ IObjectCreationExpression (Constructor: Sub scen2..ctor()) (OperationKind.Object
                 Instance Receiver: 
                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: scen2, IsImplicit) (Syntax: 'New scen2 W ... .Scen2 = 5}')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 5, IsImplicit) (Syntax: '5')
+              IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 5, IsImplicit) (Syntax: '5')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')

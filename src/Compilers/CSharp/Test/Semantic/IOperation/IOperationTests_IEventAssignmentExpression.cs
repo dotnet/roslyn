@@ -123,7 +123,7 @@ IEventAssignmentExpression (EventRemove) (OperationKind.EventAssignmentExpressio
       Instance Receiver: 
         ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test) (Syntax: 't')
   Handler: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler, Constant: null, IsImplicit) (Syntax: 'null')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler, Constant: null, IsImplicit) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')

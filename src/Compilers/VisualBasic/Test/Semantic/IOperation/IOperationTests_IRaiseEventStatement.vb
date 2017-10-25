@@ -291,14 +291,14 @@ IRaiseEventStatement (OperationKind.RaiseEventStatement) (Syntax: 'RaiseEvent  .
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: sender) (OperationKind.Argument) (Syntax: 'Nothing')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.Explicit, Matching Parameter: e) (OperationKind.Argument) (Syntax: 'Nothing')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventArgs, Constant: null, IsImplicit) (Syntax: 'Nothing')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventArgs, Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')

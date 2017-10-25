@@ -332,7 +332,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'fixed (int* ... }')
               Left: 
                 ILocalReferenceExpression: i3 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i3')
               Right: 
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '&p1')
+                IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '&p1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32**, IsInvalid) (Syntax: '&p1')

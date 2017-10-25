@@ -287,7 +287,7 @@ IPatternCaseClause (Label Symbol: case X y when x != null:) (CaseKind.Pattern) (
       Left: 
         IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
       Right: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
@@ -389,7 +389,7 @@ IPatternCaseClause (Label Symbol: case X y when x:) (CaseKind.Pattern) (Operatio
   Pattern: 
     IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern) (Syntax: 'X y')
   Guard Expression: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
+    IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')

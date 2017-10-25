@@ -58,7 +58,7 @@ IInvocationExpression ( Sub Program.F(x As System.Int32)) (OperationKind.Invocat
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'F')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'String.Empty')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'String.Empty')
+        IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'String.Empty')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IFieldReferenceExpression: System.String.Empty As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'String.Empty')
@@ -185,7 +185,7 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: 'DirectCast( ... 1, Program)')
+IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: 'DirectCast( ... 1, Program)')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
     IFieldReferenceExpression: Program.i1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
@@ -338,7 +338,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: Program.x As System.Int32) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= Program')
-  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program')
+  IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program')
     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
@@ -398,7 +398,7 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: X(), IsIn
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program - 1')
         Left: 
-          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program - 1')
+          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program - 1')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'Program - 1')
