@@ -1183,11 +1183,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If type.IsArrayType Then
                         ' Arrays cannot be declared with AsNew syntax
                         ReportDiagnostic(diagnostics, asNew.NewExpression.NewKeyword, ERRID.ERR_AsNewArray)
-                        valueExpression = BadExpression(asNew, valueExpression, type)
+                        valueExpression = BadExpression(asNew, valueExpression, type).MakeCompilerGenerated()
                     ElseIf valueExpression IsNot Nothing AndAlso Not valueExpression.HasErrors AndAlso
                            Not type.IsSameTypeIgnoringAll(valueExpression.Type) Then
                         ' An error must have been reported elsewhere.    
-                        valueExpression = BadExpression(asNew, valueExpression, valueExpression.Type)
+                        valueExpression = BadExpression(asNew, valueExpression, valueExpression.Type).MakeCompilerGenerated()
                     End If
                 End If
 
@@ -1203,7 +1203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(valueExpression.Kind = BoundKind.BadExpression)
                     End If
                 Else
-                    valueExpression = New BoundArrayCreation(name, boundArrayBounds, Nothing, type)
+                    valueExpression = New BoundArrayCreation(name, boundArrayBounds, Nothing, type).MakeCompilerGenerated()
                 End If
             End If
 
@@ -2138,7 +2138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 expr = BindCompoundAssignment(node, op1, op2, binaryTokenKind, operatorKind, diagnostics)
             End If
 
-            Return New BoundExpressionStatement(node, expr)
+            Return New BoundExpressionStatement(node, expr.MakeCompilerGenerated())
         End Function
 
         Private Function BindMidAssignmentStatement(node As AssignmentStatementSyntax, diagnostics As DiagnosticBag) As BoundExpressionStatement
@@ -2209,7 +2209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New BoundExpressionStatement(node, New BoundAssignmentOperator(node, target, placeholder, right, False,
                                                                                   Compilation.GetSpecialType(SpecialType.System_Void),
-                                                                                  hasErrors:=isError))
+                                                                                  hasErrors:=isError).MakeCompilerGenerated())
         End Function
 
         Private Function BindAddRemoveHandlerStatement(node As AddRemoveHandlerStatementSyntax, diagnostics As DiagnosticBag) As BoundAddRemoveHandlerStatement
@@ -2542,7 +2542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    ImmutableArray.Create(fireMethod),
                                                    LookupResultKind.Good,
                                                    receiver,
-                                                   QualificationKind.QualifiedViaValue)
+                                                   QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
 
             'NOTE: Dev10 allows and ignores type characters on the event here.
             Dim invocation = BindInvocationExpression(node,

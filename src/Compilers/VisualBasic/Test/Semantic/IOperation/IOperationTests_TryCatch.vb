@@ -32,7 +32,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 0')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'i = 0')
             Left: 
               IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -55,13 +55,13 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
           IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Catch ex As ... Throw ex')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Throw ex')
               Expression: 
-                IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'Throw ex')
+                IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception, IsImplicit) (Syntax: 'Throw ex')
                   ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
   Finally: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Finally ... i = 1')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 1')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'i = 1')
             Left: 
               IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -98,7 +98,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Private 
       IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Try ... End Try')
         IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 0')
           Expression: 
-            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 0')
+            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'i = 0')
               Left: 
                 IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
               Right: 
@@ -121,13 +121,13 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Private 
             IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Catch ex As ... Throw ex')
               IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Throw ex')
                 Expression: 
-                  IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'Throw ex')
+                  IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception, IsImplicit) (Syntax: 'Throw ex')
                     ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
     Finally: 
       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Finally ... i = 1')
         IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 1')
           Expression: 
-            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 1')
+            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'i = 1')
               Left: 
                 IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
               Right: 

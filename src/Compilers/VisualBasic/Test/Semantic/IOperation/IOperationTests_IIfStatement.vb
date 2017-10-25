@@ -33,7 +33,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... lue = count')
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If count >  ... lue = count')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'returnValue = count')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = count')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'returnValue = count')
             Left: 
               ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
@@ -74,7 +74,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... End If')
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If count >  ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'returnValue = count')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = count')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'returnValue = count')
             Left: 
               ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
@@ -112,7 +112,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... ata - count')
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If count >  ... ata - count')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'data = data + count')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'data = data + count')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'data = data + count')
             Left: 
               ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'data')
             Right: 
@@ -125,7 +125,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... ata - count')
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else data = data - count')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'data = data - count')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'data = data - count')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'data = data - count')
             Left: 
               ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'data')
             Right: 
@@ -175,7 +175,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If m > 10 T ... rnValue = n')
           IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If n > 20 T ... rnValue = n')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'returnValue = n')
               Expression: 
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = n')
+                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'returnValue = n')
                   Left: 
                     ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
                   Right: 
@@ -216,7 +216,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 = 1 Th ... End If')
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If 1 = 1 Th ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'condition = True')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'condition = True')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean, IsImplicit) (Syntax: 'condition = True')
             Left: 
               ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
             Right: 
@@ -251,7 +251,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If False Th ... End If')
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If False Th ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'condition = False')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'condition = False')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean, IsImplicit) (Syntax: 'condition = False')
             Left: 
               ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
             Right: 
@@ -300,7 +300,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10  ... rnValue = n')
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If (m > 10  ... rnValue = n')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'returnValue = n')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = n')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'returnValue = n')
             Left: 
               ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
@@ -342,7 +342,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... End If')
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If count >  ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'returnValue = count')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = count')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'returnValue = count')
             Left: 
               ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
@@ -351,7 +351,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... End If')
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... nValue = -1')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'returnValue = -1')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = -1')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'returnValue = -1')
             Left: 
               ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
@@ -1028,7 +1028,7 @@ End Module]]>.Value
 IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else data = data - count')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'data = data - count')
     Expression: 
-      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'data = data - count')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'data = data - count')
         Left: 
           ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'data')
         Right: 

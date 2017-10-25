@@ -374,7 +374,7 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
           IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'For J = 1 T ... Next')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'I = 3')
               Expression: 
-                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'I = 3')
+                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'I = 3')
                   Left: 
                     ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'I')
                   Right: 
