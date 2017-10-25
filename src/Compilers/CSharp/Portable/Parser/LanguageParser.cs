@@ -942,7 +942,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // remaining attributes
             while (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
+                    this.IsPossibleAttribute())
                 {
                     // comma is optional, but if it is present it may be followed by another attribute
                     nodes.AddSeparator(this.EatToken());
@@ -953,12 +954,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
                     }
 
-                    nodes.Add(this.ParseAttribute());
-                }
-                else if (this.IsPossibleAttribute())
-                {
-                    // report missing comma
-                    nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     nodes.Add(this.ParseAttribute());
                 }
                 else if (this.SkipBadAttributeListTokens(nodes, SyntaxKind.IdentifierToken) == PostSkipAction.Abort)
@@ -1025,9 +1020,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 {
                                     break;
                                 }
-                                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleAttributeArgument())
+                                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
+                                         this.IsPossibleAttributeArgument())
                                 {
+                                    // comma is optional, but if it is present it may be followed by another attribute argument
                                     argNodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
+                                    if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                                    {
+                                        break;
+                                    }
+
                                     argNodes.Add(this.ParseAttributeArgument());
                                 }
                                 else if (this.SkipBadAttributeArgumentTokens(ref openParen, argNodes, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -1761,16 +1764,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // any additional types
                 while (true)
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
-                        this.IsCurrentTokenWhereOfConstraintClause())
+                    if (AtEndOfBaseList())
                     {
                         break;
                     }
-                    else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
+                    else if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
+                             this.IsPossibleType())
                     {
+                        // Allow optional trailing comma.
                         list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
+                        if (AtEndOfBaseList())
+                        {
+                            break;
+                        }
+
                         list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
-                        continue;
                     }
                     else if (this.SkipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                     {
@@ -1784,6 +1793,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 _pool.Free(list);
             }
+        }
+
+        private bool AtEndOfBaseList()
+        {
+            return this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
+                   this.IsCurrentTokenWhereOfConstraintClause();
         }
 
         private PostSkipAction SkipBadBaseListTokens(ref SyntaxToken colon, SeparatedSyntaxListBuilder<BaseTypeSyntax> list, SyntaxKind expected)
@@ -3662,9 +3677,17 @@ tryAgain:
                             {
                                 break;
                             }
-                            else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleParameter())
+                            else if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
+                                     this.IsPossibleParameter())
                             {
                                 nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
+                                // Check for optional trailing comma.
+                                if (this.CurrentToken.Kind == closeKind)
+                                {
+                                    break;
+                                }
+
                                 attributes.Clear();
                                 modifiers.Clear();
                                 parameter = this.ParseParameter(attributes, modifiers);
@@ -4983,13 +5006,20 @@ tryAgain:
                 // remaining parameter & commas
                 while (true)
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken || this.IsCurrentTokenWhereOfConstraintClause())
+                    if (AtEndOfTypeParameterList())
                     {
                         break;
                     }
                     else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         parameters.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
+                        // Check for optional trailing comma.
+                        if (AtEndOfTypeParameterList())
+                        {
+                            break;
+                        }
+
                         parameters.Add(this.ParseTypeParameter());
                     }
                     else if (this.SkipBadTypeParameterListTokens(parameters, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -5006,6 +5036,12 @@ tryAgain:
             {
                 _termState = saveTerm;
             }
+        }
+
+        private bool AtEndOfTypeParameterList()
+        {
+            return this.CurrentToken.Kind == SyntaxKind.GreaterThanToken ||
+                   this.IsCurrentTokenWhereOfConstraintClause();
         }
 
         private PostSkipAction SkipBadTypeParameterListTokens(SeparatedSyntaxListBuilder<TypeParameterSyntax> list, SyntaxKind expected)
@@ -5384,9 +5420,16 @@ tryAgain:
                 {
                     break;
                 }
-                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
+                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
+                         this.IsPossibleType())
                 {
+                    // Check for optional trailing comma.
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                    if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
+                    {
+                        break;
+                    }
+
                     types.Add(this.ParseTypeArgument());
                 }
                 else if (this.SkipBadTypeArgumentListTokens(types, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -9510,17 +9553,22 @@ tryAgain:
                         // additional arguments
                         while (true)
                         {
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
-                                this.CurrentToken.Kind == SyntaxKind.CloseBracketToken ||
-                                this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                            if (AtEndOfArgumentList())
                             {
                                 break;
                             }
-                            else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleArgumentExpression())
+                            else if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
+                                     this.IsPossibleArgumentExpression())
                             {
+                                // Check for optional trailing comma
                                 list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
+                                if (AtEndOfArgumentList())
+                                {
+                                    break;
+                                }
+
                                 list.Add(this.ParseArgumentExpression(isIndexer));
-                                continue;
                             }
                             else if (this.SkipBadArgumentListTokens(ref openToken, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
                             {
@@ -9568,6 +9616,13 @@ tryAgain:
                     _pool.Free(list);
                 }
             }
+        }
+
+        private bool AtEndOfArgumentList()
+        {
+            return this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
+                   this.CurrentToken.Kind == SyntaxKind.CloseBracketToken ||
+                   this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
         }
 
         private PostSkipAction SkipBadArgumentListTokens(ref SyntaxToken open, SeparatedSyntaxListBuilder<ArgumentSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
@@ -10791,7 +10846,7 @@ tryAgain:
 
                         // additional parameters
                         int tokenProgress = -1;
-                        while(IsMakingProgress(ref tokenProgress))
+                        while (IsMakingProgress(ref tokenProgress))
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                             {
