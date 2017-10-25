@@ -834,6 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     // vararg case
+                    Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
                     refKind = RefKind.None;
                 }
 
@@ -2352,7 +2353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // NOTE: passing "ReadOnlyStrict" here. 
                 //       we should not get an address of a copy if at all possible
-                LocalDefinition temp = EmitAddress(assignmentOperator.Right, local.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict: AddressKind.Writeable);
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, local.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
 
                 // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a temp in synthetic code.

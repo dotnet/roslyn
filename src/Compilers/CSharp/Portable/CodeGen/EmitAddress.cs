@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            // when reference is strictly required, consider fields as addressable
+            // in readonly situations where ref to a copy is not allowed, consider fields as addressable
             if (addressKind == AddressKind.ReadOnlyStrict)
             {
                 return true;
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //NOTE: we are not propagating AddressKind.Constrained here.
             //      the reason is that while Constrained permits calls, it does not permit 
             //      taking field addresses, so we have to turn Constrained into writeable.
-            var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt, addressKind == AddressKind.Constrained? AddressKind.Writeable: addressKind);
+            var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt, addressKind == AddressKind.Constrained ? AddressKind.Writeable : addressKind);
 
             _builder.EmitOpCode(ILOpCode.Ldflda);
             EmitSymbolToken(field, fieldAccess.Syntax);
