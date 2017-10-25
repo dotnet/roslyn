@@ -1,3 +1,5 @@
+⚠️ This is an early draft / work-in-progress.
+
 :memo: This page is intended to help investigate performance issues submitted through [Developer Community](https://developercommunity.visualstudio.com), where performance data is only accessible to Microsoft employees working on the performance investigations. However, the practices apply to other applications and even to local investigations as long as developers are willing to record their own performance data using PerfView.
 
 # Intended Outcomes
