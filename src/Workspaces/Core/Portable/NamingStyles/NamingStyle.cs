@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -318,7 +318,13 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 {
                     if (words.Count() == 1) // Only Split if words have not been split before 
                     {
-                        words = Regex.Split(name, @"(?<!^)(?=[A-Z])");
+                        var parts = StringBreaker.GetParts(name, true);
+                        string[] newWords = new string[parts.Count];
+                        for(int i = 0; i < parts.Count; i++)
+                        {
+                            newWords[i] = name.Substring(parts[i].Start, parts[i].Start - parts[i].End);
+                        }
+                        words = newWords;
                     }
                 }
             }
