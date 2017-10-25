@@ -315,7 +315,8 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
             }
 
-            if (CapitalizationScheme == Capitalization.AllLower && !string.IsNullOrEmpty(WordSeparator))
+            if ((CapitalizationScheme == Capitalization.AllUpper || CapitalizationScheme == Capitalization.AllLower) 
+                && !string.IsNullOrEmpty(WordSeparator))
             {
                 if (words.Count() == 1) // Only Split if words have not been split before 
                 {
