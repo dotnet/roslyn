@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -722,6 +721,633 @@ BC30053: Arrays cannot be declared with 'New'.
         Dim i1(2) As New Integer'BIND:"Dim i1(2) As New Integer"
                      ~~~
 ]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        Public Sub ArrayRangeDeclaration()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim a(0 To 4) As Integer'BIND:"a(0 To 4) As Integer"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a(0 To 4) As Integer')
+  Declarations:
+      ISingleVariableDeclaration (Symbol: a As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'a(0 To 4)')
+        Initializer: 
+          IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'a(0 To 4)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 4)')
+              Dimension Sizes(1):
+                  IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: '0 To 4')
+                    Left: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 4')
+              Initializer: 
+                null
+  Initializer: 
+    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        Public Sub ArrayDeclarationCollectionInitializer()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim s As String() = {"Hello", "World"}'BIND:"s As String() = {"Hello", "World"}"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 's As String ... ", "World"}')
+  Declarations:
+      ISingleVariableDeclaration (Symbol: s As System.String()) (OperationKind.SingleVariableDeclaration) (Syntax: 's')
+        Initializer: 
+          null
+  Initializer: 
+    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= {"Hello", "World"}')
+      IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String()) (Syntax: '{"Hello", "World"}')
+        Dimension Sizes(1):
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{"Hello", "World"}')
+        Initializer: 
+          IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: '{"Hello", "World"}')
+            Element Values(2):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "World") (Syntax: '"World"')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        Public Sub PercentTypeSpecifierWithNullableAndInitializer()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim d%? = 42'BIND:"d%? = 42"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'd%? = 42')
+  Declarations:
+      ISingleVariableDeclaration (Symbol: d As System.Nullable(Of System.Int32)) (OperationKind.SingleVariableDeclaration) (Syntax: 'd%?')
+        Initializer: 
+          null
+  Initializer: 
+    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 42')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '42')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 42) (Syntax: '42')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
+        Public Sub MultipleIdentifiersWithSingleInitializer_Invalid()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim d, x%? = 42'BIND:"d, x%? = 42"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IMultiVariableDeclaration (2 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'd, x%? = 42')
+  Declarations:
+      ISingleVariableDeclaration (Symbol: d As System.Object) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'd')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: x As System.Nullable(Of System.Int32)) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'x%?')
+        Initializer: 
+          null
+  Initializer: 
+    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= 42')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '42')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30209: Option Strict On requires all variable declarations to have an 'As' clause.
+        Dim d, x%? = 42'BIND:"d, x%? = 42"
+            ~
+BC42024: Unused local variable: 'd'.
+        Dim d, x%? = 42'BIND:"d, x%? = 42"
+            ~
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+        Dim d, x%? = 42'BIND:"d, x%? = 42"
+            ~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub MultipleIdentifiersWithSingleInitializer_Invalid_ManyIdentifiers()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IMultiVariableDeclaration (26 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a, b, c, d, ... Integer = 1')
+  Declarations:
+      ISingleVariableDeclaration (Symbol: a As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'a')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: b As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'b')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: c As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'c')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: d As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'd')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: e As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'e')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: f As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'f')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: g As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'g')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: h As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'h')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: i As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'i')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: j As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'j')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: k As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'k')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: l As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'l')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: m As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'm')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: n As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'n')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: o As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'o')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: p As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'p')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: q As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'q')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: r As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'r')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: s As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 's')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: t As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 't')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: u As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'u')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: v As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'v')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: w As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'w')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: x As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'x')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: y As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'y')
+        Initializer: 
+          null
+      ISingleVariableDeclaration (Symbol: z As System.Int32) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'z')
+        Initializer: 
+          null
+  Initializer: 
+    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= 1')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'a'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+            ~
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42024: Unused local variable: 'b'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+               ~
+BC42024: Unused local variable: 'c'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                  ~
+BC42024: Unused local variable: 'd'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                     ~
+BC42024: Unused local variable: 'e'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                        ~
+BC42024: Unused local variable: 'f'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                           ~
+BC42024: Unused local variable: 'g'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                              ~
+BC42024: Unused local variable: 'h'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                 ~
+BC42024: Unused local variable: 'i'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                    ~
+BC42024: Unused local variable: 'j'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                       ~
+BC42024: Unused local variable: 'k'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                          ~
+BC42024: Unused local variable: 'l'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                             ~
+BC42024: Unused local variable: 'm'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                ~
+BC42024: Unused local variable: 'n'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                   ~
+BC42024: Unused local variable: 'o'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                      ~
+BC42024: Unused local variable: 'p'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                         ~
+BC42024: Unused local variable: 'q'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                            ~
+BC42024: Unused local variable: 'r'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                               ~
+BC42024: Unused local variable: 's'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                                  ~
+BC42024: Unused local variable: 't'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                                     ~
+BC42024: Unused local variable: 'u'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                                        ~
+BC42024: Unused local variable: 'v'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                                           ~
+BC42024: Unused local variable: 'w'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                                              ~
+BC42024: Unused local variable: 'x'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                                                 ~
+BC42024: Unused local variable: 'y'.
+        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+                                                                                    ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub SingleIdentifierArray_Initializer()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim x() As Integer = New Integer() {1, 2, 3, 4}'BIND:"Dim x() As Integer = New Integer() {1, 2, 3, 4}"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x() As  ... 1, 2, 3, 4}')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'x() As Inte ... 1, 2, 3, 4}')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'x()')
+          Initializer: 
+            null
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New Integ ... 1, 2, 3, 4}')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer ... 1, 2, 3, 4}')
+          Dimension Sizes(1):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4, IsImplicit) (Syntax: 'New Integer ... 1, 2, 3, 4}')
+          Initializer: 
+            IArrayInitializer (4 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2, 3, 4}')
+              Element Values(4):
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub SingleIdentifier_ArrayBoundsAndAsNew()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim x(1) As New Integer'BIND:"Dim x(1) As New Integer"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x(1) As New Integer')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'x(1) As New Integer')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'x(1)')
+          Initializer: 
+            IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'x(1)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x(1)')
+                Dimension Sizes(1):
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+                Initializer: 
+                  null
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
+          Children(1):
+              IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
+                Arguments(0)
+                Initializer: 
+                  null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30053: Arrays cannot be declared with 'New'.
+        Dim x(1) As New Integer'BIND:"Dim x(1) As New Integer"
+                    ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub SingleIdentifier_ArrayBoundsAndInitializer()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Text
+
+Module M1
+    Sub Sub1()
+        Dim x(1) As Integer = New Integer() {1, 2, 3, 4}'BIND:"Dim x(1) As Integer = New Integer() {1, 2, 3, 4}"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x(1) As ... 1, 2, 3, 4}')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'x(1) As Int ... 1, 2, 3, 4}')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 'x(1)')
+          Initializer: 
+            IVariableInitializer (OperationKind.VariableInitializer, IsInvalid, IsImplicit) (Syntax: 'x(1)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsInvalid) (Syntax: 'x(1)')
+                Dimension Sizes(1):
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2, IsInvalid, IsImplicit) (Syntax: '1')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '1')
+                Initializer: 
+                  null
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New Integ ... 1, 2, 3, 4}')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer ... 1, 2, 3, 4}')
+          Dimension Sizes(1):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4, IsImplicit) (Syntax: 'New Integer ... 1, 2, 3, 4}')
+          Initializer: 
+            IArrayInitializer (4 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2, 3, 4}')
+              Element Values(4):
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30672: Explicit initialization is not permitted for arrays declared with explicit bounds.
+        Dim x(1) As Integer = New Integer() {1, 2, 3, 4}'BIND:"Dim x(1) As Integer = New Integer() {1, 2, 3, 4}"
+            ~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub MultipleIdentifiers_ArrayAndAsNew()
+            Dim source = <![CDATA[
+Option Strict On
+
+Module M1
+    Sub Sub1()
+        Dim x(1), y(2) As New Integer'BIND:"Dim x(1), y(2) As New Integer"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x(1), y ... New Integer')
+  IMultiVariableDeclaration (2 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'x(1), y(2)  ... New Integer')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'x(1)')
+          Initializer: 
+            IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'x(1)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x(1)')
+                Dimension Sizes(1):
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+                Initializer: 
+                  null
+        ISingleVariableDeclaration (Symbol: y As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'y(2)')
+          Initializer: 
+            IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'y(2)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'y(2)')
+                Dimension Sizes(1):
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
+                Initializer: 
+                  null
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
+          Children(1):
+              IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
+                Arguments(0)
+                Initializer: 
+                  null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30053: Arrays cannot be declared with 'New'.
+        Dim x(1), y(2) As New Integer'BIND:"Dim x(1), y(2) As New Integer"
+                          ~~~
+BC30053: Arrays cannot be declared with 'New'.
+        Dim x(1), y(2) As New Integer'BIND:"Dim x(1), y(2) As New Integer"
+                          ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub MultipleIdentifiers_MixedArrayAndNonArray()
+            Dim source = <![CDATA[
+Option Strict On
+
+Module M1
+    Sub Sub1()
+        Dim x(10), y As Integer'BIND:"Dim x(10), y As Integer"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x(10), y As Integer')
+  IMultiVariableDeclaration (2 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'x(10), y As Integer')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'x(10)')
+          Initializer: 
+            IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'x(10)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x(10)')
+                Dimension Sizes(1):
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
+                Initializer: 
+                  null
+        ISingleVariableDeclaration (Symbol: y As System.Int32) (OperationKind.SingleVariableDeclaration) (Syntax: 'y')
+          Initializer: 
+            null
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'y'.
+        Dim x(10), y As Integer'BIND:"Dim x(10), y As Integer"
+                   ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub MultipleIdentifiers_MultipleArrays()
+            Dim source = <![CDATA[
+Option Strict On
+
+Module M1
+    Sub Sub1()
+        Dim x%(10), y$(11)'BIND:"Dim x%(10), y$(11)"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x%(10), y$(11)')
+  IMultiVariableDeclaration (2 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'x%(10), y$(11)')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'x%(10)')
+          Initializer: 
+            IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'x%(10)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x%(10)')
+                Dimension Sizes(1):
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
+                Initializer: 
+                  null
+        ISingleVariableDeclaration (Symbol: y As System.String()) (OperationKind.SingleVariableDeclaration) (Syntax: 'y$(11)')
+          Initializer: 
+            IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'y$(11)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String()) (Syntax: 'y$(11)')
+                Dimension Sizes(1):
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 12, IsImplicit) (Syntax: '11')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 11) (Syntax: '11')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '11')
+                Initializer: 
+                  null
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
