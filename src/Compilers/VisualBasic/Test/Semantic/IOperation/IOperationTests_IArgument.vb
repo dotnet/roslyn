@@ -1424,20 +1424,23 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a(0 To  ...  As Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a(0 To 20)')
-    Variables: Local_1: a As System.Int32()
-    Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'a(0 To 20)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 20)')
-          Dimension Sizes(1):
-              IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 21, IsImplicit) (Syntax: '0 To 20')
-                Left: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-                Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 20')
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a(0 To  ...  As Integer')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a(0 To 20) As Integer')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'a(0 To 20)')
           Initializer: 
-            null
+            IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'a(0 To 20)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 20)')
+                Dimension Sizes(1):
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 21, IsImplicit) (Syntax: '0 To 20')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 20')
+                Initializer: 
+                  null
+    Initializer: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

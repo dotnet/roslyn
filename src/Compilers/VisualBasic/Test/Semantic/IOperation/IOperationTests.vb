@@ -672,8 +672,7 @@ End Module]]>.Value
 ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch ex As ...  Is Nothing')
   Locals: Local_1: ex As System.Exception
   ExceptionDeclarationOrExpression: 
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ex')
-      Variables: Local_1: ex As System.Exception
+    ISingleVariableDeclaration (Symbol: ex As System.Exception) (OperationKind.SingleVariableDeclaration) (Syntax: 'ex')
       Initializer: 
         null
   Filter: 

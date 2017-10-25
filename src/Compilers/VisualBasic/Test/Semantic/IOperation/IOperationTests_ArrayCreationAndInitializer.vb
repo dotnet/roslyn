@@ -402,9 +402,12 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a = {}')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Object()
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a = {}')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a = {}')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Object()) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= {}')
         IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Object()) (Syntax: '{}')
@@ -1201,20 +1204,23 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x(2) As Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x(2)')
-    Variables: Local_1: x As System.Int32()
-    Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'x(2)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x(2)')
-          Dimension Sizes(1):
-              IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
-                Left: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-                Right: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x(2) As Integer')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'x(2) As Integer')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'x(2)')
           Initializer: 
-            null
+            IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'x(2)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x(2)')
+                Dimension Sizes(1):
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
+                Initializer: 
+                  null
+    Initializer: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

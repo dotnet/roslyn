@@ -117,9 +117,12 @@ End Module]]>.Value
 IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub Test1(t ... End Sub')
   Locals: Local_1: v1 As System.Object
     Local_2: v2 As System.Object
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim v1 As O ... h {.a = tr}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v1')
-      Variables: Local_1: v1 As System.Object
+  IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim v1 As O ... h {.a = tr}')
+    IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'v1 As Objec ... h {.a = tr}')
+      Declarations:
+          ISingleVariableDeclaration (Symbol: v1 As System.Object) (OperationKind.SingleVariableDeclaration) (Syntax: 'v1')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New With {.a = tr}')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = tr}')
@@ -134,9 +137,12 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                             null
                       Right: 
                         IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim v2 As O ... a = {{tr}}}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v2')
-      Variables: Local_1: v2 As System.Object
+  IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim v2 As O ... a = {{tr}}}')
+    IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'v2 As Objec ... a = {{tr}}}')
+      Declarations:
+          ISingleVariableDeclaration (Symbol: v2 As System.Object) (OperationKind.SingleVariableDeclaration) (Syntax: 'v2')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New With {.a = {{tr}}}')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = {{tr}}}')
@@ -718,17 +724,23 @@ End Module]]>.Value
 IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
     Local_2: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim err = N ...  {<a/>.<_>}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'err')
-      Variables: Local_1: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
+  IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim err = N ...  {<a/>.<_>}')
+    IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'err = New W ...  {<a/>.<_>}')
+      Declarations:
+          ISingleVariableDeclaration (Symbol: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (OperationKind.SingleVariableDeclaration) (Syntax: 'err')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New With {<a/>.<_>}')
           IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid) (Syntax: 'New With {<a/>.<_>}')
             Initializers(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: '<a/>.<_>')
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim ok = Ne ... {<a/>.<__>}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ok')
-      Variables: Local_1: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
+  IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim ok = Ne ... {<a/>.<__>}')
+    IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'ok = New Wi ... {<a/>.<__>}')
+      Declarations:
+          ISingleVariableDeclaration (Symbol: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (OperationKind.SingleVariableDeclaration) (Syntax: 'ok')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New With {<a/>.<__>}')
           IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')

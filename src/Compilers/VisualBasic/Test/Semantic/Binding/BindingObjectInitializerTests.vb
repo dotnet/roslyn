@@ -805,9 +805,12 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As C3
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
-      Variables: Local_1: x As C3
+  IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
+    IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'x As New C3 ... .X = "goo"}')
+      Declarations:
+          ISingleVariableDeclaration (Symbol: x As C3) (OperationKind.SingleVariableDeclaration) (Syntax: 'x')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New C3() ... .X = "goo"}')
           IObjectCreationExpression (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')

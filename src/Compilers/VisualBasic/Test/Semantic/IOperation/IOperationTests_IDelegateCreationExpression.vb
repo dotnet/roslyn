@@ -24,9 +24,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... iteLine("")')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... iteLine("")')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a As Action ... iteLine("")')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Sub() Con ... iteLine("")')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'Sub() Conso ... iteLine("")')
@@ -107,9 +110,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Action ... iteLine("")')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Sub(i As  ... iteLine("")')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'Sub(i As In ... iteLine("")')
@@ -157,9 +163,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.String)
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Action ... iteLine("")')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action(Of System.String)) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Sub(c1 As ... iteLine("")')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Sub(c1 As C ... iteLine("")')
@@ -206,9 +215,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... nExistant()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Func(Of System.String)
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... nExistant()')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Func(O ... nExistant()')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Func(Of System.String)) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Function( ... nExistant()')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Function()  ... nExistant()')
@@ -253,9 +265,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... unction() 1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Func(Of System.String)
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... unction() 1')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Func(O ... unction() 1')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Func(Of System.String)) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Function() 1')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'Function() 1')
@@ -299,9 +314,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... unction() 1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... unction() 1')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a As Action ... unction() 1')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Function() 1')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'Function() 1')
@@ -338,9 +356,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... riteLine(o)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.String)
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... riteLine(o)')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a As Action ... riteLine(o)')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action(Of System.String)) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Sub(o As  ... riteLine(o)')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsImplicit) (Syntax: 'Sub(o As Ob ... riteLine(o)')
@@ -590,9 +611,12 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.Object)
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Action ... f Integer))')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action(Of System.Object)) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= CType(Sub ... f Integer))')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Sub(i ... f Integer))')
@@ -748,9 +772,12 @@ End Module
             ' Explicitly verifying the entire tree here to ensure that the top level initializer statement is actually an IConversion, and not
             ' a delegate creation
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.Object)
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Action ... f Integer))')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action(Of System.Object)) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= CType(Add ... f Integer))')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Addre ... f Integer))')
@@ -1479,9 +1506,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... eLine(), 1)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... eLine(), 1)')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Action ... eLine(), 1)')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New Actio ... eLine(), 1)')
         IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... eLine(), 1)')
@@ -1775,9 +1805,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a As Action ... sOf Method2')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -1834,9 +1867,12 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ...  o.ToString')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ...  o.ToString')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a As Action ...  o.ToString')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf o.ToString')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf o.ToString')
@@ -1867,9 +1903,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Action ... sOf Method2')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -1908,9 +1947,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.String)
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Action ... sOf Method2')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action(Of System.String)) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -1948,9 +1990,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Func(Of System.String)
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Func(O ... sOf Method2')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Func(Of System.String)) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -1986,9 +2031,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Func(Of System.String)
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Func(O ... sOf Method2')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Func(Of System.String)) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -2032,9 +2080,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a As Action ... sOf Method2')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -2065,9 +2116,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action(Of System.Int32)
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a As Action ... sOf Method2')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action(Of System.Int32)) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= AddressOf Method2')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'AddressOf Method2')
@@ -2102,9 +2156,12 @@ End Module]]>.Value
             ' We don't expect a delegate creation here. This is documenting that we still have a conversion expression when the target type
             ' isn't a delegate type
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As St ... sOf Method2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.String
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As St ... sOf Method2')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As String ... sOf Method2')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.String) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= AddressOf Method2')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
@@ -3119,9 +3176,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... Method2, 1)')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As System.Action
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... Method2, 1)')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'a As Action ... Method2, 1)')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New Actio ... Method2, 1)')
         IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... Method2, 1)')
@@ -3364,9 +3424,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a = Sub ... End Sub')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As Sub <generated method>()
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a = Sub ... End Sub')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a = Sub()'B ... End Sub')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As Sub <generated method>()) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Sub()'BIN ... End Sub')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
@@ -3428,9 +3491,12 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a = Sub ... WriteLine()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: a As Sub <generated method>()
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a = Sub ... WriteLine()')
+  IMultiVariableDeclaration (1 declarations) (OperationKind.MultiVariableDeclaration) (Syntax: 'a = Sub() C ... WriteLine()')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: a As Sub <generated method>()) (OperationKind.SingleVariableDeclaration) (Syntax: 'a')
+          Initializer: 
+            null
     Initializer: 
       IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Sub() Con ... WriteLine()')
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>(), IsImplicit) (Syntax: 'Sub() Conso ... WriteLine()')
