@@ -39,7 +39,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Collections.Concurrent" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
     <NuGetPackageToIncludeInVsix Include="System.Console" />
-    <NugetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Process" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
