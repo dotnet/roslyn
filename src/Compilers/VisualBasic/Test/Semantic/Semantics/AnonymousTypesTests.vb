@@ -468,7 +468,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As ?>, IsInvalid) (Syntax: 'New With {. ...  SubName()}')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: '.a = SubName()')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.a = SubName()')
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
@@ -576,7 +576,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Object>) (Syntax: 'New With {.a = Nothing}')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, Constant: null, IsImplicit) (Syntax: '.a = Nothing')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, Constant: null) (Syntax: '.a = Nothing')
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Object>.a As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'a')
             Instance Receiver: 
@@ -905,7 +905,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... ddressOf S}')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .a = AddressOf S')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Key .a = AddressOf S')
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
