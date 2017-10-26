@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="deconstruction">The deconstruction operation</param>
         /// <param name="left">The left (tuple) operand</param>
-        /// <param name="right">The right (deconstrucible) operand</param>
+        /// <param name="right">The right (deconstructable) operand</param>
         /// <param name="diagnostics">Where to report diagnostics</param>
         /// <param name="declaration">A variable set to the first variable declaration found in the left</param>
         /// <param name="expression">A variable set to the first expression in the left that isn't a declaration or discard</param>

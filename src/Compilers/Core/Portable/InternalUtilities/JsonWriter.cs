@@ -14,7 +14,7 @@ namespace Roslyn.Utilities
     /// A simple, forward-only JSON writer to avoid adding dependencies to the compiler.
     /// Used to generate /errorlogger output.
     /// 
-    /// Does not guarantee well-formed JSON if misused. It is the caller's reponsibility 
+    /// Does not guarantee well-formed JSON if misused. It is the caller's responsibility 
     /// to balance array/object start/end, to only write key-value pairs to objects and
     /// elements to arrays, etc.
     /// 

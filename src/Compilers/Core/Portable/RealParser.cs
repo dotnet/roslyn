@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// A set of utilities for converting from a decimal floating-point literal string to its IEEE float
-    /// or double representation, which coniders all digits signficant and correctly rounds according to
+    /// or double representation, which considers all digits significant and correctly rounds according to
     /// the IEEE round-to-nearest-ties-to-even mode. This code does not support a leading sign character,
     /// as that is not part of the C# or VB floating-point literal lexical syntax.
     /// 
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis
 
             // Otherwise, we did not get enough bits of precision from the integer part,  
             // and the mantissa has a fractional part.  We parse the fractional part of  
-            // the mantsisa to obtain more bits of precision.  To do this, we convert  
+            // the mantissa to obtain more bits of precision.  To do this, we convert  
             // the fractional part into an actual fraction N/M, where the numerator N is  
             // computed from the digits of the fractional part, and the denominator M is   
             // computed as the power of 10 such that N/M is equal to the value of the  

@@ -368,7 +368,7 @@ class Hello
             Assert.Equal(CommonCompiler.Succeeded, result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task ShutdownRequestDirect()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -383,7 +383,7 @@ class Hello
         /// A shutdown request should not abort an existing compilation.  It should be allowed to run to 
         /// completion.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task ShutdownDoesNotAbortCompilation()
         {
             var host = new TestableCompilerServerHost();
@@ -420,7 +420,7 @@ class Hello
         /// Multiple clients should be able to send shutdown requests to the server.
         /// </summary>
         /// <returns></returns>
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task ShutdownRepeated()
         {
             var host = new TestableCompilerServerHost();
@@ -458,7 +458,7 @@ class Hello
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task CancelWillCancelCompilation()
         {
             var host = new TestableCompilerServerHost();

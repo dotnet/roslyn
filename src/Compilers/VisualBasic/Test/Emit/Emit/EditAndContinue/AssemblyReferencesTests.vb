@@ -347,7 +347,7 @@ End Class
 
         <Fact>
         <WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")>
-        Public Sub CurrentComplationVersionWildcards()
+        Public Sub CurrentCompilationVersionWildcards()
             Dim source0 = MarkedSource("
 Imports System
 <Assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")>

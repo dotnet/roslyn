@@ -1536,6 +1536,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeLocal = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
+        ERR_OutAttrOnInParam = 8355,
         #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+
+        ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
     }
 }

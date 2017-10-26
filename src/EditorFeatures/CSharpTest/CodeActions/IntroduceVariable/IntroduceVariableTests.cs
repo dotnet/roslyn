@@ -138,6 +138,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestThrowExpression()
+        {
+            var code =
+@"class C
+{
+    void M(bool b)
+    {
+        var x = b ? 1 : [|throw null|];
+    }
+}";
+            await TestActionCountAsync(code, count: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestThrowExpression2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool b)
+    {
+        var x = [|b ? 1 : throw null|];
+    }
+}",
+@"class C
+{
+    void M(bool b)
+    {
+        int {|Rename:v|} = b ? 1 : throw null;
+        var x = v;
+    }
+}",
+                index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestThrowStatement()
+        {
+            var code =
+@"class C
+{
+    void M()
+    {
+        [|throw null|];
+    }
+}";
+            await TestActionCountAsync(code, count: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFieldFix1()
         {
             var code =
