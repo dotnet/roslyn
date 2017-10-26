@@ -1305,7 +1305,7 @@ BC42024: Unused local variable: 'y'.
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub MultipleIdentifiers_MixedArrayAndNonArrayAsNew()
+        Public Sub MultipleIdentifiers_MixedArrayAndNonArrayAsNew_ArrayFirst()
             Dim source = <![CDATA[
 Option Strict On
 
@@ -1352,6 +1352,55 @@ BC30053: Arrays cannot be declared with 'New'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub MultipleIdentifiers_MixedArrayAndNonArrayAsNew_ArrayLast()
+            Dim source = <![CDATA[
+Option Strict On
+
+Module M1
+    Sub Sub1()
+        Dim x, y(10) As New Integer'BIND:"Dim x, y(10) As New Integer"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x, y(10 ... New Integer')
+  IMultiVariableDeclaration (2 declarations) (OperationKind.MultiVariableDeclaration, IsInvalid) (Syntax: 'x, y(10) As New Integer')
+    Declarations:
+        ISingleVariableDeclaration (Symbol: x As System.Int32) (OperationKind.SingleVariableDeclaration) (Syntax: 'x')
+          Initializer: 
+            null
+        ISingleVariableDeclaration (Symbol: y As System.Int32()) (OperationKind.SingleVariableDeclaration) (Syntax: 'y(10)')
+          Initializer: 
+            IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'y(10)')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'y(10)')
+                Dimension Sizes(1):
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
+                Initializer: 
+                  null
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
+        IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
+          Arguments(0)
+          Initializer: 
+            null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30053: Arrays cannot be declared with 'New'.
+        Dim x, y(10) As New Integer'BIND:"Dim x, y(10) As New Integer"
+                        ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
