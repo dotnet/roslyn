@@ -50,9 +50,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldReferenceExpression: C.i As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'i')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -73,9 +73,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldReferenceExpression: C.i As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Me.i')
+IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Me.i')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Me')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -98,9 +98,9 @@ Class B
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldReferenceExpression: C.i As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'MyBase.i')
+IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'MyBase.i')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'MyBase')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'MyBase')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -121,9 +121,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldReferenceExpression: C.i As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'MyClass.i')
+IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'MyClass.i')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'MyClass')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'MyClass')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
