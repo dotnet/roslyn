@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -95,6 +97,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
+
+        internal void VerifyExplicitInvariant(IOperation operation)
+        {
+            var lookup = operation.DescendantsAndSelf().GroupBy(o => o.Syntax);
+
+            foreach (var entry in lookup)
+            {
+                // with same syntax node, there must be only 1 or 0 explicit operation
+                Debug.Assert(entry.Count(o => !o.IsImplicit) <= 1);
+            }
+        }
 
         /// <summary>
         /// Deep Clone given IOperation

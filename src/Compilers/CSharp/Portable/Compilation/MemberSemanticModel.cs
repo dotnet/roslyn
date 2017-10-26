@@ -961,6 +961,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override IOperation GetOperationWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
+            VerifyExplicitInvariant(GetStatementOrRootOperation(GetBindingRootOrInitializer(Root), cancellationToken));
+
             CSharpSyntaxNode bindingRoot = GetBindingRootOrInitializer(node);
 
             IOperation statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, cancellationToken);
@@ -1596,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (node != null);
 
-done:
+            done:
             return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }
