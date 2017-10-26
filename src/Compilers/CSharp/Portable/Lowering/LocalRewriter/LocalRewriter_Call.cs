@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return argumentRefKindsOpt;
         }
 
-        internal static ImmutableArray<IArgument> MakeArgumentsInEvaluationOrder(
+        internal static ImmutableArray<IArgumentOperation> MakeArgumentsInEvaluationOrder(
             CSharpOperationFactory operationFactory,
             Binder binder,
             SyntaxNode syntax,
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // So we just return list of arguments as is.
 
                 ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
-                ArrayBuilder<IArgument> argumentsBuilder = ArrayBuilder<IArgument>.GetInstance(arguments.Length);
+                ArrayBuilder<IArgumentOperation> argumentsBuilder = ArrayBuilder<IArgumentOperation>.GetInstance(arguments.Length);
 
                 int i = 0;
                 for (; i < parameters.Length; ++i)
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // This fills in the arguments and parameters arrays in evaluation order.
-        private static ImmutableArray<IArgument> BuildArgumentsInEvaluationOrder(
+        private static ImmutableArray<IArgumentOperation> BuildArgumentsInEvaluationOrder(
             CSharpOperationFactory operationFactory,
             SyntaxNode syntax,
             Symbol methodOrIndexer,
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
 
-            ArrayBuilder<IArgument> argumentsInEvaluationBuilder = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
+            ArrayBuilder<IArgumentOperation> argumentsInEvaluationBuilder = ArrayBuilder<IArgumentOperation>.GetInstance(parameters.Length);
 
             PooledHashSet<int> processedParameters = PooledHashSet<int>.GetInstance();
 
@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             Binder binder,
             ArrayBuilder<ParameterSymbol> missingParameters,
-            ArrayBuilder<IArgument> argumentsBuilder)
+            ArrayBuilder<IArgumentOperation> argumentsBuilder)
         {
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
             ImmutableArray<ParameterSymbol> parametersOfOptionalParametersMethod = optionalParametersMethod.Parameters;

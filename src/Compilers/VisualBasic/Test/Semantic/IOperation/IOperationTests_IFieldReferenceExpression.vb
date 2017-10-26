@@ -1,6 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -25,9 +25,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'Conditional(field)')
+IOperation:  (OperationKind.None, Type: null) (Syntax: 'Conditional(field)')
   Children(1):
-      IFieldReferenceExpression: C.field As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: "field") (Syntax: 'field')
+      IFieldReferenceOperation: C.field As System.String (Static) (OperationKind.FieldReference, Type: System.String, Constant: "field") (Syntax: 'field')
         Instance Receiver: 
           null
 ]]>.Value
@@ -50,9 +50,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldReferenceExpression: C.i As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'i')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -73,9 +73,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldReferenceExpression: C.i As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Me.i')
+IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Me.i')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Me')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -98,9 +98,9 @@ Class B
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldReferenceExpression: C.i As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'MyBase.i')
+IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'MyBase.i')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'MyBase')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'MyBase')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -121,9 +121,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IFieldReferenceExpression: C.i As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'MyClass.i')
+IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'MyClass.i')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'MyClass')
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'MyClass')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
     /// Represents the common, language-agnostic elements of a conversion.
