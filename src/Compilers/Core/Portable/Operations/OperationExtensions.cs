@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     public static partial class OperationExtensions
     {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Gets all the declared local variables in the given <paramref name="declarationStatement"/>.
         /// </summary>
         /// <param name="declarationStatement">Variable declaration statement</param>
-        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationGroup declarationStatement)
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationGroupOperation declarationStatement)
         {
             if (declarationStatement == null)
             {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
-            foreach (IVariableDeclaration group in declarationStatement.Declarations)
+            foreach (IVariableDeclarationOperation group in declarationStatement.Declarations)
             {
                 group.GetDeclaredVariables(arrayBuilder);
             }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return arrayBuilder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclaration declaration)
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationOperation declaration)
         {
             if (declaration == null)
             {
@@ -127,15 +127,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             return arrayBuilder.ToImmutableAndFree();
         }
 
-        private static void GetDeclaredVariables(this IVariableDeclaration declaration, ArrayBuilder<ILocalSymbol> arrayBuilder)
+        private static void GetDeclaredVariables(this IVariableDeclarationOperation declaration, ArrayBuilder<ILocalSymbol> arrayBuilder)
         {
             switch (declaration.Kind)
             {
                 case OperationKind.SingleVariableDeclaration:
-                    arrayBuilder.Add(((ISingleVariableDeclaration)declaration).Symbol);
+                    arrayBuilder.Add(((ISingleVariableDeclarationOperation)declaration).Symbol);
                     break;
                 case OperationKind.MultiVariableDeclaration:
-                    foreach (var decl in ((IMultiVariableDeclaration)declaration).Declarations)
+                    foreach (var decl in ((IMultiVariableDeclarationOperation)declaration).Declarations)
                     {
                         arrayBuilder.Add(decl.Symbol);
                     }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicInvocationExpression dynamicExpression, int index)
+        public static string GetArgumentName(this IDynamicInvocationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicIndexerAccessExpression dynamicExpression, int index)
+        public static string GetArgumentName(this IDynamicIndexerAccessOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicObjectCreationExpression dynamicExpression, int index)
+        public static string GetArgumentName(this IDynamicObjectCreationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static RefKind? GetArgumentRefKind(this IDynamicInvocationExpression dynamicExpression, int index)
+        public static RefKind? GetArgumentRefKind(this IDynamicInvocationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static RefKind? GetArgumentRefKind(this IDynamicIndexerAccessExpression dynamicExpression, int index)
+        public static RefKind? GetArgumentRefKind(this IDynamicIndexerAccessOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static RefKind? GetArgumentRefKind(this IDynamicObjectCreationExpression dynamicExpression, int index)
+        public static RefKind? GetArgumentRefKind(this IDynamicObjectCreationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {

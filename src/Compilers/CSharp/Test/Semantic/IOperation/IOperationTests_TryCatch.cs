@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -35,44 +35,44 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 0;')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 0;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 0')
             Left: 
-              IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Exce ... }')
+      ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Exce ... }')
         Locals: Local_1: System.Exception ex
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclaration (Symbol: System.Exception ex) (OperationKind.SingleVariableDeclaration) (Syntax: '(Exception ex)')
+          ISingleVariableDeclarationOperation (Symbol: System.Exception ex) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: '(Exception ex)')
             Initializer: 
               null
         Filter: 
-          IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
             Left: 
-              IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Handler: 
-          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'throw ex;')
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'throw ex;')
               Expression: 
-                IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'throw ex;')
-                  ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
+                IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'throw ex;')
+                  ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
   Finally: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 1;')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
             Left: 
-              IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -106,45 +106,45 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-  ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
     Body: 
-      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 0;')
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 0;')
           Expression: 
-            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 0')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 0')
               Left: 
-                IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
               Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
     Catch clauses(1):
-        ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Exce ... }')
+        ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Exce ... }')
           Locals: Local_1: System.Exception ex
           ExceptionDeclarationOrExpression: 
-            ISingleVariableDeclaration (Symbol: System.Exception ex) (OperationKind.SingleVariableDeclaration) (Syntax: '(Exception ex)')
+            ISingleVariableDeclarationOperation (Symbol: System.Exception ex) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: '(Exception ex)')
               Initializer: 
                 null
           Filter: 
-            IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
+            IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
               Left: 
-                IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
               Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Handler: 
-            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-              IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'throw ex;')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'throw ex;')
                 Expression: 
-                  IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'throw ex;')
-                    ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
+                  IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'throw ex;')
+                    ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
     Finally: 
-      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 1;')
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
           Expression: 
-            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 1')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
               Left: 
-                IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
               Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -170,20 +170,20 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(1):
-      ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
+      ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.IO.IOException e
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
+          ISingleVariableDeclarationOperation (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: '(System.IO. ... xception e)')
             Initializer: 
               null
         Filter: 
           null
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
     null
 ";
@@ -215,29 +215,29 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(1):
-      ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
+      ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.IO.IOException e
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
+          ISingleVariableDeclarationOperation (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: '(System.IO. ... xception e)')
             Initializer: 
               null
         Filter: 
-          IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e.Message != null')
+          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message != null')
             Left: 
-              IPropertyReferenceExpression: System.String System.Exception.Message { get; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'e.Message')
+              IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
                 Instance Receiver: 
-                  ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
+                  ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
     null
 ";
@@ -268,39 +268,39 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(2):
-      ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
+      ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.IO.IOException e
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
+          ISingleVariableDeclarationOperation (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: '(System.IO. ... xception e)')
             Initializer: 
               null
         Filter: 
           null
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.Exception e
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclaration (Symbol: System.Exception e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.Exception e)')
+          ISingleVariableDeclarationOperation (Symbol: System.Exception e) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: '(System.Exception e)')
             Initializer: 
               null
         Filter: 
-          IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e.Message != null')
+          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message != null')
             Left: 
-              IPropertyReferenceExpression: System.String System.Exception.Message { get; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'e.Message')
+              IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
                 Instance Receiver: 
-                  ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'e')
+                  ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
     null
 ";
@@ -335,39 +335,39 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement, IsInvalid) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(2):
-      ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
+      ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.IO.IOException e
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
+          ISingleVariableDeclarationOperation (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: '(System.IO. ... xception e)')
             Initializer: 
               null
         Filter: 
           null
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause, IsInvalid) (Syntax: 'catch (Syst ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'catch (Syst ... }')
         Locals: Local_1: System.IO.IOException e
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: '(System.IO. ... xception e)')
+          ISingleVariableDeclarationOperation (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '(System.IO. ... xception e)')
             Initializer: 
               null
         Filter: 
-          IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e.Message != null')
+          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message != null')
             Left: 
-              IPropertyReferenceExpression: System.String System.Exception.Message { get; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'e.Message')
+              IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
                 Instance Receiver: 
-                  ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
+                  ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
             Right: 
-              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
     null
 ";
@@ -404,17 +404,17 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Exce ... }')
+      ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Exce ... }')
         ExceptionDeclarationOrExpression: 
           null
         Filter: 
           null
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
     null
 ";
@@ -442,17 +442,17 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(1):
-      ICatchClause (Exception type: null) (OperationKind.CatchClause) (Syntax: 'catch ... }')
+      ICatchClauseOperation (Exception type: null) (OperationKind.CatchClause, Type: null) (Syntax: 'catch ... }')
         ExceptionDeclarationOrExpression: 
           null
         Filter: 
           null
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
     null
 ";
@@ -483,20 +483,20 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(0)
   Finally: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(s);')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(s);')
         Expression: 
-          IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
+          IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
-                  IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 's')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: 's')
+                  IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -527,23 +527,23 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 i
-      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0;')
-        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = 0;')
+        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Exce ... }')
+      ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Exce ... }')
         ExceptionDeclarationOrExpression: 
           null
         Filter: 
           null
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
     null
 ";
@@ -578,23 +578,23 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Exce ... }')
+      ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Exce ... }')
         ExceptionDeclarationOrExpression: 
           null
         Filter: 
           null
         Handler: 
-          IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
             Locals: Local_1: System.Int32 i
-            IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0;')
-              ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
+            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = 0;')
+              ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
                 Initializer: 
-                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Finally: 
     null
 ";
@@ -628,22 +628,22 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Exce ... }')
+      ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Exce ... }')
         Locals: Local_1: System.String s
         ExceptionDeclarationOrExpression: 
           null
         Filter: 
-          IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is string s')
+          IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is string s')
             Expression: 
-              IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
+              IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
             Pattern: 
-              IDeclarationPattern (Declared Symbol: System.String s) (OperationKind.DeclarationPattern) (Syntax: 'string s')
+              IDeclarationPatternOperation (Declared Symbol: System.String s) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s')
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
     null
 ";
@@ -673,25 +673,25 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch (Exce ... }')
+      ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Exce ... }')
         Locals: Local_1: System.Exception e
           Local_2: System.String s
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclaration (Symbol: System.Exception e) (OperationKind.SingleVariableDeclaration) (Syntax: '(Exception e)')
+          ISingleVariableDeclarationOperation (Symbol: System.Exception e) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: '(Exception e)')
             Initializer: 
               null
         Filter: 
-          IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is string s')
+          IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is string s')
             Expression: 
-              IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
+              IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
             Pattern: 
-              IDeclarationPattern (Declared Symbol: System.String s) (OperationKind.DeclarationPattern) (Syntax: 'string s')
+              IDeclarationPatternOperation (Declared Symbol: System.String s) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s')
         Handler: 
-          IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
     null
 ";
@@ -724,18 +724,18 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
+ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Catch clauses(0)
   Finally: 
-    IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 i
-      IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0;')
-        ISingleVariableDeclaration (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration) (Syntax: 'i = 0')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = 0;')
+        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
           Initializer: 
-            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i' is assigned but its value is never used
@@ -765,16 +765,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ICatchClause (Exception type: System.Int32) (OperationKind.CatchClause, IsInvalid) (Syntax: 'catch (int  ... }')
+ICatchClauseOperation (Exception type: System.Int32) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'catch (int  ... }')
   Locals: Local_1: System.Int32 e
   ExceptionDeclarationOrExpression: 
-    ISingleVariableDeclaration (Symbol: System.Int32 e) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: '(int e)')
+    ISingleVariableDeclarationOperation (Symbol: System.Int32 e) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '(int e)')
       Initializer: 
         null
   Filter: 
     null
   Handler: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0155: The type caught or thrown must be derived from System.Exception
@@ -807,25 +807,25 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'catch (Syst ... }')
+ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Syst ... }')
   Locals: Local_1: System.IO.IOException e
   ExceptionDeclarationOrExpression: 
-    ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
+    ISingleVariableDeclarationOperation (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: '(System.IO. ... xception e)')
       Initializer: 
         null
   Filter: 
-    IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e.Message != null')
+    IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message != null')
       Left: 
-        IPropertyReferenceExpression: System.String System.Exception.Message { get; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'e.Message')
+        IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
           Instance Receiver: 
-            ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
+            ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
       Right: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
   Handler: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -851,7 +851,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclaration (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration) (Syntax: '(System.IO. ... xception e)')
+ISingleVariableDeclarationOperation (Symbol: System.IO.IOException e) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: '(System.IO. ... xception e)')
   Initializer: 
     null
 ";
@@ -905,14 +905,14 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's != null')
+IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's != null')
   Left: 
-    IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 's')
+    IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
   Right: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

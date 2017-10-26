@@ -27,9 +27,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void) (Syntax: 'await M2()')
+IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'await M2()')
   Expression: 
-    IInvocationExpression (System.Threading.Tasks.Task C.M2()) (OperationKind.InvocationExpression, Type: System.Threading.Tasks.Task) (Syntax: 'M2()')
+    IInvocationOperation (System.Threading.Tasks.Task C.M2()) (OperationKind.Invocation, Type: System.Threading.Tasks.Task) (Syntax: 'M2()')
       Instance Receiver: 
         null
       Arguments(0)
@@ -55,9 +55,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void) (Syntax: 'await t')
+IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'await t')
   Expression: 
-    IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task) (Syntax: 't')
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task) (Syntax: 't')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -82,9 +82,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAwaitExpression (OperationKind.AwaitExpression, Type: System.Int32) (Syntax: 'await t')
+IAwaitOperation (OperationKind.Await, Type: System.Int32) (Syntax: 'await t')
   Expression: 
-    IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task<System.Int32>) (Syntax: 't')
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<System.Int32>) (Syntax: 't')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -108,9 +108,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAwaitExpression (OperationKind.AwaitExpression, Type: ?, IsInvalid) (Syntax: 'await UndefinedTask')
+IAwaitOperation (OperationKind.Await, Type: ?, IsInvalid) (Syntax: 'await UndefinedTask')
   Expression: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'UndefinedTask')
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'UndefinedTask')
       Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -139,9 +139,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAwaitExpression (OperationKind.AwaitExpression, Type: ?, IsInvalid) (Syntax: 'await i')
+IAwaitOperation (OperationKind.Await, Type: ?, IsInvalid) (Syntax: 'await i')
   Expression: 
-    IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
+    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1061: 'int' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
@@ -169,9 +169,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAwaitExpression (OperationKind.AwaitExpression, Type: ?, IsInvalid) (Syntax: 'await /*</bind>*/')
+IAwaitOperation (OperationKind.Await, Type: ?, IsInvalid) (Syntax: 'await /*</bind>*/')
   Expression: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -200,8 +200,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationGroup (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'await t;')
-  ISingleVariableDeclaration (Symbol: await t) (OperationKind.SingleVariableDeclaration, IsInvalid) (Syntax: 't')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'await t;')
+  ISingleVariableDeclarationOperation (Symbol: await t) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 't')
     Initializer: 
       null
 ";

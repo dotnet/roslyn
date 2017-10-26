@@ -27,29 +27,29 @@ Class D
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWithStatement (OperationKind.None) (Syntax: 'With c'BIND ... End With')
+IWithOperation (OperationKind.None, Type: null) (Syntax: 'With c'BIND ... End With')
   Value: 
-    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Body: 
-    IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'With c'BIND ... End With')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.I = 0')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'With c'BIND ... End With')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '.I = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: '.I = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '.I = 0')
             Left: 
-              IFieldReferenceExpression: C.I As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.I')
+              IFieldReferenceOperation: C.I As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.I')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'c')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'c')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.J = 0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '.J = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: '.J = 0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '.J = 0')
             Left: 
-              IFieldReferenceExpression: C.J As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.J')
+              IFieldReferenceOperation: C.J As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.J')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'c')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'c')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -76,34 +76,34 @@ Class D
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Private Sub ... End Sub')
-  IWithStatement (OperationKind.None) (Syntax: 'With c ... End With')
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Private Sub ... End Sub')
+  IWithOperation (OperationKind.None, Type: null) (Syntax: 'With c ... End With')
     Value: 
-      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
     Body: 
-      IBlockStatement (2 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'With c ... End With')
-        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.I = 0')
+      IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'With c ... End With')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '.I = 0')
           Expression: 
-            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: '.I = 0')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '.I = 0')
               Left: 
-                IFieldReferenceExpression: C.I As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.I')
+                IFieldReferenceOperation: C.I As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.I')
                   Instance Receiver: 
-                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'c')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'c')
               Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.J = 0')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '.J = 0')
           Expression: 
-            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: '.J = 0')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '.J = 0')
               Left: 
-                IFieldReferenceExpression: C.J As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.J')
+                IFieldReferenceOperation: C.J As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.J')
                   Instance Receiver: 
-                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'c')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'c')
               Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
