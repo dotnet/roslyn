@@ -73,3 +73,8 @@ Red flags that GC may be a problem:
     1. Large time spent in `clr!WKS::GCHeap::WaitUntilGCComplete`
 * In the **GC Heap Alloc Ignore Free** window in PerfView
     1. Large "Totals Metric" at the top of the window
+
+GC problems are typically caused by one of the following:
+
+1. **Allocation rate:** Code allocates large numbers of objects, requiring GC to run frequently to clean them up
+2. **Memory pressure:** A large working set (which could be managed or unmanaged memory) is held by an application, leaving only a small amount of free memory space for the garbage collector to operate within. Increased memory pressure reduces the allocation rate required to cause observable performance problems.
