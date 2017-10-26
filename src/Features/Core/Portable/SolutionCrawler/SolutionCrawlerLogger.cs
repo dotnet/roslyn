@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private const string Id = nameof(Id);
         private const string Kind = nameof(Kind);
         private const string Analyzer = nameof(Analyzer);
-        private const string ProjectCount = nameof(ProjectCount);
         private const string DocumentCount = nameof(DocumentCount);
         private const string Languages = nameof(Languages);
         private const string HighPriority = nameof(HighPriority);
@@ -69,16 +68,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
-        public static void LogReanalyze(int correlationId, IIncrementalAnalyzer analyzer, Solution solution, IEnumerable<object> projectOrDocumentIds, bool highPriority)
+        public static void LogReanalyze(
+            int correlationId, 
+            IIncrementalAnalyzer analyzer, 
+            int documentCount,
+            string languages,
+            bool highPriority)
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Reanalyze, KeyValueLogMessage.Create(m =>
             {
                 m[Id] = correlationId;
                 m[Analyzer] = analyzer.ToString();
-                m[ProjectCount] = projectOrDocumentIds?.OfType<ProjectId>().Count() ?? 0;
-                m[DocumentCount] = projectOrDocumentIds?.OfType<DocumentId>().Count() ?? 0;
+                m[DocumentCount] = documentCount;
                 m[HighPriority] = highPriority;
-                m[Languages] = GetLanguages(solution, projectOrDocumentIds);
+                m[Languages] = languages;
             }));
         }
 
@@ -337,37 +340,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static void LogProcessProjectNotExist(LogAggregator logAggregator)
         {
             logAggregator.IncreaseCount(ProjectNotExist);
-        }
-
-        private static string GetLanguages(Solution solution, IEnumerable<object> projectOrDocumentIds)
-        {
-            using (var pool = SharedPools.Default<HashSet<string>>().GetPooledObject())
-            {
-                foreach (var projectOrDocumentId in projectOrDocumentIds)
-                {
-                    switch (projectOrDocumentId)
-                    {
-                        case ProjectId projectId:
-                            var project = solution.GetProject(projectId);
-                            if (project != null)
-                            {
-                                pool.Object.Add(project.Language);
-                            }
-                            break;
-                        case DocumentId documentId:
-                            var document = solution.GetDocument(documentId);
-                            if (document != null)
-                            {
-                                pool.Object.Add(document.Project.Language);
-                            }
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
-                    }
-                }
-
-                return string.Join(",", pool.Object);
-            }
         }
     }
 }

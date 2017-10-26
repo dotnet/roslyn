@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
 
                 // and ask to re-analyze whole solution for the given analyzer
-                var set = _registration.CurrentSolution.Projects.Select(p => p.Id).ToSet<object>();
-                Reanalyze(analyzer, set);
+                var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
+                Reanalyze(analyzer, scope);
             }
 
             public void Shutdown(bool blockingShutdown)
@@ -152,28 +152,29 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private void ReanalyzeOnOptionChange(object sender, OptionChangedEventArgs e)
             {
                 // let each analyzer decide what they want on option change
-                ISet<object> set = null;
                 foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
                 {
                     if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
                     {
-                        set = set ?? _registration.CurrentSolution.Projects.Select(p => p.Id).ToSet<object>();
-                        this.Reanalyze(analyzer, set);
+                        var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
+                        Reanalyze(analyzer, scope);
                     }
                 }
             }
 
-            public void Reanalyze(IIncrementalAnalyzer analyzer, ISet<object> projectOrDocumentIds, bool highPriority = false)
+            public void Reanalyze(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority = false)
             {
                 var asyncToken = _listener.BeginAsyncOperation("Reanalyze");
                 _eventProcessingQueue.ScheduleTask(
-                    () => EnqueueWorkItemAsync(analyzer, projectOrDocumentIds, highPriority), _shutdownToken).CompletesAsyncOperation(asyncToken);
+                    () => EnqueueWorkItemAsync(analyzer, scope, highPriority), _shutdownToken).CompletesAsyncOperation(asyncToken);
 
-                if (projectOrDocumentIds?.Count > 1)
+                if (scope.HasMultipleDocuments)
                 {
                     // log big reanalysis request from things like fix all, suppress all or option changes
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
-                    SolutionCrawlerLogger.LogReanalyze(CorrelationId, analyzer, _registration.CurrentSolution, projectOrDocumentIds, highPriority);
+                    var solution = _registration.CurrentSolution;
+                    SolutionCrawlerLogger.LogReanalyze(
+                        CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguages(solution), highPriority);
                 }
             }
 
@@ -414,37 +415,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, IEnumerable<object> projectOrDocumentIds, bool highPriority)
+            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
             {
                 var solution = _registration.CurrentSolution;
                 var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
 
-                foreach (var projectOrDocumentId in projectOrDocumentIds)
+                foreach (var document in scope.GetDocuments(solution))
                 {
-                    switch (projectOrDocumentId)
-                    {
-                        case ProjectId projectId:
-                        {
-                            var project = solution.GetProject(projectId);
-                            if (project != null)
-                            {
-                                foreach (var document in project.Documents)
-                                {
-                                    await EnqueueWorkItemAsync(analyzer, document, invocationReasons).ConfigureAwait(false);
-                                }
-                            }
-                            break;
-                        }
-                        case DocumentId documentId:
-                        {
-                            var document = solution.GetDocument(documentId);
-                            if (document != null)
-                            {
-                                await EnqueueWorkItemAsync(analyzer, document, invocationReasons).ConfigureAwait(false);
-                            }
-                            break;
-                        }
-                    }
+                    await EnqueueWorkItemAsync(analyzer, document, invocationReasons).ConfigureAwait(false);
                 }
             }
 
@@ -611,6 +589,158 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             internal void WaitUntilCompletion_ForTestingPurposesOnly()
             {
                 _documentAndProjectWorkerProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+            }
+        }
+
+        private struct ReanalyzeScope
+        {
+            private readonly SolutionId _solutionId;
+            private readonly ISet<object> _projectOrDocumentIds;
+
+            public ReanalyzeScope(SolutionId solutionId)
+            {
+                _solutionId = solutionId;
+                _projectOrDocumentIds = null;
+            }
+
+            public ReanalyzeScope(IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
+            {
+                projectIds = projectIds ?? SpecializedCollections.EmptyEnumerable<ProjectId>();
+                documentIds = documentIds ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
+
+                _solutionId = null;
+                _projectOrDocumentIds = new HashSet<object>(projectIds);
+
+                foreach (var documentId in documentIds)
+                {
+                    if (_projectOrDocumentIds.Contains(documentId.ProjectId))
+                    {
+                        continue;
+                    }
+
+                    _projectOrDocumentIds.Add(documentId);
+                }
+            }
+
+            public bool HasMultipleDocuments => _solutionId != null || _projectOrDocumentIds?.Count > 1;
+
+            public string GetLanguages(Solution solution)
+            {
+                Contract.ThrowIfFalse(_solutionId == null || solution.Id == _solutionId);
+
+                using (var pool = SharedPools.Default<HashSet<string>>().GetPooledObject())
+                {
+                    if (_solutionId != null)
+                    {
+                        pool.Object.UnionWith(solution.State.ProjectStates.Select(kv => kv.Value.Language));
+                        return string.Join(",", pool.Object);
+                    }
+
+                    foreach (var projectOrDocumentId in _projectOrDocumentIds)
+                    {
+                        switch (projectOrDocumentId)
+                        {
+                            case ProjectId projectId:
+                                var project = solution.GetProject(projectId);
+                                if (project != null)
+                                {
+                                    pool.Object.Add(project.Language);
+                                }
+                                break;
+                            case DocumentId documentId:
+                                var document = solution.GetDocument(documentId);
+                                if (document != null)
+                                {
+                                    pool.Object.Add(document.Project.Language);
+                                }
+                                break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
+                        }
+                    }
+
+                    return string.Join(",", pool.Object);
+                }
+            }
+
+            public int GetDocumentCount(Solution solution)
+            {
+                Contract.ThrowIfFalse(_solutionId == null || solution.Id == _solutionId);
+
+                var count = 0;
+                if (_solutionId != null)
+                {
+                    foreach (var projectState in solution.State.ProjectStates)
+                    {
+                        count += projectState.Value.DocumentIds.Count;
+                    }
+
+                    return count;
+                }
+
+                foreach (var projectOrDocumentId in _projectOrDocumentIds)
+                {
+                    switch (projectOrDocumentId)
+                    {
+                        case ProjectId projectId:
+                            var project = solution.GetProject(projectId);
+                            if (project != null)
+                            {
+                                count += project.DocumentIds.Count;
+                            }
+                            break;
+                        case DocumentId documentId:
+                            count++;
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
+                    }
+                }
+
+                return count;
+            }
+
+            public IEnumerable<Document> GetDocuments(Solution solution)
+            {
+                Contract.ThrowIfFalse(_solutionId == null || solution.Id == _solutionId);
+
+                if (_solutionId != null)
+                {
+                    foreach (var document in solution.Projects.SelectMany(p => p.Documents))
+                    {
+                        yield return document;
+                    }
+
+                    yield break;
+                }
+
+                foreach (var projectOrDocumentId in _projectOrDocumentIds)
+                {
+                    switch (projectOrDocumentId)
+                    {
+                        case ProjectId projectId:
+                        {
+                            var project = solution.GetProject(projectId);
+                            if (project != null)
+                            {
+                                foreach (var document in project.Documents)
+                                {
+                                    yield return document;
+                                }
+                            }
+                            break;
+                        }
+                        case DocumentId documentId:
+                        {
+                            var document = solution.GetDocument(documentId);
+                            if (document != null)
+                            {
+                                yield return document;
+                            }
+                            break;
+                        }
+                    }
+                }
             }
         }
     }

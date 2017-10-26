@@ -134,21 +134,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // no specific projects or documents provided
                 if (projectIds == null && documentIds == null)
                 {
-                    coordinator.Reanalyze(analyzer, workspace.CurrentSolution.Projects.Select(p => p.Id).ToSet<object>(), highPriority);
+                    coordinator.Reanalyze(analyzer, new ReanalyzeScope(workspace.CurrentSolution.Id), highPriority);
                     return;
                 }
 
                 // specific documents provided
                 if (projectIds == null)
                 {
-                    coordinator.Reanalyze(analyzer, documentIds.ToSet<object>(), highPriority);
+                    coordinator.Reanalyze(analyzer, new ReanalyzeScope(documentIds: documentIds), highPriority);
                     return;
                 }
 
-                var solution = workspace.CurrentSolution;
-                var set = documentIds.Concat<object>(projectIds).ToSet();
-
-                coordinator.Reanalyze(analyzer, set, highPriority);
+                coordinator.Reanalyze(analyzer, new ReanalyzeScope(projectIds, documentIds), highPriority);
             }
         }
 
