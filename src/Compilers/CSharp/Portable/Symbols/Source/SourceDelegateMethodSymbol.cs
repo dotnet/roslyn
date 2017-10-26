@@ -301,25 +301,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
             {
-                Location GetReturnTypeLocation()
+                Location getReturnTypeLocation()
                 {
                     var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
                     return syntax.ReturnType.GetLocation();
-
                 }
 
                 base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
                 if (_refKind == RefKind.RefReadOnly)
                 {
-                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetReturnTypeLocation(), modifyCompilation: true);
+                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
                 }
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
                 if (ReturnType.ContainsNullableReferenceTypes())
                 {
-                    this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, GetReturnTypeLocation(), modifyCompilation: true);
+                    this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
                 }
 
                 ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
