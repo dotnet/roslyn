@@ -179,8 +179,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             AssertIsForeground();
 
-            // if completion is not shown to users yet, then
-            // log will be marked as cancelled.
+            // we need to distinguish a case where completion UI is shown to users and then dismissed
+            // or it got dismissed before UI is shown to users in telemetry events.
+            // we use cancellation for it. here, we raise cancellation for trackLogSession, and then
+            // call ReportPerformance. if UI is already shown, then it will become noop. if it didn't yet,
+            // then event will be fired with cancellation on.
             _trackLogSession.Cancel();
 
             ReportPerformance();
