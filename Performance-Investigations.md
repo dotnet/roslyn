@@ -59,3 +59,17 @@ Sometimes a performance trace is taken during a period of time in which the stat
 The performance measurement infrastructure (PerfView) uses a circular buffer which only keeps the most recent data up to some fixed size. Depending on the type and amount of activity on the system during measurement, it is possible for a performance trace to exceed the size limit, and only retain "more recent" information in the trace. The time supported for a trace *widely* varies by measurement conditions, so only loose guidance is provided in the recommended steps for measuring and reporting performance problems.
 
 💡 If you open a view in PerfView and observe a lack of data for a substantial portion of the beginning of a measurement window (see the **When** column), the measurement may have hit the end of the buffer and discarded the oldest data. Note that the GC data and the Thread Time data are recorded separately, so the buffers will not discard the same duration of data.
+
+# Investigating GC performance
+
+Red flags that GC may be a problem:
+
+* In the **GC Stats** window from PerfView
+    1. Large "Total GC Pause"
+    1. Large "% Time paused for Garbage Collection"
+    1. Large "% CPU Time spent Garbage Collecting"
+* In the **Thread Time Stacks** window in PerfView
+    1. Large time spent in `clr!??WKS::gc_heap::gc1`
+    1. Large time spent in `clr!WKS::GCHeap::WaitUntilGCComplete`
+* In the **GC Heap Alloc Ignore Free** window in PerfView
+    1. Large "Totals Metric" at the top of the window
