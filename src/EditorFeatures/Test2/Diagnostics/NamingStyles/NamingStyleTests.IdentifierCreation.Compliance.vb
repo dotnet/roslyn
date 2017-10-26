@@ -96,6 +96,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.PascalCase)
             TestNameCompliance(namingStyle, "私の家_2nd")
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestPascalCaseWithWordSeperation()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.PascalCase)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "ThisIsMyMethod", "This_Is_My_Method")
+        End Sub
 #End Region
 
 #Region "camelCase"
@@ -151,6 +157,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Public Sub TestCamelCaseAllowsUncasedCharacters()
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.CamelCase)
             TestNameCompliance(namingStyle, "私の家_2nd")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestCamelCaseWithWordSeperation()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.CamelCase)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "ThisIsMyMethod", "this_Is_My_Method")
         End Sub
 #End Region
 
