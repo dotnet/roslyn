@@ -314,18 +314,16 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
-                if (CapitalizationScheme == Capitalization.AllUpper || CapitalizationScheme == Capitalization.AllLower)
+                if (words.Count() == 1) // Only Split if words have not been split before 
                 {
-                    if (words.Count() == 1) // Only Split if words have not been split before 
+                    bool isWord = true;
+                    var parts = StringBreaker.GetParts(name, isWord);
+                    string[] newWords = new string[parts.Count];
+                    for(int i = 0; i < parts.Count; i++)
                     {
-                        var parts = StringBreaker.GetParts(name, true);
-                        string[] newWords = new string[parts.Count];
-                        for(int i = 0; i < parts.Count; i++)
-                        {
-                            newWords[i] = name.Substring(parts[i].Start, parts[i].Start - parts[i].End);
-                        }
-                        words = newWords;
+                        newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
                     }
+                    words = newWords;
                 }
             }
 
