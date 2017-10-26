@@ -1247,4 +1247,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Use_IsNot_Nothing_check" xml:space="preserve">
     <value>Use 'IsNot Nothing' check</value>
   </data>
+  <data name="Add_Shadows" xml:space="preserve">
+    <value>Add Shadows</value>
+  </data>
 </root>
