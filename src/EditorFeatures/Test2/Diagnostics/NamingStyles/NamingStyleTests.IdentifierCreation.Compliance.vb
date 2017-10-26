@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestPascalCaseWithWordSeperation()
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.PascalCase)
-            TestNameNoncomplianceAndFixedNames(namingStyle, "ThisIsMyMethod", "This_Is_My_Method")
+            TestNameNoncomplianceAndFixedNames(namingStyle, "thisIsMyMethod", "This_Is_My_Method")
         End Sub
 #End Region
 
