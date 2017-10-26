@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
@@ -72,7 +71,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
 
             Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
-                GetService(Of IInlineRenameService)(),
                 New TestSignatureHelpPresenter(Me),
                 GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
