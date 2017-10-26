@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A readonly field cannot be assigned to (except in a constructor or a variable initializer).
+        ///   Looks up a localized string similar to A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer)).
         /// </summary>
         internal static string ERR_AssgReadonly {
             get {

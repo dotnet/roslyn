@@ -6794,13 +6794,13 @@ class MyDerived : MyClass
 }
 ";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (28,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (28,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         TestInt = 15; // CS0191 - not in declaring class
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(28, 9),
-                // (11,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (11,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         t.TestInt = 14; // CS0191 - we can't be sure that the receiver is this
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "t.TestInt").WithLocation(11, 9),
-                // (16,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (16,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         TestInt = 19;                  // CS0191
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(16, 9));
         }

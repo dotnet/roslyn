@@ -24270,7 +24270,7 @@ namespace System
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (10,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (10,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         tuple.Item1 = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "tuple.Item1").WithLocation(8, 9));
         }

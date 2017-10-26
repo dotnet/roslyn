@@ -1251,7 +1251,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         var i = /*<bind>*/new MemberInitializerTest() { x = 1 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "x").WithLocation(12, 57)
             };
