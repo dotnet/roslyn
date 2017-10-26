@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 #pragma warning restore RS0010 // Avoid using cref tags with a prefix
         CommonConversion Conversion { get; }
         /// <summary>
-        /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
+        /// True if and only if the conversion is indicated explicitly by a cast operation in the source code.
         /// </summary>
         bool IsExplicitInCode { get; }
         /// <summary>
