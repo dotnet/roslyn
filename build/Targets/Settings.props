@@ -4,6 +4,7 @@
 
   <PropertyGroup>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
+    <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
   </PropertyGroup>
 
   <Import Project="Packages.props" />
@@ -115,6 +116,22 @@
     -->
     <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
     <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">embedded</RoslynDebugType>
+
+    <!-- 
+      The source root path used for deterministic normalization of source paths.
+      
+      If set the value is used in PathMap to instruct the compiler to normalize source paths 
+      emitted to the binary and PDB and as a root for Source Link mapping.
+      If set must end with a directory separator.
+      
+      If unset the PathMap need to be set explicitly to facilitate full determinism.
+      
+      The path can't be just a single '/' due to bug in Roslyn compilers:
+      https://github.com/dotnet/roslyn/issues/22815
+    -->
+    <DeterministicSourceRoot Condition="'$(DeveloperBuild)' != 'true'">/_/</DeterministicSourceRoot>
+
+    <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
