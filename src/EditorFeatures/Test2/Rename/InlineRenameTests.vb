@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function DeconstructionForeach() As Task
+        Public Async Function RenameDeconstructionForeachCollection() As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
