@@ -165,6 +165,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     static void F(string? s)
     {
+        t = null;
+        var t = s;
+        t.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            // Ideally, there should be no warning for t.ToString();.
+            comp.VerifyDiagnostics(
+                // (5,9): error CS0841: Cannot use local variable 't' before it is declared
+                //         t = null;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "t").WithArguments("t").WithLocation(5, 9),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(7, 9));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+        }
+
+        [Fact]
+        public void LocalVar_FlowAnalysis_03()
+        {
+            var source =
+@"class C
+{
+    static void F(string? s)
+    {
         if (s == null)
         {
             return;
@@ -191,7 +223,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
-        public void LocalVar_FlowAnalysis_03()
+        public void LocalVar_FlowAnalysis_04()
+        {
+            var source =
+@"class C
+{
+    static void F(int n)
+    {
+        string? s = string.Empty;
+        while (n-- > 0)
+        {
+            var t = s;
+            t.ToString();
+            t = null;
+            s = null;
+        }
+    }
+}";
+
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(9, 13));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+        }
+
+        [Fact]
+        public void LocalVar_FlowAnalysis_05()
         {
             var source =
 @"class C

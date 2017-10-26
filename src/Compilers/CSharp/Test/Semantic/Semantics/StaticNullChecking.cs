@@ -5806,14 +5806,14 @@ class C
 
     void Test1()
     {
-        var u1 = new [] { 1, 2 };
+        int[]? u1 = new [] { 1, 2 };
         u1 = null;
         var z1 = u1[0];
     }
 
     void Test2()
     {
-        var u1 = new [] { 1, 2 };
+        int[]? u1 = new [] { 1, 2 };
         u1 = null;
         var z1 = u1?[u1[0]];
     }
@@ -5821,12 +5821,9 @@ class C
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (11,14): warning CS8600: Cannot convert null to non-nullable reference.
-                //         u1 = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 14),
-                // (18,14): warning CS8600: Cannot convert null to non-nullable reference.
-                //         u1 = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(18, 14)
+                // (12,18): warning CS8602: Possible dereference of a null reference.
+                //         var z1 = u1[0];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1").WithLocation(12, 18)
                 );
         }
 
@@ -5942,13 +5939,13 @@ class C
 
     void Test1()
     {
-        var u1 = new [] { 1, 2 };
+        int[]? u1 = new [] { 1, 2 };
         var z1 = u1.Length;
     }
 
     void Test2()
     {
-        var u2 = new [] { 1, 2 };
+        int[]? u2 = new [] { 1, 2 };
         u2 = null;
         var z2 = u2.Length;
     }
@@ -5956,9 +5953,9 @@ class C
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (17,14): warning CS8600: Cannot convert null to non-nullable reference.
-                //         u2 = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 14)
+                // (18,18): warning CS8602: Possible dereference of a null reference.
+                //         var z2 = u2.Length;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2").WithLocation(18, 18)
                 );
         }
 

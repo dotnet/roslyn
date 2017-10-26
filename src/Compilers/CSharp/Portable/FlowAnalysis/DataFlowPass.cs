@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Since analysis may proceed in multiple passes, it is possible the slot is already assigned.
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
-                var variableType = VariableType(symbol);
+                TypeSymbolWithAnnotations variableType = VariableType(symbol);
                 if (_emptyStructTypeCache.IsEmptyStructType(variableType?.TypeSymbol))
                 {
                     return -1;
@@ -1667,7 +1667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingSlot != -1);
             Debug.Assert(!state.IsAssigned(containingSlot));
             VariableIdentifier variable = variableBySlot[containingSlot].Identifier;
-            NamedTypeSymbol structType = (NamedTypeSymbol)VariableType(variable.Symbol).TypeSymbol;
+            NamedTypeSymbol structType = (NamedTypeSymbol)VariableType(variable.Symbol)?.TypeSymbol;
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
                 if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;
