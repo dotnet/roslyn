@@ -138,13 +138,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
                 }
 
-                // specific documents provided
-                if (projectIds == null)
-                {
-                    coordinator.Reanalyze(analyzer, new ReanalyzeScope(documentIds: documentIds), highPriority);
-                    return;
-                }
-
                 coordinator.Reanalyze(analyzer, new ReanalyzeScope(projectIds, documentIds), highPriority);
             }
         }
