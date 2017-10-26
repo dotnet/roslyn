@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isImplicit: expression.WasCompilerGenerated || argument == null);
         }
 
-        private IVariableDeclaration CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        private ISingleVariableDeclaration CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
             IVariableInitializer initializer = null;
             if (boundLocalDeclaration.InitializerOpt != null)
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new SingleVariableDeclaration(symbol, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IVariableDeclaration CreateVariableDeclaration(BoundLocal boundLocal)
+        private ISingleVariableDeclaration CreateVariableDeclaration(BoundLocal boundLocal)
         {
             return new SingleVariableDeclaration(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
         }

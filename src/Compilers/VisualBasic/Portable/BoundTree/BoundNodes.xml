@@ -1014,9 +1014,9 @@
   -->
     <Node Name="BoundLocalDeclaration" Base="BoundLocalDeclarationBase" HasValidate="true">
         <Field Name="LocalSymbol" Type="LocalSymbol"/>
-        <Field Name="InitializerOpt" Type="BoundExpression" Null="allow"/>
+        <Field Name="DeclarationInitializerOpt" Type="BoundExpression" Null="allow" />
+        <Field Name="IdentifierInitializerOpt" Type="BoundArrayCreation" Null="allow"/>
         <Field Name="InitializedByAsNew" Type="Boolean" />
-        <Field Name="ArrayCreationOpt" Type="BoundArrayCreation" Null="allow"/>
     </Node>
 
     <Node Name="BoundAsNewLocalDeclarations" Base="BoundLocalDeclarationBase">

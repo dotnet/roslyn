@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
             foreach (IVariableDeclaration group in declarationStatement.Declarations)
             {
-                arrayBuilder.AddRange(group.GetDeclaredVariables());
+                group.GetDeclaredVariables(arrayBuilder);
             }
 
             return arrayBuilder.ToImmutableAndFree();
@@ -123,6 +123,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
+            declaration.GetDeclaredVariables(arrayBuilder);
+            return arrayBuilder.ToImmutableAndFree();
+        }
+
+        private static void GetDeclaredVariables(this IVariableDeclaration declaration, ArrayBuilder<ILocalSymbol> arrayBuilder)
+        {
             switch (declaration.Kind)
             {
                 case OperationKind.SingleVariableDeclaration:
@@ -135,8 +141,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                     }
                     break;
             }
-
-            return arrayBuilder.ToImmutableAndFree();
         }
 
         /// <summary>

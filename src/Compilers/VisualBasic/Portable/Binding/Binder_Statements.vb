@@ -1015,11 +1015,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' and put the initializer on the BoundAsNewDeclaration. The local declarations are marked as initialized by the as-new.
                     Dim var0 As BoundLocalDeclaration = locals(0)
                     Dim asNewInitializer = var0.InitializerOpt
-                    locals(0) = var0.Update(var0.LocalSymbol, Nothing, True, var0.ArrayCreationOpt)
+                    locals(0) = var0.Update(var0.LocalSymbol, Nothing, var0.IdentifierInitializerOpt, True)
 #If DEBUG Then
                     For i = 0 To names.Count - 1
                         Debug.Assert(locals(i).InitializedByAsNew)
-                        Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression)
+                        Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression OrElse locals(i).InitializerOpt.Kind = BoundKind.ArrayCreation)
                     Next
 #End If
 
@@ -1066,10 +1066,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim symbol As LocalSymbol = GetLocalForDeclaration(name.Identifier)
 
-            Dim valueExpression As BoundExpression = Nothing
+            Dim declarationInitializer As BoundExpression = Nothing
             Dim declType As TypeSymbol = Nothing
             Dim boundArrayBounds As ImmutableArray(Of BoundExpression) = Nothing
-            Dim boundArrayCreation As BoundArrayCreation = Nothing
+            Dim identifierInitializer As BoundArrayCreation = Nothing
 
             If name.ArrayBounds IsNot Nothing Then
                 ' So as not to trigger order of simple name binding checks, must bind array bounds before initializer.
@@ -1090,7 +1090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          name,
                                                          asClauseOpt,
                                                          equalsValueOpt,
-                                                         valueExpression,
+                                                         declarationInitializer,
                                                          declType,
                                                          diagnostics)
 
@@ -1123,25 +1123,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If valueExpression Is Nothing Then
+            If declarationInitializer Is Nothing Then
 
                 ' We computed the type without needing to do type inference so bind the expression now.
                 ' Because this symbol has a type, there is no danger of infinite recursion so we don't need
                 ' a special binder.
 
                 If symbol.IsConst Then
-                    valueExpression = symbol.GetConstantExpression(Me)
+                    declarationInitializer = symbol.GetConstantExpression(Me)
 
                 ElseIf equalsValueOpt IsNot Nothing Then
                     Dim valueSyntax = equalsValueOpt.Value
-                    valueExpression = BindValue(valueSyntax, diagnostics)
+                    declarationInitializer = BindValue(valueSyntax, diagnostics)
                 End If
 
             End If
 
-            If valueExpression IsNot Nothing AndAlso Not symbol.IsConst Then
+            If declarationInitializer IsNot Nothing AndAlso Not symbol.IsConst Then
                 ' Only apply the conversion for non constants.  Conversions for constants are handled in GetConstantExpression.
-                valueExpression = ApplyImplicitConversion(valueExpression.Syntax, type, valueExpression, diagnostics)
+                declarationInitializer = ApplyImplicitConversion(declarationInitializer.Syntax, type, declarationInitializer, diagnostics)
             End If
 
             If isInitializedByAsNew Then
@@ -1154,7 +1154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' If there is an AsNew clause then create the object as well.
                     Select Case asNew.NewExpression.Kind
                         Case SyntaxKind.ObjectCreationExpression
-                            Debug.Assert(valueExpression Is Nothing)
+                            Debug.Assert(declarationInitializer Is Nothing)
 
                             If Not skipAsNewInitializer Then
                                 DisallowNewOnTupleType(asNew.Type, diagnostics)
@@ -1163,19 +1163,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Dim asNewVariablePlaceholder As New BoundWithLValueExpressionPlaceholder(asClauseOpt, symbol.Type)
                                 asNewVariablePlaceholder.SetWasCompilerGenerated()
 
-                                valueExpression = BindObjectCreationExpression(asNew.Type,
+                                declarationInitializer = BindObjectCreationExpression(asNew.Type,
                                                                                objectCreationExpressionSyntax.ArgumentList,
                                                                                declType,
                                                                                objectCreationExpressionSyntax,
                                                                                diagnostics,
                                                                                asNewVariablePlaceholder)
 
-                                Debug.Assert(valueExpression.Type.IsSameTypeIgnoringAll(declType))
+                                Debug.Assert(declarationInitializer.Type.IsSameTypeIgnoringAll(declType))
                             End If
 
                         Case SyntaxKind.AnonymousObjectCreationExpression
                             ' Is supposed to be already bound by ComputeVariableType
-                            Debug.Assert(valueExpression IsNot Nothing)
+                            Debug.Assert(declarationInitializer IsNot Nothing)
 
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(asNew.NewExpression.Kind)
@@ -1184,11 +1184,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If type.IsArrayType Then
                         ' Arrays cannot be declared with AsNew syntax
                         ReportDiagnostic(diagnostics, asNew.NewExpression.NewKeyword, ERRID.ERR_AsNewArray)
-                        valueExpression = BadExpression(asNew, valueExpression, type).MakeCompilerGenerated()
-                    ElseIf valueExpression IsNot Nothing AndAlso Not valueExpression.HasErrors AndAlso
-                           Not type.IsSameTypeIgnoringAll(valueExpression.Type) Then
+                        declarationInitializer = BadExpression(asNew, declarationInitializer, type).MakeCompilerGenerated()
+                    ElseIf declarationInitializer IsNot Nothing AndAlso Not declarationInitializer.HasErrors AndAlso
+                           Not type.IsSameTypeIgnoringAll(declarationInitializer.Type) Then
                         ' An error must have been reported elsewhere.    
-                        valueExpression = BadExpression(asNew, valueExpression, valueExpression.Type).MakeCompilerGenerated()
+                        declarationInitializer = BadExpression(asNew, declarationInitializer, declarationInitializer.Type).MakeCompilerGenerated()
                     End If
                 End If
 
@@ -1196,16 +1196,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If name.ArrayBounds IsNot Nothing Then
                 ' It is an error to have both array bounds and an initializer expression
-                boundArrayCreation = New BoundArrayCreation(name, boundArrayBounds, Nothing, type).MakeCompilerGenerated()
-                If valueExpression IsNot Nothing Then
+                identifierInitializer = New BoundArrayCreation(name, boundArrayBounds, Nothing, type).MakeCompilerGenerated()
+                If declarationInitializer IsNot Nothing Then
                     If Not isInitializedByAsNew Then
                         ReportDiagnostic(diagnostics, name, ERRID.ERR_InitWithExplicitArraySizes)
                     Else
                         ' Must have reported ERR_AsNewArray already.
-                        Debug.Assert(valueExpression.Kind = BoundKind.BadExpression)
+                        Debug.Assert(declarationInitializer.Kind = BoundKind.BadExpression)
                     End If
-                Else
-                    valueExpression = boundArrayCreation
                 End If
             End If
 
@@ -1226,7 +1224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return New BoundLocalDeclaration(name, symbol, valueExpression, isInitializedByAsNew, boundArrayCreation)
+            Return New BoundLocalDeclaration(name, symbol, declarationInitializer, identifierInitializer, isInitializedByAsNew)
         End Function
 
         ''' <summary>

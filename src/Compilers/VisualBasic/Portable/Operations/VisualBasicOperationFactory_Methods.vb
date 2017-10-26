@@ -275,17 +275,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     ' Initializer is only created if it's not the array initializer for the variable. That initializer is the initializer
                     ' of the SingleVariableDeclaration child.
                     Dim last = DirectCast(declarationGroup.Last(), BoundLocalDeclaration)
-                    If last.InitializerOpt IsNot Nothing AndAlso last.InitializerOpt IsNot last.ArrayCreationOpt Then
-                        Debug.Assert(TypeOf last.Syntax Is ModifiedIdentifierSyntax)
+                    If last.DeclarationInitializerOpt IsNot Nothing Then
+                        Debug.Assert(last.Syntax.IsKind(SyntaxKind.ModifiedIdentifier))
                         Dim initializerValue As IOperation = Create(last.InitializerOpt)
                         Dim declaratorSyntax = DirectCast(last.Syntax.Parent, VariableDeclaratorSyntax)
                         Dim initializerSyntax As SyntaxNode = declaratorSyntax.Initializer
 
                         ' As New clauses with a single variable are bound as BoundLocalDeclarations, so adjust appropriately
                         Dim isImplicit As Boolean = False
-                        If initializerSyntax Is Nothing AndAlso
-                           declaratorSyntax.AsClause IsNot Nothing AndAlso
-                           declaratorSyntax.AsClause.IsKind(SyntaxKind.AsNewClause) Then
+                        If last.InitializedByAsNew Then
                             initializerSyntax = declaratorSyntax.AsClause
                         ElseIf initializerSyntax Is Nothing Then
                             ' There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
@@ -294,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         End If
                         initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit)
                     End If
-                ElseIf first.Kind = BoundKind.AsNewLocalDeclarations Then
+                Else
                     Dim asNewDeclarations = DirectCast(first, BoundAsNewLocalDeclarations)
                     singleDeclarations = asNewDeclarations.LocalDeclarations.SelectAsArray(AddressOf GetSingleVariableDeclaration)
                     Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
@@ -317,10 +315,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function GetSingleVariableDeclaration(boundLocalDeclaration As BoundLocalDeclaration) As ISingleVariableDeclaration
             Dim initializer As Lazy(Of IVariableInitializer) = New Lazy(Of IVariableInitializer)(
                 Function()
-                    If boundLocalDeclaration.ArrayCreationOpt IsNot Nothing Then
-                        Dim arrayBoundsSyntax = boundLocalDeclaration.Syntax
-                        Dim initializerValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLocalDeclaration.ArrayCreationOpt))
-                        Return New LazyVariableInitializer(initializerValue, _semanticModel, arrayBoundsSyntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+                    If boundLocalDeclaration.IdentifierInitializerOpt IsNot Nothing Then
+                        Dim syntax = boundLocalDeclaration.Syntax
+                        Dim initializerValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLocalDeclaration.IdentifierInitializerOpt))
+                        Return New LazyVariableInitializer(initializerValue, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
                     Else
                         Return Nothing
                     End If
