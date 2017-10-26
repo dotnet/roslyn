@@ -42,13 +42,27 @@ namespace Microsoft.CodeAnalysis.Semantics
             return _cache.GetOrAdd(boundNode, n => CreateInternal(n));
         }
 
-        private IOperation CreateInternal(BoundNode boundNode, bool createParenthesized = true)
+        private IOperation CreateInternal(BoundNode boundNode)
         {
-            if (createParenthesized && boundNode.Syntax.Parent is ParenthesizedExpressionSyntax)
+            IOperation operation = CreateInternalCore(boundNode);
+
+            // If the syntax for the bound node is parenthesized, walk up the parentheses wrapping the operation with ParenthesizedExpression operation nodes.
+            // Compiler generated and lowered bound nodes shouldn't be parenthesized.
+            if (!boundNode.WasCompilerGenerated && boundNode.Syntax.Parent is ParenthesizedExpressionSyntax parenthesizedSyntax)
             {
-                return CreateParenthesizedExpression(boundNode);
+                do
+                {
+                    operation = new ParenthesizedExpression(operation, _semanticModel, parenthesizedSyntax, operation.Type, operation.ConstantValue, isImplicit: false);
+                    parenthesizedSyntax = parenthesizedSyntax.Parent as ParenthesizedExpressionSyntax;
+                }
+                while (parenthesizedSyntax != null);
             }
 
+            return operation;
+        }
+
+        private IOperation CreateInternalCore(BoundNode boundNode, bool createParenthesized = true)
+        {
             switch (boundNode.Kind)
             {
                 case BoundKind.DeconstructValuePlaceholder:
@@ -247,24 +261,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
                     return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode), isImplicit: isImplicit);
             }
-        }
-
-        private IParenthesizedExpression CreateParenthesizedExpression(BoundNode boundNode)
-        {
-            var parenthesizedSyntax = (ParenthesizedExpressionSyntax)boundNode.Syntax.Parent;
-
-            // Create the child operation without parenthesized.
-            IOperation operation = CreateInternal(boundNode, createParenthesized: false);
-
-            // Walk up the parentheses wrapping the operation with ParenthesizedExpression operation nodes.
-            do
-            {
-                operation = new ParenthesizedExpression(operation, _semanticModel, parenthesizedSyntax, operation.Type, operation.ConstantValue, isImplicit: false);
-                parenthesizedSyntax = parenthesizedSyntax.Parent as ParenthesizedExpressionSyntax;
-            }
-            while (parenthesizedSyntax != null);
-
-            return (ParenthesizedExpression)operation;
         }
 
         private ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
@@ -723,9 +719,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             // nodes for the lambda expression. So, we ask the semantic model for the IOperation node for the unbound lambda syntax.
             // We are counting on the fact that will do the error recovery and actually create the BoundLambda node appropriate for
             // this syntax node.
-            // Also note that we pass "createParenthesized = false" to avoid duplicate invocations to CreateParenthesized for bound and unbound lambda nodes.
             BoundLambda boundLambda = unboundLambda.BindForErrorRecovery();
-            return CreateInternal(boundLambda, createParenthesized: false);
+            return CreateInternalCore(boundLambda);
         }
 
         private IAnonymousFunctionExpression CreateBoundLambdaOperation(BoundLambda boundLambda)

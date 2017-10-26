@@ -155,5 +155,238 @@ IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.In
 
             VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedMultipleNesting03()
+        {
+            string source = @"
+class P
+{
+    static int M1(int a, int b)
+    {
+        return /*<bind>*/(((a + b)))/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(((a + b)))')
+  Operand: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '((a + b))')
+      Operand: 
+        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+          Operand: 
+            IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+              Left: 
+                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+              Right: 
+                IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedMultipleNesting04()
+        {
+            string source = @"
+class P
+{
+    static int M1(int a, int b)
+    {
+        return ((/*<bind>*/(a + b)/*</bind>*/));
+    }
+}
+";
+            string expectedOperationTree = @"
+IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+  Operand: 
+    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+      Left: 
+        IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+      Right: 
+        IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedMultipleNesting05()
+        {
+            string source = @"
+class P
+{
+    static int M1(int a, int b)
+    {
+        return (((/*<bind>*/a + b/*</bind>*/)));
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+  Left: 
+    IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+  Right: 
+    IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedConversion()
+        {
+            string source = @"
+class P
+{
+    static long M1(int a, int b)
+    {
+        return /*<bind>*/(a + b)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int64) (Syntax: '(a + b)')
+  Operand: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+          Operand: 
+            IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+              Left: 
+                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+              Right: 
+                IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedConversionParent()
+        {
+            string source = @"
+class P
+{
+    static long M1(int a, int b)
+    {
+        /*<bind>*/return (a + b);/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return (a + b);')
+  ReturnedValue: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int64) (Syntax: '(a + b)')
+      Operand: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+              Operand: 
+                IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+                  Left: 
+                    IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                  Right: 
+                    IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedConstantValue()
+        {
+            string source = @"
+class P
+{
+    static int M1()
+    {
+        return /*<bind>*/(5)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+False
+	Exception stacktrace
+   at Xunit.Assert.True(Nullable`1 condition, String userMessage)
+   at Xunit.Assert.True(Boolean condition, String userMessage)
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly)
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected)
+   at Microsoft.CodeAnalysis.CSharp.Test.Utilities.CSharpTestBaseBase.VerifyOperationTreeAndDiagnosticsForTest[TSyntaxNode](CSharpCompilation compilation, String expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, Action`3 additionalOperationTreeVerifier)
+   at Microsoft.CodeAnalysis.CSharp.Test.Utilities.CSharpTestBaseBase.VerifyOperationTreeAndDiagnosticsForTest[TSyntaxNode](String testSrc, String expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpCompilationOptions compilationOptions, CSharpParseOptions parseOptions, MetadataReference[] additionalReferences, Action`3 additionalOperationTreeVerifier, Boolean useLatestFrameworkReferences)
+   at Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.TestParenthesizedConstantValue() in c:\roslyn-internal\Open\src\Compilers\CSharp\Test\Semantic\IOperation\IOperationTests_IParenthesized.cs:line 354
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedQueryClause()
+        {
+            string source = @"
+using System.Linq;
+
+class P
+{
+    static object M1(int[] a)
+    {
+        return from r in a select /*<bind>*/(-r)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(-r)')
+  Operand: 
+    IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-r')
+      Operand: 
+        IOperation:  (OperationKind.None) (Syntax: 'r')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedErrorOperand()
+        {
+            string source = @"
+class P
+{
+    static int M1()
+    {
+        return /*<bind>*/(a)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid) (Syntax: '(a)')
+  Operand: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'a')
+      Children(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0103: The name 'a' does not exist in the current context
+                //         return /*<bind>*/(a)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
