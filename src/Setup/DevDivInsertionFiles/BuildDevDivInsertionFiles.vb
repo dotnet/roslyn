@@ -555,12 +555,12 @@ Public Class BuildDevDivInsertionFiles
         Dim result = New Dictionary(Of String, DependencyInfo)
         Dim objDir = Path.Combine(Path.GetDirectoryName(_binDirectory.TrimEnd(Path.DirectorySeparatorChar)), "Obj")
         Dim files = New List(Of String)
-        files.Add(Path.Combine(objDir, "DevDivPackagesRoslyn\project.assets.json"))
         files.Add(Path.Combine(objDir, "DevDivPackagesDebugger\project.assets.json"))
+        files.Add(Path.Combine(objDir, "VisualStudioSetup.Dependencies\project.assets.json"))
 
         For Each projectLockJson In files
             Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
-            Const targetFx = ".NETFramework,Version=v4.6/win"
+            Const targetFx = ".NETFramework,Version=v4.6/win7"
 
             Dim targetObj = DirectCast(DirectCast(DirectCast(items, JObject).Property("targets")?.Value, JObject).Property(targetFx)?.Value, JObject)
             If targetObj Is Nothing Then
