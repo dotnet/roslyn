@@ -555,7 +555,6 @@ Public Class BuildDevDivInsertionFiles
         Dim result = New Dictionary(Of String, DependencyInfo)
         Dim objDir = Path.Combine(Path.GetDirectoryName(_binDirectory.TrimEnd(Path.DirectorySeparatorChar)), "Obj")
         Dim files = New List(Of String)
-        files.Add(Path.Combine(objDir, "DevDivPackagesDebugger\project.assets.json"))
         files.Add(Path.Combine(objDir, "CompilerExtension\project.assets.json"))
         files.Add(Path.Combine(objDir, "VisualStudioSetup.Dependencies\project.assets.json"))
 

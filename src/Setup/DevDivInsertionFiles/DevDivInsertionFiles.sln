@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.26405.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "DevDivInsertionFiles", "DevDivInsertionFiles.vbproj", "{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevDivPackagesDebugger", "..\DevDivPackages\Debugger\DevDivPackagesDebugger.csproj", "{18BDB5D5-340B-4834-B4FC-0327729A4A26}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

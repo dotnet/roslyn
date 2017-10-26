@@ -119,5 +119,8 @@
     <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
     <PackageReference Include="System.Xml.XPath.XDocument" Version="$(SystemXmlXPathXDocumentVersion)" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Setup\DevDivPackages\Debugger\DevDivPackagesDebugger.csproj" />
+  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
