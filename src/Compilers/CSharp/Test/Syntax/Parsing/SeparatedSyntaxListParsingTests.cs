@@ -55,7 +55,7 @@ class C
                         }
                         N(SyntaxKind.GreaterThanToken);
                         N(SyntaxKind.VariableDeclarator);
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "a1");
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
@@ -70,7 +70,7 @@ class C
                         }
                         N(SyntaxKind.GreaterThanToken);
                         N(SyntaxKind.VariableDeclarator);
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "a2");
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
@@ -87,14 +87,14 @@ class C
                         }
                         N(SyntaxKind.GreaterThanToken);
                         N(SyntaxKind.VariableDeclarator);
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "a3");
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.VariableDeclaration);
                         N(SyntaxKind.GenericName);
-                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.IdentifierToken);
                         N(SyntaxKind.TypeArgumentList);
                         N(SyntaxKind.LessThanToken);
                         { 
@@ -110,35 +110,20 @@ class C
                     N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.TypeArgumentList);
+                        N(SyntaxKind.LessThanToken);
                         {
-                            N(SyntaxKind.GenericName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                                N(SyntaxKind.TypeArgumentList);
-                                {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.OmittedTypeArgument);
-                                    {
-                                        N(SyntaxKind.OmittedTypeArgumentToken);
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.OmittedTypeArgument);
-                                    {
-                                        N(SyntaxKind.OmittedTypeArgumentToken);
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.OmittedTypeArgument);
-                                    {
-                                        N(SyntaxKind.OmittedTypeArgumentToken);
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
-                                }
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "a5");
-                            }
+                            N(SyntaxKind.OmittedTypeArgument); N(SyntaxKind.OmittedTypeArgumentToken);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.OmittedTypeArgument); N(SyntaxKind.OmittedTypeArgumentToken);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.OmittedTypeArgument); N(SyntaxKind.OmittedTypeArgumentToken);
                         }
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.IdentifierToken, "a5");
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
