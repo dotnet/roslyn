@@ -41,30 +41,21 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.TypeArgumentList);
+                        N(SyntaxKind.LessThanToken);
                         {
-                            N(SyntaxKind.GenericName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                                N(SyntaxKind.TypeArgumentList);
-                                {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.OmittedTypeArgument);
-                                    {
-                                        N(SyntaxKind.OmittedTypeArgumentToken);
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
-                                }
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "a1");
-                            }
+                            N(SyntaxKind.OmittedTypeArgument); N(SyntaxKind.OmittedTypeArgumentToken);
                         }
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.IdentifierToken);
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
