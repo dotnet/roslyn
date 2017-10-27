@@ -2,7 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <dotnetSdkVersion>2.0.0-preview3-006923</dotnetSdkVersion>
+    <dotnetSdkVersion>2.1.1-preview-007094</dotnetSdkVersion>
     <nugetExeVersion>4.3.0</nugetExeVersion>
   </PropertyGroup>
 </Project>

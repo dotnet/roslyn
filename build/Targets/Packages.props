@@ -52,7 +52,7 @@
     <MicrosoftNetCompilersVersion>2.6.0-beta2-62211-02</MicrosoftNetCompilersVersion>
     <MicrosoftNetRoslynDiagnosticsVersion>2.6.0-beta1-62212-01</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
-    <MicrosoftNETCoreCompilersVersion>2.3.1-beta1-61919-13</MicrosoftNETCoreCompilersVersion>
+    <MicrosoftNETCoreCompilersVersion>2.6.0-beta2-62211-02</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
     <MicrosoftNETCoreAppVersion>2.0.0</MicrosoftNETCoreAppVersion>
     <MicrosoftNETCorePlatformsVersion>2.0.0</MicrosoftNETCorePlatformsVersion>
@@ -177,6 +177,7 @@
     <SystemLinqVersion>4.3.0</SystemLinqVersion>
     <SystemLinqExpressionsVersion>4.3.0</SystemLinqExpressionsVersion>
     <SystemLinqParallelVersion>4.3.0</SystemLinqParallelVersion>
+    <SystemNetHttpVersion>4.3.3</SystemNetHttpVersion>
     <SystemNetNameResolutionVersion>4.3.0</SystemNetNameResolutionVersion>
     <SystemNetPrimitivesVersion>4.3.0</SystemNetPrimitivesVersion>
     <SystemNetSecurityVersion>4.3.0</SystemNetSecurityVersion>

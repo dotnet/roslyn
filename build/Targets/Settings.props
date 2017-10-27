@@ -11,6 +11,8 @@
     <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
     <NuGetToolPath>$(RepoRoot)nuget.exe</NuGetToolPath>
+    <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
     <VSIXExpInstallerPackageName>RoslynTools.Microsoft.VSIXExpInstaller</VSIXExpInstallerPackageName>
     <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
@@ -196,6 +198,7 @@
     <When Condition="'$(MSBuildProjectExtension)' == '.vbproj' OR '$(Language)' == 'VB' OR '$(ProjectLanguage)' == 'VisualBasic'">
       <PropertyGroup>
         <ProjectLanguage>VB</ProjectLanguage>
+        <LangVersion>15.5</LangVersion>
         <MyType>Empty</MyType>
         <OptionCompare>Binary</OptionCompare>
         <OptionExplicit>On</OptionExplicit>
@@ -235,7 +238,7 @@
     <When Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#' OR '$(ProjectLanguage)' == 'CSharp'">
       <PropertyGroup>
         <ProjectLanguage>CSharp</ProjectLanguage>
-        <LangVersion>7.1</LangVersion>
+        <LangVersion>7.2</LangVersion>
         <WarningLevel>4</WarningLevel>
         <ErrorReport>prompt</ErrorReport>
 
