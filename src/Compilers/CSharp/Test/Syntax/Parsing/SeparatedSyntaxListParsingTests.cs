@@ -61,25 +61,16 @@ class C
                     N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.TypeArgumentList);
+                        N(SyntaxKind.LessThanToken);
                         {
-                            N(SyntaxKind.GenericName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                                N(SyntaxKind.TypeArgumentList);
-                                {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "T");
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
-                                }
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "a2");
-                            }
+                            N(SyntaxKind.IdentifierName); N(SyntaxKind.IdentifierToken);
                         }
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.IdentifierToken);
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
