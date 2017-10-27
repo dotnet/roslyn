@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IOperation
             Dim syntax As SyntaxNode = boundTryCast.Syntax
             Dim type As ITypeSymbol = boundTryCast.Type
-            Dim isImplicit As Boolean = False ' Try Cast can never be an implicit operation
+            Dim isImplicit As Boolean = boundTryCast.WasCompilerGenerated
 
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
             Dim conversionInformation = CreateConversionOperand(boundTryCast.Operand, boundTryCast.ConversionKind, boundTryCast.Syntax, boundTryCast.Type)
@@ -540,7 +540,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim syntax As SyntaxNode = boundDirectCast.Syntax
             Dim type As ITypeSymbol = boundDirectCast.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
-            Dim isImplicit As Boolean = False ' Direct Cast can never be an implicit operation
+            Dim isImplicit As Boolean = boundDirectCast.WasCompilerGenerated
 
             Dim conversionInformation = CreateConversionOperand(boundDirectCast.Operand, boundDirectCast.ConversionKind, boundDirectCast.Syntax, boundDirectCast.Type)
             Dim operand As Lazy(Of IOperation) = conversionInformation.Operation

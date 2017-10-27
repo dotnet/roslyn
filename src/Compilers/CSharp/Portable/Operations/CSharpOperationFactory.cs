@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isChecked = false;
             ITypeSymbol type = boundAsOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAsOperator.ConstantValue);
-            bool isImplicit = false; // as expressions can never be implicitly created
+            bool isImplicit = boundAsOperator.WasCompilerGenerated;
             return new LazyCSharpConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
