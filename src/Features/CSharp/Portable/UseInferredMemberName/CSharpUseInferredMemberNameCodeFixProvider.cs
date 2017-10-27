@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             foreach (var diagnostic in diagnostics)
             {
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
-                editor.RemoveNode(node, SyntaxRemoveOptions.KeepExteriorTrivia);
+                editor.RemoveNode(node, SyntaxRemoveOptions.KeepExteriorTrivia | SyntaxRemoveOptions.AddElasticMarker);
             }
 
             return SpecializedTasks.EmptyTask;
