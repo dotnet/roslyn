@@ -2455,10 +2455,10 @@ namespace Microsoft.CodeAnalysis
                     return ret;
                 };
 
-                Func<Stream> getRefPeStream = () =>
-                {
-                    return ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics);
-                };
+                Func<Stream> getRefPeStream = 
+                    metadataPEStreamProvider == null
+                    ? null
+                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics));
 
                 Func<Stream> getPortablePdbStream =
                     moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null
@@ -2472,7 +2472,7 @@ namespace Microsoft.CodeAnalysis
                         metadataDiagnostics,
                         MessageProvider,
                         getPeStream,
-                        metadataPEStreamProvider != null ? getRefPeStream : null,
+                        getRefPeStream,
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
