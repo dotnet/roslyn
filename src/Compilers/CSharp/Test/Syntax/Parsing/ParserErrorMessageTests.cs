@@ -618,12 +618,9 @@ class MyClass
 ";
 
             ParseAndValidate(test,
-    // (8,15): error CS0443: Syntax error; value expected
-    //         if (x[,] == 5) {} // CS0443
-    Diagnostic(ErrorCode.ERR_ValueExpected, ","),
-    // (8,16): error CS0443: Syntax error; value expected
-    //         if (x[,] == 5) {} // CS0443
-    Diagnostic(ErrorCode.ERR_ValueExpected, "]"));
+                // (8,15): error CS0443: Syntax error; value expected
+                //         if (x[,] == 5) {} // CS0443
+                Diagnostic(ErrorCode.ERR_ValueExpected, ",").WithLocation(8, 15));
         }
 
         [Fact]
@@ -1222,18 +1219,12 @@ class Program
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (5,40): error CS1003: Syntax error, ':' expected
-    //     static void M(int p2 = max is int?1,)
-    Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":", ","),
-    // (5,40): error CS1525: Invalid expression term ','
-    //     static void M(int p2 = max is int?1,)
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(","),
-    // (5,41): error CS1031: Type expected
-    //     static void M(int p2 = max is int?1,)
-    Diagnostic(ErrorCode.ERR_TypeExpected, ")"),
-    // (5,41): error CS1001: Identifier expected
-    //     static void M(int p2 = max is int?1,)
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
+                // (5,40): error CS1003: Syntax error, ':' expected
+                //     static void M(int p2 = max is int?1,)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":", ",").WithLocation(5, 40),
+                // (5,40): error CS1525: Invalid expression term ','
+                //     static void M(int p2 = max is int?1,)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(5, 40));
         }
 
         [Fact]

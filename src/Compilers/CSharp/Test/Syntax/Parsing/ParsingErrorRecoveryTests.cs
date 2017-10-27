@@ -3374,9 +3374,8 @@ class C
             Assert.Equal(SyntaxKind.ExpressionStatement, ms.Body.Statements[0].Kind());
             var es = (ExpressionStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[1].Code);
+            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[0].Code);
         }
 
         [Fact]
@@ -3712,9 +3711,8 @@ class C
             var es = (ExpressionStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(SyntaxKind.PreIncrementExpression, es.Expression.Kind());
             Assert.Equal(SyntaxKind.ElementAccessExpression, ((PrefixUnaryExpressionSyntax)es.Expression).Operand.Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
         }
 
         [Fact]
