@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
 
         /// <summary>
+        /// The inferred nullability at the point of declaration of var locals.
+        /// </summary>
+        private readonly PooledDictionary<LocalSymbol, bool?> _variableIsNullable = PooledDictionary<LocalSymbol, bool?>.GetInstance();
+
+        /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
         /// unused variables.
         /// </summary>
@@ -91,24 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly HashSet<PrefixUnaryExpressionSyntax> _unassignedVariableAddressOfSyntaxes;
 
-        protected struct VariableIdentifierAndNullability
-        {
-            internal readonly VariableIdentifier Identifier;
-            internal readonly bool? IsNullable;
-
-            internal VariableIdentifierAndNullability(VariableIdentifier identifier, bool? isNullable)
-            {
-                Identifier = identifier;
-                IsNullable = isNullable;
-            }
-        }
-
         /// <summary>
         /// A mapping from the local variable slot to the symbol for the local variable itself.  This
         /// is used in the implementation of region analysis (support for extract method) to compute
         /// the set of variables "always assigned" in a region of code.
         /// </summary>
-        protected VariableIdentifierAndNullability[] variableBySlot = new VariableIdentifierAndNullability[1];
+        protected VariableIdentifier[] variableBySlot = new VariableIdentifier[1];
 
         /// <summary>
         /// Variable slots are allocated to local variables sequentially and never reused.  This is
@@ -151,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
+            _variableIsNullable.Free();
             _usedVariables.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
@@ -792,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Array.Resize(ref this.variableBySlot, slot * 2);
                 }
 
-                variableBySlot[slot] = new VariableIdentifierAndNullability(identifier, variableType.IsNullable);
+                variableBySlot[slot] = identifier;
             }
 
             NormalizeAssigned(ref this.State);
@@ -860,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             state.Assigned.EnsureCapacity(nextVariableSlot);
             for (int i = oldNext; i < nextVariableSlot; i++)
             {
-                var id = variableBySlot[i].Identifier;
+                var id = variableBySlot[i];
                 state.Assigned[i] = (id.ContainingSlot > 0) && state.Assigned[id.ContainingSlot];
             }
         }
@@ -1197,11 +1191,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected Symbol GetNonFieldSymbol(int slot)
         {
-            VariableIdentifier variableId = variableBySlot[slot].Identifier;
+            VariableIdentifier variableId = variableBySlot[slot];
             while (variableId.ContainingSlot > 0)
             {
                 Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || (_performStaticNullChecks && variableId.Symbol.Kind == SymbolKind.Property));
-                variableId = variableBySlot[variableId.ContainingSlot].Identifier;
+                variableId = variableBySlot[variableId.ContainingSlot];
             }
             return variableId.Symbol;
         }
@@ -1480,18 +1474,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (targetType.IsReferenceType)
                 {
-                    bool? targetIsNullable;
-                    if (slot > 0)
+                    var local = assignmentTarget as LocalSymbol;
+                    if (inferNullability)
                     {
-                        var identifierAndNullability = variableBySlot[slot];
-                        if (inferNullability)
-                        {
-                            identifierAndNullability = new VariableIdentifierAndNullability(identifierAndNullability.Identifier, !valueIsNotNull);
-                            variableBySlot[slot] = identifierAndNullability;
-                        }
-                        targetIsNullable = identifierAndNullability.IsNullable;
+                        _variableIsNullable[local] = !valueIsNotNull;
                     }
-                    else
+
+                    bool? targetIsNullable;
+                    if (local is null || !_variableIsNullable.TryGetValue(local, out targetIsNullable))
                     {
                         targetIsNullable = targetType.IsNullable;
                     }
@@ -1666,7 +1656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(containingSlot != -1);
             Debug.Assert(!state.IsAssigned(containingSlot));
-            VariableIdentifier variable = variableBySlot[containingSlot].Identifier;
+            VariableIdentifier variable = variableBySlot[containingSlot];
             NamedTypeSymbol structType = (NamedTypeSymbol)VariableType(variable.Symbol)?.TypeSymbol;
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
@@ -1715,7 +1705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SetSlotAssigned(int slot, ref LocalState state)
         {
             if (slot < 0) return;
-            VariableIdentifier id = variableBySlot[slot].Identifier;
+            VariableIdentifier id = variableBySlot[slot];
             TypeSymbol type = VariableType(id.Symbol)?.TypeSymbol;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (slot >= state.Assigned.Capacity) NormalizeAssigned(ref state);
@@ -1739,7 +1729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slot = id.ContainingSlot;
                 if (state.IsAssigned(slot) || !FieldsAllSet(slot, state)) break;
                 state.Assign(slot);
-                id = variableBySlot[slot].Identifier;
+                id = variableBySlot[slot];
             }
         }
 
@@ -1751,7 +1741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SetSlotUnassigned(int slot, ref LocalState state)
         {
             if (slot < 0) return;
-            VariableIdentifier id = variableBySlot[slot].Identifier;
+            VariableIdentifier id = variableBySlot[slot];
             TypeSymbol type = VariableType(id.Symbol)?.TypeSymbol;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (!state.IsAssigned(slot)) return; // was already unassigned
@@ -1773,7 +1763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 slot = id.ContainingSlot;
                 state.Unassign(slot);
-                id = variableBySlot[slot].Identifier;
+                id = variableBySlot[slot];
             }
         }
 
@@ -4487,7 +4477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void AppendBitName(int bit, StringBuilder builder)
         {
-            VariableIdentifier id = variableBySlot[bit].Identifier;
+            VariableIdentifier id = variableBySlot[bit];
             if (id.ContainingSlot > 0)
             {
                 AppendBitName(id.ContainingSlot, builder);
