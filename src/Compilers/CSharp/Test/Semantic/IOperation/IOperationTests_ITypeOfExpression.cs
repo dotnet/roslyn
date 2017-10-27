@@ -24,7 +24,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'typeof(int)')
+ITypeOfOperation (OperationKind.TypeOf, Type: System.Type) (Syntax: 'typeof(int)')
   TypeOperand: System.Int32
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -48,7 +48,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'typeof(C)')
+ITypeOfOperation (OperationKind.TypeOf, Type: System.Type) (Syntax: 'typeof(C)')
   TypeOperand: C
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -72,7 +72,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof(UndefinedType)')
+ITypeOfOperation (OperationKind.TypeOf, Type: System.Type, IsInvalid) (Syntax: 'typeof(UndefinedType)')
   TypeOperand: UndefinedType
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -100,7 +100,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof(t)')
+ITypeOfOperation (OperationKind.TypeOf, Type: System.Type, IsInvalid) (Syntax: 'typeof(t)')
   TypeOperand: t
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -130,9 +130,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'typeof(M2()')
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'typeof(M2()')
   Children(1):
-      ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof(M2')
+      ITypeOfOperation (OperationKind.TypeOf, Type: System.Type, IsInvalid) (Syntax: 'typeof(M2')
         TypeOperand: M2
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -169,7 +169,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof()')
+ITypeOfOperation (OperationKind.TypeOf, Type: System.Type, IsInvalid) (Syntax: 'typeof()')
   TypeOperand: ?
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

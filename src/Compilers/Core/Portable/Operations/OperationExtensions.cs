@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     public static partial class OperationExtensions
     {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Gets all the declared local variables in the given <paramref name="declarationStatement"/>.
         /// </summary>
         /// <param name="declarationStatement">Variable declaration statement</param>
-        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationStatement declarationStatement)
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationsOperation declarationStatement)
         {
             if (declarationStatement == null)
             {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
-            foreach (IVariableDeclaration group in declarationStatement.Declarations)
+            foreach (IVariableDeclarationOperation group in declarationStatement.Declarations)
             {
                 foreach (ILocalSymbol symbol in group.Variables)
                 {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicInvocationExpression dynamicExpression, int index)
+        public static string GetArgumentName(this IDynamicInvocationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicIndexerAccessExpression dynamicExpression, int index)
+        public static string GetArgumentName(this IDynamicIndexerAccessOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicObjectCreationExpression dynamicExpression, int index)
+        public static string GetArgumentName(this IDynamicObjectCreationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static RefKind? GetArgumentRefKind(this IDynamicInvocationExpression dynamicExpression, int index)
+        public static RefKind? GetArgumentRefKind(this IDynamicInvocationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static RefKind? GetArgumentRefKind(this IDynamicIndexerAccessExpression dynamicExpression, int index)
+        public static RefKind? GetArgumentRefKind(this IDynamicIndexerAccessOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static RefKind? GetArgumentRefKind(this IDynamicObjectCreationExpression dynamicExpression, int index)
+        public static RefKind? GetArgumentRefKind(this IDynamicObjectCreationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {

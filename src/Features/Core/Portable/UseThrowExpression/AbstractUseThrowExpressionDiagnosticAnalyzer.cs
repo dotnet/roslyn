@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseThrowExpression
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             context.RegisterCompilationStartAction(startContext =>
             {
                 var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
-                startContext.RegisterOperationAction(operationContext => AnalyzeOperation(operationContext, expressionTypeOpt), OperationKind.ThrowExpression);
+                startContext.RegisterOperationAction(operationContext => AnalyzeOperation(operationContext, expressionTypeOpt), OperationKind.Throw);
             });
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var cancellationToken = context.CancellationToken;
 
-            var throwExpressionOperation = (IThrowExpression)context.Operation;
+            var throwExpressionOperation = (IThrowOperation)context.Operation;
             var throwStatementOperation = throwExpressionOperation.Parent;
             if (throwStatementOperation.Kind != OperationKind.ExpressionStatement)
             {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             var ifOperation = GetContainingIfOperation(
-                semanticModel, (IExpressionStatement)throwStatementOperation, cancellationToken);
+                semanticModel, (IExpressionStatementOperation)throwStatementOperation, cancellationToken);
 
             // This throw statement isn't parented by an if-statement.  Nothing to
             // do here.
@@ -106,13 +106,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            if (ifOperation.IfFalseStatement != null)
+            if (ifOperation.WhenFalse != null)
             {
                 // Can't offer this if the 'if-statement' has an 'else-clause'.
                 return;
             }
 
-            var containingBlock = semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) as IBlockStatement;
+            var containingBlock = semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) as IBlockOperation;
             if (containingBlock == null)
             {
                 return;
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             // Ok, there were no intervening writes or accesses.  This check+assignment can be simplified.
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
-                throwExpressionOperation.Expression.Syntax.GetLocation(),
+                throwExpressionOperation.Exception.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
             var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
@@ -171,9 +171,9 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
         }
 
-        private static bool ValueIsAccessed(SemanticModel semanticModel, IIfStatement ifOperation, IBlockStatement containingBlock, ISymbol localOrParameter, IExpressionStatement expressionStatement, IAssignmentExpression assignmentExpression)
+        private static bool ValueIsAccessed(SemanticModel semanticModel, IConditionalOperation ifOperation, IBlockOperation containingBlock, ISymbol localOrParameter, IExpressionStatementOperation expressionStatement, IAssignmentOperation assignmentExpression)
         {
-            var statements = containingBlock.Statements;
+            var statements = containingBlock.Operations;
             var ifOperationIndex = statements.IndexOf(ifOperation);
             var expressionStatementIndex = statements.IndexOf(expressionStatement);
 
@@ -203,22 +203,22 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         protected abstract ISemanticFactsService GetSemanticFactsService();
 
         private bool TryFindAssignmentExpression(
-            IBlockStatement containingBlock, IIfStatement ifOperation, ISymbol localOrParameter,
-            out IExpressionStatement expressionStatement, out IAssignmentExpression assignmentExpression)
+            IBlockOperation containingBlock, IConditionalOperation ifOperation, ISymbol localOrParameter,
+            out IExpressionStatementOperation expressionStatement, out IAssignmentOperation assignmentExpression)
         {
-            var ifOperationIndex = containingBlock.Statements.IndexOf(ifOperation);
+            var ifOperationIndex = containingBlock.Operations.IndexOf(ifOperation);
 
             // walk forward until we find an assignment of this local/parameter into
             // something else.
-            for (var i = ifOperationIndex + 1; i < containingBlock.Statements.Length; i++)
+            for (var i = ifOperationIndex + 1; i < containingBlock.Operations.Length; i++)
             {
-                expressionStatement = containingBlock.Statements[i] as IExpressionStatement;
+                expressionStatement = containingBlock.Operations[i] as IExpressionStatementOperation;
                 if (expressionStatement == null)
                 {
                     continue;
                 }
 
-                assignmentExpression = expressionStatement.Expression as IAssignmentExpression;
+                assignmentExpression = expressionStatement.Operation as IAssignmentOperation;
                 if (assignmentExpression == null)
                 {
                     continue;
@@ -243,13 +243,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         }
 
         private bool TryDecomposeIfCondition(
-            IIfStatement ifStatement,
+            IConditionalOperation ifStatement,
             out ISymbol localOrParameter)
         {
             localOrParameter = null;
 
             var condition = ifStatement.Condition;
-            if (!(condition is IBinaryOperatorExpression binaryOperator))
+            if (!(condition is IBinaryOperation binaryOperator))
             {
                 return false;
             }
@@ -277,16 +277,16 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         private bool TryGetLocalOrParameterSymbol(
             IOperation operation, out ISymbol localOrParameter)
         {
-            if (operation is IConversionExpression conversion && !conversion.IsExplicitInCode)
+            if (operation is IConversionOperation conversion && !conversion.IsExplicitInCode)
             {
                 return TryGetLocalOrParameterSymbol(conversion.Operand, out localOrParameter);
             }
-            else if (operation is ILocalReferenceExpression localReference)
+            else if (operation is ILocalReferenceOperation localReference)
             {
                 localOrParameter = localReference.Local;
                 return true;
             }
-            else if (operation is IParameterReferenceExpression parameterReference)
+            else if (operation is IParameterReferenceOperation parameterReference)
             {
                 localOrParameter = parameterReference.Parameter;
                 return true;
@@ -302,16 +302,16 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                    operation.ConstantValue.Value == null;
         }
 
-        private IIfStatement GetContainingIfOperation(
-            SemanticModel semanticModel, IExpressionStatement throwOperation,
+        private IConditionalOperation GetContainingIfOperation(
+            SemanticModel semanticModel, IExpressionStatementOperation throwOperation,
             CancellationToken cancellationToken)
         {
             var throwStatement = throwOperation.Syntax;
             var containingOperation = semanticModel.GetOperation(throwStatement.Parent, cancellationToken);
 
-            if (containingOperation is IBlockStatement block)
+            if (containingOperation is IBlockOperation block)
             {
-                if (block.Statements.Length != 1)
+                if (block.Operations.Length != 1)
                 {
                     // If we are in a block, then the block must only contain
                     // the throw statement.
@@ -323,7 +323,12 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 containingOperation = semanticModel.GetOperation(throwStatement.Parent.Parent, cancellationToken);
             }
 
-            return containingOperation as IIfStatement;
+            if (containingOperation is IConditionalOperation conditionalOperation)
+            {
+                return conditionalOperation;
+            }
+
+            return null;
         }
     }
 }

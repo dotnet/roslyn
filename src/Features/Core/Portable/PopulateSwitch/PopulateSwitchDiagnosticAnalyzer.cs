@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.SwitchStatement);
+            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Switch);
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var switchOperation = (ISwitchStatement)context.Operation;
+            var switchOperation = (ISwitchOperation)context.Operation;
             var switchBlock = switchOperation.Syntax;
             var tree = switchBlock.SyntaxTree;
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         #endregion
 
         private bool SwitchIsIncomplete(
-            ISwitchStatement switchStatement,
+            ISwitchOperation switchStatement,
             out bool missingCases, out bool missingDefaultCase)
         {
             var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement);

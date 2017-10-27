@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReferenceExpression);
+            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                 return;
             }
 
-            var fieldReferenceOperation = (IFieldReferenceExpression)context.Operation;
+            var fieldReferenceOperation = (IFieldReferenceOperation)context.Operation;
 
             var field = fieldReferenceOperation.Field;
             if (field.ContainingType.IsTupleType)

@@ -91,6 +91,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             }
         }
 
+        public static CallHierarchyTestState Create(string markup, params Type[] additionalTypes)
+        {
+            var exportProvider = CreateExportProvider(additionalTypes);
+            var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
+            return new CallHierarchyTestState(workspace);
+        }
+
         public static CallHierarchyTestState Create(XElement markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
@@ -128,31 +135,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             return MinimalTestExportProvider.CreateExportProvider(catalog);
         }
 
-        public static CallHierarchyTestState Create(string markup, params Type[] additionalTypes)
-        {
-            var exportProvider = CreateExportProvider(additionalTypes);
-            var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
-            return new CallHierarchyTestState(markup, workspace);
-        }
-
-        private CallHierarchyTestState(string markup, TestWorkspace workspace)
-        {
-            this.Workspace = workspace;
-            var testDocument = Workspace.Documents.Single(d => d.CursorPosition.HasValue);
-
-            _textView = testDocument.GetTextView();
-            _subjectBuffer = testDocument.GetTextBuffer();
-
-            var provider = Workspace.GetService<CallHierarchyProvider>();
-
-            var notificationService = Workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
-            var callback = new Action<string, string, NotificationSeverity>((message, title, severity) => NotificationMessage = message);
-            notificationService.NotificationCallback = callback;
-
-            _presenter = new MockCallHierarchyPresenter();
-            _commandHandler = new CallHierarchyCommandHandler(new[] { _presenter }, provider, TestWaitIndicator.Default);
-        }
-
         internal string NotificationMessage
         {
             get;
@@ -176,6 +158,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         internal void SearchRoot(CallHierarchyItem root, string displayName, Action<CallHierarchyItem> verify, CallHierarchySearchScope scope, IImmutableSet<Document> documents = null)
         {
             var callback = new MockSearchCallback(verify);
+            
+            // Assert we have the category before we try to find it to give better diagnosing
+            Assert.Contains(displayName, root.SupportedSearchCategories.Select(c => c.DisplayName));
             var category = root.SupportedSearchCategories.First(c => c.DisplayName == displayName).Name;
             if (documents != null)
             {
@@ -192,6 +177,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         internal void SearchRoot(CallHierarchyItem root, string displayName, Action<ICallHierarchyNameItem> verify, CallHierarchySearchScope scope, IImmutableSet<Document> documents = null)
         {
             var callback = new MockSearchCallback(verify);
+            
+            // Assert we have the category before we try to find it to give better diagnosing
+            Assert.Contains(displayName, root.SupportedSearchCategories.Select(c => c.DisplayName));
             var category = root.SupportedSearchCategories.First(c => c.DisplayName == displayName).Name;
             if (documents != null)
             {
