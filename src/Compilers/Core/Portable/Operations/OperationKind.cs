@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -9,229 +9,188 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public enum OperationKind
     {
-        /// <summary>
-        /// Indicates an <see cref="IOperation"/> for a construct that is not implemented yet.
-        /// </summary>
+        /// <summary>Indicates an <see cref="IOperation"/> for a construct that is not implemented yet.</summary>
         None = 0x0,
-
-        // Statements
-
-        /// <summary>Indicates an <see cref="IInvalidStatement"/>.</summary>
-        InvalidStatement = 0x1,
-        /// <summary>Indicates an <see cref="IBlockStatement"/>.</summary>
-        BlockStatement = 0x2,
-        /// <summary>Indicates an <see cref="IVariableDeclarationStatement"/>.</summary>
-        VariableDeclarationStatement = 0x3,
-        /// <summary>Indicates an <see cref="ISwitchStatement"/>.</summary>
-        SwitchStatement = 0x4,
-        /// <summary>Indicates an <see cref="IIfStatement"/>.</summary>
-        IfStatement = 0x5,
-        /// <summary>Indicates an <see cref="ILoopStatement"/>.</summary>
-        LoopStatement = 0x6,
-        /// <summary>Indicates an <see cref="ILabeledStatement"/>.</summary>
-        LabeledStatement = 0x7,
-        /// <summary>Indicates an <see cref="IBranchStatement"/>.</summary>
-        BranchStatement = 0x8,
-        /// <summary>Indicates an <see cref="IEmptyStatement"/>.</summary>
-        EmptyStatement = 0x9,
-        // 0xa open for usage, was IThrowStatement.
-        /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
-        ReturnStatement = 0xb,
-        /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
-        YieldBreakStatement = 0xc,
-        /// <summary>Indicates an <see cref="ILockStatement"/>.</summary>
-        LockStatement = 0xd,
-        /// <summary>Indicates an <see cref="ITryStatement"/>.</summary>
-        TryStatement = 0xe,
-        /// <summary>Indicates an <see cref="IUsingStatement"/>.</summary>
-        UsingStatement = 0xf,
-        /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
-        YieldReturnStatement = 0x10,
-        /// <summary>Indicates an <see cref="IExpressionStatement"/>.</summary>
-        ExpressionStatement = 0x11,
-
-        // Statements that occur only C#.
-
-        /// <summary>Indicates an <see cref="IFixedStatement"/>.</summary>
-        // https://github.com/dotnet/roslyn/issues/21281
-        //FixedStatement = 0x30,
-
-        LocalFunctionStatement = 0x31,
-
-        // Statements that occur only in Visual Basic.
-
-        /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
-        StopStatement = 0x50,
-        /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
-        EndStatement = 0x51,
-        // https://github.com/dotnet/roslyn/issues/22005
-        // /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
-        // WithStatement = 0x52,
-        /// <summary>Indicates an <see cref="IRaiseEventStatement"/>.</summary>
-        RaiseEventStatement = 0x53,
-
-        // Expressions
-
-        /// <summary>Indicates an <see cref="IInvalidExpression"/>.</summary>
-        InvalidExpression = 0x100,
-        /// <summary>Indicates an <see cref="ILiteralExpression"/>.</summary>
-        LiteralExpression = 0x101,
-        /// <summary>Indicates an <see cref="IConversionExpression"/>.</summary>
-        ConversionExpression = 0x102,
-        /// <summary>Indicates an <see cref="IInvocationExpression"/>.</summary>
-        InvocationExpression = 0x103,
-        /// <summary>Indicates an <see cref="IArrayElementReferenceExpression"/>.</summary>
-        ArrayElementReferenceExpression = 0x104,
-        /// <summary>Indicates an <see cref="ILocalReferenceExpression"/>.</summary>
-        LocalReferenceExpression = 0x105,
-        /// <summary>Indicates an <see cref="IParameterReferenceExpression"/>.</summary>
-        ParameterReferenceExpression = 0x106,
-        // Unused 0x107
-        /// <summary>Indicates an <see cref="IFieldReferenceExpression"/>.</summary>
-        FieldReferenceExpression = 0x108,
-        /// <summary>Indicates an <see cref="IMethodReferenceExpression"/>.</summary>
-        MethodReferenceExpression = 0x109,
-        /// <summary>Indicates an <see cref="IPropertyReferenceExpression"/>.</summary>
-        PropertyReferenceExpression = 0x10a,
-        /// <summary>Indicates an <see cref="IEventReferenceExpression"/>.</summary>
-        EventReferenceExpression = 0x10c,
-        /// <summary>Indicates an <see cref="IUnaryOperatorExpression"/>.</summary>
-        UnaryOperatorExpression = 0x10d,
-        /// <summary>Indicates an <see cref="IBinaryOperatorExpression"/>.</summary>
-        BinaryOperatorExpression = 0x10e,
-        /// <summary>Indicates an <see cref="IConditionalExpression"/>.</summary>
-        ConditionalExpression = 0x10f,
-        /// <summary>Indicates an <see cref="ICoalesceExpression"/>.</summary>
-        CoalesceExpression = 0x110,
-        /// <summary>Indicates an <see cref="IAnonymousFunctionExpression"/>.</summary>
-        AnonymousFunctionExpression = 0x111,
-        /// <summary>Indicates an <see cref="IObjectCreationExpression"/>.</summary>
-        ObjectCreationExpression = 0x112,
-        /// <summary>Indicates an <see cref="ITypeParameterObjectCreationExpression"/>.</summary>
-        TypeParameterObjectCreationExpression = 0x113,
-        /// <summary>Indicates an <see cref="IArrayCreationExpression"/>.</summary>
-        ArrayCreationExpression = 0x114,
-        /// <summary>Indicates an <see cref="IInstanceReferenceExpression"/>.</summary>
-        InstanceReferenceExpression = 0x115,
-        /// <summary>Indicates an <see cref="IIsTypeExpression"/>.</summary>
-        IsTypeExpression = 0x116,
-        /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
-        AwaitExpression = 0x117,
-        /// <summary>Indicates an <see cref="ISimpleAssignmentExpression"/>.</summary>
-        SimpleAssignmentExpression = 0x118,
-        /// <summary>Indicates an <see cref="ICompoundAssignmentExpression"/>.</summary>
-        CompoundAssignmentExpression = 0x119,
-        /// <summary>Indicates an <see cref="IParenthesizedExpression"/>.</summary>
-        ParenthesizedExpression = 0x11a,
-        /// <summary>Indicates an <see cref="IEventAssignmentExpression"/>.</summary>
-        EventAssignmentExpression = 0x11b,
-        /// <summary>Indicates an <see cref="IConditionalAccessExpression"/>.</summary>
-        ConditionalAccessExpression = 0x11c,
-        /// <summary>Indicates an <see cref="IConditionalAccessInstanceExpression"/>.</summary>
-        ConditionalAccessInstanceExpression = 0x11d,
-        /// <summary>Indicates an <see cref="IInterpolatedStringExpression"/>.</summary>
-        InterpolatedStringExpression = 0x11e,
-        /// <summary>Indicates an <see cref="IAnonymousObjectCreationExpression"/>.</summary>
-        AnonymousObjectCreationExpression = 0x11f,
-        /// <summary>Indicates an <see cref="IObjectOrCollectionInitializerExpression"/>.</summary>
-        ObjectOrCollectionInitializerExpression = 0x120,
-        /// <summary>Indicates an <see cref="IMemberInitializerExpression"/>.</summary>
-        MemberInitializerExpression = 0x121,
-        /// <summary>Indicates an <see cref="ICollectionElementInitializerExpression"/>.</summary>
-        CollectionElementInitializerExpression = 0x122,
-        /// <summary>Indicates an <see cref="INameOfExpression"/>.</summary>
-        NameOfExpression = 0x123,
-        /// <summary>Indicates an <see cref="ITupleExpression"/>.</summary>
-        TupleExpression = 0x124,
-        /// <summary>Indicates an <see cref="IDynamicObjectCreationExpression"/>.</summary>
-        DynamicObjectCreationExpression = 0x125,
-        /// <summary>Indicates an <see cref="IDynamicMemberReferenceExpression"/>.</summary>
-        DynamicMemberReferenceExpression = 0x126,
-        /// <summary>Indicates an <see cref="IDynamicInvocationExpression"/>.</summary>
-        DynamicInvocationExpression = 0x127,
-        /// <summary>Indicates an <see cref="IDynamicIndexerAccessExpression"/>.</summary>
-        DynamicIndexerAccessExpression = 0x128,
-        /// <summary>Indicates an <see cref="ITranslatedQueryExpression"/>.</summary>
-        TranslatedQueryExpression = 0x129,
-        /// <summary>Indicates a <see cref="IDelegateCreationExpression"/>.</summary>
-        DelegateCreationExpression = 0x130,
-
-        // Expressions that occur only in C#.
-
-        /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
-        DefaultValueExpression = 0x200,
-        /// <summary>Indicates an <see cref="ITypeOfExpression"/>.</summary>
-        TypeOfExpression = 0x201,
-        /// <summary>Indicates an <see cref="ISizeOfExpression"/>.</summary>
-        SizeOfExpression = 0x202,
-        /// <summary>Indicates an <see cref="IAddressOfExpression"/>.</summary>
-        AddressOfExpression = 0x203,
-        // <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
-        // API Removed for V1
-        // https://github.com/dotnet/roslyn/issues/21295
-        //PointerIndirectionReferenceExpression = 0x204,
-        /// <summary>Indicates an <see cref="IIsPatternExpression"/>.</summary>
-        IsPatternExpression = 0x205,
-        /// <summary>Indicates an <see cref="IIncrementOrDecrementExpression"/> for increment operator.</summary>
-        IncrementExpression = 0x206,
-        /// <summary>Indicates an <see cref="IThrowExpression"/>.</summary>
-        ThrowExpression = 0x207,
-        /// <summary>Indicates an <see cref="IIncrementOrDecrementExpression"/> for decrement operator.</summary>
-        DecrementExpression = 0x208,
-        /// <summary>Indicates an <see cref="IDeconstructionAssignmentExpression"/>.</summary>
-        DeconstructionAssignmentExpression = 0x209,
-        /// <summary>Indicates an <see cref="IDeclarationExpression"/>.</summary>
-        DeclarationExpression = 0x20a,
-
-        // Expressions that occur only in Visual Basic.
-
-        /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
-        OmittedArgumentExpression = 0x300,
-
-        // Unused 0x301
-        
-        // https://github.com/dotnet/roslyn/issues/21294
-        // /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
-        // PlaceholderExpression = 0x302,
-
-        // Operations that are constituents of statements, expressions, or declarations.
-
-
-        // Unused 0x400
-
-        /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
-        FieldInitializer = 0x401,
-        /// <summary>Indicates an <see cref="IVariableInitializer"/>.</summary>
-        VariableInitializer = 0x402,
-        /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
-        PropertyInitializer = 0x403,
-        /// <summary>Indicates an <see cref="IParameterInitializer"/>.</summary>
-        ParameterInitializer = 0x404,
-        /// <summary>Indicates an <see cref="IArrayInitializer"/>.</summary>
-        ArrayInitializer = 0x405,
-
-        /// <summary>Indicates an <see cref="IVariableDeclaration"/>.</summary>
-        VariableDeclaration = 0x406,
-
-        /// <summary>Indicates an <see cref="IArgument"/>.</summary>
-        Argument = 0x407,
-
-        /// <summary>Indicates an <see cref="ICatchClause"/>.</summary>
-        CatchClause = 0x408,
-
-        /// <summary>Indicates an <see cref="ISwitchCase"/>.</summary>
-        SwitchCase = 0x409,
+        /// <summary>Indicates an <see cref="IInvalidOperation"/>.</summary>
+        Invalid = 0x1,
+        /// <summary>Indicates an <see cref="IBlockOperation"/>.</summary>
+        Block = 0x2,
+        /// <summary>Indicates an <see cref="IVariableDeclarationsOperation"/>.</summary>
+        VariableDeclarations = 0x3,
+        /// <summary>Indicates an <see cref="ISwitchOperation"/>.</summary>
+        Switch = 0x4,
+        /// <summary>Indicates an <see cref="ILoopOperation"/>.</summary>
+        Loop = 0x5,
+        /// <summary>Indicates an <see cref="ILabeledOperation"/>.</summary>
+        Labeled = 0x6,
+        /// <summary>Indicates an <see cref="IBranchOperation"/>.</summary>
+        Branch = 0x7,
+        /// <summary>Indicates an <see cref="IEmptyOperation"/>.</summary>
+        Empty = 0x8,
+        /// <summary>Indicates an <see cref="IReturnOperation"/>.</summary>
+        Return = 0x9,
+        /// <summary>Indicates an <see cref="IReturnOperation"/> with yield break semantics.</summary>
+        YieldBreak = 0xa,
+        /// <summary>Indicates an <see cref="ILockOperation"/>.</summary>
+        Lock = 0xb,
+        /// <summary>Indicates an <see cref="ITryOperation"/>.</summary>
+        Try = 0xc,
+        /// <summary>Indicates an <see cref="IUsingOperation"/>.</summary>
+        Using = 0xd,
+        /// <summary>Indicates an <see cref="IReturnOperation"/> with yield return semantics.</summary>
+        YieldReturn = 0xe,
+        /// <summary>Indicates an <see cref="IExpressionStatementOperation"/>.</summary>
+        ExpressionStatement = 0xf,
+        /// <summary>Indicates an <see cref="ILocalFunctionOperation"/></summary>
+        LocalFunction = 0x10,
+        /// <summary>Indicates an <see cref="IStopOperation"/>.</summary>
+        Stop = 0x11,
+        /// <summary>Indicates an <see cref="IEndOperation"/>.</summary>
+        End = 0x12,
+        /// <summary>Indicates an <see cref="IRaiseEventOperation"/>.</summary>
+        RaiseEvent = 0x13,
+        /// <summary>Indicates an <see cref="ILiteralOperation"/>.</summary>
+        Literal = 0x14,
+        /// <summary>Indicates an <see cref="IConversionOperation"/>.</summary>
+        Conversion = 0x15,
+        /// <summary>Indicates an <see cref="IInvocationOperation"/>.</summary>
+        Invocation = 0x16,
+        /// <summary>Indicates an <see cref="IArrayElementReferenceOperation"/>.</summary>
+        ArrayElementReference = 0x17,
+        /// <summary>Indicates an <see cref="ILocalReferenceOperation"/>.</summary>
+        LocalReference = 0x18,
+        /// <summary>Indicates an <see cref="IParameterReferenceOperation"/>.</summary>
+        ParameterReference = 0x19,
+        /// <summary>Indicates an <see cref="IFieldReferenceOperation"/>.</summary>
+        FieldReference = 0x1a,
+        /// <summary>Indicates an <see cref="IMethodReferenceOperation"/>.</summary>
+        MethodReference = 0x1b,
+        /// <summary>Indicates an <see cref="IPropertyReferenceOperation"/>.</summary>
+        PropertyReference = 0x1c,
+        /// <summary>Indicates an <see cref="IEventReferenceOperation"/>.</summary>
+        EventReference = 0x1e,
+        /// <summary>Indicates an <see cref="IUnaryOperation"/>.</summary>
+        UnaryOperator = 0x1f,
+        /// <summary>Indicates an <see cref="IBinaryOperation"/>.</summary>
+        BinaryOperator = 0x20,
+        /// <summary>Indicates an <see cref="IConditionalOperation"/>.</summary>
+        Conditional = 0x21,
+        /// <summary>Indicates an <see cref="ICoalesceOperation"/>.</summary>
+        Coalesce = 0x22,
+        /// <summary>Indicates an <see cref="IAnonymousFunctionOperation"/>.</summary>
+        AnonymousFunction = 0x23,
+        /// <summary>Indicates an <see cref="IObjectCreationOperation"/>.</summary>
+        ObjectCreation = 0x24,
+        /// <summary>Indicates an <see cref="ITypeParameterObjectCreationOperation"/>.</summary>
+        TypeParameterObjectCreation = 0x25,
+        /// <summary>Indicates an <see cref="IArrayCreationOperation"/>.</summary>
+        ArrayCreation = 0x26,
+        /// <summary>Indicates an <see cref="IInstanceReferenceOperation"/>.</summary>
+        InstanceReference = 0x27,
+        /// <summary>Indicates an <see cref="IIsTypeOperation"/>.</summary>
+        IsType = 0x28,
+        /// <summary>Indicates an <see cref="IAwaitOperation"/>.</summary>
+        Await = 0x29,
+        /// <summary>Indicates an <see cref="ISimpleAssignmentOperation"/>.</summary>
+        SimpleAssignment = 0x2a,
+        /// <summary>Indicates an <see cref="ICompoundAssignmentOperation"/>.</summary>
+        CompoundAssignment = 0x2b,
+        /// <summary>Indicates an <see cref="IParenthesizedOperation"/>.</summary>
+        Parenthesized = 0x2c,
+        /// <summary>Indicates an <see cref="IEventAssignmentOperation"/>.</summary>
+        EventAssignment = 0x2d,
+        /// <summary>Indicates an <see cref="IConditionalAccessOperation"/>.</summary>
+        ConditionalAccess = 0x2e,
+        /// <summary>Indicates an <see cref="IConditionalAccessInstanceOperation"/>.</summary>
+        ConditionalAccessInstance = 0x2f,
+        /// <summary>Indicates an <see cref="IInterpolatedStringOperation"/>.</summary>
+        InterpolatedString = 0x30,
+        /// <summary>Indicates an <see cref="IAnonymousObjectCreationOperation"/>.</summary>
+        AnonymousObjectCreation = 0x31,
+        /// <summary>Indicates an <see cref="IObjectOrCollectionInitializerOperation"/>.</summary>
+        ObjectOrCollectionInitializer = 0x32,
+        /// <summary>Indicates an <see cref="IMemberInitializerOperation"/>.</summary>
+        MemberInitializer = 0x33,
+        /// <summary>Indicates an <see cref="ICollectionElementInitializerOperation"/>.</summary>
+        CollectionElementInitializer = 0x34,
+        /// <summary>Indicates an <see cref="INameOfOperation"/>.</summary>
+        NameOf = 0x35,
+        /// <summary>Indicates an <see cref="ITupleOperation"/>.</summary>
+        Tuple = 0x36,
+        /// <summary>Indicates an <see cref="IDynamicObjectCreationOperation"/>.</summary>
+        DynamicObjectCreation = 0x37,
+        /// <summary>Indicates an <see cref="IDynamicMemberReferenceOperation"/>.</summary>
+        DynamicMemberReference = 0x38,
+        /// <summary>Indicates an <see cref="IDynamicInvocationOperation"/>.</summary>
+        DynamicInvocation = 0x39,
+        /// <summary>Indicates an <see cref="IDynamicIndexerAccessOperation"/>.</summary>
+        DynamicIndexerAccess = 0x3a,
+        /// <summary>Indicates an <see cref="ITranslatedQueryOperation"/>.</summary>
+        TranslatedQuery = 0x3b,
+        /// <summary>Indicates a <see cref="IDelegateCreationOperation"/>.</summary>
+        DelegateCreation = 0x3c,
+        /// <summary>Indicates an <see cref="IDefaultValueOperation"/>.</summary>
+        DefaultValue = 0x3d,
+        /// <summary>Indicates an <see cref="ITypeOfOperation"/>.</summary>
+        TypeOf = 0x3e,
+        /// <summary>Indicates an <see cref="ISizeOfOperation"/>.</summary>
+        SizeOf = 0x3f,
+        /// <summary>Indicates an <see cref="IAddressOfOperation"/>.</summary>
+        AddressOf = 0x40,
+        /// <summary>Indicates an <see cref="IIsPatternOperation"/>.</summary>
+        IsPattern = 0x41,
+        /// <summary>Indicates an <see cref="IIncrementOrDecrementOperation"/> for increment operator.</summary>
+        Increment = 0x42,
+        /// <summary>Indicates an <see cref="IThrowOperation"/>.</summary>
+        Throw = 0x43,
+        /// <summary>Indicates an <see cref="IIncrementOrDecrementOperation"/> for decrement operator.</summary>
+        Decrement = 0x44,
+        /// <summary>Indicates an <see cref="IDeconstructionAssignmentOperation"/>.</summary>
+        DeconstructionAssignment = 0x45,
+        /// <summary>Indicates an <see cref="IDeclarationExpressionOperation"/>.</summary>
+        DeclarationExpression = 0x46,
+        /// <summary>Indicates an <see cref="IOmittedArgumentOperation"/>.</summary>
+        OmittedArgument = 0x47,
+        /// <summary>Indicates an <see cref="IFieldInitializerOperation"/>.</summary>
+        FieldInitializer = 0x48,
+        /// <summary>Indicates an <see cref="IVariableInitializerOperation"/>.</summary>
+        VariableInitializer = 0x49,
+        /// <summary>Indicates an <see cref="IPropertyInitializerOperation"/>.</summary>
+        PropertyInitializer = 0x4a,
+        /// <summary>Indicates an <see cref="IParameterInitializerOperation"/>.</summary>
+        ParameterInitializer = 0x4b,
+        /// <summary>Indicates an <see cref="IArrayInitializerOperation"/>.</summary>
+        ArrayInitializer = 0x4c,
+        /// <summary>Indicates an <see cref="IVariableDeclarationOperation"/>.</summary>
+        VariableDeclaration = 0x4d,
+        /// <summary>Indicates an <see cref="IArgumentOperation"/>.</summary>
+        Argument = 0x4e,
+        /// <summary>Indicates an <see cref="ICatchClauseOperation"/>.</summary>
+        CatchClause = 0x4f,
+        /// <summary>Indicates an <see cref="ISwitchCaseOperation"/>.</summary>
+        SwitchCase = 0x50,
         /// <summary>Indicates different kinds of switch case clauses as defined by <see cref="CaseKind"/>.</summary>
-        CaseClause = 0x40a,
+        CaseClause = 0x51,
+        /// <summary>Indicates an <see cref="IInterpolatedStringTextOperation"/>.</summary>
+        InterpolatedStringText = 0x52,
+        /// <summary>Indicates an <see cref="IInterpolationOperation"/>.</summary>
+        Interpolation = 0x53,
+        /// <summary>Indicates an <see cref="IConstantPatternOperation"/>.</summary>
+        ConstantPattern = 0x54,
+        /// <summary>Indicates an <see cref="IDeclarationPatternOperation"/>.</summary>
+        DeclarationPattern = 0x55,
 
-        /// <summary>Indicates an <see cref="IInterpolatedStringText"/>.</summary>
-        InterpolatedStringText = 0x40b,
-        /// <summary>Indicates an <see cref="IInterpolation"/>.</summary>
-        Interpolation = 0x40c,
-
-        /// <summary>Indicates an <see cref="IConstantPattern"/>.</summary>
-        ConstantPattern = 0x40d,
-        /// <summary>Indicates an <see cref="IDeclarationPattern"/>.</summary>
-        DeclarationPattern = 0x40e,
+        // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
+        // https://github.com/dotnet/roslyn/issues/21281
+        //Fixed = <TBD>,
+        // /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
+        // https://github.com/dotnet/roslyn/issues/22005
+        //With = <TBD>,
+        // /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
+        // https://github.com/dotnet/roslyn/issues/21295
+        //PointerIndirectionReference = <TBD>,
+        // /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
+        // https://github.com/dotnet/roslyn/issues/21294
+        //Placeholder = <TBD>,
     }
 }

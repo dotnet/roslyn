@@ -163,7 +163,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                     }
                     else
                     {
-                        var item = await Provider.CreateItem(caller.CallingSymbol, project, caller.Locations, cancellationToken).ConfigureAwait(false);
+                        var callingProject = project.Solution.GetProject(caller.CallingSymbol.ContainingAssembly);
+                        var item = await Provider.CreateItem(caller.CallingSymbol, callingProject, caller.Locations, cancellationToken).ConfigureAwait(false);
                         callback.AddResult(item);
                         cancellationToken.ThrowIfCancellationRequested();
                     }
