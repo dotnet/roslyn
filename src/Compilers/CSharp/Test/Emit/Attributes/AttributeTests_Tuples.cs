@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -112,7 +113,11 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
             var comp = CreateStandardCompilation(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
                 references: s_attributeRefs);
-            TupleAttributeValidator.ValidateTupleAttributes(comp);
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                TupleAttributeValidator.ValidateTupleAttributes((PEModuleSymbol)module);
+            });
         }
 
         [Fact]
@@ -134,7 +139,11 @@ namespace System.Runtime.CompilerServices
                 references: new[] { SystemCoreRef },
                 options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
-            TupleAttributeValidator.ValidateTupleAttributes(comp);
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                TupleAttributeValidator.ValidateTupleAttributes((PEModuleSymbol)module);
+            });
         }
 
         [Fact]
@@ -284,30 +293,25 @@ class C
 
         private struct TupleAttributeValidator
         {
-            private readonly MethodSymbol _tupleAttrTransformNames;
-            private readonly CSharpCompilation _comp;
-            private readonly NamedTypeSymbol _base0Class, _base1Class,
-                _base2Class, _outerClass, _derivedClass;
+            private readonly NamedTypeSymbol
+                _base0Class,
+                _base1Class,
+                _base2Class,
+                _outerClass,
+                _derivedClass;
 
-            private TupleAttributeValidator(CSharpCompilation compilation)
+            private TupleAttributeValidator(PEModuleSymbol module)
             {
-                _tupleAttrTransformNames = (MethodSymbol)compilation.GetWellKnownTypeMember(
-                    WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames);
-                Assert.NotNull(_tupleAttrTransformNames);
-
-                _comp = compilation;
-                var globalNs = compilation.SourceModule.GlobalNamespace;
-
-                _base0Class = globalNs.GetTypeMember("Base0");
-                _base1Class = globalNs.GetTypeMember("Base1");
-                _base2Class = globalNs.GetTypeMember("Base2");
-                _outerClass = globalNs.GetTypeMember("Outer");
-                _derivedClass = globalNs.GetTypeMember("Derived");
+                _base0Class = module.GlobalNamespace.GetTypeMember("Base0");
+                _base1Class = module.GlobalNamespace.GetTypeMember("Base1");
+                _base2Class = module.GlobalNamespace.GetTypeMember("Base2");
+                _outerClass = module.GlobalNamespace.GetTypeMember("Outer");
+                _derivedClass = module.GlobalNamespace.GetTypeMember("Derived");
             }
 
-            internal static void ValidateTupleAttributes(CSharpCompilation comp)
+            internal static void ValidateTupleAttributes(PEModuleSymbol module)
             {
-                var validator = new TupleAttributeValidator(comp);
+                var validator = new TupleAttributeValidator(module);
 
                 validator.ValidateAttributesOnNamedTypes();
                 validator.ValidateAttributesOnFields();
@@ -347,8 +351,9 @@ class C
                 ValidateTupleNameAttribute(args,
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
+
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
-                    args, _comp,
+                    args,
                     expectedDynamicAttribute: true,
                     expectedTransformFlags: new[]
                     {
@@ -372,7 +377,7 @@ class C
                         "e1", "e4", null, "e2", "e3"
                     });
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
-                    event1, _comp,
+                    event1,
                     expectedDynamicAttribute: true,
                     expectedTransformFlags: new[]
                     {
@@ -435,7 +440,7 @@ class C
                 expectedElementNames = new[] { null, null, "e1", "e2", null, null, null, null };
                 ValidateTupleNameAttribute(field4, expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
-                    field4, _comp,
+                    field4,
                     expectedDynamicAttribute: true,
                     expectedTransformFlags: new[] {
                         false, false, false, false,
@@ -452,7 +457,7 @@ class C
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
-                    field5, _comp,
+                    field5,
                     expectedDynamicAttribute: true,
                     expectedTransformFlags: new[]
                     {
@@ -605,11 +610,11 @@ class C
                 string[] expectedElementNames = null,
                 bool forReturnType = false)
             {
-                var synthesizedTupleElementNamesAttr = symbol.GetSynthesizedAttributes(forReturnType)
-                    .Where(attr => string.Equals(attr.AttributeClass.Name,
-                                                 "TupleElementNamesAttribute",
-                                                 StringComparison.Ordinal))
+                var synthesizedTupleElementNamesAttr = symbol
+                    .GetAttributes()
+                    .Where(attr => string.Equals(attr.AttributeClass.Name, "TupleElementNamesAttribute", StringComparison.Ordinal))
                     .AsImmutable();
+
                 if (!expectedTupleNamesAttribute)
                 {
                     Assert.Empty(synthesizedTupleElementNamesAttr);
@@ -618,7 +623,8 @@ class C
                 else
                 {
                     var tupleAttr = synthesizedTupleElementNamesAttr.Single();
-                    Assert.Equal(_tupleAttrTransformNames, tupleAttr.AttributeConstructor);
+                    Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute", tupleAttr.AttributeClass.ToTestDisplayString());
+                    Assert.Equal("System.String[]", tupleAttr.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
 
                     if (expectedElementNames == null)
                     {

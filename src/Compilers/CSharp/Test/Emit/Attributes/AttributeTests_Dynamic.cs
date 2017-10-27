@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -103,14 +104,16 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         public void TestDynamicAttributesAreSynthesized()
         {
             var comp = CreateCompilationWithMscorlibAndSystemCore(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
-            DynamicAttributeValidator.ValidateDynamicAttributes(comp);
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                DynamicAttributeValidator.ValidateDynamicAttributes((PEModuleSymbol)module);
+            });
         }
 
         internal struct DynamicAttributeValidator
         {
-            private readonly SourceAssemblySymbol _srcAssembly;
-            private readonly CSharpCompilation _comp;
-            private readonly MethodSymbol _dynamicAttributeCtorNoArgs, _dynamicAttributeCtorTransformFlags;
+            private readonly PEModuleSymbol _module;
             private readonly NamedTypeSymbol _base0Class, _base1Class, _base2Class, _derivedClass;
             private readonly NamedTypeSymbol _outerClass, _innerClass, _innerInnerClass;
             private readonly NamedTypeSymbol _outer2Class, _inner2Class, _innerInner2Class;
@@ -120,37 +123,32 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             private readonly NamedTypeSymbol _synthesizedMyDelegateType;
             private bool[] _expectedTransformFlags;
 
-            private DynamicAttributeValidator(CSharpCompilation compilation)
+            private DynamicAttributeValidator(PEModuleSymbol module)
             {
-                _comp = compilation;
-                _srcAssembly = compilation.SourceAssembly;
-                NamespaceSymbol globalNamespace = _srcAssembly.Modules[0].GlobalNamespace;
+                _module = module;
 
-                _base0Class = globalNamespace.GetMember<NamedTypeSymbol>("Base0");
-                _base1Class = globalNamespace.GetMember<NamedTypeSymbol>("Base1");
-                _base2Class = globalNamespace.GetMember<NamedTypeSymbol>("Base2");
-                _derivedClass = globalNamespace.GetMember<NamedTypeSymbol>("Derived");
-                _outerClass = globalNamespace.GetMember<NamedTypeSymbol>("Outer");
+                _base0Class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Base0");
+                _base1Class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Base1");
+                _base2Class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Base2");
+                _derivedClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                _outerClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer");
                 _innerClass = _outerClass.GetTypeMember("Inner");
                 _innerInnerClass = _innerClass.GetTypeMember("InnerInner");
-                _outer2Class = globalNamespace.GetMember<NamedTypeSymbol>("Outer2");
+                _outer2Class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer2");
                 _inner2Class = _outer2Class.GetTypeMember("Inner2");
                 _innerInner2Class = _inner2Class.GetTypeMember("InnerInner2");
-                _outer3Class = globalNamespace.GetMember<NamedTypeSymbol>("Outer3");
+                _outer3Class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer3");
                 _inner3Class = _outer3Class.GetTypeMember("Inner3");
-                _unsafeClass = globalNamespace.GetMember<NamedTypeSymbol>("UnsafeClass");
-                _structType = globalNamespace.GetMember<NamedTypeSymbol>("Struct");
-                _synthesizedMyDelegateType = globalNamespace.GetMember<NamedTypeSymbol>("MyDelegate");
-
-                _dynamicAttributeCtorNoArgs = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor);
-                _dynamicAttributeCtorTransformFlags = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags);
+                _unsafeClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("UnsafeClass");
+                _structType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Struct");
+                _synthesizedMyDelegateType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("MyDelegate");
 
                 _expectedTransformFlags = null;
             }
 
-            internal static void ValidateDynamicAttributes(CSharpCompilation comp)
+            internal static void ValidateDynamicAttributes(PEModuleSymbol module)
             {
-                var validator = new DynamicAttributeValidator(comp);
+                var validator = new DynamicAttributeValidator(module);
 
                 validator.ValidateAttributesOnNamedTypes();
                 validator.ValidateAttributesOnFields();
@@ -162,17 +160,9 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 validator.ValidateAttributesForSynthesizedDelegateMembers();
             }
 
-            private void ValidateDynamicAttribute(Symbol symbol, bool expectedDynamicAttribute, bool[] expectedTransformFlags = null, bool forReturnType = false)
+            internal static void ValidateDynamicAttribute(Symbol symbol, bool expectedDynamicAttribute, bool[] expectedTransformFlags = null, bool forReturnType = false)
             {
-                ValidateDynamicAttribute(symbol, _comp, _dynamicAttributeCtorNoArgs,
-                     _dynamicAttributeCtorTransformFlags, expectedDynamicAttribute, expectedTransformFlags, forReturnType);
-            }
-
-            internal static void ValidateDynamicAttribute(Symbol symbol, CSharpCompilation comp, bool expectedDynamicAttribute, bool[] expectedTransformFlags = null, bool forReturnType = false)
-            {
-                var dynamicAttributeCtorNoArgs = (MethodSymbol)comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor);
-                var dynamicAttributeCtorTransformFlags = (MethodSymbol)comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags);
-                ValidateDynamicAttribute(symbol, comp, dynamicAttributeCtorNoArgs, dynamicAttributeCtorTransformFlags, expectedDynamicAttribute, expectedTransformFlags, forReturnType);
+                ValidateDynamicAttribute(symbol, expectedDynamicAttribute, expectedTransformFlags, forReturnType);
             }
 
             private void ValidateAttributesOnNamedTypes()
@@ -534,11 +524,9 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             }
 
             private static void ValidateDynamicAttribute(Symbol symbol, CSharpCompilation comp, MethodSymbol dynamicAttributeCtorNoArgs,
-                 MethodSymbol dynamicAttributeCtorTransformFlags, bool expectedDynamicAttribute, bool[] expectedTransformFlags = null, bool forReturnType = false)
+                 MethodSymbol dynamicAttributeCtorTransformFlags, bool expectedDynamicAttribute, bool[] expectedTransformFlags = null)
             {
-                Assert.True(!forReturnType || symbol.Kind == SymbolKind.Method, "Incorrect usage of ValidateDynamicAttribute");
-
-                var synthesizedDynamicAttributes = symbol.GetSynthesizedAttributes(forReturnType).Where((attr) => string.Equals(attr.AttributeClass.Name, "DynamicAttribute", StringComparison.Ordinal));
+                var synthesizedDynamicAttributes = symbol.GetAttributes().Where((attr) => string.Equals(attr.AttributeClass.Name, "DynamicAttribute", StringComparison.Ordinal));
 
                 if (!expectedDynamicAttribute)
                 {
@@ -979,7 +967,7 @@ dynamic x = 0;";
             comp = CreateCompilationWithMscorlib45(source2, parseOptions: parseOptions, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics();
             var implicitField = comp.ScriptClass.GetMember<FieldSymbol>("x");
-            DynamicAttributeValidator.ValidateDynamicAttribute(implicitField, comp, expectedDynamicAttribute: true);
+            DynamicAttributeValidator.ValidateDynamicAttribute(implicitField, expectedDynamicAttribute: true);
 
             // No reference to System.Core, generates CS1980
             comp = CreateCompilationWithMscorlib45(source2, parseOptions: parseOptions);
@@ -996,7 +984,7 @@ Gen<dynamic> x = null;";
             comp.VerifyDiagnostics();
             implicitField = comp.ScriptClass.GetMember<FieldSymbol>("x");
             var expectedTransformsFlags = new bool[] { false, true };
-            DynamicAttributeValidator.ValidateDynamicAttribute(implicitField, comp, expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformsFlags);
+            DynamicAttributeValidator.ValidateDynamicAttribute(implicitField, expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformsFlags);
 
             // No reference to System.Core, generates CS1980
             comp = CreateCompilationWithMscorlib45(source2, parseOptions: parseOptions);
@@ -1013,7 +1001,7 @@ X x = null;";
             comp = CreateCompilationWithMscorlib45(source2, parseOptions: parseOptions, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics();
             implicitField = comp.ScriptClass.GetMember<FieldSymbol>("x");
-            DynamicAttributeValidator.ValidateDynamicAttribute(implicitField, comp, expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformsFlags);
+            DynamicAttributeValidator.ValidateDynamicAttribute(implicitField, expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformsFlags);
 
             // No reference to System.Core, generates CS1980
             comp = CreateCompilationWithMscorlib45(source2, parseOptions: parseOptions);
