@@ -25,6 +25,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Allow explicit NullableAttribute definition.
+        [Fact(Skip = "Allow explicit NullableAttribute definition")]
+        public void ExplicitAttributeFromSource()
+        {
+            var source =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NullableAttribute : Attribute
+    {
+        public NullableAttribute() { }
+        public NullableAttribute(bool[] b) { }
+    }
+}
+class C
+{
+    static void F(object? x, object?[] y) { }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Allow explicit NullableAttribute definition.
+        [Fact(Skip = "Allow explicit NullableAttribute definition")]
+        public void ExplicitAttributeFromMetadata()
+        {
+            var source0 =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NullableAttribute : Attribute
+    {
+        public NullableAttribute() { }
+        public NullableAttribute(bool[] b) { }
+    }
+}";
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class C
+{
+    static void F(object? x, object?[] y) { }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1));
+        }
+
         [Fact]
         public void NullableAttribute_MissingBoolean()
         {
@@ -39,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
-            comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -68,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public struct Boolean { }
 }";
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
-            comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -104,7 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
-            comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -152,7 +199,7 @@ class B2 : A<object?>
             });
         }
 
-        // PROTOTYPE(NullableReferenceTypes: Synthesize [Nullable] for interface
+        // PROTOTYPE(NullableReferenceTypes): Synthesize [Nullable] for interface
         // implementations. See TypeSymbolExtensions.GetTypeRefWithAttributes.
         [Fact(Skip = "TODO")]
         public void EmitAttribute_Interface()
@@ -196,7 +243,7 @@ public class B : I<(object X, object? Y)>
     }
 }";
             var comp2 = CreateStandardCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            // PROTOTYPE(NullableReferenceTypes: Should report warnings.
+            // PROTOTYPE(NullableReferenceTypes): Should report warnings.
             comp2.VerifyEmitDiagnostics();
         }
 
@@ -452,7 +499,6 @@ class C
     public class MulticastDelegate { }
 }";
             var comp0 = CreateCompilation(source0);
-            comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -499,7 +545,7 @@ class B : A<object?>
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 7));
         }
 
-        // PROTOTYPE(NullableReferenceTypes: Synthesize [Nullable] for interface
+        // PROTOTYPE(NullableReferenceTypes): Synthesize [Nullable] for interface
         // implementations. See TypeSymbolExtensions.GetTypeRefWithAttributes.
         [Fact(Skip = "TODO")]
         public void ModuleMissingAttribute_Interface()
