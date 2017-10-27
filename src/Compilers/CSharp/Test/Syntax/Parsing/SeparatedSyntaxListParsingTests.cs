@@ -77,7 +77,7 @@ class C
                     {
                         N(SyntaxKind.VariableDeclaration);
                         N(SyntaxKind.GenericName);
-                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.IdentifierToken);
                         N(SyntaxKind.TypeArgumentList);
                         N(SyntaxKind.LessThanToken);
                         {
@@ -93,30 +93,18 @@ class C
                     N(SyntaxKind.FieldDeclaration);
                     {
                         N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.GenericName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                                N(SyntaxKind.TypeArgumentList);
-                                {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "T");
-                                    }
-                                    M(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "U");
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
-                                }
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "a4");
-                            }
+                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.TypeArgumentList);
+                        N(SyntaxKind.LessThanToken);
+                        { 
+                            N(SyntaxKind.IdentifierName); N(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.IdentifierName); N(SyntaxKind.IdentifierToken);
                         }
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.IdentifierToken);
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
