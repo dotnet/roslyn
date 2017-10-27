@@ -308,7 +308,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: System.Int32[] x
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= { 1, 2 }')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '{ 1, 2 }')
+        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: '{ 1, 2 }')
           Dimension Sizes(1):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 1, 2 }')
           Initializer: 

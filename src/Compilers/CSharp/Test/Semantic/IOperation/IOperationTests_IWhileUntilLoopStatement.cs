@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -298,17 +298,15 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
         WhenTrue: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'throw new E ... ever hit"");')
-              Expression: 
-                IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'throw new E ... ever hit"");')
-                  IObjectCreationOperation (Constructor: System.Exception..ctor(System.String message)) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new Excepti ... Never hit"")')
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: System.String) (Syntax: '""Never hit""')
-                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Never hit"") (Syntax: '""Never hit""')
-                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Initializer: 
-                      null
+            IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw new E ... ever hit"");')
+              IObjectCreationOperation (Constructor: System.Exception..ctor(System.String message)) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new Excepti ... Never hit"")')
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: System.String) (Syntax: '""Never hit""')
+                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Never hit"") (Syntax: '""Never hit""')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Initializer: 
+                  null
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... tatement"");')
@@ -1122,13 +1120,11 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
         Catch clauses(0)
         Finally: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'throw new S ... xception();')
-              Expression: 
-                IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'throw new S ... xception();')
-                  IObjectCreationOperation (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new System.Exception()')
-                    Arguments(0)
-                    Initializer: 
-                      null
+            IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw new S ... xception();')
+              IObjectCreationOperation (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new System.Exception()')
+                Arguments(0)
+                Initializer: 
+                  null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }

@@ -395,7 +395,7 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
             Initializer: 
               IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic) (Syntax: '{ 1 }')
                 Initializers(1):
-                    ICollectionElementInitializerOperation (IsDynamic: True) (OperationKind.CollectionElementInitializer, Type: System.Void) (Syntax: '1')
+                    ICollectionElementInitializerOperation (IsDynamic: True) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '1')
                       Arguments(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
