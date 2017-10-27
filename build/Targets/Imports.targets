@@ -115,18 +115,12 @@
     </When>
   </Choose>
 
-  <!-- Settings for strong name signing -->
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-      <!-- Strong name signing is not supported on non-Windows platforms -->
-      <PublicSign>true</PublicSign>
-  </PropertyGroup>
-
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
       <Choose>
         <!-- Shipping binaries are always public signed.  In the case of an official build $(OfficialBuild) the
              binaries will be real signed as a post processing step. -->
-        <When Condition="'$(NonShipping)' != 'true'">
+        <When Condition="'$(NonShipping)' != 'true' OR '$(OS)' != 'Windows_NT'">
           <PropertyGroup>
             <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\Strong Name Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
             <PublicKey>$(RoslynPublicKey)</PublicKey>
