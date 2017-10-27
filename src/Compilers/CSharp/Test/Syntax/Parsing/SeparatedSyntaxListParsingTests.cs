@@ -104,7 +104,7 @@ class C
                         }
                         N(SyntaxKind.GreaterThanToken);
                         N(SyntaxKind.VariableDeclarator);
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "a4");
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.FieldDeclaration);
