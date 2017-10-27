@@ -142,8 +142,8 @@ namespace Roslyn.Test.Utilities
                     AssertEqualityComparer<T>.Equals(expected, actual)))
                 {
                     Fail("Expected and actual were different.\r\n" +
-                         "Expected: " + expected + "\r\n" +
-                         "Actual:   " + actual + "\r\n" +
+                         "Expected:\r\n" + expected + "\r\n" +
+                         "Actual:\r\n" + actual + "\r\n" +
                          message);
                 }
             }

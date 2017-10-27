@@ -1494,7 +1494,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-          IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'y++')
+          IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: ?, IsInvalid) (Syntax: 'y++')
             Target: 
               IFieldReferenceExpression: System.Int32 MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
                 Instance Receiver: 
@@ -2193,7 +2193,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
       Initializers(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'y++')
             Children(1):
-                IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'y++')
+                IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: ?, IsInvalid) (Syntax: 'y++')
                   Target: 
                     IFieldReferenceExpression: System.Int32 MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
                       Instance Receiver: 

@@ -2735,19 +2735,50 @@ IBlockStatement (14 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }
         public void TestUnaryOperatorOverloadingErrors()
         {
             var source = @"
-class C 
-{ 
+class C
+{
 // UNDONE: Write tests for the rest of them
-    void M() 
-    { 
+    void M(bool b)
+    {
         if(!1) {}
+        b++;
+        error++;
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            var compilation = CreateStandardCompilation(source);
+            compilation.VerifyDiagnostics(
                 // (7,12): error CS0023: Operator '!' cannot be applied to operand of type 'int'
                 //         if(!1) {}
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!1").WithArguments("!", "int").WithLocation(7, 12));
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!1").WithArguments("!", "int").WithLocation(7, 12),
+                // (8,9): error CS0023: Operator '++' cannot be applied to operand of type 'bool'
+                //         b++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "b++").WithArguments("++", "bool").WithLocation(8, 9),
+                // (9,9): error CS0103: The name 'error' does not exist in the current context
+                //         error++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(9, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var negOne = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            Assert.Equal("!1", negOne.ToString());
+            var type1 = (TypeSymbol)model.GetTypeInfo(negOne).Type;
+            Assert.Equal("?", type1.ToTestDisplayString());
+            Assert.True(type1.IsErrorType());
+
+            var boolPlusPlus = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().ElementAt(0);
+            Assert.Equal("b++", boolPlusPlus.ToString());
+            var type2 = (TypeSymbol)model.GetTypeInfo(boolPlusPlus).Type;
+            Assert.Equal("?", type2.ToTestDisplayString());
+            Assert.True(type2.IsErrorType());
+
+            var errorPlusPlus = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().ElementAt(1);
+            Assert.Equal("error++", errorPlusPlus.ToString());
+            var type3 = (TypeSymbol)model.GetTypeInfo(errorPlusPlus).Type;
+            Assert.Equal("?", type3.ToTestDisplayString());
+            Assert.True(type3.IsErrorType());
         }
 
         [Fact]
