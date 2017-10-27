@@ -406,39 +406,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional trivia As IEnumerable(Of SyntaxTrivia) = Nothing,
             Optional computeReplacementTrivia As Func(Of SyntaxTrivia, SyntaxTrivia, SyntaxTrivia) = Nothing) As SyntaxNode
 
-            Return SyntaxReplacer.Replace(Me, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia).InTreeWithOptionsFrom(Me.SyntaxTree)
+            Return SyntaxReplacer.Replace(Me, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function RemoveNodesCore(nodes As IEnumerable(Of SyntaxNode), options As SyntaxRemoveOptions) As SyntaxNode
-            Return SyntaxNodeRemover.RemoveNodes(Me, nodes, options).InTreeWithOptionsFrom(Me.SyntaxTree)
+            Return SyntaxNodeRemover.RemoveNodes(Me, nodes, options).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function ReplaceNodeInListCore(originalNode As SyntaxNode, replacementNodes As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxReplacer.ReplaceNodeInList(Me, originalNode, replacementNodes).InTreeWithOptionsFrom(Me.SyntaxTree)
+            Return SyntaxReplacer.ReplaceNodeInList(Me, originalNode, replacementNodes).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function InsertNodesInListCore(nodeInList As SyntaxNode, nodesToInsert As IEnumerable(Of SyntaxNode), insertBefore As Boolean) As SyntaxNode
-            Return SyntaxReplacer.InsertNodeInList(Me, nodeInList, nodesToInsert, insertBefore).InTreeWithOptionsFrom(Me.SyntaxTree)
+            Return SyntaxReplacer.InsertNodeInList(Me, nodeInList, nodesToInsert, insertBefore).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function ReplaceTokenInListCore(originalToken As SyntaxToken, newTokens As IEnumerable(Of SyntaxToken)) As SyntaxNode
-            Return SyntaxReplacer.ReplaceTokenInList(Me, originalToken, newTokens).InTreeWithOptionsFrom(Me.SyntaxTree)
+            Return SyntaxReplacer.ReplaceTokenInList(Me, originalToken, newTokens).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function InsertTokensInListCore(originalToken As SyntaxToken, newTokens As IEnumerable(Of SyntaxToken), insertBefore As Boolean) As SyntaxNode
-            Return SyntaxReplacer.InsertTokenInList(Me, originalToken, newTokens, insertBefore).InTreeWithOptionsFrom(Me.SyntaxTree)
+            Return SyntaxReplacer.InsertTokenInList(Me, originalToken, newTokens, insertBefore).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function ReplaceTriviaInListCore(originalTrivia As SyntaxTrivia, newTrivia As IEnumerable(Of SyntaxTrivia)) As SyntaxNode
-            Return SyntaxReplacer.ReplaceTriviaInList(Me, originalTrivia, newTrivia).InTreeWithOptionsFrom(Me.SyntaxTree)
+            Return SyntaxReplacer.ReplaceTriviaInList(Me, originalTrivia, newTrivia).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function InsertTriviaInListCore(originalTrivia As SyntaxTrivia, newTrivia As IEnumerable(Of SyntaxTrivia), insertBefore As Boolean) As SyntaxNode
-            Return SyntaxReplacer.InsertTriviaInList(Me, originalTrivia, newTrivia, insertBefore).InTreeWithOptionsFrom(Me.SyntaxTree)
+            Return SyntaxReplacer.InsertTriviaInList(Me, originalTrivia, newTrivia, insertBefore).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 
         Protected Overrides Function NormalizeWhitespaceCore(indentation As String, eol As String, elasticTrivia As Boolean) As SyntaxNode
-            Return SyntaxNormalizer.Normalize(Me, indentation, eol, elasticTrivia, useDefaultCasing:=False).InTreeWithOptionsFrom(Me.SyntaxTree)
+            Return SyntaxNormalizer.Normalize(Me, indentation, eol, elasticTrivia, useDefaultCasing:=False).AsRootOfNewTreeWithOptionsFrom(Me.SyntaxTree)
         End Function
 #End Region
 
