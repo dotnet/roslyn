@@ -408,6 +408,70 @@ class C
             Assert.Null(peErrorType.ErrorInfo);
         }
 
+        [Fact]
+        public void MetadataOnly_TolerateErrors_UnimplementedAbstractMethod()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+public abstract class Base
+{
+    public abstract void M();
+}
+public class C : Base
+{
+}
+", references: new[] { MscorlibRef });
+
+
+            byte[] mdOnlyImage = EmitMetadataOnlyImageAndVerifyDiagnostics(comp,
+                // (6,14): error CS0534: 'C' does not implement inherited abstract member 'Base.M()'
+                // public class C : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "Base.M()").WithLocation(6, 14)
+                );
+
+            var mdOnlyRef = (MetadataImageReference)AssemblyMetadata.CreateFromImage(mdOnlyImage).GetReference(display: "mdOnlyRef");
+
+            // Verify types included in the metadata-only image
+            var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, mdOnlyRef },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            compWithRef.VerifyDiagnostics();
+
+            AssertEx.Equal(
+                new[] { "<Module>", "Base", "C" },
+                compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+            AssertEx.Equal(
+                new[] { "C..ctor()" },
+                compWithRef.GetMember<NamedTypeSymbol>("C").GetMembers().Select(m => m.ToTestDisplayString()));
+
+            var compWithUsage = CreateCompilation(@"
+class D
+{
+    void M(C c)
+    {
+        c.M();
+    }
+}
+", references: new[] { MscorlibRef, mdOnlyRef });
+            compWithUsage.VerifyDiagnostics();
+        }
+
+        private static byte[] EmitMetadataOnlyImageAndVerifyDiagnostics(CSharpCompilation comp, params CodeAnalysis.Test.Utilities.DiagnosticDescription[] expected)
+        {
+            byte[] mdOnlyImage;
+            using (var output = new MemoryStream())
+            {
+                EmitResult emitResult = comp.Emit(output, options: new EmitOptions(metadataOnly: true, tolerateErrors: true));
+                Assert.True(emitResult.Success);
+
+                emitResult.Diagnostics.Verify(expected);
+
+                mdOnlyImage = output.ToArray();
+                Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            }
+
+            return mdOnlyImage;
+        }
+
         // PROTOTYPE(tolerate-errors) Could also try Bad<T>.Bad2<T1, T2>
     }
 }
