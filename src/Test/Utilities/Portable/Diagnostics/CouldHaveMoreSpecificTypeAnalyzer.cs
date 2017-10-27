@@ -96,9 +96,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     (operationContext) =>
                                     {
                                         IVariableInitializerOperation initializer = (IVariableInitializerOperation)operationContext.Operation;
-                                        if (initializer.Parent is IVariableDeclarationOperation variableDeclaration)
+                                        // If the parent is a single variable declaration, just process that one variable. If it's a multi variable
+                                        // declaration, process all variables being assigned
+                                        if (initializer.Parent is ISingleVariableDeclarationOperation singleVariableDeclaration)
                                         {
-                                            foreach (ILocalSymbol local in variableDeclaration.GetDeclaredVariables())
+                                            ILocalSymbol local = singleVariableDeclaration.Symbol;
+                                            AssignTo(local, local.Type, localsSourceTypes, initializer.Value);
+                                        }
+                                        else if (initializer.Parent is IMultiVariableDeclarationOperation multiVariableDeclaration)
+                                        {
+                                            foreach (ILocalSymbol local in multiVariableDeclaration.GetDeclaredVariables())
                                             {
                                                 AssignTo(local, local.Type, localsSourceTypes, initializer.Value);
                                             }

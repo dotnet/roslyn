@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return Nothing
         End Function
 
-        Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclarationOperation)
+        Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IMultiVariableDeclarationOperation)
             ' Group the declarations by their VariableDeclaratorSyntaxes. The issue we're compensating for here is that the
             ' the declarations that are BoundLocalDeclaration nodes have a ModifiedIdentifierSyntax as their syntax nodes,
             ' not a VariableDeclaratorSyntax. We want to group BoundLocalDeclarations by their parent VariableDeclaratorSyntax
@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                End If
                                                            End Function)
 
-            Dim builder = ArrayBuilder(Of IVariableDeclarationOperation).GetInstance()
+            Dim builder = ArrayBuilder(Of IMultiVariableDeclarationOperation).GetInstance()
             For Each declarationGroup In groupedDeclarations
                 Dim first = declarationGroup.First()
                 Dim singleDeclarations As ImmutableArray(Of ISingleVariableDeclarationOperation) = Nothing

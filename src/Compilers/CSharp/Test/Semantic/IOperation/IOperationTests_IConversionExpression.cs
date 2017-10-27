@@ -355,7 +355,7 @@ ISingleVariableDeclarationOperation (Symbol: System.Object o) (OperationKind.Sin
                     },
                     OperationSelector = (operation) =>
                     {
-                        var initializer = ((IVariableDeclarationOperation)operation).Initializer.Value;
+                        var initializer = ((ISingleVariableDeclarationOperation)operation).Initializer.Value;
                         return (IConversionOperation)((ICoalesceOperation)initializer).WhenNull;
                     }
                 }.Verify);
@@ -3208,13 +3208,17 @@ namespace ConsoleApp1
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object o = null;')
-  ISingleVariableDeclarationOperation (Symbol: System.Object o) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'o = null')
+  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'object o = null')
+    Declarations:
+        ISingleVariableDeclarationOperation (Symbol: System.Object o) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'o = null')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= null')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
     Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= null')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'o' is assigned but its value is never used
@@ -3242,13 +3246,17 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Action<stri ... jectAction;')
-  ISingleVariableDeclarationOperation (Symbol: System.Action<System.String> stringAction) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'stringActio ... bjectAction')
+  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'Action<stri ... bjectAction')
+    Declarations:
+        ISingleVariableDeclarationOperation (Symbol: System.Action<System.String> stringAction) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'stringActio ... bjectAction')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= objectAction')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.String>, IsImplicit) (Syntax: 'objectAction')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILocalReferenceOperation: objectAction (OperationKind.LocalReference, Type: System.Action<System.Object>) (Syntax: 'objectAction')
     Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= objectAction')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.String>, IsImplicit) (Syntax: 'objectAction')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
-            ILocalReferenceOperation: objectAction (OperationKind.LocalReference, Type: System.Action<System.Object>) (Syntax: 'objectAction')
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3272,13 +3280,17 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action<int> ... jectAction;')
-  ISingleVariableDeclarationOperation (Symbol: System.Action<System.Int32> intAction) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'intAction = objectAction')
+  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action<int> ... bjectAction')
+    Declarations:
+        ISingleVariableDeclarationOperation (Symbol: System.Action<System.Int32> intAction) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'intAction = objectAction')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= objectAction')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'objectAction')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILocalReferenceOperation: objectAction (OperationKind.LocalReference, Type: System.Action<System.Object>, IsInvalid) (Syntax: 'objectAction')
     Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= objectAction')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'objectAction')
-          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
-            ILocalReferenceOperation: objectAction (OperationKind.LocalReference, Type: System.Action<System.Object>, IsInvalid) (Syntax: 'objectAction')
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'System.Action<object>' to 'System.Action<int>'
@@ -4938,13 +4950,17 @@ namespace ConsoleApp1
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object o = (object)null;')
-  ISingleVariableDeclarationOperation (Symbol: System.Object o) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'o = (object)null')
+  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'object o = (object)null')
+    Declarations:
+        ISingleVariableDeclarationOperation (Symbol: System.Object o) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'o = (object)null')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (object)null')
+              IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null) (Syntax: '(object)null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
     Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (object)null')
-        IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null) (Syntax: '(object)null')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'o' is assigned but its value is never used
@@ -5025,8 +5041,11 @@ IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conver
             public static IOperation IVariableDeclarationStatementSelector(IOperation operation) =>
                 ((IVariableDeclarationGroupOperation)operation).Declarations.Single().Initializer;
 
-            public static IOperation IVariableDeclarationSelector(IOperation operation) =>
-                ((IVariableDeclarationOperation)operation).Initializer.Value;
+            public static IOperation IMultiVariableDeclarationSelector(IOperation operation) =>
+                ((IMultiVariableDeclarationOperation)operation).Initializer.Value;
+
+            public static IOperation ISingleVariableDeclarationSelector(IOperation operation) =>
+                ((ISingleVariableDeclarationOperation)operation).Initializer.Value;
 
             public static IOperation IReturnDeclarationStatementSelector(IOperation operation) =>
                 ((IReturnOperation)operation).ReturnedValue;
@@ -5108,8 +5127,10 @@ IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conver
                 {
                     case IVariableDeclarationGroupOperation _:
                         return IVariableDeclarationStatementSelector(operation);
-                    case IVariableDeclarationOperation _:
-                        return IVariableDeclarationSelector(operation);
+                    case IMultiVariableDeclarationOperation _:
+                        return IMultiVariableDeclarationSelector(operation);
+                    case ISingleVariableDeclarationOperation _:
+                        return ISingleVariableDeclarationSelector(operation);
                     case IReturnOperation _:
                         return IReturnDeclarationStatementSelector(operation);
                     case IConversionOperation conv:

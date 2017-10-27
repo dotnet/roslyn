@@ -5418,7 +5418,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a local variable declaration.
     /// </summary>
-    internal abstract partial class BaseVariableDeclaration : Operation, IVariableDeclarationOperation
+    internal abstract partial class BaseVariableDeclaration : Operation
     {
         protected BaseVariableDeclaration(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(kind, semanticModel, syntax, type, constantValue, isImplicit)
@@ -5571,7 +5571,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
         }
 
-        protected abstract ImmutableArray<IVariableDeclarationOperation> DeclarationsImpl { get; }
+        protected abstract ImmutableArray<IMultiVariableDeclarationOperation> DeclarationsImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -5588,7 +5588,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Variables declared by the statement.
         /// </summary>
-        public ImmutableArray<IVariableDeclarationOperation> Declarations => Operation.SetParentOperation(DeclarationsImpl, this);
+        public ImmutableArray<IMultiVariableDeclarationOperation> Declarations => Operation.SetParentOperation(DeclarationsImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitVariableDeclarationGroup(this);
@@ -5604,13 +5604,13 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class VariableDeclarationGroupOperation : BaseVariableDeclarationGroupOperation, IVariableDeclarationGroupOperation
     {
-        public VariableDeclarationGroupOperation(ImmutableArray<IVariableDeclarationOperation> declarations, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public VariableDeclarationGroupOperation(ImmutableArray<IMultiVariableDeclarationOperation> declarations, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             DeclarationsImpl = declarations;
         }
 
-        protected override ImmutableArray<IVariableDeclarationOperation> DeclarationsImpl { get; }
+        protected override ImmutableArray<IMultiVariableDeclarationOperation> DeclarationsImpl { get; }
     }
 
     /// <summary>
@@ -5618,14 +5618,14 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class LazyVariableDeclarationGroupOperation : BaseVariableDeclarationGroupOperation, IVariableDeclarationGroupOperation
     {
-        private readonly Lazy<ImmutableArray<IVariableDeclarationOperation>> _lazyDeclarations;
+        private readonly Lazy<ImmutableArray<IMultiVariableDeclarationOperation>> _lazyDeclarations;
 
-        public LazyVariableDeclarationGroupOperation(Lazy<ImmutableArray<IVariableDeclarationOperation>> declarations, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyVariableDeclarationGroupOperation(Lazy<ImmutableArray<IMultiVariableDeclarationOperation>> declarations, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyDeclarations = declarations;
         }
 
-        protected override ImmutableArray<IVariableDeclarationOperation> DeclarationsImpl => _lazyDeclarations.Value;
+        protected override ImmutableArray<IMultiVariableDeclarationOperation> DeclarationsImpl => _lazyDeclarations.Value;
     }
 
     /// <summary>

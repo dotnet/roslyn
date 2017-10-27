@@ -3903,16 +3903,20 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const (int  ... ) = (1, 2);')
-  ISingleVariableDeclarationOperation (Symbol: (System.Int32 x, System.Int32 y) ) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '= (1, 2)')
+  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: '(int x, int y) = (1, 2)')
+    Declarations:
+        ISingleVariableDeclarationOperation (Symbol: (System.Int32 x, System.Int32 y) ) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '= (1, 2)')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (1, 2)')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')
+                Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+                    Elements(2):
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
     Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (1, 2)')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')
-          Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
-            ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
-              Elements(2):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1001: Identifier expected

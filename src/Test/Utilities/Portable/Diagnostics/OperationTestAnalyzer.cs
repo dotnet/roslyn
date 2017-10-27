@@ -856,14 +856,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
                      }
 
-                     foreach (var decl in declarationStatement.Declarations)
+                     foreach (var decl in declarationStatement.Declarations.SelectMany(multiDecl => multiDecl.Declarations))
                      {
-                         if (decl.Initializer != null && !decl.Initializer.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
+                         var initializer = decl.GetVariableInitializer();
+                         if (initializer != null && !initializer.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                          {
-                             foreach (var symbol in decl.GetDeclaredVariables())
-                             {
-                                 Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
-                             }
+                             Report(operationContext, decl.Symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
                          }
                      }
                  },
@@ -1542,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     IUnaryOperation unary = (IUnaryOperation)operationContext.Operation;
-                    if (unary.OperatorKind == UnaryOperatorKind.Minus && unary.OperatorMethod  != null && unary.OperatorMethod.Name.Contains("UnaryNegation"))
+                    if (unary.OperatorKind == UnaryOperatorKind.Minus && unary.OperatorMethod != null && unary.OperatorMethod.Name.Contains("UnaryNegation"))
                     {
                         operationContext.ReportDiagnostic(Diagnostic.Create(OperatorMinusMethodDescriptor, unary.Syntax.GetLocation()));
                     }

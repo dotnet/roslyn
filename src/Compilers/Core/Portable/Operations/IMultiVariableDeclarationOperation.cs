@@ -5,25 +5,41 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents multiple declared variables in a single declarator.
+    /// Represents a declarator that declares multiple individual variables.
     /// </summary>
     /// <para>
     /// Current Usage:
-    ///   (1) VB Dim statement declaration groups
-    ///   (2) VB Using statement variable declarations
+    ///   (1) C# VariableDeclaration
+    ///   (2) C# fixed declarations
+    ///   (3) C# using declarations
+    ///   (4) VB Dim statement declaration groups
+    ///   (5) VB Using statement variable declarations
     /// </para>
     /// <remarks>
     /// The initializer of this node is applied to all individual declarations in <see cref="Declarations"/>. There cannot
     /// be initializers in both locations except in invalid code scenarios.
+    /// In C#, this node will never have an initializer.
     ///
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IMultiVariableDeclarationOperation : IVariableDeclarationOperation
+    public interface IMultiVariableDeclarationOperation : IOperation
     {
         /// <summary>
         /// Individual variable declarations declared by this multiple declaration.
         /// </summary>
+        /// <remarks>
+        /// All <see cref="IVariableDeclarationGroupOperation"/> will have at least 1 <code>IMultiVariableDeclarationOpertion</code>,
+        /// even if the declaration group only declares 1 variable.
+        /// </remarks>
         ImmutableArray<ISingleVariableDeclarationOperation> Declarations { get; }
+
+        /// <summary>
+        /// Optional initializer of the variable.
+        /// </summary>
+        /// <remarks>
+        /// In C#, this will always be null.
+        /// </remarks>
+        IVariableInitializerOperation Initializer { get; }
     }
 }

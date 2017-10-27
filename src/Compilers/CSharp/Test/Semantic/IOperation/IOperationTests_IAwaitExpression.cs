@@ -201,7 +201,11 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'await t;')
-  ISingleVariableDeclarationOperation (Symbol: await t) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 't')
+  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'await t')
+    Declarations:
+        ISingleVariableDeclarationOperation (Symbol: await t) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 't')
+          Initializer: 
+            null
     Initializer: 
       null
 ";

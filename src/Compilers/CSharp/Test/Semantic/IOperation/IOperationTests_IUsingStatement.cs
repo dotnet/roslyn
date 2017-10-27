@@ -34,13 +34,17 @@ class C : IDisposable
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c = new C()')
-      ISingleVariableDeclarationOperation (Symbol: C c) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c = new C()')
-        Initializer: 
-          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-            IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-              Arguments(0)
+      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'var c = new C()')
+        Declarations:
+            ISingleVariableDeclarationOperation (Symbol: C c) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c = new C()')
               Initializer: 
-                null
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+        Initializer: 
+          null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... oString());')
@@ -88,21 +92,25 @@ class C : IDisposable
             string expectedOperationTree = @"
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (C c1 ... }')
   Resources: 
-    IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'C c1 = new  ... 2 = new C()')
-      ISingleVariableDeclarationOperation (Symbol: C c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = new C()')
-        Initializer: 
-          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-            IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-              Arguments(0)
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'C c1 = new  ... 2 = new C()')
+      IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'C c1 = new  ... 2 = new C()')
+        Declarations:
+            ISingleVariableDeclarationOperation (Symbol: C c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = new C()')
               Initializer: 
-                null
-      ISingleVariableDeclarationOperation (Symbol: C c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = new C()')
-        Initializer: 
-          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-            IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-              Arguments(0)
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+            ISingleVariableDeclarationOperation (Symbol: C c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = new C()')
               Initializer: 
-                null
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+        Initializer: 
+          null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... oString());')
@@ -199,24 +207,32 @@ class C : IDisposable
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c1 = new C()')
-      ISingleVariableDeclarationOperation (Symbol: C c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = new C()')
-        Initializer: 
-          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-            IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-              Arguments(0)
+      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'var c1 = new C()')
+        Declarations:
+            ISingleVariableDeclarationOperation (Symbol: C c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = new C()')
               Initializer: 
-                null
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+        Initializer: 
+          null
   Body: 
     IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
       Resources: 
         IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c2 = new C()')
-          ISingleVariableDeclarationOperation (Symbol: C c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = new C()')
-            Initializer: 
-              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                  Arguments(0)
+          IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'var c2 = new C()')
+            Declarations:
+                ISingleVariableDeclarationOperation (Symbol: C c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = new C()')
                   Initializer: 
-                    null
+                    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                      IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                        Arguments(0)
+                        Initializer: 
+                          null
+            Initializer: 
+              null
       Body: 
         IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
           IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... oString());')
@@ -331,21 +347,25 @@ class C : IDisposable
             string expectedOperationTree = @"
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (var  ... }')
   Resources: 
-    IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var c1 = ne ... 2 = new C()')
-      ISingleVariableDeclarationOperation (Symbol: C c1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 = new C()')
-        Initializer: 
-          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C()')
-            IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
-              Arguments(0)
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var c1 = ne ... 2 = new C()')
+      IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'var c1 = ne ... 2 = new C()')
+        Declarations:
+            ISingleVariableDeclarationOperation (Symbol: C c1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 = new C()')
               Initializer: 
-                null
-      ISingleVariableDeclarationOperation (Symbol: C c2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2 = new C()')
-        Initializer: 
-          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C()')
-            IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
-              Arguments(0)
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+            ISingleVariableDeclarationOperation (Symbol: C c2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2 = new C()')
               Initializer: 
-                null
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+        Initializer: 
+          null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... oString());')
@@ -409,21 +429,29 @@ IBlockOperation (5 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
   Locals: Local_1: C c1
     Local_2: C c2
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c1 = new C();')
-    ISingleVariableDeclarationOperation (Symbol: C c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = new C()')
-      Initializer: 
-        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-          IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-            Arguments(0)
+    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var c1 = new C()')
+      Declarations:
+          ISingleVariableDeclarationOperation (Symbol: C c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = new C()')
             Initializer: 
-              null
+              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                  Arguments(0)
+                  Initializer: 
+                    null
+      Initializer: 
+        null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c2 = new C();')
-    ISingleVariableDeclarationOperation (Symbol: C c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = new C()')
-      Initializer: 
-        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-          IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-            Arguments(0)
+    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var c2 = new C()')
+      Declarations:
+          ISingleVariableDeclarationOperation (Symbol: C c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = new C()')
             Initializer: 
-              null
+              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                  Arguments(0)
+                  Initializer: 
+                    null
+      Initializer: 
+        null
   IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (c1')
     Resources: 
       ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c1')
@@ -504,13 +532,17 @@ class C
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (var  ... }')
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var c1 = new C()')
-      ISingleVariableDeclarationOperation (Symbol: C c1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 = new C()')
-        Initializer: 
-          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C()')
-            IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
-              Arguments(0)
+      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'var c1 = new C()')
+        Declarations:
+            ISingleVariableDeclarationOperation (Symbol: C c1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 = new C()')
               Initializer: 
-                null
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+        Initializer: 
+          null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Wri ... oString());')
@@ -758,13 +790,17 @@ class C : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c = new C()')
-  ISingleVariableDeclarationOperation (Symbol: C c) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c = new C()')
-    Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-          Arguments(0)
+  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'var c = new C()')
+    Declarations:
+        ISingleVariableDeclarationOperation (Symbol: C c) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c = new C()')
           Initializer: 
-            null
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+              IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                Arguments(0)
+                Initializer: 
+                  null
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

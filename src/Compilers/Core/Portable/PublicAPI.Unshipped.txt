@@ -384,6 +384,7 @@ Microsoft.CodeAnalysis.Operations.IMethodReferenceOperation.IsVirtual.get -> boo
 Microsoft.CodeAnalysis.Operations.IMethodReferenceOperation.Method.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Operations.IMultiVariableDeclarationOperation
 Microsoft.CodeAnalysis.Operations.IMultiVariableDeclarationOperation.Declarations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.ISingleVariableDeclarationOperation>
+Microsoft.CodeAnalysis.Operations.IMultiVariableDeclarationOperation.Initializer.get -> Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation
 Microsoft.CodeAnalysis.Operations.INameOfOperation
 Microsoft.CodeAnalysis.Operations.INameOfOperation.Argument.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IObjectCreationOperation
@@ -424,6 +425,7 @@ Microsoft.CodeAnalysis.Operations.ISimpleAssignmentOperation
 Microsoft.CodeAnalysis.Operations.ISingleValueCaseClauseOperation
 Microsoft.CodeAnalysis.Operations.ISingleValueCaseClauseOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ISingleVariableDeclarationOperation
+Microsoft.CodeAnalysis.Operations.ISingleVariableDeclarationOperation.Initializer.get -> Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation
 Microsoft.CodeAnalysis.Operations.ISingleVariableDeclarationOperation.Symbol.get -> Microsoft.CodeAnalysis.ILocalSymbol
 Microsoft.CodeAnalysis.Operations.ISizeOfOperation
 Microsoft.CodeAnalysis.Operations.ISizeOfOperation.TypeOperand.get -> Microsoft.CodeAnalysis.ITypeSymbol
@@ -460,9 +462,7 @@ Microsoft.CodeAnalysis.Operations.IUsingOperation
 Microsoft.CodeAnalysis.Operations.IUsingOperation.Body.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IUsingOperation.Resources.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation
-Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation.Declarations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation>
-Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation
-Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation.Initializer.get -> Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation
+Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation.Declarations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IMultiVariableDeclarationOperation>
 Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation
 Microsoft.CodeAnalysis.Operations.IWhileLoopOperation
 Microsoft.CodeAnalysis.Operations.IWhileLoopOperation.Condition.get -> Microsoft.CodeAnalysis.IOperation
@@ -516,8 +516,9 @@ static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentName(thi
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentRefKind(this Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation dynamicExpression, int index) -> Microsoft.CodeAnalysis.RefKind?
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentRefKind(this Microsoft.CodeAnalysis.Operations.IDynamicInvocationOperation dynamicExpression, int index) -> Microsoft.CodeAnalysis.RefKind?
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentRefKind(this Microsoft.CodeAnalysis.Operations.IDynamicObjectCreationOperation dynamicExpression, int index) -> Microsoft.CodeAnalysis.RefKind?
-static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation declarationStatement) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
-static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation declaration) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
+static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Operations.IMultiVariableDeclarationOperation declaration) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
+static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation declarationGroup) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
+static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetVariableInitializer(this Microsoft.CodeAnalysis.Operations.ISingleVariableDeclarationOperation declarationOperation) -> Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void

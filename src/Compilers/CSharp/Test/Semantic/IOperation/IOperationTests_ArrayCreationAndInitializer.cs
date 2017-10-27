@@ -304,17 +304,21 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int[] x = { 1, 2 };')
-  ISingleVariableDeclarationOperation (Symbol: System.Int32[] x) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x = { 1, 2 }')
-    Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= { 1, 2 }')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '{ 1, 2 }')
-          Dimension Sizes(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 1, 2 }')
+  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int[] x = { 1, 2 }')
+    Declarations:
+        ISingleVariableDeclarationOperation (Symbol: System.Int32[] x) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x = { 1, 2 }')
           Initializer: 
-            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1, 2 }')
-              Element Values(2):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= { 1, 2 }')
+              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '{ 1, 2 }')
+                Dimension Sizes(1):
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 1, 2 }')
+                Initializer: 
+                  IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1, 2 }')
+                    Element Values(2):
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -76,19 +76,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             (operationContext) =>
                             {
                                 IVariableDeclarationGroupOperation declaration = (IVariableDeclarationGroupOperation)operationContext.Operation;
-                                foreach (IVariableDeclarationOperation variable in declaration.Declarations)
+                                foreach (ISingleVariableDeclarationOperation variable in declaration.Declarations.SelectMany(decl => decl.Declarations))
                                 {
-                                    foreach (ILocalSymbol local in variable.GetDeclaredVariables())
+                                    ILocalSymbol local = variable.Symbol;
+                                    if (!local.IsConst && !assignedToLocals.Contains(local))
                                     {
-                                        if (!local.IsConst && !assignedToLocals.Contains(local))
+                                        var localType = local.Type;
+                                        if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
                                         {
-                                            var localType = local.Type;
-                                            if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
+                                            IVariableInitializerOperation initializer = variable.GetVariableInitializer();
+                                            if (initializer != null && initializer.Value.ConstantValue.HasValue)
                                             {
-                                                if (variable.Initializer != null && variable.Initializer.Value.ConstantValue.HasValue)
-                                                {
-                                                    mightBecomeConstLocals.Add(local);
-                                                }
+                                                mightBecomeConstLocals.Add(local);
                                             }
                                         }
                                     }

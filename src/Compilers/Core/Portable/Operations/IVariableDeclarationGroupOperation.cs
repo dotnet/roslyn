@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a local variable declaration statement.
+    /// Represents a variable declaration statement.
     /// </summary>
     /// <para>
     /// Current Usage:
@@ -22,8 +22,11 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IVariableDeclarationGroupOperation : IOperation
     {
         /// <summary>
-        /// Variables declared by the statement.
+        /// Variable declaration in the statement.
         /// </summary>
-        ImmutableArray<IVariableDeclarationOperation> Declarations { get; }
+        /// <remarks>
+        /// In C#, this will always be a single declaration, with all variables in <see cref="IMultiVariableDeclarationOperation.Declarations"/>.
+        /// </remarks>
+        ImmutableArray<IMultiVariableDeclarationOperation> Declarations { get; }
     }
 }

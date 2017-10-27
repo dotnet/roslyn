@@ -532,10 +532,14 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
     IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 i
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = 0;')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
+        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i = 0')
+          Declarations:
+              ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            null
   Catch clauses(1):
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'catch (Exce ... }')
         ExceptionDeclarationOrExpression: 
@@ -591,10 +595,14 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
           IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
             Locals: Local_1: System.Int32 i
             IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = 0;')
-              ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
+              IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i = 0')
+                Declarations:
+                    ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
+                      Initializer: 
+                        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                 Initializer: 
-                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  null
   Finally: 
     null
 ";
@@ -732,10 +740,14 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
     IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 i
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = 0;')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
+        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i = 0')
+          Declarations:
+              ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i' is assigned but its value is never used

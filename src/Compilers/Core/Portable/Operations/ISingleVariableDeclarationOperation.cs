@@ -18,11 +18,21 @@ namespace Microsoft.CodeAnalysis.Operations
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ISingleVariableDeclarationOperation : IVariableDeclarationOperation
+    public interface ISingleVariableDeclarationOperation : IOperation
     {
         /// <summary>
         /// Symbol declared by this variable declaration
         /// </summary>
         ILocalSymbol Symbol { get; }
+
+        /// <summary>
+        /// Optional initializer of the variable.
+        /// </summary>
+        /// <remarks>
+        /// If this variable is in an <see cref="IMultiVariableDeclarationOperation"/>, the initializer may be located
+        /// in the parent operation. Call <see cref="OperationExtensions.GetVariableInitializer(ISingleVariableDeclarationOperation)"/>
+        /// to check in all locations. It is only possible to have initializers in both locations in VB invalid code scenarios.
+        /// </remarks>
+        IVariableInitializerOperation Initializer { get; }
     }
 }

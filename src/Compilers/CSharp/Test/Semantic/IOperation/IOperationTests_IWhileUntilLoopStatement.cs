@@ -145,12 +145,16 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
     IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int value = ++index;')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value = ++index')
+        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int value = ++index')
+          Declarations:
+              ISingleVariableDeclarationOperation (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value = ++index')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ++index')
+                    IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
+                      Target: 
+                        ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
           Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ++index')
-              IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
-                Target: 
-                  ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
+            null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (value > ... }')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'value > 10')
@@ -206,12 +210,16 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
     IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int value = ++index;')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value = ++index')
+        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int value = ++index')
+          Declarations:
+              ISingleVariableDeclarationOperation (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value = ++index')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ++index')
+                    IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
+                      Target: 
+                        ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
           Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ++index')
-              IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
-                Target: 
-                  ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
+            null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (value > ... }')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'value > 5')
@@ -280,12 +288,16 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
     IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int value = ++index;')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value = ++index')
+        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int value = ++index')
+          Declarations:
+              ISingleVariableDeclarationOperation (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value = ++index')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ++index')
+                    IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
+                      Target: 
+                        ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
           Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ++index')
-              IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
-                Target: 
-                  ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
+            null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (value > ... }')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'value > 100')
@@ -571,12 +583,16 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
     IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int value = ++index;')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value = ++index')
+        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int value = ++index')
+          Declarations:
+              ISingleVariableDeclarationOperation (Symbol: System.Int32 value) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value = ++index')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ++index')
+                    IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
+                      Target: 
+                        ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
           Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ++index')
-              IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
-                Target: 
-                  ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
+            null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (value > ... }')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'value > 100')
@@ -734,10 +750,14 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Target: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int j = 0;')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j = 0')
+        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int j = 0')
+          Declarations:
+              ISingleVariableDeclarationOperation (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j = 0')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            null
       IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
@@ -818,10 +838,14 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Target: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int j = 0;')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j = 0')
+        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int j = 0')
+          Declarations:
+              ISingleVariableDeclarationOperation (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j = 0')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            null
       IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')

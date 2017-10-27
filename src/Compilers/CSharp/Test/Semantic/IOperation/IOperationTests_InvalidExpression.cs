@@ -172,15 +172,19 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'string y = x.i1;')
-  ISingleVariableDeclarationOperation (Symbol: System.String y) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'y = x.i1')
+  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'string y = x.i1')
+    Declarations:
+        ISingleVariableDeclarationOperation (Symbol: System.String y) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'y = x.i1')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= x.i1')
+              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x.i1')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
+                    Instance Receiver: 
+                      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
     Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= x.i1')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x.i1')
-          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
-            IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
-              Instance Receiver: 
-                ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -217,15 +221,19 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Program y = ... ogram)x.i1;')
-  ISingleVariableDeclarationOperation (Symbol: Program y) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'y = (Program)x.i1')
+  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Program y = ... rogram)x.i1')
+    Declarations:
+        ISingleVariableDeclarationOperation (Symbol: Program y) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'y = (Program)x.i1')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (Program)x.i1')
+              IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsInvalid) (Syntax: '(Program)x.i1')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
+                    Instance Receiver: 
+                      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
     Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (Program)x.i1')
-        IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsInvalid) (Syntax: '(Program)x.i1')
-          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
-            IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
-              Instance Receiver: 
-                ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'int' to 'Program'

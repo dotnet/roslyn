@@ -1251,8 +1251,8 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationGroupOperation
-            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclarationOperation)) =
-                New Lazy(Of ImmutableArray(Of IVariableDeclarationOperation))(Function() GetVariableDeclarationStatementVariables(boundDimStatement.LocalDeclarations))
+            Dim declarations As Lazy(Of ImmutableArray(Of IMultiVariableDeclarationOperation)) =
+                New Lazy(Of ImmutableArray(Of IMultiVariableDeclarationOperation))(Function() GetVariableDeclarationStatementVariables(boundDimStatement.LocalDeclarations))
             Dim syntax As SyntaxNode = boundDimStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
