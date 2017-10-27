@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken ||
                     this.IsPossibleAttribute())
                 {
-                    nodes.AddSeparator(this.EatToken());
+                    nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
                     // Allow optional trailing comma.
                     if (this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
