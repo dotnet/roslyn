@@ -1006,6 +1006,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Location getReturnTypeLocation() => GetSyntax().ReturnType.Location;
 
+            Debug.Assert(getReturnTypeLocation() != null);
+
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // method name location for any such errors. We'll do the same for return
             // type errors but for parameter errors, we'll use the parameter location.

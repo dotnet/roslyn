@@ -43,9 +43,7 @@ class C
     static void F(object? x, object?[] y) { }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyEmitDiagnostics(
-                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1));
+            comp.VerifyEmitDiagnostics();
         }
 
         // PROTOTYPE(NullableReferenceTypes): Allow explicit NullableAttribute definition.
@@ -70,9 +68,7 @@ class C
     static void F(object? x, object?[] y) { }
 }";
             var comp = CreateStandardCompilation(source, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
-            comp.VerifyEmitDiagnostics(
-                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -533,6 +529,62 @@ class C
                     var method = module.ContainingAssembly.GetTypeByMetadataName("C").GetMethod("<M>g__L|0_0");
                     AssertNullableAttribute(method.Parameters[0].GetAttributes());
                     AssertNoNullableAttribute(method.Parameters[1].GetAttributes());
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_ExplicitImplementationForwardingMethod()
+        {
+            var source0 =
+@"public class A
+{
+    public object? F() => null;
+}";
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular8);
+            var ref0 = comp0.EmitToImageReference();
+            var source =
+@"interface I
+{
+    object? F();
+}
+class B : A, I
+{
+}";
+            CompileAndVerify(
+                source,
+                additionalRefs: new[] { ref0 },
+                parseOptions: TestOptions.Regular8,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("B").GetMethod("I.F");
+                    AssertNullableAttribute(method.GetReturnTypeAttributes());
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_Iterator()
+        {
+            var source =
+@"using System.Collections.Generic;
+class C
+{
+    static IEnumerable<object?> F()
+    {
+        yield break;
+    }
+}";
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular8,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var property = module.ContainingAssembly.GetTypeByMetadataName("C").GetTypeMember("<F>d__0").GetProperty("System.Collections.Generic.IEnumerator<System.Object>.Current");
+                    // Generated iterator methods have no [Nullable] attributes.
+                    // Since the methods are only called through IEnumerable<T>
+                    // or IEnumerator<T>, that is not an issue.
+                    AssertNoNullableAttribute(property.GetAttributes());
                 });
         }
 

@@ -708,7 +708,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
-            Location GetTypeLocation() => CSharpSyntaxNode.Type.Location;
+            Location getTypeLocation() => CSharpSyntaxNode.Type.Location;
+
+            Debug.Assert(getTypeLocation() != null);
 
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // property name location for any such errors. We'll do the same for return
@@ -723,14 +725,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetTypeLocation(), modifyCompilation: true);
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, getTypeLocation(), modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
             if (this.Type.ContainsNullableReferenceTypes())
             {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, GetTypeLocation(), modifyCompilation: true);
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getTypeLocation(), modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(this.Parameters, diagnostics, modifyCompilation: true);

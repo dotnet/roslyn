@@ -307,6 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return syntax.ReturnType.GetLocation();
                 }
 
+                Debug.Assert(getReturnTypeLocation() != null);
+
                 base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
                 if (_refKind == RefKind.RefReadOnly)

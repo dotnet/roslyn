@@ -1526,12 +1526,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
         }
 
-        protected virtual MethodSymbol GetSynthesizedAttributeConstructor(WellKnownMember constructor)
-        {
-            // For modules, this attribute should be present. Only assemblies generate and embed this type.
-            return (MethodSymbol)Binder.GetWellKnownTypeMember(Compilation, constructor, out var diagnosticInfo);
-        }
-
         internal void EnsureIsReadOnlyAttributeExists()
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
