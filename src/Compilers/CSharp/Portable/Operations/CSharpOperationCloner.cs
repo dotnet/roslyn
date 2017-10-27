@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -8,12 +8,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static OperationCloner Instance { get; } = new CSharpOperationCloner();
 
-        public override IOperation VisitArgument(IArgument operation, object argument)
+        public override IOperation VisitArgument(IArgumentOperation operation, object argument)
         {
             return new CSharpArgument(operation.ArgumentKind, operation.Parameter, Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitConversionExpression(IConversionExpression operation, object argument)
+        public override IOperation VisitConversion(IConversionOperation operation, object argument)
         {
             return new CSharpConversionExpression(Visit(operation.Operand), operation.GetConversion(), operation.IsTryCast, operation.IsChecked, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }

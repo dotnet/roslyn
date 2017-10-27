@@ -22,9 +22,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[]) (Syntax: 'new string[1]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new string[1]')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Initializer: 
     null
 ";
@@ -48,9 +48,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M[]) (Syntax: 'new M[1]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[1]')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Initializer: 
     null
 ";
@@ -75,9 +75,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M[]) (Syntax: 'new M[dimension]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[dimension]')
   Dimension Sizes(1):
-      ILocalReferenceExpression: dimension (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'dimension')
+      ILocalReferenceOperation: dimension (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'dimension')
   Initializer: 
     null
 ";
@@ -101,9 +101,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M[]) (Syntax: 'new M[dimension]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[dimension]')
   Dimension Sizes(1):
-      IParameterReferenceExpression: dimension (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'dimension')
+      IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'dimension')
   Initializer: 
     null
 ";
@@ -127,12 +127,12 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M[]) (Syntax: 'new M[dimension]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[dimension]')
   Dimension Sizes(1):
-      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceExpression: dimension (OperationKind.ParameterReferenceExpression, Type: System.Char) (Syntax: 'dimension')
+          IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Char) (Syntax: 'dimension')
   Initializer: 
     null
 ";
@@ -156,12 +156,12 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M[]) (Syntax: 'new M[(int)dimension]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[(int)dimension]')
   Dimension Sizes(1):
-      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: '(int)dimension')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: '(int)dimension')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceExpression: dimension (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'dimension')
+          IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'dimension')
   Initializer: 
     null
 ";
@@ -183,13 +183,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[]) (Syntax: 'new string[ ... ing.Empty }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new string[ ... ing.Empty }')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new string[ ... ing.Empty }')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new string[ ... ing.Empty }')
   Initializer: 
-    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ string.Empty }')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ string.Empty }')
       Element Values(1):
-          IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'string.Empty')
+          IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String) (Syntax: 'string.Empty')
             Instance Receiver: 
               null
 ";
@@ -211,13 +211,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[]) (Syntax: 'new string[ ... ing.Empty }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new string[ ... ing.Empty }')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Initializer: 
-    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ string.Empty }')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ string.Empty }')
       Element Values(1):
-          IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'string.Empty')
+          IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String) (Syntax: 'string.Empty')
             Instance Receiver: 
               null
 ";
@@ -239,13 +239,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[ ... ing.Empty }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[ ... ing.Empty }')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
   Initializer: 
-    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ string.Empty }')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ string.Empty }')
       Element Values(1):
-          IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+          IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
             Instance Receiver: 
               null
 ";
@@ -271,13 +271,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[ ... ing.Empty }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[ ... ing.Empty }')
   Dimension Sizes(1):
-      IParameterReferenceExpression: dimension (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'dimension')
+      IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'dimension')
   Initializer: 
-    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ string.Empty }')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ string.Empty }')
       Element Values(1):
-          IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'string.Empty')
+          IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String) (Syntax: 'string.Empty')
             Instance Receiver: 
               null
 ";
@@ -303,19 +303,19 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int[] x = { 1, 2 };')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x = { 1, 2 }')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'int[] x = { 1, 2 };')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x = { 1, 2 }')
     Variables: Local_1: System.Int32[] x
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= { 1, 2 }')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: '{ 1, 2 }')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= { 1, 2 }')
+        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '{ 1, 2 }')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 1, 2 }')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 1, 2 }')
           Initializer: 
-            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 1, 2 }')
+            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1, 2 }')
               Element Values(2):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -337,13 +337,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M[]) (Syntax: 'new M[] { new M() }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[] { new M() }')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new M[] { new M() }')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new M[] { new M() }')
   Initializer: 
-    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ new M() }')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ new M() }')
       Element Values(1):
-          IObjectCreationExpression (Constructor: M..ctor()) (OperationKind.ObjectCreationExpression, Type: M) (Syntax: 'new M()')
+          IObjectCreationOperation (Constructor: M..ctor()) (OperationKind.ObjectCreation, Type: M) (Syntax: 'new M()')
             Arguments(0)
             Initializer: 
               null
@@ -368,13 +368,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M[]) (Syntax: 'new[] { new M() }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new[] { new M() }')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[] { new M() }')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[] { new M() }')
   Initializer: 
-    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ new M() }')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ new M() }')
       Element Values(1):
-          IObjectCreationExpression (Constructor: M..ctor()) (OperationKind.ObjectCreationExpression, Type: M) (Syntax: 'new M()')
+          IObjectCreationOperation (Constructor: M..ctor()) (OperationKind.ObjectCreation, Type: M) (Syntax: 'new M()')
             Arguments(0)
             Initializer: 
               null
@@ -397,11 +397,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: ?[], IsInvalid) (Syntax: 'new[]/*</bind>*/')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: ?[], IsInvalid) (Syntax: 'new[]/*</bind>*/')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'new[]/*</bind>*/')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'new[]/*</bind>*/')
   Initializer: 
-    IArrayInitializer (0 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '')
       Element Values(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -432,13 +432,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], IsInvalid) (Syntax: 'new[2]/*</bind>*/')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsInvalid) (Syntax: 'new[2]/*</bind>*/')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'new[2]/*</bind>*/')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'new[2]/*</bind>*/')
   Initializer: 
-    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '2]/*</bind>*/')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '2]/*</bind>*/')
       Element Values(1):
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1003: Syntax error, ']' expected
@@ -472,18 +472,18 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[]) (Syntax: 'new[] { ""he ... , a, null }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new[] { ""he ... , a, null }')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'new[] { ""he ... , a, null }')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'new[] { ""he ... , a, null }')
   Initializer: 
-    IArrayInitializer (3 elements) (OperationKind.ArrayInitializer) (Syntax: '{ ""hello"", a, null }')
+    IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ ""hello"", a, null }')
       Element Values(3):
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""hello"") (Syntax: '""hello""')
-          ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'a')
-          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"") (Syntax: '""hello""')
+          ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.String) (Syntax: 'a')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -504,11 +504,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Byte[,,]) (Syntax: 'new byte[1,2,3]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte[,,]) (Syntax: 'new byte[1,2,3]')
   Dimension Sizes(3):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
   Initializer: 
     null
 ";
@@ -530,46 +530,46 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Byte[,,]) (Syntax: 'new byte[,, ...  5, 6 } } }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte[,,]) (Syntax: 'new byte[,, ...  5, 6 } } }')
   Dimension Sizes(3):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new byte[,, ...  5, 6 } } }')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new byte[,, ...  5, 6 } } }')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'new byte[,, ...  5, 6 } } }')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new byte[,, ...  5, 6 } } }')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new byte[,, ...  5, 6 } } }')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'new byte[,, ...  5, 6 } } }')
   Initializer: 
-    IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ { { 1, 2, ...  5, 6 } } }')
+    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ { { 1, 2, ...  5, 6 } } }')
       Element Values(2):
-          IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ { 1, 2, 3 } }')
+          IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ { 1, 2, 3 } }')
             Element Values(1):
-                IArrayInitializer (3 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 1, 2, 3 }')
+                IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1, 2, 3 }')
                   Element Values(3):
-                      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 1, IsImplicit) (Syntax: '1')
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 1, IsImplicit) (Syntax: '1')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 2, IsImplicit) (Syntax: '2')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 2, IsImplicit) (Syntax: '2')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-                      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-          IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ { 4, 5, 6 } }')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+          IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ { 4, 5, 6 } }')
             Element Values(1):
-                IArrayInitializer (3 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 4, 5, 6 }')
+                IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 4, 5, 6 }')
                   Element Values(3):
-                      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 4, IsImplicit) (Syntax: '4')
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 4, IsImplicit) (Syntax: '4')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
-                      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 5, IsImplicit) (Syntax: '5')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 5, IsImplicit) (Syntax: '5')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
-                      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 6, IsImplicit) (Syntax: '6')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 6, IsImplicit) (Syntax: '6')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: '6')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -589,24 +589,24 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[][]) (Syntax: 'new int[][] ... ew int[5] }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][]) (Syntax: 'new int[][] ... ew int[5] }')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new int[][] ... ew int[5] }')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new int[][] ... ew int[5] }')
   Initializer: 
-    IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ new[] { 1 ... ew int[5] }')
+    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ new[] { 1 ... ew int[5] }')
       Element Values(2):
-          IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new[] { 1, 2, 3 }')
+          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new[] { 1, 2, 3 }')
             Dimension Sizes(1):
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'new[] { 1, 2, 3 }')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'new[] { 1, 2, 3 }')
             Initializer: 
-              IArrayInitializer (3 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 1, 2, 3 }')
+              IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1, 2, 3 }')
                 Element Values(3):
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-          IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new int[5]')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new int[5]')
             Dimension Sizes(1):
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
             Initializer: 
               null
 ";
@@ -628,9 +628,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[][,]) (Syntax: 'new int[1][,]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][,]) (Syntax: 'new int[1][,]')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Initializer: 
     null
 ";
@@ -652,40 +652,40 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[][,,]) (Syntax: 'new[] { new ... , 4 } } } }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][,,]) (Syntax: 'new[] { new ... , 4 } } } }')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new[] { new ... , 4 } } } }')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new[] { new ... , 4 } } } }')
   Initializer: 
-    IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ new[, ,]  ... , 4 } } } }')
+    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ new[, ,]  ... , 4 } } } }')
       Element Values(2):
-          IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[,,]) (Syntax: 'new[, ,] {  ...  1, 2 } } }')
+          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[,,]) (Syntax: 'new[, ,] {  ...  1, 2 } } }')
             Dimension Sizes(3):
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[, ,] {  ...  1, 2 } } }')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[, ,] {  ...  1, 2 } } }')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new[, ,] {  ...  1, 2 } } }')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[, ,] {  ...  1, 2 } } }')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[, ,] {  ...  1, 2 } } }')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new[, ,] {  ...  1, 2 } } }')
             Initializer: 
-              IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ { { 1, 2 } } }')
+              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ { { 1, 2 } } }')
                 Element Values(1):
-                    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ { 1, 2 } }')
+                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ { 1, 2 } }')
                       Element Values(1):
-                          IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 1, 2 }')
+                          IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1, 2 }')
                             Element Values(2):
-                                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-          IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[,,]) (Syntax: 'new[, ,] {  ...  3, 4 } } }')
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[,,]) (Syntax: 'new[, ,] {  ...  3, 4 } } }')
             Dimension Sizes(3):
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[, ,] {  ...  3, 4 } } }')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[, ,] {  ...  3, 4 } } }')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new[, ,] {  ...  3, 4 } } }')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[, ,] {  ...  3, 4 } } }')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[, ,] {  ...  3, 4 } } }')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new[, ,] {  ...  3, 4 } } }')
             Initializer: 
-              IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ { { 3, 4 } } }')
+              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ { { 3, 4 } } }')
                 Element Values(1):
-                    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ { 3, 4 } }')
+                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ { 3, 4 } }')
                       Element Values(1):
-                          IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 3, 4 }')
+                          IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 3, 4 }')
                             Element Values(2):
-                                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-                                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -705,7 +705,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[]')
   Dimension Sizes(0)
   Initializer: 
     null
@@ -732,16 +732,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[] { 1 }')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[] { 1 }')
   Dimension Sizes(1):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'new string[] { 1 }')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'new string[] { 1 }')
   Initializer: 
-    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ 1 }')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ 1 }')
       Element Values(1):
-          IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -765,12 +765,12 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[b]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[b]')
   Dimension Sizes(1):
-      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'b')
+          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'b')
   Initializer: 
     null
 ";
@@ -798,11 +798,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[]) (Syntax: 'new string[M()]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new string[M()]')
   Dimension Sizes(1):
-      IInvocationExpression ( System.Int32 C.M()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M()')
+      IInvocationOperation ( System.Int32 C.M()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M()')
         Instance Receiver: 
-          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M')
+          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M')
         Arguments(0)
   Initializer: 
     null
@@ -827,14 +827,14 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[]) (Syntax: 'new string[(int)M()]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new string[(int)M()]')
   Dimension Sizes(1):
-      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: '(int)M()')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: '(int)M()')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IInvocationExpression ( System.Object C.M()) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M()')
+          IInvocationOperation ( System.Object C.M()) (OperationKind.Invocation, Type: System.Object) (Syntax: 'M()')
             Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M')
+              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M')
             Arguments(0)
   Initializer: 
     null
@@ -859,11 +859,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[M()]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[M()]')
   Dimension Sizes(1):
-      IInvocationExpression ( System.Object C.M()) (OperationKind.InvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'M()')
+      IInvocationOperation ( System.Object C.M()) (OperationKind.Invocation, Type: System.Object, IsInvalid) (Syntax: 'M()')
         Instance Receiver: 
-          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
         Arguments(0)
   Initializer: 
     null
@@ -892,14 +892,14 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[(int)M()]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[(int)M()]')
   Dimension Sizes(1):
-      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '(int)M()')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid) (Syntax: '(int)M()')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IInvocationExpression ( C C.M()) (OperationKind.InvocationExpression, Type: C, IsInvalid) (Syntax: 'M()')
+          IInvocationOperation ( C C.M()) (OperationKind.Invocation, Type: C, IsInvalid) (Syntax: 'M()')
             Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
             Arguments(0)
   Initializer: 
     null
@@ -926,12 +926,12 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[0.0]')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[0.0]')
   Dimension Sizes(1):
-      IConversionExpression (TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+          ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
   Initializer: 
     null
 ";
