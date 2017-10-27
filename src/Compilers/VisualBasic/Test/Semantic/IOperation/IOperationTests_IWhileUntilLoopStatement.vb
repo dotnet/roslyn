@@ -138,9 +138,9 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
     IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While condi ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim value A ... ment(index)')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: value As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: value As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'value')
                 Initializer: 
                   null
           Initializer: 
@@ -252,9 +252,9 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
     IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim value A ... ment(index)')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: value As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: value As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'value')
                 Initializer: 
                   null
           Initializer: 
@@ -330,9 +330,9 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
     IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'While True' ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim value A ... ment(index)')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: value As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: value As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'value')
                 Initializer: 
                   null
           Initializer: 
@@ -636,9 +636,9 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
     IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'While 'BIND ... End While')
       Locals: Local_1: value As System.Int32
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim value A ... ment(index)')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: value As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'value')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'value As In ... ment(index)')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: value As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'value')
                 Initializer: 
                   null
           Initializer: 
@@ -860,9 +860,9 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim j As Integer = 0')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'j As Integer = 0')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: j As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j As Integer = 0')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: j As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j')
                 Initializer: 
                   null
           Initializer: 
@@ -949,9 +949,9 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim j As Integer = 0')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'j As Integer = 0')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: j As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'j As Integer = 0')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: j As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j')
                 Initializer: 
                   null
           Initializer: 

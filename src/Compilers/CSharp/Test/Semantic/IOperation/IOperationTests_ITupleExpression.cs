@@ -55,9 +55,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: '(int, int) t = (1, 2);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: '(int, int) t = (1, 2)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.Int32, System.Int32) t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (1, 2)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: '(int, int) t = (1, 2)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.Int32, System.Int32) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (1, 2)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
               ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
@@ -123,9 +123,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: '(uint, uint) t = (1, 2);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: '(uint, uint) t = (1, 2)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.UInt32, System.UInt32) t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (1, 2)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: '(uint, uint) t = (1, 2)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.UInt32, System.UInt32) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (1, 2)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.UInt32, System.UInt32), IsImplicit) (Syntax: '(1, 2)')
@@ -204,9 +204,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: '(long, long) t = (a, b);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: '(long, long) t = (a, b)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.Int64, System.Int64) t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (a, b)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: '(long, long) t = (a, b)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.Int64, System.Int64) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (a, b)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (a, b)')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int64, System.Int64), IsImplicit) (Syntax: '(a, b)')
@@ -281,9 +281,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: '(uint, stri ...  (1, null);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: '(uint, stri ... = (1, null)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.UInt32, System.String) t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (1, null)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: '(uint, stri ... = (1, null)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.UInt32, System.String) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (1, null)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, null)')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.UInt32, System.String), IsImplicit) (Syntax: '(1, null)')
@@ -352,9 +352,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var t = (A: 1, B: 2);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var t = (A: 1, B: 2)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.Int32 A, System.Int32 B) t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (A: 1, B: 2)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var t = (A: 1, B: 2)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.Int32 A, System.Int32 B) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (A: 1, B: 2)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (A: 1, B: 2)')
               ITupleOperation (OperationKind.Tuple, Type: (System.Int32 A, System.Int32 B)) (Syntax: '(A: 1, B: 2)')
@@ -414,9 +414,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: '(int A, int ... t = (1, 2);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: '(int A, int ...  t = (1, 2)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.Int32 A, System.Int32 B) t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (1, 2)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: '(int A, int ...  t = (1, 2)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.Int32 A, System.Int32 B) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (1, 2)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 A, System.Int32 B), IsImplicit) (Syntax: '(1, 2)')
@@ -492,9 +492,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: '(short, str ... , B: null);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: '(short, str ... 1, B: null)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.Int16, System.String) t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (A: 1, B: null)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: '(short, str ... 1, B: null)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.Int16, System.String) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (A: 1, B: null)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (A: 1, B: null)')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(A: 1, B: null)')
@@ -625,9 +625,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: '(short, str ...  C(0), c1);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: '(short, str ... w C(0), c1)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.Int16, System.String) t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (new C(0), c1)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: '(short, str ... w C(0), c1)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.Int16, System.String) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (new C(0), c1)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (new C(0), c1)')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(new C(0), c1)')
@@ -738,9 +738,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'C t = (0, null);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'C t = (0, null)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: C t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (0, null)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C t = (0, null)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: C t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (0, null)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (0, null)')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: C C.op_Implicit((System.Int32, System.String) x)) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: '(0, null)')
@@ -838,9 +838,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: '(int, string) t = c1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: '(int, string) t = c1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.Int32, System.String) t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = c1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: '(int, string) t = c1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.Int32, System.String) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = c1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= c1')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: (System.Int32, System.String) C.op_Implicit(C c)) (OperationKind.Conversion, Type: (System.Int32, System.String), IsImplicit) (Syntax: 'c1')
@@ -962,9 +962,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: '(short, str ...  C(0), c1);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: '(short, str ... w C(0), c1)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.Int16, System.String) t) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 't = (new C(0), c1)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: '(short, str ... w C(0), c1)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.Int16, System.String) t) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 't = (new C(0), c1)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (new C(0), c1)')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsInvalid, IsImplicit) (Syntax: '(new C(0), c1)')

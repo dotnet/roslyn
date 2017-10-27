@@ -25,9 +25,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Action a = () => { };')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'Action a = () => { }')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a = () => { }')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Action a = () => { }')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a = () => { }')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= () => { }')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: '() => { }')
@@ -87,9 +87,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action a = () => 1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a = () => 1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a = () => 1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a = () => 1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = () => 1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= () => 1')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: '() => 1')
@@ -130,9 +130,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action a =  ...  i) => { };')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... t i) => { }')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a = (int i) => { }')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... t i) => { }')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = (int i) => { }')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (int i) => { }')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: '(int i) => { }')
@@ -259,9 +259,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Action a =  ... gate() { };')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'Action a =  ... egate() { }')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a = delegate() { }')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Action a =  ... egate() { }')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a = delegate() { }')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= delegate() { }')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'delegate() { }')
@@ -295,9 +295,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action a =  ... eturn 1; };')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... return 1; }')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a = delegat ... return 1; }')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... return 1; }')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = delegat ... return 1; }')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= delegate( ... return 1; }')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'delegate() { return 1; }')
@@ -335,9 +335,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action a =  ... int i) { };')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... (int i) { }')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a = delegate(int i) { }')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... (int i) { }')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = delegate(int i) { }')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= delegate(int i) { }')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'delegate(int i) { }')
@@ -373,9 +373,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Action a = M1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'Action a = M1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a = M1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Action a = M1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a = M1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= M1')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'M1')
@@ -434,9 +434,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action a = M1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a = M1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a = M1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a = M1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = M1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= M1')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
@@ -502,9 +502,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action a = M1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a = M1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a = M1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a = M1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = M1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= M1')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
@@ -572,9 +572,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action a = M1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a = M1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a = M1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a = M1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = M1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= M1')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
@@ -1630,7 +1630,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: Program.DType d1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'd1 = () =>/*</bind>*/')
+IVariableDeclaratorOperation (Symbol: Program.DType d1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'd1 = () =>/*</bind>*/')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= () =>/*</bind>*/')
       IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Program.DType, IsInvalid, IsImplicit) (Syntax: '() =>/*</bind>*/')
@@ -1673,9 +1673,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action<int> a = M1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action<int> a = M1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action<System.Int32> a) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a = M1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action<int> a = M1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action<System.Int32> a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = M1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= M1')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'M1')
@@ -1713,9 +1713,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Action<int> a = M1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'Action<int> a = M1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action<System.Int32> a) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a = M1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Action<int> a = M1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action<System.Int32> a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a = M1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= M1')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Int32>, IsImplicit) (Syntax: 'M1')

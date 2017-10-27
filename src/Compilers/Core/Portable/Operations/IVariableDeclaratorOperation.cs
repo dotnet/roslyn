@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a single variable declaration and initializer.
+    /// Represents a single variable declarator and initializer.
     /// </summary>
     /// <para>
     /// Current Usage:
@@ -13,12 +13,13 @@ namespace Microsoft.CodeAnalysis.Operations
     ///   (4) VB catch variable declaration
     /// </para>
     /// <remarks>
-    /// In VB, the initializer for this node is only ever used for explicit array bounds initializers.
+    /// In VB, the initializer for this node is only ever used for explicit array bounds initializers. This node corresponds to
+    /// the VariableDeclaratorSyntax in C# and the ModifiedIdentifierSyntax in VB.
     ///
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ISingleVariableDeclarationOperation : IOperation
+    public interface IVariableDeclaratorOperation : IOperation
     {
         /// <summary>
         /// Symbol declared by this variable declaration
@@ -29,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Optional initializer of the variable.
         /// </summary>
         /// <remarks>
-        /// If this variable is in an <see cref="IMultiVariableDeclarationOperation"/>, the initializer may be located
-        /// in the parent operation. Call <see cref="OperationExtensions.GetVariableInitializer(ISingleVariableDeclarationOperation)"/>
+        /// If this variable is in an <see cref="IVariableDeclarationOperation"/>, the initializer may be located
+        /// in the parent operation. Call <see cref="OperationExtensions.GetVariableInitializer(IVariableDeclaratorOperation)"/>
         /// to check in all locations. It is only possible to have initializers in both locations in VB invalid code scenarios.
         /// </remarks>
         IVariableInitializerOperation Initializer { get; }

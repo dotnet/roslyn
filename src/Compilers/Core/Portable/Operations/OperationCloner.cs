@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.Operations
             return new VariableDeclarationGroupOperation(VisitArray(operation.Declarations), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitSingleVariableDeclaration(ISingleVariableDeclarationOperation operation, object argument)
+        public override IOperation VisitVariableDeclarator(IVariableDeclaratorOperation operation, object argument)
         {
-            return new SingleVariableDeclaration(operation.Symbol, Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new VariableDeclarator(operation.Symbol, Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitMultiVariableDeclaration(IMultiVariableDeclarationOperation operation, object argument)
+        public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, object argument)
         {
-            return new MultiVariableDeclaration(VisitArray(operation.Declarations), Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new VariableDeclaration(VisitArray(operation.Declarators), Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSwitch(ISwitchOperation operation, object argument)

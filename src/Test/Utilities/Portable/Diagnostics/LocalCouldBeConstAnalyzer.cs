@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             (operationContext) =>
                             {
                                 IVariableDeclarationGroupOperation declaration = (IVariableDeclarationGroupOperation)operationContext.Operation;
-                                foreach (ISingleVariableDeclarationOperation variable in declaration.Declarations.SelectMany(decl => decl.Declarations))
+                                foreach (IVariableDeclaratorOperation variable in declaration.Declarations.SelectMany(decl => decl.Declarators))
                                 {
                                     ILocalSymbol local = variable.Symbol;
                                     if (!local.IsConst && !assignedToLocals.Contains(local))

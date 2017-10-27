@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
                      }
 
-                     foreach (var decl in declarationStatement.Declarations.SelectMany(multiDecl => multiDecl.Declarations))
+                     foreach (var decl in declarationStatement.Declarations.SelectMany(multiDecl => multiDecl.Declarators))
                      {
                          var initializer = decl.GetVariableInitializer();
                          if (initializer != null && !initializer.HasErrors(operationContext.Compilation, operationContext.CancellationToken))

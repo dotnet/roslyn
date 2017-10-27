@@ -136,9 +136,9 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
     Local_3: System.Object v3
     Local_4: <empty anonymous type> v4
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object v1 = ... };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'object v1 = ... }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: System.Object v1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'v1 = new ... }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'object v1 = ... }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Object v1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v1 = new ... }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new ... }')
                 IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new ... }')
@@ -173,9 +173,9 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object v2 = ... };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'object v2 = ... }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: System.Object v2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'v2 = new ... }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'object v2 = ... }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Object v2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v2 = new ... }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new ... }')
                 IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new ... }')
@@ -223,9 +223,9 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object v3 = new { };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'object v3 = new { }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: System.Object v3) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'v3 = new { }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'object v3 = new { }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Object v3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v3 = new { }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new { }')
                 IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new { }')
@@ -236,9 +236,9 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var v4 = new { };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var v4 = new { }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: <empty anonymous type> v4) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'v4 = new { }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var v4 = new { }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: <empty anonymous type> v4) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v4 = new { }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new { }')
                 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>) (Syntax: 'new { }')
@@ -1116,9 +1116,9 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
   Locals: Local_1: System.Object v1
     Local_2: System.Object v2
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'object v1 = ... };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'object v1 = ... }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: System.Object v1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'v1 = new ... }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'object v1 = ... }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Object v1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v1 = new ... }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new ... }')
                 IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new ... }')
@@ -1152,9 +1152,9 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'object v2 = ... };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'object v2 = ... }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: System.Object v2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'v2 = new ... }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'object v2 = ... }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Object v2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v2 = new ... }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new ... }')
                 IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new ... }')
@@ -1266,9 +1266,9 @@ class ClassA
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var v1 = new { }')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'var v1 = new { }')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: <empty anonymous type> v1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'v1 = new { }')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'var v1 = new { }')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: <empty anonymous type> v1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v1 = new { }')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new { }')
               IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>, IsInvalid) (Syntax: 'new { }')

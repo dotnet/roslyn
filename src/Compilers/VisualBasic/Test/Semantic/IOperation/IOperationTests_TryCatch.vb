@@ -41,7 +41,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ... Throw ex')
         Locals: Local_1: ex As System.Exception
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclarationOperation (Symbol: ex As System.Exception) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'ex')
+          IVariableDeclaratorOperation (Symbol: ex As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ex')
             Initializer: 
               null
         Filter: 
@@ -106,7 +106,7 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Priva
         ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ... Throw ex')
           Locals: Local_1: ex As System.Exception
           ExceptionDeclarationOrExpression: 
-            ISingleVariableDeclarationOperation (Symbol: ex As System.Exception) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'ex')
+            IVariableDeclaratorOperation (Symbol: ex As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ex')
               Initializer: 
                 null
           Filter: 
@@ -164,7 +164,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... IOException')
         Locals: Local_1: e As System.IO.IOException
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclarationOperation (Symbol: e As System.IO.IOException) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e')
+          IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
         Filter: 
@@ -201,7 +201,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
         Locals: Local_1: e As System.IO.IOException
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclarationOperation (Symbol: e As System.IO.IOException) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e')
+          IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
         Filter: 
@@ -251,7 +251,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... IOException')
         Locals: Local_1: e As System.IO.IOException
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclarationOperation (Symbol: e As System.IO.IOException) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e')
+          IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
         Filter: 
@@ -261,7 +261,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
         Locals: Local_1: e As System.Exception
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclarationOperation (Symbol: e As System.Exception) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e')
+          IVariableDeclaratorOperation (Symbol: e As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
         Filter: 
@@ -311,7 +311,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... IOException')
         Locals: Local_1: e As System.IO.IOException
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclarationOperation (Symbol: e As System.IO.IOException) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e')
+          IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
         Filter: 
@@ -321,7 +321,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
       ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
         Locals: Local_1: e As System.IO.IOException
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclarationOperation (Symbol: e As System.IO.IOException) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e')
+          IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
         Filter: 
@@ -687,9 +687,9 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
     IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try'BIND:"T ... End Try')
       Locals: Local_1: i As System.Int32
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim i As Integer = 0')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'i As Integer = 0')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: i As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Integer = 0')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
                 Initializer: 
                   null
           Initializer: 
@@ -727,7 +727,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
       ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ... Integer = 0')
         Locals: Local_1: ex As System.Exception
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclarationOperation (Symbol: ex As System.Exception) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'ex')
+          IVariableDeclaratorOperation (Symbol: ex As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ex')
             Initializer: 
               null
         Filter: 
@@ -736,9 +736,9 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
           IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Catch ex As ... Integer = 0')
             Locals: Local_1: i As System.Int32
             IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim i As Integer = 0')
-              IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'i As Integer = 0')
-                Declarations:
-                    ISingleVariableDeclarationOperation (Symbol: i As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i')
+              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Integer = 0')
+                Declarators:
+                    IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
                       Initializer: 
                         null
                 Initializer: 
@@ -776,9 +776,9 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
     IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Finally ... Integer = 0')
       Locals: Local_1: i As System.Int32
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim i As Integer = 0')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'i As Integer = 0')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: i As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Integer = 0')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
                 Initializer: 
                   null
           Initializer: 
@@ -812,7 +812,7 @@ ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T .
       ICatchClauseOperation (Exception type: System.Int32) (OperationKind.CatchClause, Type: null, IsInvalid) (Syntax: 'Catch i As Integer')
         Locals: Local_1: i As System.Int32
         ExceptionDeclarationOrExpression: 
-          ISingleVariableDeclarationOperation (Symbol: i As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i')
+          IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
             Initializer: 
               null
         Filter: 
@@ -849,7 +849,7 @@ End Class]]>.Value
 ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch e As  ... Not Nothing')
   Locals: Local_1: e As System.IO.IOException
   ExceptionDeclarationOrExpression: 
-    ISingleVariableDeclarationOperation (Symbol: e As System.IO.IOException) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e')
+    IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
       Initializer: 
         null
   Filter: 

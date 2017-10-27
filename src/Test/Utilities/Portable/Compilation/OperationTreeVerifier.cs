@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)
         {
-            var walker = new OperationTreeVerifier(compilation, operation, initialIndent, 
+            var walker = new OperationTreeVerifier(compilation, operation, initialIndent,
                 trackExplicitNodes: operation.Language == LanguageNames.VisualBasic);
             walker.Visit(operation);
             return walker._builder.ToString();
@@ -406,9 +406,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitVariableDeclarationGroup(operation);
         }
 
-        public override void VisitSingleVariableDeclaration(ISingleVariableDeclarationOperation operation)
+        public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
         {
-            LogString($"{nameof(ISingleVariableDeclarationOperation)} (");
+            LogString($"{nameof(IVariableDeclaratorOperation)} (");
             LogSymbol(operation.Symbol, "Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
@@ -416,13 +416,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Initializer, "Initializer");
         }
 
-        public override void VisitMultiVariableDeclaration(IMultiVariableDeclarationOperation operation)
+        public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
         {
-            var variableCount = operation.Declarations.Length;
-            LogString($"{nameof(IMultiVariableDeclarationOperation)} ({variableCount} declarations)");
+            var variableCount = operation.Declarators.Length;
+            LogString($"{nameof(IVariableDeclarationOperation)} ({variableCount} declarators)");
             LogCommonPropertiesAndNewLine(operation);
 
-            VisitArray(operation.Declarations, "Declarations", false);
+            VisitArray(operation.Declarators, "Declarators", false);
             Visit(operation.Initializer, "Initializer");
         }
 

@@ -389,9 +389,9 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
     Local_3: c As C2
     Local_4: d As C2
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ne ... .a = "goo"}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a As New C2 ... .a = "goo"}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: a As C2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As New C2 ... .a = "goo"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: a As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
             Initializer: 
               null
       Initializer: 
@@ -409,9 +409,9 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim b As Ne ... lo World!"}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'b As New C2 ... lo World!"}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: b As C2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'b')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'b As New C2 ... lo World!"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: b As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b')
             Initializer: 
               null
       Initializer: 
@@ -425,9 +425,9 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                       Arguments(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim c As C2 ... lo World!"}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c As C2 = N ... lo World!"}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: c As C2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c As C2 = N ... lo World!"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: c As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c')
             Initializer: 
               null
       Initializer: 
@@ -441,9 +441,9 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                       Arguments(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim d As C2 ... .a = "goo"}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'd As C2 = N ... .a = "goo"}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: d As C2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'd')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'd As C2 = N ... .a = "goo"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: d As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd')
             Initializer: 
               null
       Initializer: 

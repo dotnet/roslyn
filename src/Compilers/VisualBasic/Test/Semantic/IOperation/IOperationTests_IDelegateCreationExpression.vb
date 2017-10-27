@@ -25,9 +25,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... iteLine("")')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a As Action ... iteLine("")')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... iteLine("")')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -111,9 +111,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... iteLine("")')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... iteLine("")')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -164,9 +164,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... iteLine("")')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action(Of System.String)) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... iteLine("")')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -216,9 +216,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... nExistant()')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... nExistant()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... nExistant()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -266,9 +266,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... unction() 1')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... unction() 1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... unction() 1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -315,9 +315,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... unction() 1')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a As Action ... unction() 1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... unction() 1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -357,9 +357,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... riteLine(o)')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a As Action ... riteLine(o)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action(Of System.String)) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... riteLine(o)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -612,9 +612,9 @@ End Module
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... f Integer))')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action(Of System.Object)) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... f Integer))')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.Object)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -773,9 +773,9 @@ End Module
             ' a delegate creation
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... f Integer))')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action(Of System.Object)) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... f Integer))')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.Object)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -1507,9 +1507,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... eLine(), 1)')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... eLine(), 1)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... eLine(), 1)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -1806,9 +1806,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a As Action ... sOf Method2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -1868,9 +1868,9 @@ End Module
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ...  o.ToString')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a As Action ...  o.ToString')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ...  o.ToString')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -1904,9 +1904,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... sOf Method2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -1948,9 +1948,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... sOf Method2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action(Of System.String)) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -1991,9 +1991,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... sOf Method2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -2032,9 +2032,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... sOf Method2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Func(O ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Func(Of System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -2081,9 +2081,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a As Action ... sOf Method2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -2117,9 +2117,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a As Ac ... sOf Method2')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a As Action ... sOf Method2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action(Of System.Int32)) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a As Action ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action(Of System.Int32)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -2157,9 +2157,9 @@ End Module]]>.Value
             ' isn't a delegate type
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As St ... sOf Method2')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As String ... sOf Method2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.String) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As String ... sOf Method2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -3177,9 +3177,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim a As Ac ... Method2, 1)')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... Method2, 1)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Action) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'a As Action ... Method2, 1)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Action) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -3425,9 +3425,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a = Sub ... End Sub')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a = Sub()'B ... End Sub')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As Sub <generated method>()) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a = Sub()'B ... End Sub')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As Sub <generated method>()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -3492,9 +3492,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a = Sub ... WriteLine()')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a = Sub() C ... WriteLine()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As Sub <generated method>()) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a = Sub() C ... WriteLine()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As Sub <generated method>()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 

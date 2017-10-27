@@ -36,9 +36,9 @@ class C
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed(int * ... }')
   Children(2):
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int *p = &i')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int *p = &i')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: System.Int32* p) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p = &i')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int *p = &i')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = &i')
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i')
                     IOperation:  (OperationKind.None, Type: null) (Syntax: '&i')
@@ -110,9 +110,9 @@ class C
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
   Children(2):
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int* p1 = &i1, p2 = &i2')
-        IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1, p2 = &i2')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p1 = &i1')
+        IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1, p2 = &i2')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &i1')
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i1')
                     IOperation:  (OperationKind.None, Type: null) (Syntax: '&i1')
@@ -122,7 +122,7 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                               IFieldReferenceOperation: System.Int32 C.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
-              ISingleVariableDeclarationOperation (Symbol: System.Int32* p2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p2 = &i2')
+              IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &i2')
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i2')
                     IOperation:  (OperationKind.None, Type: null) (Syntax: '&i2')
@@ -189,9 +189,9 @@ class C
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
   Children(2):
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int* p1 = &i1')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p1 = &i1')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &i1')
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i1')
                     IOperation:  (OperationKind.None, Type: null) (Syntax: '&i1')
@@ -206,9 +206,9 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
         Children(2):
             IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int* p2 = &i2')
-              IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p2 = &i2')
-                Declarations:
-                    ISingleVariableDeclarationOperation (Symbol: System.Int32* p2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p2 = &i2')
+              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p2 = &i2')
+                Declarators:
+                    IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &i2')
                       Initializer: 
                         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i2')
                           IOperation:  (OperationKind.None, Type: null) (Syntax: '&i2')
@@ -270,9 +270,9 @@ class C
 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'fixed (int* ... }')
   Children(2):
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int* p1 =')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1 =')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p1 =')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1 =')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1 =')
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
                     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -328,9 +328,9 @@ class C
 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'fixed (int* ... }')
   Children(2):
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int* p1 = &i1')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p1 = &i1')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &i1')
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i1')
                     IOperation:  (OperationKind.None, Type: null) (Syntax: '&i1')

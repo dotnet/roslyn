@@ -268,9 +268,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return builder.ToImmutableAndFree();
         }
 
-        private ISingleVariableDeclarationOperation CreateVariableDeclaration(BoundLocalDeclaration boundNode)
+        private IVariableDeclaratorOperation CreateVariableDeclaration(BoundLocalDeclaration boundNode)
         {
-            return (ISingleVariableDeclarationOperation)_cache.GetOrAdd(boundNode, n => CreateVariableDeclarationInternal((BoundLocalDeclaration)n, n.Syntax));
+            return (IVariableDeclaratorOperation)_cache.GetOrAdd(boundNode, n => CreateVariableDeclarationInternal((BoundLocalDeclaration)n, n.Syntax));
         }
 
         private IPlaceholderOperation CreateBoundDeconstructValuePlaceholderOperation(BoundDeconstructValuePlaceholder boundDeconstructValuePlaceholder)
@@ -1544,13 +1544,13 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            Lazy<ImmutableArray<ISingleVariableDeclarationOperation>> declarations = new Lazy<ImmutableArray<ISingleVariableDeclarationOperation>>(() => ImmutableArray.Create(CreateVariableDeclarationInternal(boundLocalDeclaration, varDeclarator)));
+            Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarations = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() => ImmutableArray.Create(CreateVariableDeclarationInternal(boundLocalDeclaration, varDeclarator)));
             // In the case of a for loop, varStatement and varDeclaration will be the same syntax node. We can only have one explicit operation, so make
             // sure this node is implicit in that scenario
             bool multiVariableImplicit = (varStatement == varDeclaration) || boundLocalDeclaration.WasCompilerGenerated;
             // In C#, the MultiVariable initializer will always be null, but we can't pass null as the actual lazy. We assume that all lazy elements always exist
             Lazy<IVariableInitializerOperation> initializer = new Lazy<IVariableInitializerOperation>(() => null);
-            IMultiVariableDeclarationOperation multiVariableDeclaration = new LazyMultiVariableDeclaration(declarations, initializer, _semanticModel, varDeclaration, null, default, multiVariableImplicit);
+            IVariableDeclarationOperation multiVariableDeclaration = new LazyVariableDeclaration(declarations, initializer, _semanticModel, varDeclaration, null, default, multiVariableImplicit);
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundLocalDeclaration.WasCompilerGenerated;
@@ -1559,19 +1559,19 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IVariableDeclarationGroupOperation CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
         {
-            Lazy<ImmutableArray<ISingleVariableDeclarationOperation>> declarations = new Lazy<ImmutableArray<ISingleVariableDeclarationOperation>>(() =>
+            Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarations = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() =>
                 boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration => CreateVariableDeclaration(declaration)));
             // In C#, the MultiVariable initializer will always be null, but we can't pass null as the actual lazy. We assume that all lazy elements always exist
             Lazy<IVariableInitializerOperation> initializer = new Lazy<IVariableInitializerOperation>(() => null);
 
             // The syntax for the boundMultipleLocalDeclarations can either be a LocalDeclarationStatement or a VariableDeclaration, depending on the context
-            // (using/fixed/etc statements vs variable declaration). If the former, we make the MultiVariableDeclarationOperation implicit
+            // (using/fixed/etc statements vs variable declaration). If the former, we make the VariableDeclarationOperation implicit
             SyntaxNode declarationGroupSyntax = boundMultipleLocalDeclarations.Syntax;
             SyntaxNode declarationSyntax = declarationGroupSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) ?
                     ((LocalDeclarationStatementSyntax)declarationGroupSyntax).Declaration :
                     declarationGroupSyntax;
             bool declarationIsImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated;
-            IMultiVariableDeclarationOperation multiVariableDeclaration = new LazyMultiVariableDeclaration(declarations, initializer, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
+            IVariableDeclarationOperation multiVariableDeclaration = new LazyVariableDeclaration(declarations, initializer, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
 
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);

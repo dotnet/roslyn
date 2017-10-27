@@ -46,9 +46,9 @@ IBlockOperation (9 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
     Local_6: e1 As F
     Local_7: e2 As F
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x1 = New F()')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x1 = New F()')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x1 As F) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x1')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x1 = New F()')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x1 As F) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x1')
             Initializer: 
               null
       Initializer: 
@@ -58,9 +58,9 @@ IBlockOperation (9 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
             Initializer: 
               null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x2 = Ne ... .Field = 2}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x2 = New F( ... .Field = 2}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x2 As F) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x2')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x2 = New F( ... .Field = 2}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x2 As F) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x2')
             Initializer: 
               null
       Initializer: 
@@ -78,9 +78,9 @@ IBlockOperation (9 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x3 = Ne ... erty1 = ""}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x3 = New F( ... erty1 = ""}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x3 As F) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x3')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x3 = New F( ... erty1 = ""}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x3 As F) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x3')
             Initializer: 
               null
       Initializer: 
@@ -98,9 +98,9 @@ IBlockOperation (9 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "") (Syntax: '""')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x4 = Ne ... .Field = 2}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x4 = New F( ... .Field = 2}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x4 As F) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x4')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x4 = New F( ... .Field = 2}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x4 As F) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x4')
             Initializer: 
               null
       Initializer: 
@@ -125,9 +125,9 @@ IBlockOperation (9 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x5 = Ne ... ld = True}}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x5 = New F( ... ld = True}}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x5 As F) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x5')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x5 = New F( ... ld = True}}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x5 As F) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x5')
             Initializer: 
               null
       Initializer: 
@@ -156,9 +156,9 @@ IBlockOperation (9 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                                     Right: 
                                       ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim e1 = Ne ... perty2 = 1}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'e1 = New F( ... perty2 = 1}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: e1 As F) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e1')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'e1 = New F( ... perty2 = 1}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: e1 As F) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e1')
             Initializer: 
               null
       Initializer: 
@@ -179,9 +179,9 @@ IBlockOperation (9 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim e2 = Ne ... ) From {""}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'e2 = New F() From {""}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: e2 As F) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e2')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'e2 = New F() From {""}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: e2 As F) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e2')
             Initializer: 
               null
       Initializer: 

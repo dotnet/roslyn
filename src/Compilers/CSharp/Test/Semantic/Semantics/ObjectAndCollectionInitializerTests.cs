@@ -307,9 +307,9 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
     Local_2: MemberInitializerTest j
     Local_3: MemberInitializerTest k
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var i = new ... int>() { };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var i = new ... <int>() { }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: System.Collections.Generic.List<System.Int32> i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = new List<int>() { }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var i = new ... <int>() { }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Collections.Generic.List<System.Int32> i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = new List<int>() { }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new List<int>() { }')
                 IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new List<int>() { }')
@@ -320,9 +320,9 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var j = new ...  x = { } };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var j = new ... { x = { } }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: MemberInitializerTest j) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j = new Mem ... { x = { } }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var j = new ... { x = { } }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: MemberInitializerTest j) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j = new Mem ... { x = { } }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Membe ... { x = { } }')
                 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest) (Syntax: 'new MemberI ... { x = { } }')
@@ -341,9 +341,9 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var k = new ... Test() { };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var k = new ... rTest() { }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: MemberInitializerTest k) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'k = new Mem ... rTest() { }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var k = new ... rTest() { }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: MemberInitializerTest k) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'k = new Mem ... rTest() { }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Membe ... rTest() { }')
                 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest) (Syntax: 'new MemberI ... rTest() { }')
@@ -1921,9 +1921,9 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
   Locals: Local_1: MemberInitializerTest i
     Local_2: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> collection
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var i = new ...  y = { } };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var i = new ... { y = { } }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: MemberInitializerTest i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = new Mem ... { y = { } }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var i = new ... { y = { } }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: MemberInitializerTest i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = new Mem ... { y = { } }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Membe ... { y = { } }')
                 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest) (Syntax: 'new MemberI ... { y = { } }')
@@ -1985,9 +1985,9 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                               IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '{ }')
                                 Children(0)
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'List<List<i ... () { { } };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'List<List<i ... >() { { } }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> collection) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'collection  ... >() { { } }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'List<List<i ... >() { { } }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> collection) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'collection  ... >() { { } }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new List< ... >() { { } }')
                 IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsInvalid) (Syntax: 'new List<Li ... >() { { } }')
@@ -2088,9 +2088,9 @@ IBlockOperation (3 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
   Locals: Local_1: B coll
     Local_2: A tc
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'B coll = new B { 1 };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'B coll = new B { 1 }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: B coll) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'coll = new B { 1 }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'B coll = new B { 1 }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: B coll) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'coll = new B { 1 }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new B { 1 }')
                 IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B { 1 }')
@@ -2104,9 +2104,9 @@ IBlockOperation (3 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var tc = ne ...  ""hello"" };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'var tc = ne ... , ""hello"" }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: A tc) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'tc = new A  ... , ""hello"" }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var tc = ne ... , ""hello"" }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: A tc) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'tc = new A  ... , ""hello"" }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new A { 1, ""hello"" }')
                 IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A, IsInvalid) (Syntax: 'new A { 1, ""hello"" }')
@@ -2570,9 +2570,9 @@ IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
     Local_3: D coll3
     Local_4: E coll4
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'B coll1 = new B { 1 };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'B coll1 = new B { 1 }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: B coll1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'coll1 = new B { 1 }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'B coll1 = new B { 1 }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: B coll1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'coll1 = new B { 1 }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new B { 1 }')
                 IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B { 1 }')
@@ -2586,9 +2586,9 @@ IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'C coll2 = new C { 1 };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'C coll2 = new C { 1 }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: C coll2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'coll2 = new C { 1 }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'C coll2 = new C { 1 }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: C coll2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'coll2 = new C { 1 }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C { 1 }')
                 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C { 1 }')
@@ -2602,9 +2602,9 @@ IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'D coll3 = n ... { 1, 2 } };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'D coll3 = n ...  { 1, 2 } }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: D coll3) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'coll3 = new ...  { 1, 2 } }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'D coll3 = n ...  { 1, 2 } }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: D coll3) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'coll3 = new ...  { 1, 2 } }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new D { { 1, 2 } }')
                 IObjectCreationOperation (Constructor: D..ctor()) (OperationKind.ObjectCreation, Type: D, IsInvalid) (Syntax: 'new D { { 1, 2 } }')
@@ -2619,9 +2619,9 @@ IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'E coll4 = new E { 1 };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'E coll4 = new E { 1 }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: E coll4) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'coll4 = new E { 1 }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'E coll4 = new E { 1 }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: E coll4) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'coll4 = new E { 1 }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new E { 1 }')
                 IObjectCreationOperation (Constructor: E..ctor()) (OperationKind.ObjectCreation, Type: E, IsInvalid) (Syntax: 'new E { 1 }')

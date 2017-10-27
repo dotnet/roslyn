@@ -1995,7 +1995,7 @@ public class Class
             compilation.VerifyDiagnostics();
 
             var syntaxKinds = ImmutableArray.Create(SyntaxKind.VariableDeclaration);
-            var operationKinds = ImmutableArray.Create(OperationKind.SingleVariableDeclaration);
+            var operationKinds = ImmutableArray.Create(OperationKind.VariableDeclarator);
 
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.None, syntaxKinds, operationKinds) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,

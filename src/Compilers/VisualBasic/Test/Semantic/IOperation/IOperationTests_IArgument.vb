@@ -1425,9 +1425,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a(0 To  ...  As Integer')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a(0 To 20) As Integer')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Int32()) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a(0 To 20)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a(0 To 20) As Integer')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Int32()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a(0 To 20)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'a(0 To 20)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'a(0 To 20)')

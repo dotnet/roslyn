@@ -60,16 +60,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitVariableDeclarationGroup(operation);
         }
 
-        public override void VisitSingleVariableDeclaration(ISingleVariableDeclarationOperation operation)
+        public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
         {
             var symbol = operation.Symbol;
 
-            base.VisitSingleVariableDeclaration(operation);
+            base.VisitVariableDeclarator(operation);
         }
 
-        public override void VisitMultiVariableDeclaration(IMultiVariableDeclarationOperation operation)
+        public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
         {
-            base.VisitMultiVariableDeclaration(operation);
+            base.VisitVariableDeclaration(operation);
         }
 
         public override void VisitSwitch(ISwitchOperation operation)

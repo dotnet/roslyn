@@ -304,9 +304,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int[] x = { 1, 2 };')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int[] x = { 1, 2 }')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32[] x) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x = { 1, 2 }')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int[] x = { 1, 2 }')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = { 1, 2 }')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= { 1, 2 }')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: '{ 1, 2 }')

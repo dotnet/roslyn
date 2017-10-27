@@ -30,7 +30,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: dynamic d1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'd1 = o1')
+IVariableDeclaratorOperation (Symbol: dynamic d1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd1 = o1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= o1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'o1')
@@ -62,7 +62,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Object o2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'o2 = o1')
+IVariableDeclaratorOperation (Symbol: System.Object o2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'o2 = o1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= o1')
       ILocalReferenceOperation: o1 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o1')
@@ -87,7 +87,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Double d1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'd1 = f1')
+IVariableDeclaratorOperation (Symbol: System.Double d1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd1 = f1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= f1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'f1')
@@ -116,7 +116,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = f1')
+IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = f1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= f1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'f1')
@@ -149,7 +149,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int /*<bind ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarators) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int /*<bind ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'int /*<bind ... *</bind>*/;')
     Variables: Local_1: System.Int32 i1
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
@@ -182,7 +182,7 @@ enum Enum1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: Enum1 e1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e1 = 0')
+IVariableDeclaratorOperation (Symbol: Enum1 e1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e1 = 0')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: Enum1, Constant: 0, IsImplicit) (Syntax: '0')
@@ -219,7 +219,7 @@ enum Enum1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: Enum1 e1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'e1 = i1')
+IVariableDeclaratorOperation (Symbol: Enum1 e1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e1 = i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= i1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: Enum1, IsInvalid, IsImplicit) (Syntax: 'i1')
@@ -254,7 +254,7 @@ enum Enum1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: Enum1 e1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'e1 = 1')
+IVariableDeclaratorOperation (Symbol: Enum1 e1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e1 = 1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: Enum1, Constant: 1, IsInvalid, IsImplicit) (Syntax: '1')
@@ -292,7 +292,7 @@ enum Enum1
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarators) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
     Variables: Local_1: Enum1 e1
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: Enum1, IsInvalid) (Syntax: '')
@@ -324,7 +324,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Object o) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'o = new obj ... Exception()')
+IVariableDeclaratorOperation (Symbol: System.Object o) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'o = new obj ... Exception()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new objec ... Exception()')
       ICoalesceOperation (OperationKind.Coalesce, Type: System.Object) (Syntax: 'new object( ... Exception()')
@@ -355,7 +355,7 @@ ISingleVariableDeclarationOperation (Symbol: System.Object o) (OperationKind.Sin
                     },
                     OperationSelector = (operation) =>
                     {
-                        var initializer = ((ISingleVariableDeclarationOperation)operation).Initializer.Value;
+                        var initializer = ((IVariableDeclaratorOperation)operation).Initializer.Value;
                         return (IConversionOperation)((ICoalesceOperation)initializer).WhenNull;
                     }
                 }.Verify);
@@ -376,7 +376,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'object /*<b ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarators) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'object /*<b ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'object /*<b ... *</bind>*/;')
     Variables: Local_1: System.Object o
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'throw new Exception()')
@@ -408,7 +408,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.String s1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 's1 = null')
+IVariableDeclaratorOperation (Symbol: System.String s1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's1 = null')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= null')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
@@ -444,7 +444,7 @@ struct S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: S1? s1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 's1 = null')
+IVariableDeclaratorOperation (Symbol: S1? s1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's1 = null')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= null')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1?, Constant: null, IsImplicit) (Syntax: 'null')
@@ -476,7 +476,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = null')
+IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = null')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= null')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'null')
@@ -510,7 +510,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int64 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = default')
+IVariableDeclaratorOperation (Symbol: System.Int64 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = default')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= default')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 0, IsImplicit) (Syntax: 'default')
@@ -545,7 +545,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int64 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = default(int)')
+IVariableDeclaratorOperation (Symbol: System.Int64 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = default(int)')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= default(int)')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 0, IsImplicit) (Syntax: 'default(int)')
@@ -582,7 +582,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.String i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = default(string)')
+IVariableDeclaratorOperation (Symbol: System.String i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = default(string)')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= default(string)')
       IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null) (Syntax: 'default(string)')
@@ -610,7 +610,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32? i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = 1')
+IVariableDeclaratorOperation (Symbol: System.Int32? i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = 1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '1')
@@ -643,7 +643,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int64? l1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'l1 = i1')
+IVariableDeclaratorOperation (Symbol: System.Int64? l1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'l1 = i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64?, IsImplicit) (Syntax: 'i1')
@@ -672,7 +672,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32? i2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i2 = i1')
+IVariableDeclaratorOperation (Symbol: System.Int32? i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
@@ -701,7 +701,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i2 = i1')
+IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i2 = i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= i1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'i1')
@@ -736,7 +736,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.IFormattable f1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'f1 = $""{1}""')
+IVariableDeclaratorOperation (Symbol: System.IFormattable f1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'f1 = $""{1}""')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= $""{1}""')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IFormattable, IsImplicit) (Syntax: '$""{1}""')
@@ -774,7 +774,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Object o1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'o1 = new C1()')
+IVariableDeclaratorOperation (Symbol: System.Object o1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'o1 = new C1()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C1()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new C1()')
@@ -807,7 +807,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: dynamic d1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'd1 = new C1()')
+IVariableDeclaratorOperation (Symbol: dynamic d1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd1 = new C1()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C1()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'new C1()')
@@ -844,7 +844,7 @@ class C2 : C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1 c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = new C2()')
+IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1 = new C2()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C2()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1, IsImplicit) (Syntax: 'new C2()')
@@ -881,7 +881,7 @@ class C2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1 c1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 = new C2()')
+IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1 = new C2()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C2()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C2()')
@@ -918,7 +918,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1 c1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 = new/*</bind>*/')
+IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1 = new/*</bind>*/')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new/*</bind>*/')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new/*</bind>*/')
@@ -960,7 +960,7 @@ class C1 : I1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = new C1()')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = new C1()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C1()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsImplicit) (Syntax: 'new C1()')
@@ -997,7 +997,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = new C1()')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = new C1()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C1()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsInvalid, IsImplicit) (Syntax: 'new C1()')
@@ -1038,7 +1038,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = new I1()')
+IVariableDeclaratorOperation (Symbol: C1 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = new I1()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new I1()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new I1()')
@@ -1082,7 +1082,7 @@ class C1 : I2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = i2')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = i2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i2')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsImplicit) (Syntax: 'i2')
@@ -1121,7 +1121,7 @@ class C1 : I2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = i2')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = i2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= i2')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsInvalid, IsImplicit) (Syntax: 'i2')
@@ -1160,7 +1160,7 @@ class C2 : C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1[] c1arr) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1arr = c2arr')
+IVariableDeclaratorOperation (Symbol: C1[] c1arr) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1arr = c2arr')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= c2arr')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1[], IsImplicit) (Syntax: 'c2arr')
@@ -1195,7 +1195,7 @@ class C2 : C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1[][] c1arr) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1arr = c2arr')
+IVariableDeclaratorOperation (Symbol: C1[][] c1arr) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1arr = c2arr')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= c2arr')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1[][], IsInvalid, IsImplicit) (Syntax: 'c2arr')
@@ -1234,7 +1234,7 @@ class C2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1[] c1arr) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1arr = c2arr')
+IVariableDeclaratorOperation (Symbol: C1[] c1arr) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1arr = c2arr')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= c2arr')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1[], IsInvalid, IsImplicit) (Syntax: 'c2arr')
@@ -1276,7 +1276,7 @@ struct S1 : I1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1[] i1arr) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1arr = new S1[10]')
+IVariableDeclaratorOperation (Symbol: I1[] i1arr) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1arr = new S1[10]')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new S1[10]')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1[], IsInvalid, IsImplicit) (Syntax: 'new S1[10]')
@@ -1314,7 +1314,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Array a1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a1 = new object[10]')
+IVariableDeclaratorOperation (Symbol: System.Array a1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a1 = new object[10]')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new object[10]')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Array, IsImplicit) (Syntax: 'new object[10]')
@@ -1348,7 +1348,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Array a1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a1 = new int[10][]')
+IVariableDeclaratorOperation (Symbol: System.Array a1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a1 = new int[10][]')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new int[10][]')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Array, IsImplicit) (Syntax: 'new int[10][]')
@@ -1382,7 +1382,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Array a1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a1 = new object()')
+IVariableDeclaratorOperation (Symbol: System.Array a1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a1 = new object()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new object()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Array, IsInvalid, IsImplicit) (Syntax: 'new object()')
@@ -1419,7 +1419,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Collections.Generic.IList<System.Int32> a1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a1 = new int[10]')
+IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.Int32> a1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a1 = new int[10]')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new int[10]')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: 'new int[10]')
@@ -1453,7 +1453,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Collections.Generic.IList<System.Int32> a1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'a1 = new object()')
+IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.Int32> a1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a1 = new object()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new object()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'new object()')
@@ -1496,7 +1496,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Delegate d2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'd2 = d1')
+IVariableDeclaratorOperation (Symbol: System.Delegate d2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd2 = d1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= d1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Delegate, IsImplicit) (Syntax: 'd1')
@@ -1532,7 +1532,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Delegate d2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'd2 = d1()')
+IVariableDeclaratorOperation (Symbol: System.Delegate d2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'd2 = d1()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= d1()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Delegate, IsInvalid, IsImplicit) (Syntax: 'd1()')
@@ -1573,7 +1573,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Delegate /* ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarators) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Delegate /* ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Delegate /* ... *</bind>*/;')
     Variables: Local_1: System.Delegate d2
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Delegate, IsInvalid) (Syntax: '')
@@ -1611,7 +1611,7 @@ class C3 : C2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1 c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = new C3()')
+IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1 = new C3()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C3()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1, IsImplicit) (Syntax: 'new C3()')
@@ -1659,7 +1659,7 @@ class C4 : C3
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1<C4> c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = c2')
+IVariableDeclaratorOperation (Symbol: I1<C4> c1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1 = c2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= c2')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1<C4>, IsImplicit) (Syntax: 'c2')
@@ -1704,7 +1704,7 @@ class C4 : C3
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1<C3> c1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 = c2')
+IVariableDeclaratorOperation (Symbol: I1<C3> c1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1 = c2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= c2')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1<C3>, IsInvalid, IsImplicit) (Syntax: 'c2')
@@ -1753,7 +1753,7 @@ class C4 : C3
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1<C3> c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = c2')
+IVariableDeclaratorOperation (Symbol: I1<C3> c1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1 = c2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= c2')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1<C3>, IsImplicit) (Syntax: 'c2')
@@ -1798,7 +1798,7 @@ class C4 : C3
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1<C4> c1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 = c2')
+IVariableDeclaratorOperation (Symbol: I1<C4> c1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1 = c2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= c2')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1<C4>, IsInvalid, IsImplicit) (Syntax: 'c2')
@@ -1832,7 +1832,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Collections.Generic.IList<System.String> list) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'list = new  ... t<string>()')
+IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.String> list) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'list = new  ... t<string>()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new List<string>()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.String>, IsImplicit) (Syntax: 'new List<string>()')
@@ -1869,7 +1869,7 @@ class C2 : C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1 c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = new T()')
+IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1 = new T()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new T()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1, IsImplicit) (Syntax: 'new T()')
@@ -1903,7 +1903,7 @@ class C2 : C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1 c1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 = new T()')
+IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1 = new T()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new T()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new T()')
@@ -1940,7 +1940,7 @@ class C1 : I1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = new T()')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = new T()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new T()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsImplicit) (Syntax: 'new T()')
@@ -1973,7 +1973,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = new T()')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = new T()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new T()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsInvalid, IsImplicit) (Syntax: 'new T()')
@@ -2011,7 +2011,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: U u) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'u = new T()')
+IVariableDeclaratorOperation (Symbol: U u) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'u = new T()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new T()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: U, IsImplicit) (Syntax: 'new T()')
@@ -2045,7 +2045,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: U u) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'u = new T()')
+IVariableDeclaratorOperation (Symbol: U u) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'u = new T()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new T()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: U, IsInvalid, IsImplicit) (Syntax: 'new T()')
@@ -2082,7 +2082,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: T t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = null')
+IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = null')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= null')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, Constant: null, IsImplicit) (Syntax: 'null')
@@ -2119,7 +2119,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: T t) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 't = null')
+IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 't = null')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= null')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsInvalid, IsImplicit) (Syntax: 'null')
@@ -2153,7 +2153,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Object o) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'o = i')
+IVariableDeclaratorOperation (Symbol: System.Object o) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'o = i')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i')
@@ -2183,7 +2183,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: dynamic d) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'd = i')
+IVariableDeclaratorOperation (Symbol: dynamic d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = i')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'i')
@@ -2214,7 +2214,7 @@ struct S1
 
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.ValueType v1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'v1 = new S1()')
+IVariableDeclaratorOperation (Symbol: System.ValueType v1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v1 = new S1()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new S1()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ValueType, IsImplicit) (Syntax: 'new S1()')
@@ -2248,7 +2248,7 @@ class C1
 
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.ValueType v1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'v1 = new C1()')
+IVariableDeclaratorOperation (Symbol: System.ValueType v1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v1 = new C1()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C1()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ValueType, IsInvalid, IsImplicit) (Syntax: 'new C1()')
@@ -2287,7 +2287,7 @@ struct S1 : I1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = new S1()')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = new S1()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new S1()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsImplicit) (Syntax: 'new S1()')
@@ -2322,7 +2322,7 @@ struct S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = new S1()')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = new S1()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new S1()')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsInvalid, IsImplicit) (Syntax: 'new S1()')
@@ -2362,7 +2362,7 @@ struct S1 : I1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = s1')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = s1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= s1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsImplicit) (Syntax: 's1')
@@ -2395,7 +2395,7 @@ struct S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = s1')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = s1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= s1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsInvalid, IsImplicit) (Syntax: 's1')
@@ -2435,7 +2435,7 @@ struct S1
 
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Enum e) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e = E1.E')
+IVariableDeclaratorOperation (Symbol: System.Enum e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = E1.E')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= E1.E')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Enum, IsImplicit) (Syntax: 'E1.E')
@@ -2473,7 +2473,7 @@ struct S1
 
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Enum e) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'e = 1')
+IVariableDeclaratorOperation (Symbol: System.Enum e) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e = 1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Enum, IsInvalid, IsImplicit) (Syntax: '1')
@@ -2506,7 +2506,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.String s1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 's1 = d1')
+IVariableDeclaratorOperation (Symbol: System.String s1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's1 = d1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= d1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'd1')
@@ -2535,7 +2535,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = d1')
+IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = d1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= d1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'd1')
@@ -2564,7 +2564,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.SByte s1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 's1 = i1')
+IVariableDeclaratorOperation (Symbol: System.SByte s1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's1 = i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.SByte, Constant: 1, IsImplicit) (Syntax: 'i1')
@@ -2597,7 +2597,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.SByte s1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 's1 = i1')
+IVariableDeclaratorOperation (Symbol: System.SByte s1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 's1 = i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= i1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.SByte, IsInvalid, IsImplicit) (Syntax: 'i1')
@@ -2633,7 +2633,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.SByte s1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 's1 = i1')
+IVariableDeclaratorOperation (Symbol: System.SByte s1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 's1 = i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= i1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.SByte, IsInvalid, IsImplicit) (Syntax: 'i1')
@@ -2673,7 +2673,7 @@ class C2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C2 c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = this')
+IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2 = this')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= this')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(C1 c1)) (OperationKind.Conversion, Type: C2, IsImplicit) (Syntax: 'this')
@@ -2710,7 +2710,7 @@ class C2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C2 c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = i1')
+IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2 = i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(System.Int64 c1)) (OperationKind.Conversion, Type: C2, IsImplicit) (Syntax: 'i1')
@@ -2758,7 +2758,7 @@ class C2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C2 c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = (int)this')
+IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2 = (int)this')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int)this')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(System.Int64 c1)) (OperationKind.Conversion, Type: C2, IsImplicit) (Syntax: '(int)this')
@@ -2809,7 +2809,7 @@ class C2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C2 c2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2 = this')
+IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2 = this')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= this')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C2, IsInvalid, IsImplicit) (Syntax: 'this')
@@ -2860,7 +2860,7 @@ class C3
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C3 c3) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c3 = this')
+IVariableDeclaratorOperation (Symbol: C3 c3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c3 = this')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= this')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: C3 C3.op_Implicit(C2 c2)) (OperationKind.Conversion, Type: C3, IsImplicit) (Syntax: 'this')
@@ -2890,7 +2890,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Void* v1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'v1 = null')
+IVariableDeclaratorOperation (Symbol: System.Void* v1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v1 = null')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= null')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Void*, IsImplicit) (Syntax: 'null')
@@ -2921,7 +2921,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Void* v1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'v1 = i1')
+IVariableDeclaratorOperation (Symbol: System.Void* v1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v1 = i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Void*, IsImplicit) (Syntax: 'i1')
@@ -2953,7 +2953,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32* i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = v1')
+IVariableDeclaratorOperation (Symbol: System.Int32* i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = v1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= v1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'v1')
@@ -2988,7 +2988,7 @@ class S1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Void* v1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'v1 = 0')
+IVariableDeclaratorOperation (Symbol: System.Void* v1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v1 = 0')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 0')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Void*, IsInvalid, IsImplicit) (Syntax: '0')
@@ -3024,7 +3024,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>> exp) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'exp = num => num < 5')
+IVariableDeclaratorOperation (Symbol: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>> exp) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'exp = num => num < 5')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= num => num < 5')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>>, IsImplicit) (Syntax: 'num => num < 5')
@@ -3062,7 +3062,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Expression< ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarators) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Expression< ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Expression< ... *</bind>*/;')
     Variables: Local_1: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>> exp
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>>, IsInvalid) (Syntax: 'num => num')
@@ -3104,7 +3104,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>> exp) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'exp = num =>/*</bind>*/')
+IVariableDeclaratorOperation (Symbol: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>> exp) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'exp = num =>/*</bind>*/')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= num =>/*</bind>*/')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>>, IsInvalid, IsImplicit) (Syntax: 'num =>/*</bind>*/')
@@ -3208,9 +3208,9 @@ namespace ConsoleApp1
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object o = null;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'object o = null')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Object o) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'o = null')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'object o = null')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Object o) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'o = null')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= null')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
@@ -3246,9 +3246,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Action<stri ... jectAction;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'Action<stri ... bjectAction')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action<System.String> stringAction) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'stringActio ... bjectAction')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Action<stri ... bjectAction')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action<System.String> stringAction) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'stringActio ... bjectAction')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= objectAction')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.String>, IsImplicit) (Syntax: 'objectAction')
@@ -3280,9 +3280,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action<int> ... jectAction;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action<int> ... bjectAction')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Action<System.Int32> intAction) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'intAction = objectAction')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action<int> ... bjectAction')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action<System.Int32> intAction) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'intAction = objectAction')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= objectAction')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'objectAction')
@@ -3319,7 +3319,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = (int)1')
+IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = (int)1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int)1')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1) (Syntax: '(int)1')
@@ -3351,7 +3351,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int64 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = (int)1')
+IVariableDeclaratorOperation (Symbol: System.Int64 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = (int)1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int)1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '(int)1')
@@ -3414,7 +3414,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i = (float)1.0')
+IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i = (float)1.0')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (float)1.0')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '(float)1.0')
@@ -3451,7 +3451,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int64 i) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i = (int)/*</bind>*/')
+IVariableDeclaratorOperation (Symbol: System.Int64 i) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i = (int)/*</bind>*/')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (int)/*</bind>*/')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsInvalid, IsImplicit) (Syntax: '(int)/*</bind>*/')
@@ -3491,7 +3491,7 @@ enum E1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: E1 e1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e1 = (E1)1')
+IVariableDeclaratorOperation (Symbol: E1 e1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e1 = (E1)1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (E1)1')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: E1, Constant: 1) (Syntax: '(E1)1')
@@ -3527,7 +3527,7 @@ enum E1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = (int)E1.One')
+IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = (int)E1.One')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int)E1.One')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 0) (Syntax: '(int)E1.One')
@@ -3570,7 +3570,7 @@ enum E2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: E2 e2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e2 = (E2)E1.One')
+IVariableDeclaratorOperation (Symbol: E2 e2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e2 = (E2)E1.One')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (E2)E1.One')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: E2, Constant: 0) (Syntax: '(E2)E1.One')
@@ -3616,7 +3616,7 @@ enum E2 : byte
             // Note: The lack of a constant value for the conversion is expected here, it matches the semantic model.
             // Because the enum value is larger than the destination enum, the conversion is bad
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: E2 e2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'e2 = (E2)E1.One')
+IVariableDeclaratorOperation (Symbol: E2 e2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e2 = (E2)E1.One')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (E2)E1.One')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: E2, IsInvalid) (Syntax: '(E2)E1.One')
@@ -3653,7 +3653,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32? i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = (int?)l')
+IVariableDeclaratorOperation (Symbol: System.Int32? i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = (int?)l')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int?)l')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?) (Syntax: '(int?)l')
@@ -3681,7 +3681,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = (int)l')
+IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = (int)l')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int)l')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: '(int)l')
@@ -3709,7 +3709,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.String s) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 's = (string)o')
+IVariableDeclaratorOperation (Symbol: System.String s) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's = (string)o')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (string)o')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: '(string)o')
@@ -3737,7 +3737,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.String s) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 's = (string)d')
+IVariableDeclaratorOperation (Symbol: System.String s) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's = (string)d')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (string)d')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: '(string)d')
@@ -3769,7 +3769,7 @@ class C2 : C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C2 c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = (C2)c1')
+IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2 = (C2)c1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (C2)c1')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C2) (Syntax: '(C2)c1')
@@ -3801,7 +3801,7 @@ class C2
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C2 c2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2 = (C2)c1')
+IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2 = (C2)c1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (C2)c1')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C2, IsInvalid) (Syntax: '(C2)c1')
@@ -3835,7 +3835,7 @@ class C1 : I1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1 c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = (C1)i1')
+IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1 = (C1)i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (C1)i1')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1) (Syntax: '(C1)i1')
@@ -3865,7 +3865,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1 c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = (C1)i1')
+IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1 = (C1)i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (C1)i1')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1) (Syntax: '(C1)i1')
@@ -3895,7 +3895,7 @@ sealed class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1 c1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 = (C1)i1')
+IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1 = (C1)i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (C1)i1')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1, IsInvalid) (Syntax: '(C1)i1')
@@ -3931,7 +3931,7 @@ sealed class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I2 i2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i2 = (I2)i1')
+IVariableDeclaratorOperation (Symbol: I2 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = (I2)i1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (I2)i1')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I2) (Syntax: '(I2)i1')
@@ -3960,7 +3960,7 @@ sealed class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I2 i2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i2 = (I2)()')
+IVariableDeclaratorOperation (Symbol: I2 i2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i2 = (I2)()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (I2)()')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I2, IsInvalid) (Syntax: '(I2)()')
@@ -3995,7 +3995,7 @@ class C1
 class C2 : C1 { }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C2[] c2arr) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2arr = (C2[])c1arr')
+IVariableDeclaratorOperation (Symbol: C2[] c2arr) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2arr = (C2[])c1arr')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (C2[])c1arr')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C2[]) (Syntax: '(C2[])c1arr')
@@ -4025,7 +4025,7 @@ class C1
 class C2 { }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C2[] c2arr) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2arr = (C2[])c1arr')
+IVariableDeclaratorOperation (Symbol: C2[] c2arr) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2arr = (C2[])c1arr')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (C2[])c1arr')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C2[], IsInvalid) (Syntax: '(C2[])c1arr')
@@ -4057,7 +4057,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1[][] c2arr) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2arr = (C1[][])c1arr')
+IVariableDeclaratorOperation (Symbol: C1[][] c2arr) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2arr = (C1[][])c1arr')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (C1[][])c1arr')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1[][], IsInvalid) (Syntax: '(C1[][])c1arr')
@@ -4091,7 +4091,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1[] c2arr) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2arr = (C1[])c1arr')
+IVariableDeclaratorOperation (Symbol: C1[] c2arr) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2arr = (C1[])c1arr')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (C1[])c1arr')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1[]) (Syntax: '(C1[])c1arr')
@@ -4122,7 +4122,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Collections.Generic.IList<C1> c1list) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1list = (I ... t<C1>)c1arr')
+IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<C1> c1list) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1list = (I ... t<C1>)c1arr')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (IList<C1>)c1arr')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<C1>) (Syntax: '(IList<C1>)c1arr')
@@ -4153,7 +4153,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Collections.Generic.IList<C1> c1list) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1list = (I ... t<C1>)c1arr')
+IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<C1> c1list) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1list = (I ... t<C1>)c1arr')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (IList<C1>)c1arr')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<C1>, IsInvalid) (Syntax: '(IList<C1>)c1arr')
@@ -4188,7 +4188,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1[] c1arr) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1arr = (C1[])c1List')
+IVariableDeclaratorOperation (Symbol: C1[] c1arr) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1arr = (C1[])c1List')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (C1[])c1List')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1[]) (Syntax: '(C1[])c1List')
@@ -4219,7 +4219,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C1[][] c1arr) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1arr = (C1[][])c1List')
+IVariableDeclaratorOperation (Symbol: C1[][] c1arr) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1arr = (C1[][])c1List')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (C1[][])c1List')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1[][], IsInvalid) (Syntax: '(C1[][])c1List')
@@ -4253,7 +4253,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Action a) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a = (Action)d')
+IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a = (Action)d')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (Action)d')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action) (Syntax: '(Action)d')
@@ -4297,7 +4297,7 @@ class C4 : C3
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1<C4> c1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1 = (I1<C4>)c2')
+IVariableDeclaratorOperation (Symbol: I1<C4> c1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1 = (I1<C4>)c2')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (I1<C4>)c2')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1<C4>) (Syntax: '(I1<C4>)c2')
@@ -4325,7 +4325,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = (int)o')
+IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = (int)o')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int)o')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: '(int)o')
@@ -4353,7 +4353,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = (int)d')
+IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = (int)d')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int)d')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: '(int)d')
@@ -4383,7 +4383,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = (int)v')
+IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = (int)v')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int)v')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: '(int)v')
@@ -4418,7 +4418,7 @@ enum E1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: E1 e1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e1 = (E1)e')
+IVariableDeclaratorOperation (Symbol: E1 e1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e1 = (E1)e')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (E1)e')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: E1) (Syntax: '(E1)e')
@@ -4453,7 +4453,7 @@ enum E1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: E1? e1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'e1 = (E1?)e')
+IVariableDeclaratorOperation (Symbol: E1? e1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e1 = (E1?)e')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (E1?)e')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: E1?) (Syntax: '(E1?)e')
@@ -4488,7 +4488,7 @@ enum E1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Int32? e1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'e1 = (E1?)e')
+IVariableDeclaratorOperation (Symbol: System.Int32? e1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e1 = (E1?)e')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (E1?)e')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '(E1?)e')
@@ -4529,7 +4529,7 @@ interface I1 { }
 struct S1 : I1 { }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: S1 s1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 's1 = (S1)i')
+IVariableDeclaratorOperation (Symbol: S1 s1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's1 = (S1)i')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (S1)i')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1) (Syntax: '(S1)i')
@@ -4563,7 +4563,7 @@ interface I1 { }
 struct S1 { }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: S1 s1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 's1 = (S1)i')
+IVariableDeclaratorOperation (Symbol: S1 s1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 's1 = (S1)i')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (S1)i')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1, IsInvalid) (Syntax: '(S1)i')
@@ -4602,7 +4602,7 @@ interface I1 { }
 struct S1 : I1 { }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: System.Collections.Generic.IList<S1> s1List) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 's1List = (I ... <S1>)i1List')
+IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<S1> s1List) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's1List = (I ... <S1>)i1List')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (IList<S1>)i1List')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<S1>) (Syntax: '(IList<S1>)i1List')
@@ -4631,7 +4631,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: T t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (T)u')
+IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (T)u')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (T)u')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: T) (Syntax: '(T)u')
@@ -4660,7 +4660,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: T t) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 't = (T)u')
+IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 't = (T)u')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (T)u')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsInvalid) (Syntax: '(T)u')
@@ -4693,7 +4693,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: T t) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 't = (T)i')
+IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (T)i')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (T)i')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: T) (Syntax: '(T)i')
@@ -4722,7 +4722,7 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = (I1)t')
+IVariableDeclaratorOperation (Symbol: I1 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = (I1)t')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (I1)t')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1) (Syntax: '(I1)t')
@@ -4754,7 +4754,7 @@ class C1
 class C2 { }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C2 c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = (C2)c1')
+IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2 = (C2)c1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (C2)c1')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperatorMethod: C2 C1.op_Implicit(C1 c1)) (OperationKind.Conversion, Type: C2) (Syntax: '(C2)c1')
@@ -4786,7 +4786,7 @@ class C1
 class C2 { }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: C2 c2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2 = (C2)c1')
+IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2 = (C2)c1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (C2)c1')
       IConversionOperation (Explicit, TryCast: False, Unchecked) (OperatorMethod: C2 C1.op_Explicit(C1 c1)) (OperationKind.Conversion, Type: C2) (Syntax: '(C2)c1')
@@ -4820,7 +4820,7 @@ class C1
 class C2 : I1 { }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: I1 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = (C2)c1')
+IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = (C2)c1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (C2)c1')
       IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsImplicit) (Syntax: '(C2)c1')
@@ -4950,9 +4950,9 @@ namespace ConsoleApp1
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object o = (object)null;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'object o = (object)null')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Object o) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'o = (object)null')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'object o = (object)null')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Object o) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'o = (object)null')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (object)null')
               IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null) (Syntax: '(object)null')
@@ -5041,11 +5041,11 @@ IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conver
             public static IOperation IVariableDeclarationStatementSelector(IOperation operation) =>
                 ((IVariableDeclarationGroupOperation)operation).Declarations.Single().Initializer;
 
-            public static IOperation IMultiVariableDeclarationSelector(IOperation operation) =>
-                ((IMultiVariableDeclarationOperation)operation).Initializer.Value;
+            public static IOperation IVariableDeclarationSelector(IOperation operation) =>
+                ((IVariableDeclarationOperation)operation).Initializer.Value;
 
-            public static IOperation ISingleVariableDeclarationSelector(IOperation operation) =>
-                ((ISingleVariableDeclarationOperation)operation).Initializer.Value;
+            public static IOperation IVariableDeclaratorSelector(IOperation operation) =>
+                ((IVariableDeclaratorOperation)operation).Initializer.Value;
 
             public static IOperation IReturnDeclarationStatementSelector(IOperation operation) =>
                 ((IReturnOperation)operation).ReturnedValue;
@@ -5127,10 +5127,10 @@ IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conver
                 {
                     case IVariableDeclarationGroupOperation _:
                         return IVariableDeclarationStatementSelector(operation);
-                    case IMultiVariableDeclarationOperation _:
-                        return IMultiVariableDeclarationSelector(operation);
-                    case ISingleVariableDeclarationOperation _:
-                        return ISingleVariableDeclarationSelector(operation);
+                    case IVariableDeclarationOperation _:
+                        return IVariableDeclarationSelector(operation);
+                    case IVariableDeclaratorOperation _:
+                        return IVariableDeclaratorSelector(operation);
                     case IReturnOperation _:
                         return IReturnDeclarationStatementSelector(operation);
                     case IConversionOperation conv:

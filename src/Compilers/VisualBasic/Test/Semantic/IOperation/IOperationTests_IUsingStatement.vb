@@ -106,9 +106,9 @@ End Module]]>.Value
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
   Resources: 
     IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 As ... s C = New C')
-      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'c1 As C = New C')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c1 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 As C = New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
         Initializer: 
@@ -117,9 +117,9 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
               Arguments(0)
               Initializer: 
                 null
-      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'c2 As C = New C')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c2 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c2 As C = New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
               Initializer: 
                 null
         Initializer: 
@@ -174,9 +174,9 @@ End Module]]>.Value
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 As C = New C')
-      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'c1 As C = New C')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c1 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 As C = New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
         Initializer: 
@@ -231,9 +231,9 @@ End Module]]>.Value
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 As New C')
-      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'c1 As New C')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c1 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 As New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
         Initializer: 
@@ -288,12 +288,12 @@ End Module]]>.Value
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1, c ... End Using')
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1, c2 As New C')
-      IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'c1, c2 As New C')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c1 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1')
+      IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1, c2 As New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
-            ISingleVariableDeclarationOperation (Symbol: c2 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2')
+            IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
               Initializer: 
                 null
         Initializer: 
@@ -395,12 +395,12 @@ End Module]]>.Value
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1, c ... End Using')
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Using c1, c2')
-      IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1, c2')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c1 As System.Object) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1')
+      IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1, c2')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1')
               Initializer: 
                 null
-            ISingleVariableDeclarationOperation (Symbol: c2 As System.Object) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2')
+            IVariableDeclaratorOperation (Symbol: c2 As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2')
               Initializer: 
                 null
         Initializer: 
@@ -513,9 +513,9 @@ End Module]]>.Value
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 =  ... End Using')
   Resources: 
     IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 =  ... c3 As New C')
-      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'c1 = New C')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c1 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 = New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
         Initializer: 
@@ -524,12 +524,12 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 =  ... End 
               Arguments(0)
               Initializer: 
                 null
-      IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'c2, c3 As New C')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c2 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2')
+      IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c2, c3 As New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
               Initializer: 
                 null
-            ISingleVariableDeclarationOperation (Symbol: c3 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c3')
+            IVariableDeclaratorOperation (Symbol: c3 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c3')
               Initializer: 
                 null
         Initializer: 
@@ -584,9 +584,9 @@ End Module]]>.Value
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 =  ... End Using')
   Resources: 
     IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Using c1 = New C, c2')
-      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'c1 = New C')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c1 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 = New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
         Initializer: 
@@ -595,9 +595,9 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 
               Arguments(0)
               Initializer: 
                 null
-      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c2 As System.Object) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c2')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c2 As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2')
               Initializer: 
                 null
         Initializer: 
@@ -652,9 +652,9 @@ End Module]]>.Value
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 As ... End Using')
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Using c1 As New C')
-      IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 As New C')
-        Declarations:
-            ISingleVariableDeclarationOperation (Symbol: c1 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 As New C')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1')
               Initializer: 
                 null
         Initializer: 
@@ -819,9 +819,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 =  ...  c2 = New C')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'c1 = New C')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: c1 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 = New C')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
           Initializer: 
             null
     Initializer: 
@@ -830,9 +830,9 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
           Arguments(0)
           Initializer: 
             null
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'c2 = New C')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: c2 As Program.C) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'c2')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c2 = New C')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
           Initializer: 
             null
     Initializer: 

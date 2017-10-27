@@ -584,9 +584,9 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
     IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       Locals: Local_1: System.Boolean b
       IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'bool b = !x ... uals(null);')
-        IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'bool b = !x.Equals(null)')
-          Declarations:
-              ISingleVariableDeclarationOperation (Symbol: System.Boolean b) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'b = !x.Equals(null)')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'bool b = !x.Equals(null)')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Boolean b) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b = !x.Equals(null)')
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= !x.Equals(null)')
                     IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: '!x.Equals(null)')

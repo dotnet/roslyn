@@ -28,12 +28,12 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int x, ( 1 );')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int x, ( 1 ')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 x) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int x, ( 1 ')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
           Initializer: 
             null
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 ) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '( 1 ')
+        IVariableDeclaratorOperation (Symbol: System.Int32 ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '( 1 ')
           Initializer: 
             null
     Initializer: 

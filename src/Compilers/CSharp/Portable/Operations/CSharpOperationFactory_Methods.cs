@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit: expression.WasCompilerGenerated || argument == null);
         }
 
-        private ISingleVariableDeclarationOperation CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        private IVariableDeclaratorOperation CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
             IVariableInitializerOperation initializer = null;
             if (boundLocalDeclaration.InitializerOpt != null)
@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default;
             bool isImplicit = false;
 
-            return new SingleVariableDeclaration(symbol, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new VariableDeclarator(symbol, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ISingleVariableDeclarationOperation CreateVariableDeclaration(BoundLocal boundLocal)
+        private IVariableDeclaratorOperation CreateVariableDeclaration(BoundLocal boundLocal)
         {
-            return new SingleVariableDeclaration(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
+            return new VariableDeclarator(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
         }
 
         private IOperation CreateBoundCallInstanceOperation(BoundCall boundCall)

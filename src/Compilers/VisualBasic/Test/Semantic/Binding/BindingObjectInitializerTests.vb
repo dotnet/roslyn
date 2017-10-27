@@ -806,9 +806,9 @@ End Module]]>.Value
 IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As C3
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'x As New C3 ... .X = "goo"}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x As C3) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'x As New C3 ... .X = "goo"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As C3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
       Initializer: 

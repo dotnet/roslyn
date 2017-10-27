@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
-            foreach (IMultiVariableDeclarationOperation group in declarationGroup.Declarations)
+            foreach (IVariableDeclarationOperation group in declarationGroup.Declarations)
             {
                 group.GetDeclaredVariables(arrayBuilder);
             }
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Gets all the declared local variables in the given <paramref name="declaration"/>.
         /// </summary>
         /// <param name="declaration">Variable declaration</param>
-        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IMultiVariableDeclarationOperation declaration)
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationOperation declaration)
         {
             if (declaration == null)
             {
@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return arrayBuilder.ToImmutableAndFree();
         }
 
-        private static void GetDeclaredVariables(this IMultiVariableDeclarationOperation declaration, ArrayBuilder<ILocalSymbol> arrayBuilder)
+        private static void GetDeclaredVariables(this IVariableDeclarationOperation declaration, ArrayBuilder<ILocalSymbol> arrayBuilder)
         {
-            foreach (var decl in declaration.Declarations)
+            foreach (var decl in declaration.Declarators)
             {
                 arrayBuilder.Add(decl.Symbol);
             }
@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// if the single variable initializer is null.
         /// </summary>
         /// <param name="declarationOperation">Single variable declaration to retrieve initializer for.</param>
-        public static IVariableInitializerOperation GetVariableInitializer(this ISingleVariableDeclarationOperation declarationOperation)
+        public static IVariableInitializerOperation GetVariableInitializer(this IVariableDeclaratorOperation declarationOperation)
         {
-            return declarationOperation?.Initializer ?? (declarationOperation?.Parent as IMultiVariableDeclarationOperation)?.Initializer;
+            return declarationOperation?.Initializer ?? (declarationOperation?.Parent as IVariableDeclarationOperation)?.Initializer;
         }
 
         /// <summary>

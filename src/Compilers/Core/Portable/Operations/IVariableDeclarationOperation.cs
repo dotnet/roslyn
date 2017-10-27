@@ -16,23 +16,24 @@ namespace Microsoft.CodeAnalysis.Operations
     ///   (5) VB Using statement variable declarations
     /// </para>
     /// <remarks>
-    /// The initializer of this node is applied to all individual declarations in <see cref="Declarations"/>. There cannot
+    /// The initializer of this node is applied to all individual declarations in <see cref="Declarators"/>. There cannot
     /// be initializers in both locations except in invalid code scenarios.
     /// In C#, this node will never have an initializer.
+    /// This corresponds to the VariableDeclarationSyntax in C#, and the VariableDeclaratorSyntax in Visual Basic.
     ///
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IMultiVariableDeclarationOperation : IOperation
+    public interface IVariableDeclarationOperation : IOperation
     {
         /// <summary>
         /// Individual variable declarations declared by this multiple declaration.
         /// </summary>
         /// <remarks>
-        /// All <see cref="IVariableDeclarationGroupOperation"/> will have at least 1 <code>IMultiVariableDeclarationOpertion</code>,
+        /// All <see cref="IVariableDeclarationGroupOperation"/> will have at least 1 <code>IVariableDeclarationOpertion</code>,
         /// even if the declaration group only declares 1 variable.
         /// </remarks>
-        ImmutableArray<ISingleVariableDeclarationOperation> Declarations { get; }
+        ImmutableArray<IVariableDeclaratorOperation> Declarators { get; }
 
         /// <summary>
         /// Optional initializer of the variable.

@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
-        public virtual void VisitSingleVariableDeclaration(ISingleVariableDeclarationOperation operation)
+        public virtual void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
         {
             DefaultVisit(operation);
         }
 
-        public virtual void VisitMultiVariableDeclaration(IMultiVariableDeclarationOperation operation)
+        public virtual void VisitVariableDeclaration(IVariableDeclarationOperation operation)
         {
             DefaultVisit(operation);
         }
@@ -540,12 +540,12 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitSingleVariableDeclaration(ISingleVariableDeclarationOperation operation, TArgument argument)
+        public virtual TResult VisitVariableDeclarator(IVariableDeclaratorOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitMultiVariableDeclaration(IMultiVariableDeclarationOperation operation, TArgument argument)
+        public virtual TResult VisitVariableDeclaration(IVariableDeclarationOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

@@ -133,7 +133,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: ? y) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'y = x.MissingField')
+IVariableDeclaratorOperation (Symbol: ? y) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y = x.MissingField')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= x.MissingField')
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x.MissingField')
@@ -172,9 +172,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'string y = x.i1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'string y = x.i1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.String y) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'y = x.i1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'string y = x.i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.String y) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y = x.i1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= x.i1')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x.i1')
@@ -221,9 +221,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Program y = ... ogram)x.i1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'Program y = ... rogram)x.i1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program y) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'y = (Program)x.i1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Program y = ... rogram)x.i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program y) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y = (Program)x.i1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (Program)x.i1')
               IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsInvalid) (Syntax: '(Program)x.i1')
@@ -344,7 +344,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: var x) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'x = () => F()')
+IVariableDeclaratorOperation (Symbol: var x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = () => F()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= () => F()')
       IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '() => F()')

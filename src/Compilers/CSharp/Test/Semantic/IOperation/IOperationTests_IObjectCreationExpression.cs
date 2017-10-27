@@ -51,9 +51,9 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
     Local_6: F e1
     Local_7: F e2
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x1 = new F();')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var x1 = new F()')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: F x1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x1 = new F()')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var x1 = new F()')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: F x1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x1 = new F()')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new F()')
                 IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new F()')
@@ -63,9 +63,9 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x2 = ne ... ield = 2 };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var x2 = ne ... Field = 2 }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: F x2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x2 = new F( ... Field = 2 }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var x2 = ne ... Field = 2 }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: F x2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x2 = new F( ... Field = 2 }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new F() { Field = 2 }')
                 IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new F() { Field = 2 }')
@@ -83,9 +83,9 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x3 = ne ... ty1 = """" };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var x3 = ne ... rty1 = """" }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: F x3) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x3 = new F( ... rty1 = """" }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var x3 = ne ... rty1 = """" }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: F x3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x3 = new F( ... rty1 = """" }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new F() { ... rty1 = """" }')
                 IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new F() { P ... rty1 = """" }')
@@ -103,9 +103,9 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x4 = ne ... ield = 2 };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var x4 = ne ... Field = 2 }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: F x4) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x4 = new F( ... Field = 2 }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var x4 = ne ... Field = 2 }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: F x4) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x4 = new F( ... Field = 2 }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new F() { ... Field = 2 }')
                 IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new F() { P ... Field = 2 }')
@@ -130,9 +130,9 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x5 = ne ... = true } };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'var x5 = ne ...  = true } }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: F x5) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x5 = new F( ...  = true } }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var x5 = ne ...  = true } }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: F x5) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x5 = new F( ...  = true } }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new F() { ...  = true } }')
                 IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new F() { P ...  = true } }')
@@ -161,9 +161,9 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var e1 = ne ... rty2 = 1 };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'var e1 = ne ... erty2 = 1 }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: F e1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'e1 = new F( ... erty2 = 1 }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var e1 = ne ... erty2 = 1 }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: F e1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e1 = new F( ... erty2 = 1 }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new F() { ... erty2 = 1 }')
                 IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new F() { P ... erty2 = 1 }')
@@ -184,9 +184,9 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var e2 = new F() { """" };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'var e2 = new F() { """" }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: F e2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'e2 = new F() { """" }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var e2 = new F() { """" }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: F e2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e2 = new F() { """" }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new F() { """" }')
                 IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new F() { """" }')

@@ -118,9 +118,9 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
   Locals: Local_1: v1 As System.Object
     Local_2: v2 As System.Object
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim v1 As O ... h {.a = tr}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'v1 As Objec ... h {.a = tr}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: v1 As System.Object) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'v1')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'v1 As Objec ... h {.a = tr}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: v1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v1')
             Initializer: 
               null
       Initializer: 
@@ -138,9 +138,9 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                       Right: 
                         IParameterReferenceOperation: tr (OperationKind.ParameterReference, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim v2 As O ... a = {{tr}}}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'v2 As Objec ... a = {{tr}}}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: v2 As System.Object) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'v2')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'v2 As Objec ... a = {{tr}}}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: v2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v2')
             Initializer: 
               null
       Initializer: 
@@ -725,9 +725,9 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
   Locals: Local_1: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
     Local_2: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim err = N ...  {<a/>.<_>}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'err = New W ...  {<a/>.<_>}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'err')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'err = New W ...  {<a/>.<_>}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'err')
             Initializer: 
               null
       Initializer: 
@@ -736,9 +736,9 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
             Initializers(1):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<a/>.<_>')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim ok = Ne ... {<a/>.<__>}')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'ok = New Wi ... {<a/>.<__>}')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'ok')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'ok = New Wi ... {<a/>.<__>}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ok')
             Initializer: 
               null
       Initializer: 

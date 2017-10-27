@@ -403,9 +403,9 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a = {}')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'a = {}')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: a As System.Object()) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a = {}')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Object()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -1205,9 +1205,9 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x(2) As Integer')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x(2) As Integer')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: x As System.Int32()) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x(2)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x(2) As Integer')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: x As System.Int32()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x(2)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x(2)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'x(2)')

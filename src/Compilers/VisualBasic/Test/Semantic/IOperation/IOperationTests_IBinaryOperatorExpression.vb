@@ -255,12 +255,12 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
     Local_2: y As System.Int32
     Local_3: r As System.Int32
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
-          ISingleVariableDeclarationOperation (Symbol: y As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'y')
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
             Initializer: 
               null
       Initializer: 
@@ -270,9 +270,9 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
             Initializer: 
               null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim r As Integer')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'r As Integer')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: r As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'r')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r As Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: r As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
             Initializer: 
               null
       Initializer: 
@@ -644,12 +644,12 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
     Local_2: y As System.Int32
     Local_3: r As System.Int32
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
-          ISingleVariableDeclarationOperation (Symbol: y As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'y')
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
             Initializer: 
               null
       Initializer: 
@@ -659,9 +659,9 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
             Initializer: 
               null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim r As Integer')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'r As Integer')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: r As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'r')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r As Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: r As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
             Initializer: 
               null
       Initializer: 
@@ -1183,12 +1183,12 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   Locals: Local_1: x As System.Int32
     Local_2: y As System.Int32
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
-          ISingleVariableDeclarationOperation (Symbol: y As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'y')
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
             Initializer: 
               null
       Initializer: 
@@ -1337,12 +1337,12 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   Locals: Local_1: x As System.Int32
     Local_2: y As System.Int32
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
-          ISingleVariableDeclarationOperation (Symbol: y As System.Int32) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'y')
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
             Initializer: 
               null
       Initializer: 
@@ -1612,12 +1612,12 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
     Local_2: y As B2
     Local_3: r As B2
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New B2()')
-    IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'x, y As New B2()')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: x As B2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New B2()')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
-          ISingleVariableDeclarationOperation (Symbol: y As B2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'y')
+          IVariableDeclaratorOperation (Symbol: y As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
             Initializer: 
               null
       Initializer: 
@@ -1627,9 +1627,9 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
             Initializer: 
               null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim r As B2')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'r As B2')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: r As B2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'r')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r As B2')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: r As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
             Initializer: 
               null
       Initializer: 

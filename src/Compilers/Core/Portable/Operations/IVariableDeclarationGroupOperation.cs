@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Variable declaration in the statement.
         /// </summary>
         /// <remarks>
-        /// In C#, this will always be a single declaration, with all variables in <see cref="IMultiVariableDeclarationOperation.Declarations"/>.
+        /// In C#, this will always be a single declaration, with all variables in <see cref="IVariableDeclarationOperation.Declarators"/>.
         /// </remarks>
-        ImmutableArray<IMultiVariableDeclarationOperation> Declarations { get; }
+        ImmutableArray<IVariableDeclarationOperation> Declarations { get; }
     }
 }

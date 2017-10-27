@@ -1821,9 +1821,9 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
     Local_2: System.Int32? q
     Local_3: System.Boolean[] b
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int x = xint + 123;')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int x = xint + 123')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: System.Int32 x) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'x = xint + 123')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int x = xint + 123')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = xint + 123')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= xint + 123')
                 IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 X<System.Int32>.op_Addition(X<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'xint + 123')
@@ -1834,9 +1834,9 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int? q = ne ... new int?();')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int? q = ne ...  new int?()')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: System.Int32? q) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'q = new Q<i ...  new int?()')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int? q = ne ...  new int?()')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Int32? q) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'q = new Q<i ...  new int?()')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Q<int ...  new int?()')
                 IBinaryOperation (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: System.Int32 Q<System.Int32>.op_Addition(Q<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperator, Type: System.Int32?) (Syntax: 'new Q<int>? ...  new int?()')
@@ -1853,9 +1853,9 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'bool[] b = ... };')
-    IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'bool[] b = ... }')
-      Declarations:
-          ISingleVariableDeclarationOperation (Symbol: System.Boolean[] b) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'b = ... }')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'bool[] b = ... }')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Boolean[] b) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b = ... }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ... }')
                 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Boolean[]) (Syntax: '{ ... }')

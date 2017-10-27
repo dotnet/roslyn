@@ -1828,7 +1828,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISingleVariableDeclarationOperation (Symbol: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'y = (x, x,  ... ) = new C()')
+IVariableDeclaratorOperation (Symbol: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y = (x, x,  ... ) = new C()')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (x, x, x, ... ) = new C()')
       IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64)) (Syntax: '(x, x, x, x ... ) = new C()')
@@ -3903,9 +3903,9 @@ class C
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const (int  ... ) = (1, 2);')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: '(int x, int y) = (1, 2)')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: (System.Int32 x, System.Int32 y) ) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '= (1, 2)')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: '(int x, int y) = (1, 2)')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: (System.Int32 x, System.Int32 y) ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '= (1, 2)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (1, 2)')
               IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')

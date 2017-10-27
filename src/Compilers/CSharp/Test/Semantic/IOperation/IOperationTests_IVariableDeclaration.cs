@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void SingleVariableDeclaration()
+        public void VariableDeclarator()
         {
             string source = @"
 class Program
@@ -26,9 +26,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
     Initializer: 
@@ -45,7 +45,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void SingleVariableDeclarationWithInitializer()
+        public void VariableDeclaratorWithInitializer()
         {
             string source = @"
 class Program
@@ -58,9 +58,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1 = 1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i1 = 1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = 1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = 1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = 1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -78,7 +78,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void SingleVariableDeclarationWithInvalidInitializer()
+        public void VariableDeclaratorWithInvalidInitializer()
         {
             string source = @"
 class Program
@@ -91,9 +91,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int i1 = ;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = ')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = ')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = ')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = ')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -125,12 +125,12 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1, i2;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i1, i2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1, i2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i2')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
     Initializer: 
@@ -163,13 +163,13 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1 = 2, i2 = 2;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i1 = 2, i2 = 2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = 2')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = 2, i2 = 2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = 2')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i2 = 2')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = 2')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -203,14 +203,14 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int i1 = , i2 = 2;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = , i2 = 2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = ')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = , i2 = 2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = ')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i2 = 2')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = 2')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -244,12 +244,12 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int i,;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i,')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i,')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
           Initializer: 
             null
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 ) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '')
+        IVariableDeclaratorOperation (Symbol: System.Int32 ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
           Initializer: 
             null
     Initializer: 
@@ -269,7 +269,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void SingleVariableDeclarationExpressionInitializer()
+        public void VariableDeclaratorExpressionInitializer()
         {
             string source = @"
 class Program
@@ -284,9 +284,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = GetInt();')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i = GetInt()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = GetInt()')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i = GetInt()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = GetInt()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
               IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
@@ -318,16 +318,16 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = Get ... = GetInt();')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i = Get ...  = GetInt()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = GetInt()')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i = Get ...  = GetInt()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = GetInt()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
               IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
                 Instance Receiver: 
                   null
                 Arguments(0)
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j = GetInt()')
+        IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j = GetInt()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
               IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
@@ -344,7 +344,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void SingleVariableDeclarationLocalReferenceInitializer()
+        public void VariableDeclaratorLocalReferenceInitializer()
         {
             string source = @"
 class Program
@@ -360,9 +360,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1 = i;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i1 = i')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = i')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = i')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = i')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i')
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
@@ -392,13 +392,13 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1 = i, i2 = i1;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i1 = i, i2 = i1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = i')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = i, i2 = i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = i')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i')
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i2 = i1')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = i1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
               ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
@@ -425,9 +425,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int[2, 3] a;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[2, 3] a')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32[,] a) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[2, 3] a')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32[,] a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
     Initializer: 
@@ -463,12 +463,12 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int[2, 3] a, b;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[2, 3] a, b')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32[,] a) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'a')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[2, 3] a, b')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32[,] a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
-        ISingleVariableDeclarationOperation (Symbol: System.Int32[,] b) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'b')
+        IVariableDeclaratorOperation (Symbol: System.Int32[,] b) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b')
           Initializer: 
             null
     Initializer: 
@@ -544,9 +544,9 @@ class Program
 
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int* p = &reference.i1')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p = &reference.i1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* p) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p = &reference.i1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p = &reference.i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = &reference.i1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
               IOperation:  (OperationKind.None, Type: null) (Syntax: '&reference.i1')
@@ -591,9 +591,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int* p1 = & ... eference.i2')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = & ... eference.i2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p1 = &reference.i1')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = & ... eference.i2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &reference.i1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
               IOperation:  (OperationKind.None, Type: null) (Syntax: '&reference.i1')
@@ -603,7 +603,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'reference.i1')
                           Instance Receiver: 
                             ILocalReferenceOperation: reference (OperationKind.LocalReference, Type: Program) (Syntax: 'reference')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* p2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p2 = &reference.i2')
+        IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &reference.i2')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i2')
               IOperation:  (OperationKind.None, Type: null) (Syntax: '&reference.i2')
@@ -648,9 +648,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int* p = /*</bind>*/')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p = /*</bind>*/')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* p) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p = /*</bind>*/')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p = /*</bind>*/')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p = /*</bind>*/')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= /*</bind>*/')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -696,14 +696,14 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int* p1 = , ... /*</bind>*/')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1 = , ... /*</bind>*/')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p1 = ')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1 = , ... /*</bind>*/')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1 = ')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* p2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p2 = /*</bind>*/')
+        IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p2 = /*</bind>*/')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= /*</bind>*/')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -755,9 +755,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int* p')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* p) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p')
           Initializer: 
             null
     Initializer: 
@@ -801,12 +801,12 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int* p1, p2')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1, p2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p1')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1, p2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1')
           Initializer: 
             null
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* p2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p2')
+        IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p2')
           Initializer: 
             null
     Initializer: 
@@ -856,9 +856,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int* p1 = & ... /*</bind>*/')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1 = & ... /*</bind>*/')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* p1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p1 = &reference.i1')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1 = & ... /*</bind>*/')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &reference.i1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
               IOperation:  (OperationKind.None, Type: null) (Syntax: '&reference.i1')
@@ -868,7 +868,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'reference.i1')
                           Instance Receiver: 
                             ILocalReferenceOperation: reference (OperationKind.LocalReference, Type: Program) (Syntax: 'reference')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32* ) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '')
+        IVariableDeclaratorOperation (Symbol: System.Int32* ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
           Initializer: 
             null
     Initializer: 
@@ -917,9 +917,9 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Program p1  ... w Program()')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p1  ... w Program()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p1 = new Program()')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p1  ... w Program()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = new Program()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Program()')
               IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
@@ -955,16 +955,16 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Program p1  ... w Program()')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p1  ... w Program()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p1 = new Program()')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p1  ... w Program()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = new Program()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Program()')
               IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
                 Arguments(0)
                 Initializer: 
                   null
-        ISingleVariableDeclarationOperation (Symbol: Program p2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p2 = new Program()')
+        IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = new Program()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Program()')
               IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
@@ -1000,9 +1000,9 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Program p1 =/*</bind>*/')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program p1 =/*</bind>*/')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p1 =/*</bind>*/')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program p1 =/*</bind>*/')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1 =/*</bind>*/')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=/*</bind>*/')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -1040,14 +1040,14 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Program p1  ... /*</bind>*/')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program p1  ... /*</bind>*/')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p1 =')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program p1  ... /*</bind>*/')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1 =')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
-        ISingleVariableDeclarationOperation (Symbol: Program p2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p2 =/*</bind>*/')
+        IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p2 =/*</bind>*/')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=/*</bind>*/')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -1088,9 +1088,9 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Program p1')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program p1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program p1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1')
           Initializer: 
             null
     Initializer: 
@@ -1126,12 +1126,12 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Program p1, p2')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program p1, p2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p1')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program p1, p2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1')
           Initializer: 
             null
-        ISingleVariableDeclarationOperation (Symbol: Program p2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'p2')
+        IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p2')
           Initializer: 
             null
     Initializer: 
@@ -1170,16 +1170,16 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Program p1  ... /*</bind>*/')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program p1  ... /*</bind>*/')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p1 = new Program()')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program p1  ... /*</bind>*/')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = new Program()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Program()')
               IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
                 Arguments(0)
                 Initializer: 
                   null
-        ISingleVariableDeclarationOperation (Symbol: Program ) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '')
+        IVariableDeclaratorOperation (Symbol: Program ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
           Initializer: 
             null
     Initializer: 
@@ -1220,9 +1220,9 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Program p1  ... etProgram()')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p1  ... etProgram()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p1 = GetProgram()')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p1  ... etProgram()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = GetProgram()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetProgram()')
               IInvocationOperation (Program Program.GetProgram()) (OperationKind.Invocation, Type: Program) (Syntax: 'GetProgram()')
@@ -1260,16 +1260,16 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Program p1  ... etProgram()')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p1  ... etProgram()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p1 = GetProgram()')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p1  ... etProgram()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = GetProgram()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetProgram()')
               IInvocationOperation (Program Program.GetProgram()) (OperationKind.Invocation, Type: Program) (Syntax: 'GetProgram()')
                 Instance Receiver: 
                   null
                 Arguments(0)
-        ISingleVariableDeclarationOperation (Symbol: Program p2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p2 = GetProgram()')
+        IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = GetProgram()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetProgram()')
               IInvocationOperation (Program Program.GetProgram()) (OperationKind.Invocation, Type: Program) (Syntax: 'GetProgram()')
@@ -1306,9 +1306,9 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Program p2 = p1')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p2 = p1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p2 = p1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p2 = p1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = p1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= p1')
               ILocalReferenceOperation: p1 (OperationKind.LocalReference, Type: Program) (Syntax: 'p1')
@@ -1342,13 +1342,13 @@ class Program : IDisposable
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Program p2 = p1, p3 = p1')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p2 = p1, p3 = p1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: Program p2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p2 = p1')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'Program p2 = p1, p3 = p1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = p1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= p1')
               ILocalReferenceOperation: p1 (OperationKind.LocalReference, Type: Program) (Syntax: 'p1')
-        ISingleVariableDeclarationOperation (Symbol: Program p3) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'p3 = p1')
+        IVariableDeclaratorOperation (Symbol: Program p3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p3 = p1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= p1')
               ILocalReferenceOperation: p1 (OperationKind.LocalReference, Type: Program) (Syntax: 'p1')
@@ -1382,9 +1382,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = 0')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i = 0')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i = 0')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1413,13 +1413,13 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = 0, j = 0')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i = 0, j = 0')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = 0')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i = 0, j = 0')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = 0')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j = 0')
+        IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j = 0')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1453,9 +1453,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int i =/*</bind>*/')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int i =/*</bind>*/')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i =/*</bind>*/')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int i =/*</bind>*/')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i =/*</bind>*/')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=/*</bind>*/')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -1490,14 +1490,14 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int i =, j =/*</bind>*/')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int i =, j =/*</bind>*/')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i =')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int i =, j =/*</bind>*/')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i =')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'j =/*</bind>*/')
+        IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'j =/*</bind>*/')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=/*</bind>*/')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -1535,9 +1535,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
           Initializer: 
             null
     Initializer: 
@@ -1570,12 +1570,12 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i, j')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i, j')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i, j')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
           Initializer: 
             null
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j')
+        IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j')
           Initializer: 
             null
     Initializer: 
@@ -1611,14 +1611,14 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int i =,/*</bind>*/')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int i =,/*</bind>*/')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i =')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int i =,/*</bind>*/')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i =')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 ) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '')
+        IVariableDeclaratorOperation (Symbol: System.Int32 ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
           Initializer: 
             null
     Initializer: 
@@ -1656,9 +1656,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = GetInt()')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i = GetInt()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = GetInt()')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i = GetInt()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = GetInt()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
               IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
@@ -1693,16 +1693,16 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = Get ...  = GetInt()')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i = Get ...  = GetInt()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i = GetInt()')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int i = Get ...  = GetInt()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = GetInt()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
               IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
                 Instance Receiver: 
                   null
                 Arguments(0)
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 j) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'j = GetInt()')
+        IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j = GetInt()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
               IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
@@ -1736,9 +1736,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'const int i1 = 1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i1 = 1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = 1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = 1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = 1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1772,13 +1772,13 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'const int i ...  1, i2 = 2;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i1 = 1, i2 = 2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = 1')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = 1, i2 = 2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = 1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i2 = 2')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = 2')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -1812,9 +1812,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1 = ;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = ')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = ')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = ')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = ')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -1846,14 +1846,14 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1 = , i2 = ;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = , i2 = ')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = ')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = , i2 = ')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = ')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i2 = ')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i2 = ')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -1888,9 +1888,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1')
           Initializer: 
             null
     Initializer: 
@@ -1923,12 +1923,12 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1, i2;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1, i2')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1, i2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1')
           Initializer: 
             null
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i2')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i2')
           Initializer: 
             null
     Initializer: 
@@ -1967,12 +1967,12 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1,;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1,')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1,')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1')
           Initializer: 
             null
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 ) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: '')
+        IVariableDeclaratorOperation (Symbol: System.Int32 ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
           Initializer: 
             null
     Initializer: 
@@ -2013,9 +2013,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1 = GetInt();')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = GetInt()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = GetInt()')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = GetInt()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = GetInt()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= GetInt()')
               IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
@@ -2051,16 +2051,16 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i ... = GetInt();')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = Ge ...  = GetInt()')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i1 = GetInt()')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = Ge ...  = GetInt()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = GetInt()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= GetInt()')
               IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
                 Instance Receiver: 
                   null
                 Arguments(0)
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i2) (OperationKind.SingleVariableDeclaration, Type: null, IsInvalid) (Syntax: 'i2 = GetInt()')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i2 = GetInt()')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= GetInt()')
               IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
@@ -2100,9 +2100,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'const int i1 = i;')
-  IMultiVariableDeclarationOperation (1 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i1 = i')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = i')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = i')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = i')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i')
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'i')
@@ -2136,13 +2136,13 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'const int i ... i, i2 = i1;')
-  IMultiVariableDeclarationOperation (2 declarations) (OperationKind.MultiVariableDeclaration, Type: null) (Syntax: 'int i1 = i, i2 = i1')
-    Declarations:
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i1) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i1 = i')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = i, i2 = i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = i')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i')
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'i')
-        ISingleVariableDeclarationOperation (Symbol: System.Int32 i2) (OperationKind.SingleVariableDeclaration, Type: null) (Syntax: 'i2 = i1')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = i1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
               ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'i1')
