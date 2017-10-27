@@ -385,22 +385,40 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
             return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
         }
-
-        internal static SynthesizedAttributeData GetDynamicAttributeIfAny(IMethodSymbol method)
+        
+        internal static void CheckAttribute(AssemblyMetadata assembly, IMethodSymbol method, AttributeDescription description, bool expected)
         {
-            return GetAttributeIfAny(method, "System.Runtime.CompilerServices.DynamicAttribute");
-        }
+            var module = assembly.GetModules().Single().Module;
 
-        internal static SynthesizedAttributeData GetTupleElementNamesAttributeIfAny(IMethodSymbol method)
-        {
-            return GetAttributeIfAny(method, "System.Runtime.CompilerServices.TupleElementNamesAttribute");
-        }
+            var typeHandle = module
+                .GroupTypesByNamespaceOrThrow(StringComparer.Ordinal)
+                .SelectMany(group => group)
+                .Single(handle => module.GetTypeDefNameOrThrow(handle) == method.ContainingType.Name);
 
-        internal static SynthesizedAttributeData GetAttributeIfAny(IMethodSymbol method, string typeName)
-        {
-            return ((MethodSymbol)method).GetSynthesizedAttributes(forReturnType: true).
-                Where(a => a.AttributeClass.ToTestDisplayString() == typeName).
-                SingleOrDefault();
+            var methodHandle = module
+                .GetMethodsOfTypeOrThrow(typeHandle)
+                .Single(handle => module.GetMethodDefNameOrThrow(handle) == method.Name);
+
+            var returnParamHandle = module.GetParametersOfMethodOrThrow(methodHandle).FirstOrDefault();
+
+            if (returnParamHandle.IsNil)
+            {
+                Assert.False(expected);
+                return;
+            }
+
+            var attributes = module
+                .GetCustomAttributesOrThrow(returnParamHandle)
+                .Where(handle => module.GetTargetAttributeSignatureIndex(handle, description) != -1);
+
+            if (expected)
+            {
+                Assert.Equal(1, attributes.Count());
+            }
+            else
+            {
+                Assert.Empty(attributes);
+            }
         }
     }
 }
