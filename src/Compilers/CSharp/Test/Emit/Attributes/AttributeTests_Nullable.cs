@@ -860,7 +860,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (5,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //         object?[] L() => throw new System.NotImplementedException();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?[] L() => throw new System.NotImplementedException();").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?[]").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(5, 9));
         }
 
         [Fact]

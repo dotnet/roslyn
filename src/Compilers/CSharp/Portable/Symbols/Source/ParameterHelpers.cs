@@ -137,6 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (parameter.Type.ContainsNullableReferenceTypes())
                 {
+                    // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+                    // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
                     parameter.DeclaringCompilation?.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
                 }
             }

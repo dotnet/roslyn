@@ -100,11 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);
-
-            if (ReturnType.ContainsNullableReferenceTypes())
-            {
-                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, Locations[0], modifyCompilation: false);
-            }
         }
 
         private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)

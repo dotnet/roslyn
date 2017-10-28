@@ -228,6 +228,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, _syntax.ReturnType.Location, modifyCompilation: false);
             }
 
+            if (returnType.ContainsNullableReferenceTypes())
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, _syntax.ReturnType.Location, modifyCompilation: false);
+            }
+
             Debug.Assert(_refKind == RefKind.None
                 || returnType.SpecialType != SpecialType.System_Void
                 || returnTypeSyntax.HasErrors);
