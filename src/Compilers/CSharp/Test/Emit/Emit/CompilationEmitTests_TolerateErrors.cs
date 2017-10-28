@@ -24,23 +24,13 @@ public class C
 }
 ", references: new[] { MscorlibRef });
 
-            byte[] mdOnlyImage;
-            using (var output = new MemoryStream())
-            {
-                EmitResult emitResult = comp.Emit(output, options: new EmitOptions(metadataOnly: true, tolerateErrors: true));
-                Assert.True(emitResult.Success);
-
-                emitResult.Diagnostics.Verify(
+            byte[] mdOnlyImage = EmitMetadataOnlyImageAndVerifyDiagnostics(comp,
                     // (4,12): error CS0246: The type or namespace name 'Bad' could not be found (are you missing a using directive or an assembly reference?)
                     //     public Bad M() { throw null; }
                     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Bad").WithArguments("Bad").WithLocation(4, 12),
                     // error CS0246: The type or namespace name 'Bad' could not be found (are you missing a using directive or an assembly reference?)
                     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("Bad").WithLocation(1, 1)
-                    );
-
-                mdOnlyImage = output.ToArray();
-                Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            }
+                );
 
             var mdOnlyRef = (MetadataImageReference)AssemblyMetadata.CreateFromImage(mdOnlyImage).GetReference(display: "mdOnlyRef");
 
@@ -64,8 +54,12 @@ class D
         var bad = c.M();
         bad.Missing();
     }
-}", references: new[] { MscorlibRef, mdOnlyRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+}", references: new[] { MscorlibRef, mdOnlyRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "compWithUsage1");
             compWithUsage1.VerifyDiagnostics();
+            compWithUsage1.VerifyEmitDiagnostics(
+                // error CS7038: Failed to emit module 'compWithUsage1'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("compWithUsage1").WithLocation(1, 1)
+                );
             // PROTOTYPE(tolerate-errors) we need one diagnostic for the entire compilation (when emitting with a reference to error assembly)
 
             AssertEx.Equal(
