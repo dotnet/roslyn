@@ -943,10 +943,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IConversionOperation));
 
-            var isExplicitStr = operation.IsExplicitInCode ? "Explicit" : "Implicit";
             var isTryCast = $"TryCast: {(operation.IsTryCast ? "True" : "False")}";
             var isChecked = operation.IsChecked ? "Checked" : "Unchecked";
-            LogString($" ({isExplicitStr}, {isTryCast}, {isChecked})");
+            LogString($" ({isTryCast}, {isChecked})");
 
             LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
             LogCommonPropertiesAndNewLine(operation);
