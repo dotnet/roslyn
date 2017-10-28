@@ -316,7 +316,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'i')
 ";
@@ -339,7 +339,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'i')
 ";
@@ -538,7 +538,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-i')
+IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '-i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.UInt64, IsInvalid) (Syntax: 'i')
 ";
@@ -656,7 +656,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-i')
+IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '-i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'i')
 ";
@@ -679,7 +679,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-i')
+IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '-i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'i')
 ";
@@ -1029,7 +1029,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+Method()')
   Operand: 
     IInvocationExpression ( System.Boolean A.Method()) (OperationKind.InvocationExpression, Type: System.Boolean, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -1055,7 +1055,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+Method()')
   Operand: 
     IInvocationExpression ( System.Object A.Method()) (OperationKind.InvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -1278,7 +1278,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '-Method()')
   Operand: 
     IInvocationExpression ( System.UInt64 A.Method()) (OperationKind.InvocationExpression, Type: System.UInt64, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -1411,7 +1411,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '-Method()')
   Operand: 
     IInvocationExpression ( System.Boolean A.Method()) (OperationKind.InvocationExpression, Type: System.Boolean, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -1437,7 +1437,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '-Method()')
   Operand: 
     IInvocationExpression ( System.Object A.Method()) (OperationKind.InvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -1734,7 +1734,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~i')
+IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '~i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Decimal, IsInvalid) (Syntax: 'i')
 ";
@@ -1757,7 +1757,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~i')
+IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '~i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Single, IsInvalid) (Syntax: 'i')
 ";
@@ -1780,7 +1780,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~i')
+IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '~i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double, IsInvalid) (Syntax: 'i')
 ";
@@ -1803,7 +1803,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~i')
+IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '~i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'i')
 ";
@@ -1826,7 +1826,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~i')
+IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '~i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'i')
 ";
@@ -2098,7 +2098,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '~Method()')
   Operand: 
     IInvocationExpression ( System.Decimal A.Method()) (OperationKind.InvocationExpression, Type: System.Decimal, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -2124,7 +2124,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '~Method()')
   Operand: 
     IInvocationExpression ( System.Single A.Method()) (OperationKind.InvocationExpression, Type: System.Single, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -2150,7 +2150,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '~Method()')
   Operand: 
     IInvocationExpression ( System.Double A.Method()) (OperationKind.InvocationExpression, Type: System.Double, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -2176,7 +2176,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '~Method()')
   Operand: 
     IInvocationExpression ( System.Boolean A.Method()) (OperationKind.InvocationExpression, Type: System.Boolean, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -2202,7 +2202,7 @@ class A
 
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '~Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '~Method()')
   Operand: 
     IInvocationExpression ( System.Object A.Method()) (OperationKind.InvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -2424,7 +2424,7 @@ class A
 enum Enum { A, B }
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: Enum, IsInvalid) (Syntax: 'i')
 ";
@@ -2447,7 +2447,7 @@ class A
 enum Enum { A, B }
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-i')
+IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '-i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: Enum, IsInvalid) (Syntax: 'i')
 ";
@@ -2493,7 +2493,7 @@ class A
 enum Enum { A, B }
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+Method()')
   Operand: 
     IInvocationExpression ( Enum A.Method()) (OperationKind.InvocationExpression, Type: Enum, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -2519,7 +2519,7 @@ class A
 enum Enum { A, B }
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '-Method()')
+IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '-Method()')
   Operand: 
     IInvocationExpression ( Enum A.Method()) (OperationKind.InvocationExpression, Type: Enum, IsInvalid) (Syntax: 'Method()')
       Instance Receiver: 
@@ -3033,7 +3033,7 @@ public struct CustomType
 }
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType, IsInvalid) (Syntax: 'i')
 ";
@@ -3106,7 +3106,7 @@ public class DerivedType
 }
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType, IsInvalid) (Syntax: 'i')
 ";
@@ -3143,7 +3143,7 @@ public class DerivedType
 }
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType, IsInvalid) (Syntax: 'i')
 ";
@@ -3173,7 +3173,7 @@ public class BaseType
 }
 ";
             string expectedOperationTree = @"
-IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '+i')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
   Operand: 
     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: BaseType, IsInvalid) (Syntax: 'i')
 ";

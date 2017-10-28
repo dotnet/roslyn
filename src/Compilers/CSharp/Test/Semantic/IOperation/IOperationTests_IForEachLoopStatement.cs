@@ -695,7 +695,7 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ x++; }')
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x++;')
         Expression: 
-          IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'x++')
+          IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: ?, IsInvalid) (Syntax: 'x++')
             Target: 
               IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'x')
                 Children(1):
