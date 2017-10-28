@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Metadata;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
@@ -90,56 +91,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         string Cci.INamedEntity.Name => Name;
-
-        /// <summary>
-        /// A fake containing assembly for an ErrorTypeSymbol object.
-        /// </summary>
-        internal sealed class ErrorAssembly : Cci.IAssemblyReference
-        {
-            private const string errorAssemblyName = "CodeAnalysisError";
-            public static readonly ErrorAssembly Singleton = new ErrorAssembly();
-           
-            public static bool IsErrorAssembly(AssemblySymbol symbol)
-            {
-                return symbol.Name == errorAssemblyName && symbol.Identity.Version == AssemblyIdentity.NullVersion;
-            }
-
-            /// <summary>
-            /// For the name we will use a word "Error" followed by a guid, generated on the spot.
-            /// </summary>
-            private static readonly AssemblyIdentity s_identity = new AssemblyIdentity(
-                name: errorAssemblyName,
-                version: AssemblyIdentity.NullVersion,
-                cultureName: "",
-                publicKeyOrToken: ImmutableArray<byte>.Empty,
-                hasPublicKey: false,
-                isRetargetable: false,
-                contentType: AssemblyContentType.Default);
-
-            AssemblyIdentity Cci.IAssemblyReference.Identity => s_identity;
-            Version Cci.IAssemblyReference.AssemblyVersionPattern => null;
-
-            Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
-            {
-                return this;
-            }
-
-            IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
-            {
-                return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-            }
-
-            void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
-            {
-                visitor.Visit((Cci.IAssemblyReference)this);
-            }
-
-            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-            {
-                return null;
-            }
-
-            string Cci.INamedEntity.Name => s_identity.Name;
-        }
     }
 }

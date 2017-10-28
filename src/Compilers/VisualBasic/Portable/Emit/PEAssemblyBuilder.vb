@@ -132,6 +132,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return m_SourceAssembly.AssemblyVersionPattern
             End Get
         End Property
+
+        Public ReadOnly Property HasMetadataError As Boolean Implements IAssemblyReference.HasMetadataError
+            Get
+                ' PROTOTYPE(tolerate-errors)
+                Throw New NotImplementedException()
+            End Get
+        End Property
     End Class
 
     Friend NotInheritable Class PEAssemblyBuilder

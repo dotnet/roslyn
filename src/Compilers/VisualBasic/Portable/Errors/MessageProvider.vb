@@ -551,6 +551,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ERRID.ERR_InvalidDebugInfo
             End Get
         End Property
+
+        Public Overrides ReadOnly Property ERR_ReferencingMetadataWithErrors As Integer
+            Get
+                ' PROTOTYPE(tolerate-errors)
+                Throw New NotImplementedException()
+            End Get
+        End Property
     End Class
 
 End Namespace

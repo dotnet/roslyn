@@ -5220,4 +5220,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ErrorType" xml:space="preserve">
     <value>Type '{0}' cannot be found. It was referenced by a compilation that had errors</value>
   </data>
+  <data name="ERR_ReferencingMetadataWithErrors" xml:space="preserve">
+    <value>Cannot emit a full assembly when referencing a metadata-only assembly with tolerated error: {0}.</value>
+  </data>
 </root>

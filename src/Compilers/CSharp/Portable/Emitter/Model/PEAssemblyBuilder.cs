@@ -163,6 +163,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public AssemblyIdentity Identity => _sourceAssembly.Identity;
         public Version AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
 
+        AssemblyIdentity IAssemblyReference.Identity => throw new NotImplementedException();
+
+        Version IAssemblyReference.AssemblyVersionPattern => throw new NotImplementedException();
+
+        // PROTOTYPE(tolerate-errors)
+        bool IAssemblyReference.HasMetadataError => throw new NotImplementedException();
+
         internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
             if ((object)_lazyEmbeddedAttribute != null)

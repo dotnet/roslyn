@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -17,12 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void MetadataOnly_TolerateErrors()
         {
-            CSharpCompilation comp = CreateCompilation(@"
+            string comp_cs = @"
 public class C
 {
     public Bad M() { throw null; }
 }
-", references: new[] { MscorlibRef });
+";
+            CSharpCompilation comp = CreateCompilation(comp_cs, references: new[] { MscorlibRef }, assemblyName: "comp");
 
             byte[] mdOnlyImage = EmitMetadataOnlyImageAndVerifyDiagnostics(comp,
                     // (4,12): error CS0246: The type or namespace name 'Bad' could not be found (are you missing a using directive or an assembly reference?)
@@ -46,7 +48,7 @@ public class C
                 metadataReader.AssemblyReferences.Select(ar => metadataReader.GetString(metadataReader.GetAssemblyReference(ar).Name)));
 
             // Load ErrorType, use it without error, and verify its symbol
-            var compWithUsage1 = CreateCompilation(@"
+            const string compWithUsage1_cs = @"
 class D
 {
     void M2<T1>(C c)
@@ -54,17 +56,23 @@ class D
         var bad = c.M();
         bad.Missing();
     }
-}", references: new[] { MscorlibRef, mdOnlyRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "compWithUsage1");
+}";
+            var compWithUsage1 = CreateCompilation(compWithUsage1_cs, references: new[] { MscorlibRef, mdOnlyRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "compWithUsage1");
             compWithUsage1.VerifyDiagnostics();
             compWithUsage1.VerifyEmitDiagnostics(
                 // error CS7038: Failed to emit module 'compWithUsage1'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("compWithUsage1").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("compWithUsage1").WithLocation(1, 1),
+                // error CS8357: Cannot emit a full assembly when referencing a metadata-only assembly with tolerated error: comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null.
+                Diagnostic(ErrorCode.ERR_ReferencingMetadataWithErrors).WithArguments("comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
                 );
-            // PROTOTYPE(tolerate-errors) we need one diagnostic for the entire compilation (when emitting with a reference to error assembly)
 
             AssertEx.Equal(
                 new[] { "Bad[missing] C.M()", "C..ctor()" },
                 compWithUsage1.GetMember<NamedTypeSymbol>("C").GetMembers().Select(m => m.ToTestDisplayString()));
+
+            AssertEx.Equal(
+                new[] { "void D.M2<T1>(C c)", "D..ctor()" },
+                compWithUsage1.GetMember<NamedTypeSymbol>("D").GetMembers().Select(m => m.ToTestDisplayString()));
 
             // Verify source symbol for ErrorType
             var sourceMethod = (MethodSymbol)comp.GetMember<NamedTypeSymbol>("C").GetMember("M");
@@ -86,7 +94,7 @@ class D
             Assert.Equal(0, peErrorType.Arity);
 
             // Using Bad in client source produces new errors
-            var compWithUsage2 = CreateCompilation(@"
+            string compWithUsage2_cs = @"
 class D
 {
     void M2<T1>(Bad b, Bad<T1> b1)
@@ -94,7 +102,8 @@ class D
         b.ToString();
         b1.ToString();
     }
-}", references: new[] { MscorlibRef, mdOnlyRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+}";
+            var compWithUsage2 = CreateCompilation(compWithUsage2_cs, references: new[] { MscorlibRef, mdOnlyRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             compWithUsage2.VerifyDiagnostics(
                 // (4,17): error CS0246: The type or namespace name 'Bad' could not be found (are you missing a using directive or an assembly reference?)
                 //     void M2<T1>(Bad b, Bad<T1> b1)
@@ -102,6 +111,51 @@ class D
                 // (4,24): error CS0246: The type or namespace name 'Bad<>' could not be found (are you missing a using directive or an assembly reference?)
                 //     void M2<T1>(Bad b, Bad<T1> b1)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Bad<T1>").WithArguments("Bad<>").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void MetadataOnly_TolerateErrors_InIndirectReference()
+        {
+            string comp_cs = @"
+public class C
+{
+    public Bad M() { throw null; }
+}
+";
+            CSharpCompilation comp = CreateCompilation(comp_cs, references: new[] { MscorlibRef }, assemblyName: "comp");
+
+            byte[] mdOnlyImage = EmitMetadataOnlyImageAndVerifyDiagnostics(comp,
+                    // (4,12): error CS0246: The type or namespace name 'Bad' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public Bad M() { throw null; }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Bad").WithArguments("Bad").WithLocation(4, 12),
+                    // error CS0246: The type or namespace name 'Bad' could not be found (are you missing a using directive or an assembly reference?)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("Bad").WithLocation(1, 1)
+                );
+
+            var mdOnlyRef = (MetadataImageReference)AssemblyMetadata.CreateFromImage(mdOnlyImage).GetReference(display: "mdOnlyRef");
+
+            string compWithUsage1_cs = @"
+public class D : C
+{
+}";
+            var compWithUsage1 = CreateCompilation(compWithUsage1_cs, references: new[] { MscorlibRef, mdOnlyRef }, options: TestOptions.DebugDll, assemblyName: "compWithUsage1");
+            byte[] usageImage = EmitMetadataOnlyImageAndVerifyDiagnostics(compWithUsage1);
+            var usageMdOnlyRef = (MetadataImageReference)AssemblyMetadata.CreateFromImage(usageImage).GetReference(display: "usageMdOnlyRef");
+
+            var metadataReader = ((AssemblyMetadata)usageMdOnlyRef.GetMetadataNoCopy()).GetModules()[0].MetadataReader;
+            Assert.Equal(new string[] { "mscorlib", "comp", "CodeAnalysisError" },
+                metadataReader.AssemblyReferences.Select(ar => metadataReader.GetString(metadataReader.GetAssemblyReference(ar).Name)));
+
+            string compWithUsage2_cs = @"
+public class E : D
+{
+}";
+            var compWithUsage2 = CreateCompilation(compWithUsage2_cs, references: new[] { MscorlibRef, mdOnlyRef, usageMdOnlyRef });
+            compWithUsage2.VerifyDiagnostics();
+            compWithUsage2.VerifyEmitDiagnostics(
+                // error CS8357: Cannot emit a full assembly when referencing a metadata-only assembly with tolerated error: compWithUsage1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null.
+                Diagnostic(ErrorCode.ERR_ReferencingMetadataWithErrors).WithArguments("compWithUsage1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
                 );
         }
 

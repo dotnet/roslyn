@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.Cci
 {
@@ -12,11 +13,12 @@ namespace Microsoft.Cci
     {
         protected readonly MetadataWriter metadataWriter;
         private readonly HashSet<IImportScope> _alreadySeenScopes = new HashSet<IImportScope>();
-
-        internal ReferenceIndexer(MetadataWriter metadataWriter)
+        private readonly CommonMessageProvider _messageProviderOpt;
+        internal ReferenceIndexer(MetadataWriter metadataWriter, CommonMessageProvider messageProviderOpt)
             : base(metadataWriter.Context)
         {
             this.metadataWriter = metadataWriter;
+            _messageProviderOpt = messageProviderOpt;
         }
 
         public override void Visit(CommonPEModuleBuilder module)
@@ -95,6 +97,15 @@ namespace Microsoft.Cci
         protected override void RecordAssemblyReference(IAssemblyReference assemblyReference)
         {
             this.metadataWriter.GetAssemblyReferenceHandle(assemblyReference);
+
+            if (assemblyReference.HasMetadataError && _messageProviderOpt != null)
+            {
+                if (!Context.MetadataOnly)
+                {
+                    Context.Diagnostics.Add(_messageProviderOpt.CreateDiagnostic(_messageProviderOpt.ERR_ReferencingMetadataWithErrors, Location.None, assemblyReference.ToString()));
+                }
+                this.metadataWriter.GetAssemblyReferenceHandle(ErrorAssembly.Singleton);
+            }
         }
 
         protected override void ProcessMethodBody(IMethodDefinition method)

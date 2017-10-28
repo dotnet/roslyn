@@ -17,8 +17,8 @@ namespace Microsoft.Cci
     {
         AssemblyIdentity Identity { get; }
         Version AssemblyVersionPattern { get; }
+        bool HasMetadataError { get; }
     }
-
 
     internal struct DefinitionWithLocation
     {
