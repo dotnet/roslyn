@@ -3144,7 +3144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private TypeSymbol StackMergeType(BoundExpression expr)
         {
             // these cases are not interesting. Merge type is the same or derived. No difference.
-            if (!(expr.Type.IsArray() || expr.Type.IsInterfaceType() || expr.Type.IsDelegateType()))
+            if (!(expr.Type.IsInterfaceType() || expr.Type.IsDelegateType()))
             {
                 return expr.Type;
             }
