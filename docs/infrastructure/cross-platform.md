@@ -6,9 +6,11 @@ Linux and Mac support for developing Roslyn is very much a work in progress.  No
 
 ## Building
 
-Build all cross-platform projects with: `dotnet build CrossPlatform.sln`.
+Build all cross-platform projects with: `dotnet build Compilers.sln`.
 
-If you do not have a system-wide `dotnet` install, you can obtain one with `./build/scripts/obtain_dotnet.sh`. This will install a compatible version of the CLI to `./Binaries/dotnet-cli` - add this to your PATH before trying to build `CrossPlatform.sln`. Alternatively, sourcing the script with `source ./build/scripts/obtain_dotnet.sh` will add it to your PATH for you.
+If you do not have a system-wide `dotnet` install, you can obtain one with `./build/scripts/obtain_dotnet.sh`. You may have to install [CLI pre-requisites](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x) for this to work. This will install a compatible version of the CLI to `./Binaries/dotnet-cli` - add this to your `PATH` before trying to build (with `PATH=$PATH:./Binaries/dotnet-cli/`). Alternatively, sourcing the script with `source ./build/scripts/obtain_dotnet.sh` will add it to your `PATH` for you.
+
+
 
 ## Using the compiler
 
