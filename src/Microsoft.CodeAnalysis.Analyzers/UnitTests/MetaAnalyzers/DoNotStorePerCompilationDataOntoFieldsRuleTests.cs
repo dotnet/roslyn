@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Test.Utilities;
@@ -25,7 +25,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
 
 abstract class MyCompilation : Compilation
@@ -40,7 +40,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     public static readonly CSharpCompilation x2;
     private readonly List<MyNamedType> x3;
     private static Dictionary<MyCompilation, MyNamedType> x4;
-    private static readonly IBinaryOperatorExpression x5;
+    private static readonly IBinaryOperation x5;
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
@@ -60,7 +60,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(20, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
                 GetCSharpExpectedDiagnostic(21, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName),
                 GetCSharpExpectedDiagnostic(22, 31, violatingTypeName: "MyCompilation"),
-                GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperatorExpression).FullName)
+                GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperation).FullName)
             };
 
             VerifyCSharp(source, TestValidationMode.AllowCompileErrors, expected);
@@ -75,7 +75,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
 
@@ -91,7 +91,7 @@ Class MyAnalyzer
     Public Shared ReadOnly x2 As VisualBasicCompilation
     Private ReadOnly x3 As List(Of MyNamedType)
     Private Shared x4 As Dictionary(Of MyCompilation, MyNamedType)
-    Private Shared ReadOnly x5 As IBinaryOperatorExpression
+    Private Shared ReadOnly x5 As IBinaryOperation
 
     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
         Get
@@ -109,7 +109,7 @@ End Class
                 GetBasicExpectedDiagnostic(20, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
                 GetBasicExpectedDiagnostic(21, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName),
                 GetBasicExpectedDiagnostic(22, 40, violatingTypeName: "MyCompilation"),
-                GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperatorExpression).FullName)
+                GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperation).FullName)
             };
 
             VerifyBasic(source, TestValidationMode.AllowCompileErrors, expected);
