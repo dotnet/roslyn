@@ -36,6 +36,7 @@
         "Dlls\\RemoteWorkspaces\\Microsoft.CodeAnalysis.Remote.Workspaces.dll",
         "Dlls\\Scripting\\Microsoft.CodeAnalysis.Scripting.dll",
         "Dlls\\ServiceHub\\Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
+        "Dlls\\ServicesTestUtilities\\Roslyn.Services.Test.Utilities.dll",
         "Dlls\\ServicesVisualStudioImpl\\Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Dlls\\ServicesVisualStudio\\Microsoft.VisualStudio.LanguageServices.dll",
         "Dlls\\SolutionExplorerShim\\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
@@ -45,7 +46,9 @@
         "Dlls\\RazorServiceHub\\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll",
         "Dlls\\RazorVisualStudio\\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll",
         "Dlls\\TextEditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
+        "Dlls\\TestUtilities\\net461\\Roslyn.Test.Utilities.dll",
         "Dlls\\VisualStudioInteractiveServices\\Microsoft.VisualStudio.InteractiveServices.dll",
+        "Dlls\\VisualStudioIntegrationTestUtilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
         "Dlls\\Workspaces.Desktop\\Microsoft.CodeAnalysis.Workspaces.Desktop.dll",
         "Dlls\\Workspaces\\Microsoft.CodeAnalysis.Workspaces.dll",
         "Dlls\\XamlVisualStudio\\Microsoft.VisualStudio.LanguageServices.Xaml.dll",
@@ -102,6 +105,15 @@
         "Vsix\\Roslyn\\RoslynDeployment.vsix",
         "Vsix\\Templates\\Roslyn SDK.vsix"
       ]
+    },
+    {
+      "certificate": null,
+      "strongName": null,
+      "values": [
+        "Nuget\\PerBuildPreRelease\\*.nupkg",
+        "Nuget\\PreRelease\\*.nupkg",
+        "Nuget\\Release\\*.nupkg"
+      ]
     }
   ],
 
@@ -136,10 +148,12 @@
     "System.IO.FileSystem.DriveInfo.dll",
     "System.IO.FileSystem.Primitives.dll",
     "System.IO.Pipes.dll",
+    "System.IO.Pipes.AccessControl.dll",
     "System.Reflection.dll",
     "System.Reflection.Metadata.dll",
     "System.Runtime.InteropServices.RuntimeInformation.dll",
     "System.Security.AccessControl.dll",
+    "System.Security.Claims.dll",
     "System.Security.Cryptography.Algorithms.dll",
     "System.Security.Cryptography.Encoding.dll",
     "System.Security.Cryptography.Primitives.dll",
@@ -150,6 +164,7 @@
     "System.ValueTuple.dll",
     "System.Xml.ReaderWriter.dll",
     "System.Xml.XmlDocument.dll",
+    "System.Xml.XPath.dll",
     "System.Xml.XPath.XDocument.dll",
     "Microsoft.VisualStudio.Threading.resources.dll",
     "Microsoft.Build.Conversion.Core.dll",
@@ -164,6 +179,17 @@
     "Nerdbank.FullDuplexStream.dll",
     "Validation.dll",
     "Humanizer.dll",
-    "Humanizer.resources.dll"
+    "Humanizer.resources.dll",
+    "Microsoft.CodeAnalysis.Analyzers.1.1.0.nupkg",
+    "Microsoft.CodeAnalysis.Common.1.0.1.nupkg",
+    "Microsoft.CodeAnalysis.CSharp.1.0.1.nupkg",
+    "Microsoft.CodeAnalysis.CSharp.Workspaces.1.0.1.nupkg",
+    "Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.1.nupkg",
+    "Microsoft.CodeAnalysis.Workspaces.Common.1.0.1.nupkg",
+    "System.Collections.Immutable.1.1.36.nupkg",
+    "System.Composition.1.0.31.nupkg",
+    "System.Reflection.Metadata.1.0.21.nupkg",
+    "Microsoft.CodeAnalysis.VisualBasic.1.0.1.nupkg",
+    "NuGet.CommandLine.2.8.5.nupkg"
   ]
 }

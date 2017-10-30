@@ -579,18 +579,16 @@ try {
         Build-Artifacts
     }
 
-    if ($sign) {
-        Run-SignTool
-    }
-
-    # Must come after signing so that only the signed binaries are packed. Unlike 
-    # VSIX, NuGet doesn't support re-packing hence we have to order it this way.
     if ($pack) {
         Build-NuGetPackages
 
         if ($cibuild -or $official) { 
             Build-DeployToSymStore
         }
+    }
+
+    if ($sign) {
+        Run-SignTool
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {

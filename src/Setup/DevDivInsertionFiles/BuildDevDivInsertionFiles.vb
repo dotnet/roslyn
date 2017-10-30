@@ -194,9 +194,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Roslyn.Compilers.Test.Resources.dll",
         "Roslyn.Hosting.Diagnostics.dll",
-        "Roslyn.Services.Test.Utilities.dll",
-        "Roslyn.Test.PdbUtilities.dll",
-        "Roslyn.Test.Utilities.dll"
+        "Roslyn.Test.PdbUtilities.dll"
     }
 
     ' Files needed by Mad dog tests that are produced by our internal builds.
@@ -831,6 +829,11 @@ Public Class BuildDevDivInsertionFiles
                     Continue For
                 End If
 
+                ' Wild cards aren't supported
+                If item.Contains("*") Then
+                    Continue For
+                End If
+
                 add(item)
             Next
         Next
@@ -859,10 +862,8 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\CompilerTestResources\\Roslyn.Compilers.Test.Resources.dll")
         add("Dlls\ExpressionCompilerTestUtilities\Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities.dll")
         add("Dlls\ResultProviderTestUtilities\Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities.dll")
-        add("Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll")
         add("Dlls\PdbUtilities\Roslyn.Test.PdbUtilities.dll")
         add("Dlls\TestUtilities.Desktop\Roslyn.Test.Utilities.Desktop.dll")
-        add("Dlls\TestUtilities\net461\Roslyn.Test.Utilities.dll")
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
