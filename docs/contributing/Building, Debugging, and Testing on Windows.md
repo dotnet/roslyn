@@ -9,6 +9,15 @@ Using the command line Roslyn can be developed using the following pattern:
 1. Run Build.cmd
 1. Run Test.cmd
 
+## Recommended version of .NET Framework
+
+The minimal required version of .NET Framework is 4.6, however 4.7.1 is recommended for best developer experience. 
+
+The projects in this repository are configured to build with Portable PDBs, which are supported in stack traces starting with .NET Framework 4.7.1. 
+If a stack trace is displayed on .NET Framework older than 4.7.1 (e.g. by xUnit when a test fails) it won't contain source and line information.
+
+.NET Framework 4.7.1 is included in Windows 10 Fall Creators Update. It can also be installed from the [Microsoft Download Center](https://support.microsoft.com/en-us/help/4033344/the-net-framework-4-7-1-web-installer-for-windows).
+
 ## Developing with Visual Studio 2017
 
 1. [Visual Studio 2017 Update 3](https://www.visualstudio.com/vs/)
