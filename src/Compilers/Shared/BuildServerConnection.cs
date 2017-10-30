@@ -505,11 +505,17 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream) =>
-            (ObjectSecurity)typeof(PipeStream)
-            .GetTypeInfo()
-            .GetDeclaredMethod("GetAccessControl")
-            ?.Invoke(pipeStream, parameters: null);
+        private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
+        {
+#if NETSTANDARD1_3
+            return (ObjectSecurity)typeof(PipeStream)
+                .GetTypeInfo()
+                .GetDeclaredMethod("GetAccessControl")
+                ?.Invoke(pipeStream, parameters: null);
+#else
+            return pipeStream.GetAccessControl();
+#endif
+        }
 
         private static string GetUserName() =>
             (string)typeof(Environment)
