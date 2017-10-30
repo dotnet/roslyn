@@ -132,6 +132,8 @@
     <InternalsVisibleToTypeScript Include="ManagedSourceCodeAnalysis" />
     <InternalsVisibleToTypeScript Include="CodeAnalysis" />
     <InternalsVisibleToTypeScript Include="StanCore" />
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote" /> 
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" /> 
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
   </ItemGroup>
