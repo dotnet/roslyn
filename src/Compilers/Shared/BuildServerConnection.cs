@@ -327,10 +327,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        private static bool TryConnectToNamedPipeWithSpinWait(
-            NamedPipeClientStream pipeStream,
-            int timeoutMs,
-            CancellationToken cancellationToken)
+        internal static bool TryConnectToNamedPipeWithSpinWait(NamedPipeClientStream pipeStream,
+                                                               int timeoutMs,
+                                                               CancellationToken cancellationToken)
         {
             Debug.Assert(timeoutMs == Timeout.Infinite || timeoutMs > 0);
 
