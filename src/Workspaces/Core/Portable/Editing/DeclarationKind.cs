@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editing
         SetAccessor,
         AddAccessor,
         RemoveAccessor,
-        RaiseAccessor
+        RaiseAccessor,
+        LocalFunction
     }
 }

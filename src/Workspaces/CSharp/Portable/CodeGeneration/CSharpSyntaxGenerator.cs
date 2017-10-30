@@ -2190,6 +2190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return DeclarationKind.AddAccessor;
                 case SyntaxKind.RemoveAccessorDeclaration:
                     return DeclarationKind.RemoveAccessor;
+                case SyntaxKind.LocalFunctionStatement:
+                    return DeclarationKind.LocalFunction;
             }
 
             return DeclarationKind.None;
