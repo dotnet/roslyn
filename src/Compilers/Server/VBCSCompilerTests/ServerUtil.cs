@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     internal static class ServerUtil
     {
         internal static string DefaultClientDirectory { get; } = Path.GetDirectoryName(typeof(DesktopBuildClientTests).Assembly.Location);
-#if NET46
+#if NET461
         internal static string DefaultSdkDirectory { get; } = RuntimeEnvironment.GetRuntimeDirectory();
 #else
         internal static string DefaultSdkDirectory { get; } = null;
