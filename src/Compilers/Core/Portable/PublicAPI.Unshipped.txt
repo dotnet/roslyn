@@ -701,3 +701,4 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitVariableDeclarator(Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitVariableInitializer(Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitWhileLoop(Microsoft.CodeAnalysis.Operations.IWhileLoopOperation operation, TArgument argument) -> TResult
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DeconstructMethodName = "Deconstruct" -> string
