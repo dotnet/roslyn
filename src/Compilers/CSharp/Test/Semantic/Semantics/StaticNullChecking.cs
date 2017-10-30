@@ -3324,6 +3324,9 @@ struct S2
                 // (109,15): error CS0170: Use of possibly unassigned field 'F4'
                 //         u12 = y12.F4;
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y12.F4").WithArguments("F4").WithLocation(109, 15),
+                // (109,15): warning CS8601: Possible null reference assignment.
+                //         u12 = y12.F4;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y12.F4").WithLocation(109, 15),
                 // (116,15): error CS0170: Use of possibly unassigned field 'F3'
                 //         u13 = y13.F3;
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y13.F3").WithArguments("F3").WithLocation(116, 15),
@@ -3342,12 +3345,12 @@ struct S2
                 // (150,15): warning CS8601: Possible null reference assignment.
                 //         u16 = y16.F4;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y16.F4").WithLocation(150, 15),
-                // (159,15): warning CS8601: Possible null reference assignment.
-                //         u17 = y17.F4;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y17.F4").WithLocation(159, 15),
                 // (161,15): error CS0165: Use of unassigned local variable 'x17'
                 //         y17 = x17;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x17").WithArguments("x17").WithLocation(161, 15),
+                // (159,15): warning CS8601: Possible null reference assignment.
+                //         u17 = y17.F4;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y17.F4").WithLocation(159, 15),
                 // (170,18): error CS0165: Use of unassigned local variable 'x18'
                 //         S1 y18 = x18;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x18").WithArguments("x18").WithLocation(170, 18),
@@ -3363,6 +3366,9 @@ struct S2
                 // (220,15): error CS0170: Use of possibly unassigned field 'F4'
                 //         u22 = y22.F4;
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y22.F4").WithArguments("F4").WithLocation(220, 15),
+                // (220,15): warning CS8601: Possible null reference assignment.
+                //         u22 = y22.F4;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y22.F4").WithLocation(220, 15),
                 // (224,15): warning CS8601: Possible null reference assignment.
                 //         v22 = y22.F4;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y22.F4").WithLocation(224, 15),
@@ -3372,6 +3378,12 @@ struct S2
                 // (248,15): error CS0170: Use of possibly unassigned field 'F4'
                 //         u24 = y24.F5.F4; // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y24.F5.F4").WithArguments("F4").WithLocation(248, 15),
+                // (248,15): warning CS8601: Possible null reference assignment.
+                //         u24 = y24.F5.F4; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y24.F5.F4").WithLocation(248, 15),
+                // (249,15): warning CS8601: Possible null reference assignment.
+                //         u24 = y24.F5.F4; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y24.F5.F4").WithLocation(249, 15),
                 // (253,15): warning CS8601: Possible null reference assignment.
                 //         v24 = y24.F5.F4;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y24.F5.F4").WithLocation(253, 15),
@@ -6523,30 +6535,54 @@ struct S1
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (11,17): error CS0165: Use of unassigned local variable 'y1'
-                 //         S1 z1 = y1;
-                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(11, 17),
-                 // (34,19): error CS0170: Use of possibly unassigned field 'F3'
-                 //         CL1? z3 = y3.F3;
-                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y3.F3").WithArguments("F3").WithLocation(34, 19),
-                 // (42,14): error CS0170: Use of possibly unassigned field 'F3'
-                 //         z4 = y4.F3;
-                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y4.F3").WithArguments("F3").WithLocation(42, 14),
-                 // (25,18): error CS0165: Use of unassigned local variable 'y2'
-                 //             z2 = y2;
-                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(25, 18),
-                 // (50,29): error CS0170: Use of possibly unassigned field 'F3'
-                 //         var z5 = new { F3 = y5.F3 };
-                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y5.F3").WithArguments("F3").WithLocation(50, 29),
-                 // (59,14): error CS0165: Use of unassigned local variable 'y6'
-                 //         z6 = y6;
-                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y6").WithArguments("y6").WithLocation(59, 14),
-                 // (68,29): error CS0165: Use of unassigned local variable 'y7'
-                 //         var z7 = new { F3 = y7 };
-                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y7").WithArguments("y7").WithLocation(68, 29),
-                 // (81,18): error CS0170: Use of possibly unassigned field 'F3'
-                 //             z8 = y8.F3;
-                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y8.F3").WithArguments("F3").WithLocation(81, 18)
+                // (11,17): error CS0165: Use of unassigned local variable 'y1'
+                //         S1 z1 = y1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(11, 17),
+                // (12,14): warning CS8601: Possible null reference assignment.
+                //         x1 = z1.F3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z1.F3").WithLocation(12, 14),
+                // (25,18): error CS0165: Use of unassigned local variable 'y2'
+                //             z2 = y2;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(25, 18),
+                // (26,18): warning CS8601: Possible null reference assignment.
+                //             x2 = z2.F3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z2.F3").WithLocation(26, 18),
+                // (34,19): error CS0170: Use of possibly unassigned field 'F3'
+                //         CL1? z3 = y3.F3;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y3.F3").WithArguments("F3").WithLocation(34, 19),
+                // (35,14): warning CS8601: Possible null reference assignment.
+                //         x3 = z3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z3").WithLocation(35, 14),
+                // (42,14): error CS0170: Use of possibly unassigned field 'F3'
+                //         z4 = y4.F3;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y4.F3").WithArguments("F3").WithLocation(42, 14),
+                // (43,14): warning CS8601: Possible null reference assignment.
+                //         x4 = z4;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z4").WithLocation(43, 14),
+                // (50,29): error CS0170: Use of possibly unassigned field 'F3'
+                //         var z5 = new { F3 = y5.F3 };
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y5.F3").WithArguments("F3").WithLocation(50, 29),
+                // (51,14): warning CS8601: Possible null reference assignment.
+                //         x5 = z5.F3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z5.F3").WithLocation(51, 14),
+                // (59,14): error CS0165: Use of unassigned local variable 'y6'
+                //         z6 = y6;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y6").WithArguments("y6").WithLocation(59, 14),
+                // (60,14): warning CS8601: Possible null reference assignment.
+                //         x6 = z6.F3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z6.F3").WithLocation(60, 14),
+                // (68,29): error CS0165: Use of unassigned local variable 'y7'
+                //         var z7 = new { F3 = y7 };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y7").WithArguments("y7").WithLocation(68, 29),
+                // (69,14): warning CS8601: Possible null reference assignment.
+                //         x7 = z7.F3.F3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z7.F3.F3").WithLocation(69, 14),
+                // (81,18): error CS0170: Use of possibly unassigned field 'F3'
+                //             z8 = y8.F3;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y8.F3").WithArguments("F3").WithLocation(81, 18),
+                // (82,18): warning CS8601: Possible null reference assignment.
+                //             x8 = z8;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z8").WithLocation(82, 18)
                 );
         }
 

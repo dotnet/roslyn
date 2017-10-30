@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class DataFlowPass
+    internal partial class NullableWalker
     {
         /// <summary>
         /// A symbol to represent a placeholder for an instance being constructed by

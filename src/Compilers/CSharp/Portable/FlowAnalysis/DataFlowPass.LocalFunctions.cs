@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// Specifying the slot manually may be necessary if the symbol is a field,
-        /// in which case <see cref="VariableSlot(Symbol, int)"/> will not know
-        /// which containing slot to look for.
+        /// in which case <see cref="DataFlowPassBase{TLocalState}.VariableSlot(Symbol, int)"/>
+        /// will not know which containing slot to look for.
         /// </remarks>
         private void CheckIfAssignedDuringLocalFunctionReplay(Symbol symbol, SyntaxNode node, int slot)
         {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (slot >= this.State.Assigned.Capacity)
                     {
-                        NormalizeAssigned(ref this.State);
+                        Normalize(ref this.State);
                     }
 
                     if (slot > 0 && !this.State.IsAssigned(slot))
