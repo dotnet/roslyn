@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (value.Kind == OperationKind.Conversion)
             {
                 IConversionOperation conversion = (IConversionOperation)value;
-                if (!conversion.IsExplicitInCode)
+                if (conversion.IsImplicit)
                 {
                     return conversion.Operand.Type;
                 }

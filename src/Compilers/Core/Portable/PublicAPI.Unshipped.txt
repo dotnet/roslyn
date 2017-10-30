@@ -267,7 +267,6 @@ Microsoft.CodeAnalysis.Operations.IConstantPatternOperation.Value.get -> Microso
 Microsoft.CodeAnalysis.Operations.IConversionOperation
 Microsoft.CodeAnalysis.Operations.IConversionOperation.Conversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.Operations.IConversionOperation.IsChecked.get -> bool
-Microsoft.CodeAnalysis.Operations.IConversionOperation.IsExplicitInCode.get -> bool
 Microsoft.CodeAnalysis.Operations.IConversionOperation.IsTryCast.get -> bool
 Microsoft.CodeAnalysis.Operations.IConversionOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IConversionOperation.OperatorMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
