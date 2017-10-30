@@ -120,7 +120,7 @@
       <Choose>
         <!-- Shipping binaries are always public signed.  In the case of an official build $(OfficialBuild) the
              binaries will be real signed as a post processing step. -->
-        <When Condition="'$(NonShipping)' != 'true' OR '$(OS)' != 'Windows_NT'">
+        <When Condition="'$(NonShipping)' != 'true'">
           <PropertyGroup>
             <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\Strong Name Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
             <PublicKey>$(RoslynPublicKey)</PublicKey>
@@ -136,6 +136,10 @@
             <DelaySign>false</DelaySign>
             <PublicKey>$(RoslynInternalKey)</PublicKey>
             <PublicKeyToken>fc793a00266884fb</PublicKeyToken>
+          </PropertyGroup>
+          <!-- Real-signing is not currently supported cross-platform -->
+          <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+              <PublicSign>true</PublicSign>
           </PropertyGroup>
         </Otherwise>
       </Choose>

@@ -48,7 +48,7 @@
     <ToolsetCompilerPackageVersion Condition="'$(OS)' == 'Windows_NT'">$(MicrosoftNetCompilersVersion)</ToolsetCompilerPackageVersion>
     <ToolsetCompilerPackageVersion Condition="'$(OS)' != 'Windows_NT'">$(MicrosoftNETCoreCompilersVersion)</ToolsetCompilerPackageVersion>
     <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)/$(ToolsetCompilerPackageName.ToLower())/$(ToolsetCompilerPackageVersion)/build/$(ToolsetCompilerPackageName).props</ToolsetCompilerPropsFilePath>
-    <TargetFrameworkRootPath>$(NuGetPackageRoot)\roslyntools.referenceassemblies\0.1.1\tools\framework</TargetFrameworkRootPath>
+    <TargetFrameworkRootPath>$(NuGetPackageRoot)\roslyntools.referenceassemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\framework</TargetFrameworkRootPath>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
