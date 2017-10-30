@@ -33,8 +33,8 @@ class C : IDisposable
             string expectedOperationTree = @"
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
   Resources: 
-    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c = new C()')
-      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'var c = new C()')
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'var c = new C()')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
         Declarators:
             IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
               Initializer: 
@@ -92,8 +92,8 @@ class C : IDisposable
             string expectedOperationTree = @"
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (C c1 ... }')
   Resources: 
-    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'C c1 = new  ... 2 = new C()')
-      IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'C c1 = new  ... 2 = new C()')
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'C c1 = new  ... 2 = new C()')
+      IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C c1 = new  ... 2 = new C()')
         Declarators:
             IVariableDeclaratorOperation (Symbol: C c1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1 = new C()')
               Initializer: 
@@ -206,8 +206,8 @@ class C : IDisposable
             string expectedOperationTree = @"
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
   Resources: 
-    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c1 = new C()')
-      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'var c1 = new C()')
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'var c1 = new C()')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c1 = new C()')
         Declarators:
             IVariableDeclaratorOperation (Symbol: C c1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1 = new C()')
               Initializer: 
@@ -221,8 +221,8 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
   Body: 
     IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
       Resources: 
-        IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c2 = new C()')
-          IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'var c2 = new C()')
+        IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'var c2 = new C()')
+          IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c2 = new C()')
             Declarators:
                 IVariableDeclaratorOperation (Symbol: C c2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2 = new C()')
                   Initializer: 
@@ -347,8 +347,8 @@ class C : IDisposable
             string expectedOperationTree = @"
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (var  ... }')
   Resources: 
-    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var c1 = ne ... 2 = new C()')
-      IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'var c1 = ne ... 2 = new C()')
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid, IsImplicit) (Syntax: 'var c1 = ne ... 2 = new C()')
+      IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var c1 = ne ... 2 = new C()')
         Declarators:
             IVariableDeclaratorOperation (Symbol: C c1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1 = new C()')
               Initializer: 
@@ -531,8 +531,8 @@ class C
             string expectedOperationTree = @"
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (var  ... }')
   Resources: 
-    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var c1 = new C()')
-      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'var c1 = new C()')
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid, IsImplicit) (Syntax: 'var c1 = new C()')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var c1 = new C()')
         Declarators:
             IVariableDeclaratorOperation (Symbol: C c1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1 = new C()')
               Initializer: 
@@ -789,18 +789,17 @@ class C : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c = new C()')
-  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'var c = new C()')
-    Declarators:
-        IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
-          Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-              IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                Arguments(0)
-                Initializer: 
-                  null
-    Initializer: 
-      null
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+            IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+              Arguments(0)
+              Initializer: 
+                null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

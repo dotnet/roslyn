@@ -1508,50 +1508,51 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (kind)
             {
                 case SyntaxKind.LocalDeclarationStatement:
-                {
-                    var statement = (LocalDeclarationStatementSyntax)node;
+                    {
+                        var statement = (LocalDeclarationStatementSyntax)node;
 
-                    // this happen for simple int i = 0;
-                    // var statement points to LocalDeclarationStatementSyntax
-                    varStatement = statement;
+                        // this happen for simple int i = 0;
+                        // var statement points to LocalDeclarationStatementSyntax
+                        varStatement = statement;
 
-                    varDeclaration = statement.Declaration;
+                        varDeclaration = statement.Declaration;
 
-                    varDeclarator = statement.Declaration.Variables.First();
-                    break;
-                }
+                        varDeclarator = statement.Declaration.Variables.First();
+                        break;
+                    }
                 case SyntaxKind.VariableDeclarator:
-                {
-                    // this happen for 'for loop' initializer
-                    // var statement points to VariableDeclarationSyntax
-                    varStatement = node.Parent;
+                    {
+                        // this happen for 'for loop' initializer
+                        // We generate a DeclarationGroup for this scenario to maintain tree shape consistency across IOperation.
+                        // var statement points to VariableDeclarationSyntax
+                        varStatement = node.Parent;
 
-                    varDeclaration = node.Parent;
+                        varDeclaration = node.Parent;
 
-                    // var declaration points to VariableDeclaratorSyntax
-                    varDeclarator = node;
-                    break;
-                }
+                        // var declaration points to VariableDeclaratorSyntax
+                        varDeclarator = node;
+                        break;
+                    }
                 default:
-                {
-                    Debug.Fail($"Unexpected syntax: {kind}");
+                    {
+                        Debug.Fail($"Unexpected syntax: {kind}");
 
-                    // otherwise, they points to whatever bound nodes are pointing to.
-                    varStatement = varDeclaration = varDeclarator = node;
-                    break;
-                }
+                        // otherwise, they points to whatever bound nodes are pointing to.
+                        varStatement = varDeclaration = varDeclarator = node;
+                        break;
+                    }
             }
 
             Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarations = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() => ImmutableArray.Create(CreateVariableDeclarationInternal(boundLocalDeclaration, varDeclarator)));
-            // In the case of a for loop, varStatement and varDeclaration will be the same syntax node. We can only have one explicit operation, so make
-            // sure this node is implicit in that scenario
-            bool multiVariableImplicit = (varStatement == varDeclaration) || boundLocalDeclaration.WasCompilerGenerated;
+            bool multiVariableImplicit = boundLocalDeclaration.WasCompilerGenerated;
             // In C#, the MultiVariable initializer will always be null, but we can't pass null as the actual lazy. We assume that all lazy elements always exist
             Lazy<IVariableInitializerOperation> initializer = new Lazy<IVariableInitializerOperation>(() => null);
             IVariableDeclarationOperation multiVariableDeclaration = new LazyVariableDeclaration(declarations, initializer, _semanticModel, varDeclaration, null, default, multiVariableImplicit);
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            bool isImplicit = boundLocalDeclaration.WasCompilerGenerated;
+            // In the case of a for loop, varStatement and varDeclaration will be the same syntax node.
+            // We can only have one explicit operation, so make sure this node is implicit in that scenario.
+            bool isImplicit = (varStatement == varDeclaration) || boundLocalDeclaration.WasCompilerGenerated;
             return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), _semanticModel, varStatement, type, constantValue, isImplicit);
         }
 
@@ -1563,17 +1564,20 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<IVariableInitializerOperation> initializer = new Lazy<IVariableInitializerOperation>(() => null);
 
             // The syntax for the boundMultipleLocalDeclarations can either be a LocalDeclarationStatement or a VariableDeclaration, depending on the context
-            // (using/fixed/etc statements vs variable declaration). If the former, we make the VariableDeclarationOperation implicit
+            // (using/fixed statements vs variable declaration)
+            // We generate a DeclarationGroup for these scenarios (using/fixed) to maintain tree shape consistency across IOperation.
             SyntaxNode declarationGroupSyntax = boundMultipleLocalDeclarations.Syntax;
             SyntaxNode declarationSyntax = declarationGroupSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) ?
                     ((LocalDeclarationStatementSyntax)declarationGroupSyntax).Declaration :
                     declarationGroupSyntax;
-            bool declarationIsImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated;
+            bool declarationIsImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
             IVariableDeclarationOperation multiVariableDeclaration = new LazyVariableDeclaration(declarations, initializer, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
 
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            bool isImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
+            // If the syntax was the same, we're in a fixed statement or using statement. We make the Group operation implicit in this scenario, as the
+            // syntax itself is a VariableDeclaration
+            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated;
             return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
         }
 

@@ -35,8 +35,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed(int * ... }')
   Children(2):
-      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int *p = &i')
-        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int *p = &i')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int *p = &i')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int *p = &i')
           Declarators:
               IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = &i')
                 Initializer: 
@@ -109,8 +109,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int* p1 = &i1, p2 = &i2')
-        IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1, p2 = &i2')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1, p2 = &i2')
+        IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p1 = &i1, p2 = &i2')
           Declarators:
               IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &i1')
                 Initializer: 
@@ -188,8 +188,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int* p1 = &i1')
-        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p1 = &i1')
           Declarators:
               IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &i1')
                 Initializer: 
@@ -205,8 +205,8 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
             null
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
         Children(2):
-            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int* p2 = &i2')
-              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p2 = &i2')
+            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int* p2 = &i2')
+              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p2 = &i2')
                 Declarators:
                     IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &i2')
                       Initializer: 
@@ -269,8 +269,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int* p1 =')
-        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1 =')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid, IsImplicit) (Syntax: 'int* p1 =')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int* p1 =')
           Declarators:
               IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1 =')
                 Initializer: 
@@ -327,8 +327,8 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'fixed (int* ... }')
   Children(2):
-      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int* p1 = &i1')
-        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int* p1 = &i1')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p1 = &i1')
           Declarators:
               IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &i1')
                 Initializer: 
