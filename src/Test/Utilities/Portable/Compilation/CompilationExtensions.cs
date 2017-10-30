@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -251,5 +251,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public static void CheckOperations(this Compilation compilation)
+        {
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var semanticModel = compilation.GetSemanticModel(tree);
+                var root = tree.GetRoot();
+
+                foreach (var node in root.DescendantNodesAndSelf())
+                {
+                    var operation = semanticModel.GetOperationInternal(node);
+                    if (operation != null)
+                    {
+                        // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
+                        Assert.True(node == operation.Syntax);
+                    }
+                }
+            }
+        }
     }
 }
