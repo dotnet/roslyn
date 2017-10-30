@@ -1265,17 +1265,15 @@ class ClassA
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var v1 = new { }')
-  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid, IsImplicit) (Syntax: 'var v1 = new { }')
-    Declarators:
-        IVariableDeclaratorOperation (Symbol: <empty anonymous type> v1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v1 = new { }')
-          Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new { }')
-              IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>, IsInvalid) (Syntax: 'new { }')
-                Initializers(0)
-    Initializer: 
-      null
-";
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var v1 = new { }')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: <empty anonymous type> v1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v1 = new { }')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new { }')
+            IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>, IsInvalid) (Syntax: 'new { }')
+              Initializers(0)
+  Initializer: 
+    null";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 //         using (/*<bind>*/var v1 = new { }/*</bind>*/)
