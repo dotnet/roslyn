@@ -1582,18 +1582,21 @@ class A
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-            // (10,9): error CS0031: Constant value '240' cannot be converted to a 'sbyte'
-            //     B = 0xf0, // CS0031
-            Diagnostic(ErrorCode.ERR_ConstOutOfRange, "0xf0").WithArguments("240", "sbyte"),
-            // (5,9): error CS0031: Constant value '-1' cannot be converted to a 'ushort'
-            //     B = -1 // CS0031
-            Diagnostic(ErrorCode.ERR_ConstOutOfRange, "-1").WithArguments("-1", "ushort"),
-            // (13,10): error CS0031: Constant value '128' cannot be converted to a 'sbyte'
-            //     E = (A + 1), // CS0031
-            Diagnostic(ErrorCode.ERR_ConstOutOfRange, "A + 1").WithArguments("128", "sbyte"),
-            // (17,15): error CS0031: Constant value '256' cannot be converted to a 'byte'
-            //     byte bt = 256;
-            Diagnostic(ErrorCode.ERR_ConstOutOfRange, "256").WithArguments("256", "byte"));
+                // (5,9): error CS0031: Constant value '-1' cannot be converted to a 'ushort'
+                //     B = -1 // CS0031
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "-1").WithArguments("-1", "ushort").WithLocation(5, 9),
+                // (10,9): error CS0031: Constant value '240' cannot be converted to a 'sbyte'
+                //     B = 0xf0, // CS0031
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "0xf0").WithArguments("240", "sbyte").WithLocation(10, 9),
+                // (13,10): error CS0031: Constant value '128' cannot be converted to a 'sbyte'
+                //     E = (A + 1), // CS0031
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "A + 1").WithArguments("128", "sbyte").WithLocation(13, 10),
+                // (17,15): error CS0031: Constant value '256' cannot be converted to a 'byte'
+                //     byte bt = 256;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "256").WithArguments("256", "byte").WithLocation(17, 15),
+                // (17,10): warning CS0414: The field 'A.bt' is assigned but its value is never used
+                //     byte bt = 256;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "bt").WithArguments("A.bt").WithLocation(17, 10));
         }
 
         [Fact]
@@ -3648,6 +3651,9 @@ class C
                 // (4,9): error CS0266: Cannot implicitly convert type 'E' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //     Y = C.F(),
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.F()").WithArguments("E", "int").WithLocation(4, 9),
+                // (4,9): error CS0133: The expression being assigned to 'E.Y' must be constant
+                //     Y = C.F(),
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "C.F()").WithArguments("E.Y").WithLocation(4, 9),
                 // (5,9): error CS0133: The expression being assigned to 'E.Z' must be constant
                 //     Z = C.G() + 1,
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "C.G() + 1").WithArguments("E.Z").WithLocation(5, 9));
@@ -8633,7 +8639,10 @@ class MyClass
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,25): error CS0266: Cannot implicitly convert type 'long' to 'short'. An explicit conversion exists (are you missing a cast?)
                 //         const short s = 1L;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "short").WithLocation(5, 25));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "short").WithLocation(5, 25),
+                // (5,21): warning CS0219: The variable 's' is assigned but its value is never used
+                //         const short s = 1L;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(5, 21));
         }
 
         [Fact]
@@ -8658,7 +8667,13 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "2").WithArguments("int", "E").WithLocation(4, 11),
                 // (9,13): error CS0266: Cannot implicitly convert type 'char' to 'E'. An explicit conversion exists (are you missing a cast?)
                 //         g = 'c'; // CS0266
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "'c'").WithArguments("char", "E").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "'c'").WithArguments("char", "E").WithLocation(9, 13),
+                // (4,7): warning CS0414: The field 'C.f' is assigned but its value is never used
+                //     E f = 2; // CS0266
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(4, 7),
+                // (5,7): warning CS0414: The field 'C.g' is assigned but its value is never used
+                //     E g = E.A;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "g").WithArguments("C.g").WithLocation(5, 7));
         }
 
         [Fact]
@@ -10992,8 +11007,18 @@ class Example
 }";
             var compilation = CreateStandardCompilation(text);
             compilation.VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "1.0").WithArguments("M", "decimal"),
-                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "2.0").WithArguments("F", "float"));
+                // (7,22): error CS0664: Literal of type double cannot be implicitly converted to type 'decimal'; use an 'M' suffix to create a literal of this type
+                //         decimal d1 = 1.0;
+                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "1.0").WithArguments("M", "decimal").WithLocation(7, 22),
+                // (8,20): error CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type
+                //         float f1 = 2.0;
+                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "2.0").WithArguments("F", "float").WithLocation(8, 20),
+                // (7,17): warning CS0219: The variable 'd1' is assigned but its value is never used
+                //         decimal d1 = 1.0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "d1").WithArguments("d1").WithLocation(7, 17),
+                // (8,15): warning CS0219: The variable 'f1' is assigned but its value is never used
+                //         float f1 = 2.0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "f1").WithArguments("f1").WithLocation(8, 15));
         }
 
         [Fact]

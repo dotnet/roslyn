@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Linq.Enumerable
 Imports System.Xml.Linq
@@ -157,7 +157,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '. = Unknown()')
                 Children(0)
             Right: 
               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Unknown()')
@@ -166,7 +166,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                       Children(0)
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '. = Unknown()')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '. = Unknown()')
                 Children(0)
             Right: 
               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Unknown()')
@@ -309,7 +309,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .Field = 23')
                 Children(0)
             Right: 
               IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
@@ -523,7 +523,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field1 = Bar(.Field1)')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Field1 = Bar(.Field1)')
                 Children(1):
                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Field1')
                       Children(1):
@@ -581,7 +581,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Field = 23')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field = 23')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Field = 23')
                 Children(1):
                     IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
                       Children(1):
@@ -628,7 +628,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
             Left: 
-              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.Goo = "Hello World!"')
                 Children(1):
                     IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Goo')
                       Children(1):
@@ -809,26 +809,27 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
       Variables: Local_1: x As C3
       Initializer: 
-        IObjectCreationExpression (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')
-          Arguments(0)
-          Initializer: 
-            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C3, IsInvalid) (Syntax: 'With {.X = "goo"}')
-              Initializers(1):
-                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
-                    Left: 
-                      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
-                        Children(1):
-                            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
-                              Children(1):
-                                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ... .X = "goo"}')
-                    Right: 
-                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '"goo"')
-                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand: 
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New C3() ... .X = "goo"}')
+          IObjectCreationExpression (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')
+            Arguments(0)
+            Initializer: 
+              IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C3, IsInvalid) (Syntax: 'With {.X = "goo"}')
+                Initializers(1):
+                    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
+                      Left: 
+                        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.X = "goo"')
+                          Children(1):
+                              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
+                                Children(1):
+                                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C3, IsInvalid, IsImplicit) (Syntax: 'New C3() Wi ... .X = "goo"}')
+                      Right: 
+                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?, IsImplicit) (Syntax: '"goo"')
+                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand: 
+                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
     Expression: 
-      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C3, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C3, IsInvalid, IsImplicit) (Syntax: 'x = New C3( ...  Unknown()}')
         Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: C3) (Syntax: 'x')
         Right: 
@@ -839,7 +840,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
                 Initializers(1):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
                       Left: 
-                        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.X = Unknown()')
+                        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.X = Unknown()')
                           Children(1):
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
                                 Children(1):
@@ -849,10 +850,10 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
                           Children(1):
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Unknown')
                                 Children(0)
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -1273,12 +1274,12 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                           IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.Field')
                             Instance Receiver: 
                               IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit) (Syntax: 'New C1 With ... d Function}')
-                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1579,12 +1580,12 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                               IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: 
                                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
-                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'End Function')
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsImplicit) (Syntax: 'End Function')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field2 = F ... nd Function')
             Left: 
               IFieldReferenceExpression: C2.Field2 As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field2')
@@ -1604,12 +1605,12 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                               IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: 
                                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsImplicit) (Syntax: 'As New C2 W ... d Function}')
-                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
                         Statement: 
                           null
-                      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+                      IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
                         ReturnedValue: 
-                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'End Function')
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

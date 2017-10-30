@@ -364,14 +364,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 C.this { } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'c[d]')
-  Instance Receiver: 
-    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'c[d]')
+  Children(2):
+      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1501: No overload for method 'this' takes 1 arguments

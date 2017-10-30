@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private static Optional<object> ConvertToOptional(ConstantValue value)
         {
-            return value != null ? new Optional<object>(value.Value) : default(Optional<object>);
+            return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
         }
 
         private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
@@ -53,12 +53,37 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IVariableDeclaration CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
-            return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, Create(boundLocalDeclaration.InitializerOpt), _semanticModel, syntax);
+            IVariableInitializer initializer = null;
+            if (boundLocalDeclaration.InitializerOpt != null)
+            {
+                IOperation initializerValue = Create(boundLocalDeclaration.InitializerOpt);
+                SyntaxNode initializerSyntax = null;
+                bool isImplicit = false;
+                if (syntax is VariableDeclaratorSyntax variableDeclarator)
+                {
+                    initializerSyntax = variableDeclarator.Initializer;
+                }
+                else
+                {
+                    Debug.Fail($"Unexpected syntax kind: {syntax.Kind()}");
+                }
+
+                if (initializerSyntax == null)
+                {
+                    // There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
+                    initializerSyntax = initializerValue.Syntax;
+                    isImplicit = true;
+                }
+
+                initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit);
+            }
+
+            return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, initializer, _semanticModel, syntax);
         }
 
         private IVariableDeclaration CreateVariableDeclaration(BoundLocal boundLocal)
         {
-            return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initialValue: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
+            return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
         }
 
         private IOperation CreateBoundCallInstanceOperation(BoundCall boundCall)
@@ -84,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 
-            return new LazyEventReferenceExpression(@event, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
+            return new LazyEventReferenceExpression(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
         }
 
         private ImmutableArray<IArgument> DeriveArguments(
@@ -109,22 +134,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return ImmutableArray<IArgument>.Empty;
             }
 
-            //TODO: https://github.com/dotnet/roslyn/issues/18722
-            //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
-            //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid 
-            //      invocation instead.
-            //      Note this check doesn't cover all scenarios. For example, when a parameter is a generic type but the type of the type argument 
-            //      is undefined.
-            if ((object)optionalParametersMethod == null
-                || boundNode.HasAnyErrors
-                || parameters.Any(p => p.Type.IsErrorType())
-                || optionalParametersMethod.GetUseSiteDiagnostic()?.DefaultSeverity == DiagnosticSeverity.Error)
-            {
-                // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
-                // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
-                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, arg));
-            }
-
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
                  operationFactory: this,
                  binder: binder,
@@ -135,6 +144,34 @@ namespace Microsoft.CodeAnalysis.Semantics
                  expanded: expanded,
                  argsToParamsOpt: argumentsToParametersOpt,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
+        }
+
+        private IInvalidExpression CreateInvalidExpressionForHasArgumentsExpression(BoundNode receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression additionalNodeOpt, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        {
+            Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(
+                      () =>
+                      {
+                          ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance();
+
+                          if (receiverOpt != null 
+                             && (!receiverOpt.WasCompilerGenerated 
+                                 || (receiverOpt.Kind != BoundKind.ThisReference 
+                                    && receiverOpt.Kind != BoundKind.BaseReference 
+                                    && receiverOpt.Kind != BoundKind.ImplicitReceiver)))
+                          {
+                              builder.Add(Create(receiverOpt));
+                          }
+
+                          builder.AddRange(arguments.Select(a => Create(a)));
+
+                          if (additionalNodeOpt != null)
+                          {
+                              builder.Add(Create(additionalNodeOpt));
+                          }
+
+                          return builder.ToImmutableAndFree();
+                      });
+            return new LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(BoundAnonymousObjectCreationExpression expression)
@@ -236,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                         return UnaryOperatorKind.False;
                 }
 
-                return UnaryOperatorKind.Invalid;
+                return UnaryOperatorKind.None;
             }
 
             internal static BinaryOperatorKind DeriveBinaryOperatorKind(CSharp.BinaryOperatorKind operatorKind)
@@ -292,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                         return BinaryOperatorKind.GreaterThan;
                 }
 
-                return BinaryOperatorKind.Invalid;
+                return BinaryOperatorKind.None;
             }
         }
     }

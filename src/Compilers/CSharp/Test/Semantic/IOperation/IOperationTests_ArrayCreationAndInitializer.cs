@@ -307,14 +307,15 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x = { 1, 2 }')
     Variables: Local_1: System.Int32[] x
     Initializer: 
-      IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: '{ 1, 2 }')
-        Dimension Sizes(1):
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 1, 2 }')
-        Initializer: 
-          IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 1, 2 }')
-            Element Values(2):
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= { 1, 2 }')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: '{ 1, 2 }')
+          Dimension Sizes(1):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 1, 2 }')
+          Initializer: 
+            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 1, 2 }')
+              Element Values(2):
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -907,6 +908,37 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.St
                 // CS0030: Cannot convert type 'C' to 'int'
                 //         var a = /*<bind>*/new string[(int)M()]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int)M()").WithArguments("C", "int").WithLocation(6, 38)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        public void SimpleArrayCreation_ConstantConversion()
+        {
+            string source = @"
+class C
+{
+    public void F()
+    {
+        var a = /*<bind>*/new string[0.0]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[0.0]')
+  Dimension Sizes(1):
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (6,27): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         var a = /*<bind>*/new string[0.0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new string[0.0]").WithArguments("double", "int").WithLocation(6, 27)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

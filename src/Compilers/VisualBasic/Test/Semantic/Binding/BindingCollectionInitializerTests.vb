@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -392,62 +392,66 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
       Variables: Local_1: a As C2
       Initializer: 
-        IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() Wi ... .a = "goo"}')
-          Arguments(0)
-          Initializer: 
-            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'With {.a = "goo"}')
-              Initializers(1):
-                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.a = "goo"')
-                    Left: 
-                      IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'a')
-                        Instance Receiver: 
-                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
-                    Right: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New C2() ... .a = "goo"}')
+          IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() Wi ... .a = "goo"}')
+            Arguments(0)
+            Initializer: 
+              IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'With {.a = "goo"}')
+                Initializers(1):
+                    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.a = "goo"')
+                      Left: 
+                        IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'a')
+                          Instance Receiver: 
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim b As Ne ... lo World!"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b')
       Variables: Local_1: b As C2
       Initializer: 
-        IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() Fr ... lo World!"}')
-          Arguments(0)
-          Initializer: 
-            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'From {"Hello World!"}')
-              Initializers(1):
-                  ICollectionElementInitializerExpression (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '"Hello World!"')
-                    Arguments(1):
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New C2() ... lo World!"}')
+          IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() Fr ... lo World!"}')
+            Arguments(0)
+            Initializer: 
+              IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'From {"Hello World!"}')
+                Initializers(1):
+                    ICollectionElementInitializerExpression (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '"Hello World!"')
+                      Arguments(1):
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim c As C2 ... lo World!"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'c')
       Variables: Local_1: c As C2
       Initializer: 
-        IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Fr ... lo World!"}')
-          Arguments(0)
-          Initializer: 
-            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'From {"Hello World!"}')
-              Initializers(1):
-                  ICollectionElementInitializerExpression (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
-                    Arguments(1):
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New C2()  ... lo World!"}')
+          IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Fr ... lo World!"}')
+            Arguments(0)
+            Initializer: 
+              IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'From {"Hello World!"}')
+                Initializers(1):
+                    ICollectionElementInitializerExpression (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
+                      Arguments(1):
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim d As C2 ... .a = "goo"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'd')
       Variables: Local_1: d As C2
       Initializer: 
-        IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')
-          Arguments(0)
-          Initializer: 
-            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.a = "goo"}')
-              Initializers(1):
-                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: '.a = "goo"')
-                    Left: 
-                      IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'a')
-                        Instance Receiver: 
-                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
-                    Right: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New C2()  ... .a = "goo"}')
+          IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')
+            Arguments(0)
+            Initializer: 
+              IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.a = "goo"}')
+                Initializers(1):
+                    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: '.a = "goo"')
+                      Left: 
+                        IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'a')
+                          Instance Receiver: 
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+  IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
     ReturnedValue: 
       null
 ]]>.Value
@@ -724,13 +728,13 @@ IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitia
   Initializers(2):
       IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
         Children(2):
-            IOperation:  (OperationKind.None, IsInvalid) (Syntax: '"Hello World!"')
+            IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
               Children(1):
                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
       IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Errors wil ... er element"')
         Children(2):
-            IOperation:  (OperationKind.None, IsInvalid) (Syntax: '"Errors wil ... er element"')
+            IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: '"Errors wil ... er element"')
               Children(1):
                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Errors will be shown for each initializer element", IsInvalid) (Syntax: '"Errors wil ... er element"')
@@ -1136,7 +1140,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionar
       Initializers(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '{1}')
             Children(2):
-                IOperation:  (OperationKind.None, IsInvalid) (Syntax: '{1}')
+                IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: '{1}')
                   Children(1):
                       IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: 'New Diction ...  From {{1}}')
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')

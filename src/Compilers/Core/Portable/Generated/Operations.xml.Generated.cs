@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -22,7 +23,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Reference;
+                if (Reference != null)
+                {
+                    yield return Reference;
+                }
             }
         }
         /// <summary>
@@ -81,7 +85,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Argument;
+                if (Argument != null)
+                {
+                    yield return Argument;
+                }
             }
         }
         /// <summary>
@@ -141,7 +148,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
             }
         }
         /// <summary>
@@ -212,7 +222,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
         /// <summary>
@@ -246,9 +259,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var dimensionSize in DimensionSizes)
                 {
-                    yield return dimensionSize;
+                    if (dimensionSize != null)
+                    {
+                        yield return dimensionSize;
+                    }
                 }
-                yield return Initializer;
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
         /// <summary>
@@ -321,10 +340,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return ArrayReference;
+                if (ArrayReference != null)
+                {
+                    yield return ArrayReference;
+                }
+
                 foreach (var index in Indices)
                 {
-                    yield return index;
+                    if (index != null)
+                    {
+                        yield return index;
+                    }
                 }
             }
         }
@@ -398,7 +424,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var elementValue in ElementValues)
                 {
-                    yield return elementValue;
+                    if (elementValue != null)
+                    {
+                        yield return elementValue;
+                    }
                 }
             }
         }
@@ -454,6 +483,20 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
+        public sealed override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (Target != null)
+                {
+                    yield return Target;
+                }
+                if (Value != null)
+                {
+                    yield return Value;
+                }
+            }
+        }
         protected abstract IOperation TargetImpl { get; }
         protected abstract IOperation ValueImpl { get; }
         /// <summary>
@@ -474,14 +517,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public BaseSimpleAssignmentExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.SimpleAssignmentExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return Target;
-                yield return Value;
-            }
         }
         public override void Accept(OperationVisitor visitor)
         {
@@ -527,6 +562,135 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a deconstruction assignment expression.
+    /// </summary>
+    internal abstract partial class BaseDeconstructionAssignmentExpression : AssignmentExpression, IDeconstructionAssignmentExpression
+    {
+        public BaseDeconstructionAssignmentExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.DeconstructionAssignmentExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDeconstructionAssignmentExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDeconstructionAssignmentExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a deconstruction assignment expression.
+    /// </summary>
+    internal sealed partial class DeconstructionAssignmentExpression : BaseDeconstructionAssignmentExpression, IDeconstructionAssignmentExpression
+    {
+        public DeconstructionAssignmentExpression(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            TargetImpl = target;
+            ValueImpl = value;
+        }
+        protected override IOperation TargetImpl { get; }
+        protected override IOperation ValueImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents a deconstruction assignment expression.
+    /// </summary>
+    internal sealed partial class LazyDeconstructionAssignmentExpression : BaseDeconstructionAssignmentExpression, IDeconstructionAssignmentExpression
+    {
+        private readonly Lazy<IOperation> _lazyTarget;
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyDeconstructionAssignmentExpression(Lazy<IOperation> target, Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+        protected override IOperation TargetImpl => _lazyTarget.Value;
+        protected override IOperation ValueImpl => _lazyValue.Value;
+    }
+
+    /// <summary>
+    /// Represents a declaration expression in C#.
+    /// Unlike a regular variable declaration, this operation represents an "expression" declaring a variable.
+    /// For example,
+    ///   1. "var (x, y)" is a deconstruction declaration expression with variables x and y.
+    ///   2. "(var x, var y)" is a tuple expression with two declaration expressions.
+    ///   3. "M(out var x);" is an invocation expression with an out "var x" declaration expression.
+    /// </summary>
+    internal abstract partial class BaseDeclarationExpression : Operation, IDeclarationExpression
+    {
+        public BaseDeclarationExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.DeclarationExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+            }
+        }
+        /// <summary>
+        /// Underlying expression.
+        /// </summary>
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
+        protected abstract IOperation ExpressionImpl { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDeclarationExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDeclarationExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a declaration expression in C#.
+    /// Unlike a regular variable declaration, this operation represents an "expression" declaring a variable.
+    /// For example,
+    ///   1. "var (x, y)" is a deconstruction declaration expression with variables x and y.
+    ///   2. "(var x, var y)" is a tuple expression with two declaration expressions.
+    ///   3. "M(out var x);" is an invocation expression with an out "var x" declaration expression.
+    /// </summary>
+    internal sealed partial class DeclarationExpression : BaseDeclarationExpression, IDeclarationExpression
+    {
+        public DeclarationExpression(IOperation expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            ExpressionImpl = expression;
+        }
+        protected override IOperation ExpressionImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents a declaration expression in C#.
+    /// Unlike a regular variable declaration, this operation represents an "expression" declaring a variable.
+    /// For example,
+    ///   1. "var (x, y)" is a deconstruction declaration expression with variables x and y.
+    ///   2. "(var x, var y)" is a tuple expression with two declaration expressions.
+    ///   3. "M(out var x);" is an invocation expression with an out "var x" declaration expression.
+    /// </summary>
+    internal sealed partial class LazyDeclarationExpression : BaseDeclarationExpression, IDeclarationExpression
+    {
+        private readonly Lazy<IOperation> _lazyExpression;
+
+        public LazyDeclarationExpression(Lazy<IOperation> expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+        }
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
+    }
+
+    /// <summary>
     /// Represents an await expression.
     /// </summary>
     internal abstract partial class BaseAwaitExpression : Operation, IAwaitExpression
@@ -541,7 +705,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
             }
         }
         /// <summary>
@@ -590,16 +757,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    internal abstract partial class BaseBinaryOperatorExpression : Operation, IHasOperatorMethodExpression, IBinaryOperatorExpression
+    internal abstract partial class BaseBinaryOperatorExpression : Operation, IBinaryOperatorExpression
     {
-        protected BaseBinaryOperatorExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseBinaryOperatorExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.BinaryOperatorExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
             IsLifted = isLifted;
             IsChecked = isChecked;
             IsCompareText = isCompareText;
-            UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
         }
         /// <summary>
@@ -609,11 +775,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected abstract IOperation LeftOperandImpl { get; }
         protected abstract IOperation RightOperandImpl { get; }
         /// <summary>
-        /// True if and only if the operation is performed by an operator method.
-        /// </summary>
-        public bool UsesOperatorMethod { get; }
-        /// <summary>
-        /// Operation method used by the operation, null if the operation does not use an operator method.
+        /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
         /// <summary>
@@ -635,8 +797,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return LeftOperand;
-                yield return RightOperand;
+                if (LeftOperand != null)
+                {
+                    yield return LeftOperand;
+                }
+                if (RightOperand != null)
+                {
+                    yield return RightOperand;
+                }
             }
         }
         /// <summary>
@@ -660,10 +828,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    internal sealed partial class BinaryOperatorExpression : BaseBinaryOperatorExpression, IHasOperatorMethodExpression, IBinaryOperatorExpression
+    internal sealed partial class BinaryOperatorExpression : BaseBinaryOperatorExpression, IBinaryOperatorExpression
     {
-        public BinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, isCompareText, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public BinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LeftOperandImpl = leftOperand;
             RightOperandImpl = rightOperand;
@@ -676,13 +844,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    internal sealed partial class LazyBinaryOperatorExpression : BaseBinaryOperatorExpression, IHasOperatorMethodExpression, IBinaryOperatorExpression
+    internal sealed partial class LazyBinaryOperatorExpression : BaseBinaryOperatorExpression, IBinaryOperatorExpression
     {
         private readonly Lazy<IOperation> _lazyLeftOperand;
         private readonly Lazy<IOperation> _lazyRightOperand;
 
-        public LazyBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool isLifted, bool isChecked, bool isCompareText, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, isCompareText, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
             _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
@@ -715,7 +883,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var statement in Statements)
                 {
-                    yield return statement;
+                    if (statement != null)
+                    {
+                        yield return statement;
+                    }
                 }
             }
         }
@@ -840,9 +1011,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return ExceptionDeclarationOrExpression;
-                yield return Filter;
-                yield return Handler;
+                if (ExceptionDeclarationOrExpression != null)
+                {
+                    yield return ExceptionDeclarationOrExpression;
+                }
+                if (Filter != null)
+                {
+                    yield return Filter;
+                }
+                if (Handler != null)
+                {
+                    yield return Handler;
+                }
             }
         }
         /// <summary>
@@ -915,15 +1095,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    internal abstract partial class BaseCompoundAssignmentExpression : AssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
+    internal abstract partial class BaseCompoundAssignmentExpression : AssignmentExpression, ICompoundAssignmentExpression
     {
-        protected BaseCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.CompoundAssignmentExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
             IsLifted = isLifted;
             IsChecked = isChecked;
-            UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
         }
         /// <summary>
@@ -939,21 +1118,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public bool IsChecked { get; }
         /// <summary>
-        /// True if and only if the operation is performed by an operator method.
-        /// </summary>
-        public bool UsesOperatorMethod { get; }
-        /// <summary>
-        /// Operation method used by the operation, null if the operation does not use an operator method.
+        /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return Target;
-                yield return Value;
-            }
-        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -968,10 +1135,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    internal sealed partial class CompoundAssignmentExpression : BaseCompoundAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
+    internal sealed partial class CompoundAssignmentExpression : BaseCompoundAssignmentExpression, ICompoundAssignmentExpression
     {
-        public CompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public CompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IOperation target, IOperation value, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             TargetImpl = target;
             ValueImpl = value;
@@ -983,13 +1150,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    internal sealed partial class LazyCompoundAssignmentExpression : BaseCompoundAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
+    internal sealed partial class LazyCompoundAssignmentExpression : BaseCompoundAssignmentExpression, ICompoundAssignmentExpression
     {
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, Lazy<IOperation> target, Lazy<IOperation> value, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
@@ -1014,8 +1181,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
-                yield return WhenNotNull;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+                if (WhenNotNull != null)
+                {
+                    yield return WhenNotNull;
+                }
             }
         }
         /// <summary>
@@ -1113,9 +1286,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Condition;
-                yield return WhenTrue;
-                yield return WhenFalse;
+                if (Condition != null)
+                {
+                    yield return Condition;
+                }
+                if (WhenTrue != null)
+                {
+                    yield return WhenTrue;
+                }
+                if (WhenFalse != null)
+                {
+                    yield return WhenFalse;
+                }
             }
         }
         /// <summary>
@@ -1184,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a conversion operation.
     /// </summary>
-    internal abstract partial class BaseConversionExpression : Operation, IHasOperatorMethodExpression, IConversionExpression
+    internal abstract partial class BaseConversionExpression : Operation, IConversionExpression
     {
         protected BaseConversionExpression(bool isExplicitInCode, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.ConversionExpression, semanticModel, syntax, type, constantValue, isImplicit)
@@ -1199,13 +1381,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         public bool IsExplicitInCode { get; }
         public bool IsTryCast { get; }
         public bool IsChecked { get; }
-        public bool UsesOperatorMethod => Conversion.IsUserDefined;
         public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return Operand;
+                if (Operand != null)
+                {
+                    yield return Operand;
+                }
             }
         }
         /// <summary>
@@ -1330,8 +1514,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return EventReference;
-                yield return HandlerValue;
+                if (EventReference != null)
+                {
+                    yield return EventReference;
+                }
+                if (HandlerValue != null)
+                {
+                    yield return HandlerValue;
+                }
             }
         }
 
@@ -1395,20 +1585,23 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseEventReferenceExpression : MemberReferenceExpression, IEventReferenceExpression
     {
-        public BaseEventReferenceExpression(IEventSymbol @event, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(member, OperationKind.EventReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseEventReferenceExpression(IEventSymbol @event, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(@event, OperationKind.EventReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Event = @event;
         }
         /// <summary>
         /// Referenced event.
         /// </summary>
-        public IEventSymbol Event { get; }
+        public IEventSymbol Event => (IEventSymbol)Member;
+
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return Instance;
+                if (Instance != null)
+                {
+                    yield return Instance;
+                }
             }
         }
 
@@ -1427,8 +1620,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class EventReferenceExpression : BaseEventReferenceExpression, IEventReferenceExpression
     {
-        public EventReferenceExpression(IEventSymbol @event, IOperation instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(@event, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public EventReferenceExpression(IEventSymbol @event, IOperation instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(@event, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InstanceImpl = instance;
         }
@@ -1442,8 +1635,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyEventReferenceExpression(IEventSymbol @event, Lazy<IOperation> instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(@event, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyEventReferenceExpression(IEventSymbol @event, Lazy<IOperation> instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(@event, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
@@ -1465,7 +1658,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
             }
         }
         /// <summary>
@@ -1512,6 +1708,64 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents an initialization of a local variable.
+    /// </summary>
+    internal abstract partial class BaseVariableInitializer : SymbolInitializer, IVariableInitializer
+    {
+        public BaseVariableInitializer(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.VariableInitializer, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (Value != null)
+                {
+                    yield return Value;
+                }
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitVariableInitializer(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitVariableInitializer(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a local variable.
+    /// </summary>
+    internal sealed partial class VariableInitializer : BaseVariableInitializer, IVariableInitializer
+    {
+        public VariableInitializer(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            ValueImpl = value;
+        }
+        protected override IOperation ValueImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a local variable.
+    /// </summary>
+    internal sealed partial class LazyVariableInitializer : BaseVariableInitializer, IVariableInitializer
+    {
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyVariableInitializer(Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+        protected override IOperation ValueImpl => _lazyValue.Value;
+    }
+
+    /// <summary>
     /// Represents an initialization of a field.
     /// </summary>
     internal abstract partial class BaseFieldInitializer : SymbolInitializer, IFieldInitializer
@@ -1529,7 +1783,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
 
@@ -1576,22 +1833,24 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseFieldReferenceExpression : MemberReferenceExpression, IFieldReferenceExpression
     {
-        public BaseFieldReferenceExpression(IFieldSymbol field, bool isDeclaration, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(member, OperationKind.FieldReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseFieldReferenceExpression(IFieldSymbol field, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(field, OperationKind.FieldReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Field = field;
             IsDeclaration = isDeclaration;
         }
         /// <summary>
         /// Referenced field.
         /// </summary>
-        public IFieldSymbol Field { get; }
+        public IFieldSymbol Field => (IFieldSymbol)Member;
         public bool IsDeclaration { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return Instance;
+                if (Instance != null)
+                {
+                    yield return Instance;
+                }
             }
         }
 
@@ -1610,8 +1869,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class FieldReferenceExpression : BaseFieldReferenceExpression, IFieldReferenceExpression
     {
-        public FieldReferenceExpression(IFieldSymbol field, bool isDeclaration, IOperation instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(field, isDeclaration, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public FieldReferenceExpression(IFieldSymbol field, bool isDeclaration, IOperation instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InstanceImpl = instance;
         }
@@ -1625,8 +1884,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyFieldReferenceExpression(IFieldSymbol field, bool isDeclaration, Lazy<IOperation> instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(field, isDeclaration, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyFieldReferenceExpression(IFieldSymbol field, bool isDeclaration, Lazy<IOperation> instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
@@ -1651,8 +1910,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Variables;
-                yield return Body;
+                if (Variables != null)
+                {
+                    yield return Variables;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         /// <summary>
@@ -1724,15 +1989,24 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
+                if (Collection != null)
+                {
+                    yield return Collection;
+                }
                 if (LoopControlVariable != null)
                 {
                     yield return LoopControlVariable;
                 }
-                yield return Collection;
-                yield return Body;
+                if (Body != null)
+                {
+                    yield return Body;
+                }
                 foreach (var expression in NextVariables)
                 {
-                    yield return expression;
+                    if (expression != null)
+                    {
+                        yield return expression;
+                    }
                 }
             }
         }
@@ -1824,14 +2098,26 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var before in Before)
                 {
-                    yield return before;
+                    if (before != null)
+                    {
+                        yield return before;
+                    }
                 }
-                yield return Condition;
+                if (Condition != null)
+                {
+                    yield return Condition;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
                 foreach (var atLoopBottom in AtLoopBottom)
                 {
-                    yield return atLoopBottom;
+                    if (atLoopBottom != null)
+                    {
+                        yield return atLoopBottom;
+                    }
                 }
-                yield return Body;
             }
         }
         /// <summary>
@@ -1925,13 +2211,28 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return LoopControlVariable;
                 }
-                yield return InitialValue;
-                yield return LimitValue;
-                yield return StepValue;
-                yield return Body;
+                if (InitialValue != null)
+                {
+                    yield return InitialValue;
+                }
+                if (LimitValue != null)
+                {
+                    yield return LimitValue;
+                }
+                if (StepValue != null)
+                {
+                    yield return StepValue;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
                 foreach (var expression in NextVariables)
                 {
-                    yield return expression;
+                    if (expression != null)
+                    {
+                        yield return expression;
+                    }
                 }
             }
         }
@@ -2042,9 +2343,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Condition;
-                yield return IfTrueStatement;
-                yield return IfFalseStatement;
+                if (Condition != null)
+                {
+                    yield return Condition;
+                }
+                if (IfTrueStatement != null)
+                {
+                    yield return IfTrueStatement;
+                }
+                if (IfFalseStatement != null)
+                {
+                    yield return IfFalseStatement;
+                }
             }
         }
         /// <summary>
@@ -2115,13 +2425,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseIncrementExpression : Operation, IIncrementOrDecrementExpression
     {
-        public BaseIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(isDecrement ? OperationKind.DecrementExpression : OperationKind.IncrementExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             IsPostfix = isPostfix;
             IsLifted = isLifted;
             IsChecked = isChecked;
-            UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
         }
         /// <summary>
@@ -2142,18 +2451,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         public bool IsChecked { get; }
         protected abstract IOperation TargetImpl { get; }
         /// <summary>
-        /// True if and only if the operation is performed by an operator method.
-        /// </summary>
-        public bool UsesOperatorMethod { get; }
-        /// <summary>
-        /// Operation method used by the operation, null if the operation does not use an operator method.
+        /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return Target;
+                if (Target != null)
+                {
+                    yield return Target;
+                }
             }
         }
         /// <summary>
@@ -2176,8 +2484,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class IncrementExpression : BaseIncrementExpression, IIncrementOrDecrementExpression
     {
-        public IncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(isDecrement, isPostfix, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public IncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isDecrement, isPostfix, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             TargetImpl = target;
         }
@@ -2192,8 +2500,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyTarget;
 
-        public LazyIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(isDecrement, isPostfix, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, Lazy<IOperation> target, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isDecrement, isPostfix, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
         }
@@ -2244,7 +2552,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var part in Parts)
                 {
-                    yield return part;
+                    if (part != null)
+                    {
+                        yield return part;
+                    }
                 }
             }
         }
@@ -2306,7 +2617,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Text;
+                if (Text != null)
+                {
+                    yield return Text;
+                }
             }
         }
         /// <summary>
@@ -2369,9 +2683,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
-                yield return Alignment;
-                yield return FormatString;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+                if (Alignment != null)
+                {
+                    yield return Alignment;
+                }
+                if (FormatString != null)
+                {
+                    yield return FormatString;
+                }
             }
         }
         /// <summary>
@@ -2472,6 +2795,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public InvalidExpression(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            // we don't allow null children.
+            Debug.Assert(children.All(o => o != null));
             ChildrenImpl = children;
         }
         protected override ImmutableArray<IOperation> ChildrenImpl { get; }
@@ -2487,6 +2812,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyInvalidExpression(Lazy<ImmutableArray<IOperation>> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            // we don't allow null children.
+            Debug.Assert(children.Value.All(o => o != null));
             _lazyChildren = children;
         }
         protected override ImmutableArray<IOperation> ChildrenImpl => _lazyChildren.Value;
@@ -2524,6 +2851,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public InvalidStatement(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            // we don't allow null children.
+            Debug.Assert(children.All(o => o != null));
             ChildrenImpl = children;
         }
         protected override ImmutableArray<IOperation> ChildrenImpl { get; }
@@ -2538,6 +2867,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyInvalidStatement(Lazy<ImmutableArray<IOperation>> children, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            // we don't allow null children.
+            Debug.Assert(children.Value.All(o => o != null));
             _lazyChildren = children;
         }
         protected override ImmutableArray<IOperation> ChildrenImpl => _lazyChildren.Value;
@@ -2546,7 +2877,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    internal abstract partial class BaseInvocationExpression : Operation, IHasArguments, IInvocationExpression
+    internal abstract partial class BaseInvocationExpression : Operation, IInvocationExpression
     {
         protected BaseInvocationExpression(IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.InvocationExpression, semanticModel, syntax, type, constantValue, isImplicit)
@@ -2563,15 +2894,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// True if the invocation uses a virtual mechanism, and false otherwise.
         /// </summary>
         public bool IsVirtual { get; }
-        protected abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl { get; }
+        protected abstract ImmutableArray<IArgument> ArgumentsImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return Instance;
-                foreach (var argumentsInEvaluationOrder in ArgumentsInEvaluationOrder)
+                if (Instance != null)
                 {
-                    yield return argumentsInEvaluationOrder;
+                    yield return Instance;
+                }
+                foreach (var argument in Arguments)
+                {
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -2586,7 +2923,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
-        public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
+        public ImmutableArray<IArgument> Arguments => Operation.SetParentOperation(ArgumentsImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvocationExpression(this);
@@ -2600,42 +2937,42 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    internal sealed partial class InvocationExpression : BaseInvocationExpression, IHasArguments, IInvocationExpression
+    internal sealed partial class InvocationExpression : BaseInvocationExpression, IInvocationExpression
     {
-        public InvocationExpression(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgument> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public InvocationExpression(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgument> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InstanceImpl = instance;
-            ArgumentsInEvaluationOrderImpl = argumentsInEvaluationOrder;
+            ArgumentsImpl = arguments;
         }
 
         protected override IOperation InstanceImpl { get; }
-        protected override ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl { get; }
+        protected override ImmutableArray<IArgument> ArgumentsImpl { get; }
     }
 
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    internal sealed partial class LazyInvocationExpression : BaseInvocationExpression, IHasArguments, IInvocationExpression
+    internal sealed partial class LazyInvocationExpression : BaseInvocationExpression, IInvocationExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
-        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
+        private readonly Lazy<ImmutableArray<IArgument>> _lazyArguments;
 
-        public LazyInvocationExpression(IMethodSymbol targetMethod, Lazy<IOperation> instance, bool isVirtual, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyInvocationExpression(IMethodSymbol targetMethod, Lazy<IOperation> instance, bool isVirtual, Lazy<ImmutableArray<IArgument>> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
-            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
+            _lazyArguments = arguments;
         }
 
         protected override IOperation InstanceImpl => _lazyInstance.Value;
 
-        protected override ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl => _lazyArgumentsInEvaluationOrder.Value;
+        protected override ImmutableArray<IArgument> ArgumentsImpl => _lazyArguments.Value;
     }
 
     /// <summary>
     /// Represents a VB raise event statement.
     /// </summary>
-    internal abstract partial class BaseRaiseEventStatement : Operation, IHasArguments, IRaiseEventStatement
+    internal abstract partial class BaseRaiseEventStatement : Operation, IRaiseEventStatement
     {
         protected BaseRaiseEventStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.RaiseEventStatement, semanticModel, syntax, type, constantValue, isImplicit)
@@ -2643,16 +2980,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         protected abstract IEventReferenceExpression EventReferenceImpl { get; }
-        protected abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl { get; }
+        protected abstract ImmutableArray<IArgument> ArgumentsImpl { get; }
 
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return EventReference;
-                foreach (var argumentsInEvaluationOrder in ArgumentsInEvaluationOrder)
+                if (EventReference != null)
                 {
-                    yield return argumentsInEvaluationOrder;
+                    yield return EventReference;
+                }
+                foreach (var argument in Arguments)
+                {
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -2661,7 +3004,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public IEventReferenceExpression EventReference => Operation.SetParentOperation(EventReferenceImpl, this);
 
-        public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
+        public ImmutableArray<IArgument> Arguments => Operation.SetParentOperation(ArgumentsImpl, this);
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -2676,38 +3019,38 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a VB raise event statement.
     /// </summary>
-    internal sealed partial class RaiseEventStatement : BaseRaiseEventStatement, IHasArguments, IRaiseEventStatement
+    internal sealed partial class RaiseEventStatement : BaseRaiseEventStatement, IRaiseEventStatement
     {
-        public RaiseEventStatement(IEventReferenceExpression eventReference, ImmutableArray<IArgument> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public RaiseEventStatement(IEventReferenceExpression eventReference, ImmutableArray<IArgument> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             EventReferenceImpl = eventReference;
-            ArgumentsInEvaluationOrderImpl = argumentsInEvaluationOrder;
+            ArgumentsImpl = arguments;
         }
 
         protected override IEventReferenceExpression EventReferenceImpl { get; }
 
-        protected override ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl { get; }
+        protected override ImmutableArray<IArgument> ArgumentsImpl { get; }
     }
 
     /// <summary>
     /// Represents a VB raise event statement.
     /// </summary>
-    internal sealed partial class LazyRaiseEventStatement : BaseRaiseEventStatement, IHasArguments, IRaiseEventStatement
+    internal sealed partial class LazyRaiseEventStatement : BaseRaiseEventStatement, IRaiseEventStatement
     {
         private readonly Lazy<IEventReferenceExpression> _lazyEventReference;
-        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
+        private readonly Lazy<ImmutableArray<IArgument>> _lazyArguments;
 
-        public LazyRaiseEventStatement(Lazy<IEventReferenceExpression> eventReference, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public LazyRaiseEventStatement(Lazy<IEventReferenceExpression> eventReference, Lazy<ImmutableArray<IArgument>> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyEventReference = eventReference;
-            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
+            _lazyArguments = arguments;
         }
 
         protected override IEventReferenceExpression EventReferenceImpl => _lazyEventReference.Value;
 
-        protected override ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl => _lazyArgumentsInEvaluationOrder.Value;
+        protected override ImmutableArray<IArgument> ArgumentsImpl => _lazyArguments.Value;
     }
 
     /// <summary>
@@ -2715,35 +3058,38 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseIsTypeExpression : Operation, IIsTypeExpression
     {
-        protected BaseIsTypeExpression(ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseIsTypeExpression(ITypeSymbol typeOperand, bool isNegated, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.IsTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            IsType = isType;
-            IsNotTypeExpression = isNotTypeExpression;
+            TypeOperand = typeOperand;
+            IsNegated = isNegated;
         }
 
-        protected abstract IOperation OperandImpl { get; }
+        protected abstract IOperation ValueOperandImpl { get; }
         /// <summary>
         /// Type for which to test.
         /// </summary>
-        public ITypeSymbol IsType { get; }
+        public ITypeSymbol TypeOperand { get; }
         /// <summary>
         /// Flag indicating if this is an "is not" type expression.
         /// True for VB "TypeOf ... IsNot ..." expression.
         /// False, otherwise.
         /// </summary>
-        public bool IsNotTypeExpression { get; }
+        public bool IsNegated { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return Operand;
+                if (ValueOperand != null)
+                {
+                    yield return ValueOperand;
+                }
             }
         }
         /// <summary>
         /// Value to test.
         /// </summary>
-        public IOperation Operand => Operation.SetParentOperation(OperandImpl, this);
+        public IOperation ValueOperand => Operation.SetParentOperation(ValueOperandImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIsTypeExpression(this);
@@ -2759,13 +3105,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class IsTypeExpression : BaseIsTypeExpression, IIsTypeExpression
     {
-        public IsTypeExpression(IOperation operand, ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        public IsTypeExpression(IOperation valueOperand, ITypeSymbol typeOperand, bool isNegated, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(typeOperand, isNegated, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            OperandImpl = operand;
+            ValueOperandImpl = valueOperand;
         }
 
-        protected override IOperation OperandImpl { get; }
+        protected override IOperation ValueOperandImpl { get; }
     }
 
     /// <summary>
@@ -2780,7 +3126,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
 
-        protected override IOperation OperandImpl => _lazyOperand.Value;
+        protected override IOperation ValueOperandImpl => _lazyOperand.Value;
     }
 
     /// <summary>
@@ -2802,7 +3148,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Statement;
+                if (Statement != null)
+                {
+                    yield return Statement;
+                }
             }
         }
         /// <summary>
@@ -2861,7 +3210,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Body;
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         public IBlockStatement Body => Operation.SetParentOperation(BodyImpl, this);
@@ -2910,7 +3262,13 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IEnumerable<IOperation> Children
         {
-            get { yield return Target; }
+            get
+            {
+                if (Target != null)
+                {
+                    yield return Target;
+                }
+            }
         }
         public override void Accept(OperationVisitor visitor)
         {
@@ -2977,7 +3335,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Instance;
+                if (Instance != null)
+                {
+                    yield return Instance;
+                }
             }
         }
         /// <summary>
@@ -3100,8 +3461,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
-                yield return Body;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         /// <summary>
@@ -3229,7 +3596,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Instance;
+                if (Instance != null)
+                {
+                    yield return Instance;
+                }
             }
         }
 
@@ -3290,8 +3660,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
-                yield return WhenNull;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+                if (WhenNull != null)
+                {
+                    yield return WhenNull;
+                }
             }
         }
         /// <summary>
@@ -3350,7 +3726,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    internal abstract partial class BaseObjectCreationExpression : Operation, IHasArguments, IObjectCreationExpression
+    internal abstract partial class BaseObjectCreationExpression : Operation, IObjectCreationExpression
     {
         protected BaseObjectCreationExpression(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.ObjectCreationExpression, semanticModel, syntax, type, constantValue, isImplicit)
@@ -3362,16 +3738,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public IMethodSymbol Constructor { get; }
         protected abstract IObjectOrCollectionInitializerExpression InitializerImpl { get; }
-        protected abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl { get; }
+        protected abstract ImmutableArray<IArgument> ArgumentsImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                foreach (var argumentsInEvaluationOrder in ArgumentsInEvaluationOrder)
+                foreach (var argument in Arguments)
                 {
-                    yield return argumentsInEvaluationOrder;
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
-                yield return Initializer;
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
         /// <summary>
@@ -3385,7 +3767,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
-        public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
+        public ImmutableArray<IArgument> Arguments => Operation.SetParentOperation(ArgumentsImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitObjectCreationExpression(this);
@@ -3399,36 +3781,36 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    internal sealed partial class ObjectCreationExpression : BaseObjectCreationExpression, IHasArguments, IObjectCreationExpression
+    internal sealed partial class ObjectCreationExpression : BaseObjectCreationExpression, IObjectCreationExpression
     {
-        public ObjectCreationExpression(IMethodSymbol constructor, IObjectOrCollectionInitializerExpression initializer, ImmutableArray<IArgument> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public ObjectCreationExpression(IMethodSymbol constructor, IObjectOrCollectionInitializerExpression initializer, ImmutableArray<IArgument> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InitializerImpl = initializer;
-            ArgumentsInEvaluationOrderImpl = argumentsInEvaluationOrder;
+            ArgumentsImpl = arguments;
         }
 
         protected override IObjectOrCollectionInitializerExpression InitializerImpl { get; }
-        protected override ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl { get; }
+        protected override ImmutableArray<IArgument> ArgumentsImpl { get; }
     }
 
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    internal sealed partial class LazyObjectCreationExpression : BaseObjectCreationExpression, IHasArguments, IObjectCreationExpression
+    internal sealed partial class LazyObjectCreationExpression : BaseObjectCreationExpression, IObjectCreationExpression
     {
         private readonly Lazy<IObjectOrCollectionInitializerExpression> _lazyInitializer;
-        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
+        private readonly Lazy<ImmutableArray<IArgument>> _lazyArguments;
 
-        public LazyObjectCreationExpression(IMethodSymbol constructor, Lazy<IObjectOrCollectionInitializerExpression> initializer, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyObjectCreationExpression(IMethodSymbol constructor, Lazy<IObjectOrCollectionInitializerExpression> initializer, Lazy<ImmutableArray<IArgument>> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInitializer = initializer;
-            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
+            _lazyArguments = arguments;
         }
 
         protected override IObjectOrCollectionInitializerExpression InitializerImpl => _lazyInitializer.Value;
 
-        protected override ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl => _lazyArgumentsInEvaluationOrder.Value;
+        protected override ImmutableArray<IArgument> ArgumentsImpl => _lazyArguments.Value;
 
     }
 
@@ -3449,7 +3831,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var initializer in Initializers)
                 {
-                    yield return initializer;
+                    if (initializer != null)
+                    {
+                        yield return initializer;
+                    }
                 }
             }
         }
@@ -3541,7 +3926,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
 
@@ -3629,7 +4017,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Operand;
+                if (Operand != null)
+                {
+                    yield return Operand;
+                }
             }
         }
         /// <summary>
@@ -3721,7 +4112,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Pointer;
+                if (Pointer != null)
+                {
+                    yield return Pointer;
+                }
             }
         }
         /// <summary>
@@ -3785,7 +4179,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
 
@@ -3830,26 +4227,31 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IPropertyReferenceExpression, IHasArguments
+    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IPropertyReferenceExpression
     {
-        protected BasePropertyReferenceExpression(IPropertySymbol property, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(member, OperationKind.PropertyReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BasePropertyReferenceExpression(IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(property, OperationKind.PropertyReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Property = property;
         }
         /// <summary>
         /// Referenced property.
         /// </summary>
-        public IPropertySymbol Property { get; }
-        protected abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl { get; }
+        public IPropertySymbol Property => (IPropertySymbol)Member;
+        protected abstract ImmutableArray<IArgument> ArgumentsImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return Instance;
-                foreach (var argumentsInEvaluationOrder in ArgumentsInEvaluationOrder)
+                if (Instance != null)
                 {
-                    yield return argumentsInEvaluationOrder;
+                    yield return Instance;
+                }
+                foreach (var argument in Arguments)
+                {
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -3860,7 +4262,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
-        public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
+        public ImmutableArray<IArgument> Arguments => Operation.SetParentOperation(ArgumentsImpl, this);
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -3875,16 +4277,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal sealed partial class PropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression, IHasArguments
+    internal sealed partial class PropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression
     {
-        public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, ImmutableArray<IArgument> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(property, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ImmutableArray<IArgument> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(property, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InstanceImpl = instance;
-            ArgumentsInEvaluationOrderImpl = argumentsInEvaluationOrder;
+            ArgumentsImpl = arguments;
         }
         protected override IOperation InstanceImpl { get; }
-        protected override ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl { get; }
+        protected override ImmutableArray<IArgument> ArgumentsImpl { get; }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -3899,20 +4301,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal sealed partial class LazyPropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression, IHasArguments
+    internal sealed partial class LazyPropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
-        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
+        private readonly Lazy<ImmutableArray<IArgument>> _lazyArguments;
 
-        public LazyPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, ISymbol member, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(property, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, Lazy<ImmutableArray<IArgument>> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(property, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
-            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder ?? throw new System.ArgumentNullException(nameof(argumentsInEvaluationOrder));
+            _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
         }
         protected override IOperation InstanceImpl => _lazyInstance.Value;
 
-        protected override ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl => _lazyArgumentsInEvaluationOrder.Value;
+        protected override ImmutableArray<IArgument> ArgumentsImpl => _lazyArguments.Value;
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -3940,8 +4342,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return MinimumValue;
-                yield return MaximumValue;
+                if (MinimumValue != null)
+                {
+                    yield return MinimumValue;
+                }
+                if (MaximumValue != null)
+                {
+                    yield return MaximumValue;
+                }
             }
         }
         /// <summary>
@@ -4019,7 +4427,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
         /// <summary>
@@ -4085,7 +4496,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return ReturnedValue;
+                if (ReturnedValue != null)
+                {
+                    yield return ReturnedValue;
+                }
             }
         }
         /// <summary>
@@ -4160,7 +4574,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
         /// <summary>
@@ -4309,11 +4726,17 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var clause in Clauses)
                 {
-                    yield return clause;
+                    if (clause != null)
+                    {
+                        yield return clause;
+                    }
                 }
                 foreach (var body in Body)
                 {
-                    yield return body;
+                    if (body != null)
+                    {
+                        yield return body;
+                    }
                 }
             }
         }
@@ -4386,10 +4809,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
                 foreach (var @case in Cases)
                 {
-                    yield return @case;
+                    if (@case != null)
+                    {
+                        yield return @case;
+                    }
                 }
             }
         }
@@ -4476,12 +4905,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Body;
+                if (Body != null)
+                {
+                    yield return Body;
+                }
                 foreach (var @catch in Catches)
                 {
-                    yield return @catch;
+                    if (@catch != null)
+                    {
+                        yield return @catch;
+                    }
                 }
-                yield return Finally;
+                if (Finally != null)
+                {
+                    yield return Finally;
+                }
             }
         }
         /// <summary>
@@ -4564,7 +5002,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var element in Elements)
                 {
-                    yield return element;
+                    if (element != null)
+                    {
+                        yield return element;
+                    }
                 }
             }
         }
@@ -4657,7 +5098,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Initializer;
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
         /// <summary>
@@ -4746,9 +5190,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var argument in Arguments)
                 {
-                    yield return argument;
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
-                yield return Initializer;
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
         /// <summary>
@@ -4812,10 +5262,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
                 foreach (var argument in Arguments)
                 {
-                    yield return argument;
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -4880,10 +5336,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
                 foreach (var argument in Arguments)
                 {
-                    yield return argument;
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -4936,15 +5398,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
-    internal abstract partial class BaseUnaryOperatorExpression : Operation, IHasOperatorMethodExpression, IUnaryOperatorExpression
+    internal abstract partial class BaseUnaryOperatorExpression : Operation, IUnaryOperatorExpression
     {
-        protected BaseUnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseUnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.UnaryOperatorExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = unaryOperationKind;
             IsLifted = isLifted;
             IsChecked = isChecked;
-            UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
         }
         /// <summary>
@@ -4953,11 +5414,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public UnaryOperatorKind OperatorKind { get; }
         protected abstract IOperation OperandImpl { get; }
         /// <summary>
-        /// True if and only if the operation is performed by an operator method.
-        /// </summary>
-        public bool UsesOperatorMethod { get; }
-        /// <summary>
-        /// Operation method used by the operation, null if the operation does not use an operator method.
+        /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
         /// <summary>
@@ -4975,7 +5432,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Operand;
+                if (Operand != null)
+                {
+                    yield return Operand;
+                }
             }
         }
         /// <summary>
@@ -4995,10 +5455,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
-    internal sealed partial class UnaryOperatorExpression : BaseUnaryOperatorExpression, IHasOperatorMethodExpression, IUnaryOperatorExpression
+    internal sealed partial class UnaryOperatorExpression : BaseUnaryOperatorExpression, IUnaryOperatorExpression
     {
-        public UnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, IOperation operand, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(unaryOperationKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public UnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, IOperation operand, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperandImpl = operand;
         }
@@ -5009,12 +5469,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
-    internal sealed partial class LazyUnaryOperatorExpression : BaseUnaryOperatorExpression, IHasOperatorMethodExpression, IUnaryOperatorExpression
+    internal sealed partial class LazyUnaryOperatorExpression : BaseUnaryOperatorExpression, IUnaryOperatorExpression
     {
         private readonly Lazy<IOperation> _lazyOperand;
 
-        public LazyUnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, Lazy<IOperation> operand, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(unaryOperationKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyUnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, Lazy<IOperation> operand, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
@@ -5032,32 +5492,33 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
         }
 
+        protected abstract IOperation ResourcesImpl { get; }
         protected abstract IOperation BodyImpl { get; }
-        protected abstract IVariableDeclarationStatement DeclarationImpl { get; }
-        protected abstract IOperation ValueImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return Declaration;
-                yield return Value;
-                yield return Body;
+                if (Resources != null)
+                {
+                    yield return Resources;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
+
+        /// <summary>
+        /// Declaration introduced or resource held by the using.
+        /// </summary>
+        public IOperation Resources => Operation.SetParentOperation(ResourcesImpl, this);
+
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.
         /// </summary>
         public IOperation Body => Operation.SetParentOperation(BodyImpl, this);
 
-        /// <summary>
-        /// Declaration introduced by the using statement. Null if the using statement does not declare any variables.
-        /// </summary>
-        public IVariableDeclarationStatement Declaration => Operation.SetParentOperation(DeclarationImpl, this);
-
-        /// <summary>
-        /// Resource held by the using. Can be null if Declaration is not null.
-        /// </summary>
-        public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitUsingStatement(this);
@@ -5073,17 +5534,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class UsingStatement : BaseUsingStatement, IUsingStatement
     {
-        public UsingStatement(IOperation body, IVariableDeclarationStatement declaration, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public UsingStatement(IOperation resources, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            ResourcesImpl = resources;
             BodyImpl = body;
-            DeclarationImpl = declaration;
-            ValueImpl = value;
         }
 
+        protected override IOperation ResourcesImpl { get; }
         protected override IOperation BodyImpl { get; }
-        protected override IVariableDeclarationStatement DeclarationImpl { get; }
-        protected override IOperation ValueImpl { get; }
     }
 
     /// <summary>
@@ -5091,22 +5550,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyUsingStatement : BaseUsingStatement, IUsingStatement
     {
+        private readonly Lazy<IOperation> _lazyResources;
         private readonly Lazy<IOperation> _lazyBody;
-        private readonly Lazy<IVariableDeclarationStatement> _lazyDeclaration;
-        private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyUsingStatement(Lazy<IOperation> body, Lazy<IVariableDeclarationStatement> declaration, Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyUsingStatement(Lazy<IOperation> resources, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
+            _lazyResources = resources ?? throw new System.ArgumentNullException(nameof(resources));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
-            _lazyDeclaration = declaration ?? throw new System.ArgumentNullException(nameof(declaration));
-            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
 
+        protected override IOperation ResourcesImpl => _lazyResources.Value;
         protected override IOperation BodyImpl => _lazyBody.Value;
-
-        protected override IVariableDeclarationStatement DeclarationImpl => _lazyDeclaration.Value;
-
-        protected override IOperation ValueImpl => _lazyValue.Value;
     }
 
     /// <summary>
@@ -5124,19 +5578,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// same initializer. In C#, this will always have a single symbol.
         /// </summary>
         public ImmutableArray<ILocalSymbol> Variables { get; }
-        protected abstract IOperation InitializerImpl { get; }
+        protected abstract IVariableInitializer InitializerImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return Initializer;
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
 
         /// <summary>
         /// Optional initializer of the variable.
         /// </summary>
-        public IOperation Initializer => Operation.SetParentOperation(InitializerImpl, this);
+        public IVariableInitializer Initializer => Operation.SetParentOperation(InitializerImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitVariableDeclaration(this);
@@ -5152,13 +5609,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class VariableDeclaration : BaseVariableDeclaration, IVariableDeclaration
     {
-        public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(variables, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InitializerImpl = initializer;
         }
 
-        protected override IOperation InitializerImpl { get; }
+        protected override IVariableInitializer InitializerImpl { get; }
     }
 
     /// <summary>
@@ -5166,14 +5623,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyVariableDeclaration : BaseVariableDeclaration, IVariableDeclaration
     {
-        private readonly Lazy<IOperation> _lazyInitializer;
+        private readonly Lazy<IVariableInitializer> _lazyInitializer;
 
-        public LazyVariableDeclaration(ImmutableArray<ILocalSymbol> variables, Lazy<IOperation> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(variables, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyVariableDeclaration(ImmutableArray<ILocalSymbol> variables, Lazy<IVariableInitializer> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(variables, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
 
-        protected override IOperation InitializerImpl => _lazyInitializer.Value;
+        protected override IVariableInitializer InitializerImpl => _lazyInitializer.Value;
     }
 
     /// <summary>
@@ -5193,7 +5650,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var declaration in Declarations)
                 {
-                    yield return declaration;
+                    if (declaration != null)
+                    {
+                        yield return declaration;
+                    }
                 }
             }
         }
@@ -5260,8 +5720,27 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Condition;
-                yield return Body;
+                if (DoLoopKind == DoLoopKind.DoWhileTopLoop ||
+                    DoLoopKind == DoLoopKind.DoUntilTopLoop ||
+                    DoLoopKind == DoLoopKind.None)
+                {
+                    if (Condition != null)
+                    {
+                        yield return Condition;
+                    }
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
+                if (DoLoopKind == DoLoopKind.DoWhileBottomLoop ||
+                    DoLoopKind == DoLoopKind.DoUntilBottomLoop)
+                {
+                    if (Condition != null)
+                    {
+                        yield return Condition;
+                    }
+                }
                 if (IgnoredCondition != null)
                 {
                     yield return IgnoredCondition;
@@ -5341,8 +5820,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Condition;
-                yield return Body;
+                if (Condition != null)
+                {
+                    yield return Condition;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         /// <summary>
@@ -5410,8 +5895,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
-                yield return Body;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         /// <summary>
@@ -5486,7 +5977,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Body;
+                if (Body != null)
+                {
+                    yield return Body;
+                }
             }
         }
         /// <summary>
@@ -5548,7 +6042,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Value;
+                if (Value != null)
+                {
+                    yield return Value;
+                }
             }
         }
         /// <summary>
@@ -5646,8 +6143,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Pattern;
-                yield return GuardExpression;
+                if (Pattern != null)
+                {
+                    yield return Pattern;
+                }
+                if (GuardExpression != null)
+                {
+                    yield return GuardExpression;
+                }
             }
         }
         /// <summary>
@@ -5720,8 +6223,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
-                yield return Pattern;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
+                if (Pattern != null)
+                {
+                    yield return Pattern;
+                }
             }
         }
         /// <summary>
@@ -5795,7 +6304,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var initializer in Initializers)
                 {
-                    yield return initializer;
+                    if (initializer != null)
+                    {
+                        yield return initializer;
+                    }
                 }
             }
         }
@@ -5859,8 +6371,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return InitializedMember;
-                yield return Initializer;
+                if (InitializedMember != null)
+                {
+                    yield return InitializedMember;
+                }
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
             }
         }
         /// <summary>
@@ -5944,7 +6462,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 foreach (var argument in Arguments)
                 {
-                    yield return argument;
+                    if (argument != null)
+                    {
+                        yield return argument;
+                    }
                 }
             }
         }
@@ -5967,7 +6488,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class CollectionElementInitializerExpression : BaseCollectionElementInitializerExpression, ICollectionElementInitializerExpression
     {
-        public CollectionElementInitializerExpression(IMethodSymbol addMethod, ImmutableArray<IOperation> arguments, bool isDynamic, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public CollectionElementInitializerExpression(IMethodSymbol addMethod, bool isDynamic, ImmutableArray<IOperation> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(addMethod, isDynamic, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ArgumentsImpl = arguments;
@@ -5983,7 +6504,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyArguments;
 
-        public LazyCollectionElementInitializerExpression(IMethodSymbol addMethod, Lazy<ImmutableArray<IOperation>> arguments, bool isDynamic, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyCollectionElementInitializerExpression(IMethodSymbol addMethod, bool isDynamic, Lazy<ImmutableArray<IOperation>> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(addMethod, isDynamic, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
@@ -6015,7 +6536,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return Expression;
+                if (Expression != null)
+                {
+                    yield return Expression;
+                }
             }
         }
         public override void Accept(OperationVisitor visitor)

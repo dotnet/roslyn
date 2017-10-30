@@ -438,14 +438,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void C.M2()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'c.M2(d)')
-  Instance Receiver: 
-    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'c.M2(d)')
+  Children(2):
+      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS7036: There is no argument given that corresponds to the required formal parameter 'j' of 'C.M2(int, int)'

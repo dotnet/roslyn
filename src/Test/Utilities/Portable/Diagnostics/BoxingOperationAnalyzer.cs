@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                          if (conversion.Type.IsReferenceType &&
                              conversion.Operand.Type != null &&
                              conversion.Operand.Type.IsValueType &&
-                             !conversion.UsesOperatorMethod)
+                             conversion.OperatorMethod == null)
                          {
                              Report(operationContext, conversion.Syntax);
                          }

@@ -3,18 +3,14 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents an initializer for a field, property, parameter or a local variable declaration.
+    /// Represents an initialization of a local variable.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ISymbolInitializer : IOperation
+    public interface IVariableInitializer : ISymbolInitializer
     {
-        /// <summary>
-        /// Underlying initializer value.
-        /// </summary>
-        IOperation Value { get; }
     }
 }
 

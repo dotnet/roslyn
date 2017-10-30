@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -96,7 +97,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (Operat
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 'M2(1)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsImplicit) (Syntax: 'M2(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -202,7 +203,7 @@ IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [Sy
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(y: 0, z: 2)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(y: 0, z: 2)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M2(y: 0, z: 2)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -240,7 +241,7 @@ IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [Sy
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(z: 2, x: 9)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(z: 2, x: 9)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'M2(z: 2, x: 9)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -280,7 +281,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(9, z: 10);
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(9, z: 10)')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(9, z: 10)')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'M2(9, z: 10)')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -420,7 +421,7 @@ IInvocationExpression ( void P.M2([S sobj = default(S)])) (OperationKind.Invocat
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: sobj) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: S) (Syntax: 'M2()')
+        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: S, IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -452,7 +453,7 @@ IInvocationExpression ( void P.M2([S sobj = default(S)])) (OperationKind.Invocat
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: sobj) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: S) (Syntax: 'M2()')
+        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: S, IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -483,7 +484,7 @@ IInvocationExpression ( void P.M2([System.Double s = 3.14])) (OperationKind.Invo
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 3.14) (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 3.14, IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -611,7 +612,7 @@ IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [Syste
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'this.E1(y: 1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'this.E1(y: 1)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'this.E1(y: 1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -680,11 +681,11 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1, 0.1, 0.2)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, 0.1, 0.2)')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[], IsImplicit) (Syntax: 'M2(1, 0.1, 0.2)')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(1, 0.1, 0.2)')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'M2(1, 0.1, 0.2)')
           Initializer: 
-            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1, 0.1, 0.2)')
+            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'M2(1, 0.1, 0.2)')
               Element Values(2):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.1) (Syntax: '0.1')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.2) (Syntax: '0.2')
@@ -721,11 +722,11 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1)')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[], IsImplicit) (Syntax: 'M2(1)')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(1)')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2(1)')
           Initializer: 
-            IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
+            IArrayInitializer (0 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'M2(1)')
               Element Values(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -757,15 +758,15 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2()')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[], IsImplicit) (Syntax: 'M2()')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2()')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2()')
           Initializer: 
-            IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2()')
+            IArrayInitializer (0 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'M2()')
               Element Values(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -801,7 +802,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: a)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: a)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2(array: a)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -831,11 +832,11 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: 1)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(array: 1)')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[], IsImplicit) (Syntax: 'M2(array: 1)')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1)')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M2(array: 1)')
           Initializer: 
-            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1)')
+            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'M2(array: 1)')
               Element Values(1):
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -844,7 +845,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: 1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: 1)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2(array: 1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -913,11 +914,11 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1, array: 1)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, array: 1)')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[], IsImplicit) (Syntax: 'M2(1, array: 1)')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1, array: 1)')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M2(1, array: 1)')
           Initializer: 
-            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1, array: 1)')
+            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'M2(1, array: 1)')
               Element Values(1):
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -989,11 +990,11 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(array: 1, x: 10)')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(array: 1, x: 10)')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Double[], IsImplicit) (Syntax: 'M2(array: 1, x: 10)')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1, x: 10)')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M2(array: 1, x: 10)')
           Initializer: 
-            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1, x: 10)')
+            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'M2(array: 1, x: 10)')
               Element Values(1):
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1038,15 +1039,15 @@ IInvocationExpression ( void P.M2([System.String memberName = null], [System.Str
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"") (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"", IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"", IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 8) (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 8, IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1081,15 +1082,15 @@ IInvocationExpression ( System.Boolean P.M2([System.String memberName = null], [
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"") (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"", IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"", IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1124,15 +1125,15 @@ IInvocationExpression (System.Boolean P.M2([System.String memberName = null], [S
     null
   Arguments(3):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""field"") (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""field"", IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"", IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1179,15 +1180,15 @@ IInvocationExpression (System.Boolean P.M2([System.String memberName = null], [S
     null
   Arguments(3):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""MyEvent"") (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""MyEvent"", IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"", IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 11) (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1213,18 +1214,10 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2([System.Int32 x = 0])) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
-  Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid, IsImplicit) (Syntax: 'M2')
-  Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '2')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
+  Children(2):
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1501: No overload for method 'M2' takes 2 arguments
@@ -1252,19 +1245,11 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2(System.Int32 y, [System.Int32 x = 0])) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1,)')
-  Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
-  Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-          Children(0)
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1,)')
+  Children(2):
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+        Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(6,24): error CS1525: Invalid expression term ')'
@@ -1292,14 +1277,9 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1)')
-  Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1)')
+  Children(1):
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -1397,7 +1377,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) (Op
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: null) (Syntax: 'M2()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, IsImplicit) (Syntax: 'M2()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1510,7 +1490,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: i) (OperationKind.Argument, IsImplicit) (Syntax: 'this[j:10]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'this[j:10]')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'this[j:10]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1540,14 +1520,10 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
-  Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+  Children(2):
+      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(12,27): error CS0154: The property or indexer 'P.this[int]' cannot be used in this context because it lacks the get accessor
@@ -1578,14 +1554,10 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
-  Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+  Children(2):
+      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1638,7 +1610,7 @@ IPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [S
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsImplicit) (Syntax: 'd[0]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'd[0]')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'd[0]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1680,11 +1652,11 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.ParamArray, Matching Parameter: y) (OperationKind.Argument, IsImplicit) (Syntax: 'this[0]')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0]')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], IsImplicit) (Syntax: 'this[0]')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'this[0]')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'this[0]')
           Initializer: 
-            IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[0]')
+            IArrayInitializer (0 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'this[0]')
               Element Values(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1832,7 +1804,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument, IsImplicit) (Syntax: 'p[10]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: 'p[10]')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4, IsImplicit) (Syntax: 'p[10]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1950,7 +1922,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument, IsImplicit) (Syntax: 'p[10]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'p[10]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2069,7 +2041,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument, IsImplicit) (Syntax: 'p[10]')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'p[10]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2133,7 +2105,7 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'p.M1()')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"") (Syntax: 'p.M1()')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"", IsImplicit) (Syntax: 'p.M1()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2144,7 +2116,215 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
-        public void DefaultValueNullForNullableTypeParameterWithMissingNullableReference()
+        public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_Call()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2()/*</bind>*/;
+    }
+
+    static void M2(bool? x = true)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (void P.M2([System.Boolean[missing]? x = true])) (OperationKind.InvocationExpression, Type: System.Void[missing], IsInvalid) (Syntax: 'M2()')
+  Instance Receiver: 
+    null
+  Arguments(1):
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'M2()')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Boolean[missing]?, IsInvalid, IsImplicit) (Syntax: 'M2()')
+          Children(1):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean[missing], Constant: True, IsInvalid, IsImplicit) (Syntax: 'M2()')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (9,20): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     static void M2(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 20),
+                // (9,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     static void M2(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 20),
+                // (9,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     static void M2(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(9, 12),
+                // (4,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     static void M1()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(4, 12),
+                // (9,30): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     static void M2(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "true").WithArguments("System.Boolean").WithLocation(9, 30),
+                // (6,19): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         /*<bind>*/M2()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Object").WithLocation(6, 19),
+                // (2,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // class P
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
+            };
+
+            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_ObjectCreation()
+        {
+            string source = @"
+class P
+{
+    static P M1()
+    {
+        return /*<bind>*/new P()/*</bind>*/;
+    }
+
+    P(bool? x = true)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationExpression (Constructor: P..ctor([System.Boolean[missing]? x = true])) (OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P()')
+  Arguments(1):
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'new P()')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Boolean[missing]?, IsInvalid, IsImplicit) (Syntax: 'new P()')
+          Children(1):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean[missing], Constant: True, IsInvalid, IsImplicit) (Syntax: 'new P()')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Initializer: 
+    null
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (4,12): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     static P M1()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(4, 12),
+                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     P(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
+                // (9,7): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     P(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 7),
+                // (9,5): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     P(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"P(bool? x = true)
+    {
+    }").WithArguments("System.Void").WithLocation(9, 5),
+                // (9,17): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     P(bool? x = true)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "true").WithArguments("System.Boolean").WithLocation(9, 17),
+                // (6,30): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         return /*<bind>*/new P()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(6, 30),
+                // (9,5): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                //     P(bool? x = true)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(9, 5)
+            };
+
+            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_Indexer()
+        {
+            string source = @"
+
+class P
+{
+    private int _number = 0;
+    public int this[int x, int? y = 5]
+    {
+        get { return _number; }
+        set { _number = value; }
+    }
+
+    void M1()
+    {
+        /*<bind>*/this[0]/*</bind>*/ = 9;
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 5]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: 'this[0]')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Arguments(2):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'this[0]')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32[missing]?, IsInvalid, IsImplicit) (Syntax: 'this[0]')
+          Children(1):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 5, IsInvalid, IsImplicit) (Syntax: 'this[0]')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (3,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(3, 7),
+                // (6,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 21),
+                // (6,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(6, 28),
+                // (6,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 28),
+                // (6,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 12),
+                // (9,9): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //         set { _number = value; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set { _number = value; }").WithArguments("System.Void").WithLocation(9, 9),
+                // (12,5): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     void M1()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(12, 5),
+                // (6,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "5").WithArguments("System.Int32").WithLocation(6, 37),
+                // (5,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 13),
+                // (5,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(5, 27),
+                // (14,24): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         /*<bind>*/this[0]/*</bind>*/ = 9;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(14, 24),
+                // (14,40): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         /*<bind>*/this[0]/*</bind>*/ = 9;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "9").WithArguments("System.Int32").WithLocation(14, 40),
+                // (3,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // class P
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(3, 7)
+            };
+
+            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_Call()
         {
             string source = @"
 class P
@@ -2163,40 +2343,185 @@ class P
 IInvocationExpression (void P.M2([System.Boolean[missing]? x = null])) (OperationKind.InvocationExpression, Type: System.Void[missing], IsInvalid) (Syntax: 'M2()')
   Instance Receiver: 
     null
-  Arguments(0)
+  Arguments(1):
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'M2()')
+        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Boolean[missing]?, IsInvalid, IsImplicit) (Syntax: 'M2()')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (3,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
-                // (10,20): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                // (9,20): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
                 //     static void M2(bool? x = null)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 20),
-                // (10,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // (9,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     static void M2(bool? x = null)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 20),
-                // (10,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // (9,12): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     static void M2(bool? x = null)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(9, 12),
-                // (5,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // (4,12): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     static void M1()
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(4, 12),
-                // (7,19): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // (6,19): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //         /*<bind>*/M2()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Object").WithLocation(6, 19),
-                // (3,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // (2,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
                 // class P
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
             };
-
+            
             var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
-        public void DefaultValueWithParameterErrorType()
+        public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_ObjectCreation()
+        {
+            string source = @"
+class P
+{
+    static P M1()
+    {
+        return /*<bind>*/new P()/*</bind>*/;
+    }
+
+    P(bool? x = null)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationExpression (Constructor: P..ctor([System.Boolean[missing]? x = null])) (OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P()')
+  Arguments(1):
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'new P()')
+        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Boolean[missing]?, IsInvalid, IsImplicit) (Syntax: 'new P()')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Initializer: 
+    null
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (4,12): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     static P M1()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(4, 12),
+                // (9,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     P(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 7),
+                // (9,7): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     P(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 7),
+                // (9,5): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     P(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"P(bool? x = null)
+    {
+    }").WithArguments("System.Void").WithLocation(9, 5),
+                // (6,30): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         return /*<bind>*/new P()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(6, 30),
+                // (9,5): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                //     P(bool? x = null)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(9, 5)
+            };
+
+            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_Indexer()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int x, int? y = null]
+    {
+        get { return _number; }
+        set { _number = value; }
+    }
+
+    void M1()
+    {
+        /*<bind>*/this[0]/*</bind>*/ = 9;
+    }
+}
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: 'this[0]')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Arguments(2):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'this[0]')
+        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int32[missing]?, IsInvalid, IsImplicit) (Syntax: 'this[0]')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (16,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(16, 1),
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
+                // (5,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(5, 28),
+                // (5,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 28),
+                // (5,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 12),
+                // (8,9): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //         set { _number = value; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set { _number = value; }").WithArguments("System.Void").WithLocation(8, 9),
+                // (11,5): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     void M1()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(11, 5),
+                // (4,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 13),
+                // (4,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(4, 27),
+                // (13,24): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         /*<bind>*/this[0]/*</bind>*/ = 9;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(13, 24),
+                // (13,40): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         /*<bind>*/this[0]/*</bind>*/ = 9;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "9").WithArguments("System.Int32").WithLocation(13, 40),
+                // (2,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // class P
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
+            };
+
+            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        public void DefaultValueWithParameterErrorType_Call()
         {
             string source = @"
 class P
@@ -2215,9 +2540,13 @@ class P
 IInvocationExpression (void P.M2(System.Int32 x, [S s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
     null
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '1')
+  Arguments(2):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: S, IsImplicit) (Syntax: 'M2(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2232,6 +2561,97 @@ IInvocationExpression (void P.M2(System.Int32 x, [S s = null])) (OperationKind.I
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DefaultValueWithParameterErrorType_ObjectCreation()
+        {
+            string source = @"
+class P
+{
+    static P M1()
+    {
+        return /*<bind>*/new P(1)/*</bind>*/;
+    }
+
+    P(int x, S s = 0)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationExpression (Constructor: P..ctor(System.Int32 x, [S s = null])) (OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(1)')
+  Arguments(2):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'new P(1)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: S, IsImplicit) (Syntax: 'new P(1)')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Initializer: 
+    null
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(9,14): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                //     P(int x, S s = 0)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 14),
+                // file.cs(9,16): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'S'
+                //     P(int x, S s = 0)
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "S").WithLocation(9, 16)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DefaultValueWithParameterErrorType_Indexer()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int index, S s = 0]
+    {
+        get { return _number; }
+        set { _number = value; }
+    }
+
+    void M1()
+    {
+        /*<bind>*/this[0]/*</bind>*/ = 9;
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index, [S s = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Arguments(2):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '0')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'this[0]')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: S, IsImplicit) (Syntax: 'this[0]')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(5,32): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                //     public int this[int index, S s = 0]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(5, 32),
+                // file.cs(5,34): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'S'
+                //     public int this[int index, S s = 0]
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "S").WithLocation(5, 34)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2268,7 +2688,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S> s = null])) (OperationKin
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: G<S>, Constant: null) (Syntax: 'M2(1)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: G<S>, Constant: null, IsImplicit) (Syntax: 'M2(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2316,7 +2736,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKi
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: G<S>?) (Syntax: 'M2(1)')
+        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: G<S>?, IsImplicit) (Syntax: 'M2(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2348,11 +2768,11 @@ class P
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateStandardCompilation(source);
             var (operation, syntaxNode) = GetOperationAndSyntaxForTest<InvocationExpressionSyntax>(compilation);
 
             var invocation = (IInvocationExpression)operation;
-            var argument = invocation.ArgumentsInEvaluationOrder[0];
+            var argument = invocation.Arguments[0];
 
             // We are calling VB extension methods on IArgument in C# code, therefore exception is expected here.
             Assert.Throws<ArgumentException>(() => argument.GetInConversion());
@@ -2484,11 +2904,11 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(1);')
         null
       Arguments(1):
           IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(1)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], IsImplicit) (Syntax: 'M2(1)')
               Dimension Sizes(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1)')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M2(1)')
               Initializer: 
-                IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
+                IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'M2(1)')
                   Element Values(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2520,11 +2940,11 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(0, 1);')
         null
       Arguments(1):
           IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'M2(0, 1)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(0, 1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], IsImplicit) (Syntax: 'M2(0, 1)')
               Dimension Sizes(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(0, 1)')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'M2(0, 1)')
               Initializer: 
-                IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(0, 1)')
+                IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'M2(0, 1)')
                   Element Values(2):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -2681,11 +3101,11 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'new P(1);')
     IObjectCreationExpression (Constructor: P..ctor(params System.Int32[] array)) (OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(1)')
       Arguments(1):
           IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'new P(1)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], IsImplicit) (Syntax: 'new P(1)')
               Dimension Sizes(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new P(1)')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new P(1)')
               Initializer: 
-                IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'new P(1)')
+                IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'new P(1)')
                   Element Values(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2717,11 +3137,11 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'new P(0, 1);'
     IObjectCreationExpression (Constructor: P..ctor(params System.Int32[] array)) (OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(0, 1)')
       Arguments(1):
           IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'new P(0, 1)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(0, 1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], IsImplicit) (Syntax: 'new P(0, 1)')
               Dimension Sizes(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'new P(0, 1)')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new P(0, 1)')
               Initializer: 
-                IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'new P(0, 1)')
+                IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'new P(0, 1)')
                   Element Values(2):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -2778,11 +3198,11 @@ IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] {
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'this[1]')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[1]')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], IsImplicit) (Syntax: 'this[1]')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'this[1]')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'this[1]')
           Initializer: 
-            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[1]')
+            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'this[1]')
               Element Values(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2812,11 +3232,11 @@ IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] {
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument, IsImplicit) (Syntax: 'this[0, 1]')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0, 1]')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], IsImplicit) (Syntax: 'this[0, 1]')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'this[0, 1]')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'this[0, 1]')
           Initializer: 
-            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[0, 1]')
+            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: 'this[0, 1]')
               Element Values(2):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -2858,7 +3278,7 @@ class MyA : System.Attribute
             string expectedOperationTree = @"
 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Prop = ""test""')
   Left: 
-    IPropertyReferenceExpression: System.String MyA.Prop { get; set; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Prop')
+    IPropertyReferenceExpression: System.String MyA.Prop { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Prop')
       Instance Receiver: 
         null
   Right: 
@@ -2892,6 +3312,403 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: i2) (OperationKind.Argumen
             VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void NonNullDefaultValueForNullableParameterType()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2()/*</bind>*/;
+    }
+    static void M2(int? x = 10) { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (void P.M2([System.Int32? x = 10])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+  Instance Receiver: 
+    null
+  Arguments(1):
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+        IObjectCreationExpression (Constructor: System.Int32?..ctor(System.Int32 value)) (OperationKind.ObjectCreationExpression, Type: System.Int32?, IsImplicit) (Syntax: 'M2()')
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsImplicit) (Syntax: 'M2()')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsImplicit) (Syntax: 'M2()')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Initializer: 
+            null
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void AssigningToReadOnlyIndexerInObjectCreationInitializer()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int index]
+    {
+        get { return _number; }
+    }
+
+    P M1()
+    {
+        return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
+      Initializers(1):
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '[0] = 1')
+            Left: 
+              IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: '[0]')
+                Children(1):
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(12,36): error CS0200: Property or indexer 'P.this[int]' cannot be assigned to -- it is read only
+                //         return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "[0]").WithArguments("P.this[int]").WithLocation(12, 36)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void WrongSignatureIndexerInObjectCreationInitializer()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[string name]
+    {
+        get { return _number; }
+        set { _number = value; }
+    }
+
+    P M1()
+    {
+        return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreationExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
+      Initializers(1):
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '[0] = 1')
+            Left: 
+              IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: '[0]')
+                Children(1):
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(13,37): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "0").WithArguments("1", "int", "string").WithLocation(13, 37)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_IndexerInObjectCreationInitializer()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int x, int? y = 0]
+    {
+        get { return _number; }
+        set { _number = value; }
+    }
+
+    P M1()
+    {
+        return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
+  Children(1):
+      IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
+        Initializers(1):
+            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0] = 1')
+              Left: 
+                IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = 0]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
+                  Instance Receiver: 
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
+                  Arguments(2):
+                      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: '[0]')
+                        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32[missing]?, IsInvalid, IsImplicit) (Syntax: '[0]')
+                          Children(1):
+                              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid, IsImplicit) (Syntax: '[0]')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 1, IsInvalid) (Syntax: '1')
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
+                // (5,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(5, 28),
+                // (5,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 28),
+                // (5,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 12),
+                // (8,9): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //         set { _number = value; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set { _number = value; }").WithArguments("System.Void").WithLocation(8, 9),
+                // (11,5): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     P M1()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(11, 5),
+                // (5,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(5, 37),
+                // (4,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 13),
+                // (4,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(4, 27),
+                // (13,30): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(13, 30),
+                // (13,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(13, 37),
+                // (13,42): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Int32").WithLocation(13, 42),
+                // (13,30): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Void").WithLocation(13, 30),
+                // (2,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // class P
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
+            };
+
+            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DefaultValueNullForNullableParameterTypeWithMissingNullableReference_IndexerInObjectCreationInitializer()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int x, int? y = null]
+    {
+        get { return _number; }
+        set { _number = value; }
+    }
+
+    P M1()
+    {
+        return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: P, IsInvalid) (Syntax: 'new P() { [0] = 1 }')
+  Children(1):
+      IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: P, IsInvalid) (Syntax: '{ [0] = 1 }')
+        Initializers(1):
+            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0] = 1')
+              Left: 
+                IPropertyReferenceExpression: System.Int32[missing] P.this[System.Int32[missing] x, [System.Int32[missing]? y = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32[missing], IsInvalid) (Syntax: '[0]')
+                  Instance Receiver: 
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid, IsImplicit) (Syntax: '[0]')
+                  Arguments(2):
+                      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 0, IsInvalid) (Syntax: '0')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: '[0]')
+                        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int32[missing]?, IsInvalid, IsImplicit) (Syntax: '[0]')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32[missing], Constant: 1, IsInvalid) (Syntax: '1')
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (2,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
+                // (5,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(5, 28),
+                // (5,28): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 28),
+                // (5,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 12),
+                // (8,9): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //         set { _number = value; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set { _number = value; }").WithArguments("System.Void").WithLocation(8, 9),
+                // (11,5): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     P M1()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(11, 5),
+                // (4,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 13),
+                // (4,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     private int _number = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(4, 27),
+                // (13,30): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(13, 30),
+                // (13,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(13, 37),
+                // (13,42): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Int32").WithLocation(13, 42),
+                // (13,30): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //         return /*<bind>*/new P() { [0] = 1 };/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Void").WithLocation(13, 30),
+                // (2,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // class P
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
+            };
+
+            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DefaultValueWithParameterErrorType_IndexerInObjectCreationInitializer()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int x, S s = 0]
+    {
+        get { return _number; }
+        set { _number = value; }
+    }
+
+    P M1()
+    {
+        return /*<bind>*/new P() { [0] = 1 }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IObjectCreationExpression (Constructor: P..ctor()) (OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P() { [0] = 1 }')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: P) (Syntax: '{ [0] = 1 }')
+      Initializers(1):
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[0] = 1')
+            Left: 
+              IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, [S s = null]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '[0]')
+                Instance Receiver: 
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit) (Syntax: '[0]')
+                Arguments(2):
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsImplicit) (Syntax: '[0]')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: S, IsImplicit) (Syntax: '[0]')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(5,28): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                //     public int this[int x, S s = 0]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(5, 28),
+                // file.cs(5,30): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'S'
+                //     public int this[int x, S s = 0]
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "S").WithLocation(5, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void UndefinedMethod()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1, 2)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M2(1, 2)')
+  Children(3):
+      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M2')
+        Children(0)
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,19): error CS0103: The name 'M2' does not exist in the current context
+                //         /*<bind>*/M2(1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M2").WithArguments("M2").WithLocation(6, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+        }
+
         private class IndexerAccessArgumentVerifier : OperationWalker
         {
             private readonly Compilation _compilation;
@@ -2908,14 +3725,14 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: i2) (OperationKind.Argumen
 
             public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
             {
-                if (operation.HasErrors(_compilation) || operation.ArgumentsInEvaluationOrder.Length == 0)
+                if (operation.HasErrors(_compilation) || operation.Arguments.Length == 0)
                 {
                     return;
                 }
 
                 // Check if the parameter symbol for argument is corresponding to indexer instead of accessor.
                 var indexerSymbol = operation.Property;
-                foreach (var argument in operation.ArgumentsInEvaluationOrder)
+                foreach (var argument in operation.Arguments)
                 {
                     if (!argument.HasErrors(_compilation))
                     {

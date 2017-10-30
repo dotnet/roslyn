@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -147,6 +147,27 @@ BC30046: Method cannot have both a ParamArray and Optional parameters.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub AsNewFieldInitializer()
+            Dim source = <![CDATA[
+Class C
+    Dim x As New Object'BIND:"As New Object"
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializer (Field: C.x As System.Object) (OperationKind.FieldInitializer) (Syntax: 'As New Object')
+  IObjectCreationExpression (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'New Object')
+    Arguments(0)
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17813"), WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
         Public Sub MultipleFieldInitializers()
             Dim source = <![CDATA[
@@ -292,6 +313,56 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 2')
   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
+        Public Sub FieldInitializer_ConstantConversions_01()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Private s1 As Byte = 0.0'BIND:"= 0.0"
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializer (Field: C.s1 As System.Byte) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= 0.0')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Byte'.
+    Private s1 As Byte = 0.0'BIND:"= 0.0"
+                         ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")>
+        Public Sub FieldInitializer_ConstantConversions_02()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Private s1 As Byte = 0'BIND:"= 0"
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializer (Field: C.s1 As System.Byte) (OperationKind.FieldInitializer) (Syntax: '= 0')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 0, IsImplicit) (Syntax: '0')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

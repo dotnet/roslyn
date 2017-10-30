@@ -23,14 +23,6 @@ def generate(boolean isPr) {
         steps {
             batchFile("""powershell -File ./build/scripts/run_perf.ps1""")
         }
-
-        publishers {
-            postBuildScripts {
-                steps {
-                    batchFile("""powershell -File ./build/scripts/cleanup_perf.ps1 -ShouldArchive""")
-                }
-            }
-        }
     }
 
     def archiveSettings = new ArchivalSettings()

@@ -59,21 +59,13 @@ public class Cls
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
 
             compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
-@"IInvocationExpression (void Cls.Test2(System.Int32 y, params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
-  Instance Receiver: 
-    null
-  Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'new object()')
-        IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'new object()')
-          Arguments(0)
-          Initializer: 
-            null
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'null')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+@"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
+  Children(2):
+      IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid) (Syntax: 'new object()')
+        Arguments(0)
+        Initializer: 
+          null
+      ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -104,19 +96,19 @@ public class C
             Assert.Equal("(x, y, z) = (1, 2, 3)", assignments[0].ToString());
             IOperation operation1 = model.GetOperation(assignments[0]);
             Assert.NotNull(operation1);
-            Assert.Equal(OperationKind.None, operation1.Kind);
+            Assert.Equal(OperationKind.DeconstructionAssignmentExpression, operation1.Kind);
             Assert.False(operation1 is ISimpleAssignmentExpression);
 
             Assert.Equal("(x, y, z) = new C()", assignments[1].ToString());
             IOperation operation2 = model.GetOperation(assignments[1]);
             Assert.NotNull(operation2);
-            Assert.Equal(OperationKind.None, operation2.Kind);
+            Assert.Equal(OperationKind.DeconstructionAssignmentExpression, operation2.Kind);
             Assert.False(operation2 is ISimpleAssignmentExpression);
 
             Assert.Equal("var (a, b) = (1, 2)", assignments[2].ToString());
             IOperation operation3 = model.GetOperation(assignments[2]);
             Assert.NotNull(operation3);
-            Assert.Equal(OperationKind.None, operation3.Kind);
+            Assert.Equal(OperationKind.DeconstructionAssignmentExpression, operation3.Kind);
             Assert.False(operation3 is ISimpleAssignmentExpression);
         }
 
@@ -138,7 +130,7 @@ public class C
         public void TestParentOperations()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
-
+            
             var compilation = CreateStandardCompilation(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

@@ -63,7 +63,6 @@ End Module
             Assert.Equal(assignment1.Value.Kind, OperationKind.BinaryOperatorExpression)
             Dim add1 As IBinaryOperatorExpression = DirectCast(assignment1.Value, IBinaryOperatorExpression)
             Assert.Equal(add1.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
-            Assert.False(add1.UsesOperatorMethod)
             Assert.Null(add1.OperatorMethod)
             Dim left1 As IOperation = add1.LeftOperand
             Assert.Equal(left1.Kind, OperationKind.LocalReferenceExpression)
@@ -76,7 +75,7 @@ End Module
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = x + 10')
   Expression: 
-    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid, IsImplicit) (Syntax: 'x = x + 10')
       Left: 
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
       Right: 
@@ -97,7 +96,6 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
             Assert.Equal(assignment2.Value.Kind, OperationKind.BinaryOperatorExpression)
             Dim add2 As IBinaryOperatorExpression = DirectCast(assignment2.Value, IBinaryOperatorExpression)
             Assert.Equal(add2.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
-            Assert.True(add2.UsesOperatorMethod)
             Assert.NotNull(add2.OperatorMethod)
             Assert.Equal(add2.OperatorMethod.Name, "op_Addition")
             Dim left2 As IOperation = add2.LeftOperand
@@ -110,7 +108,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
   Expression: 
-    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2) (Syntax: 'x = x + y')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsImplicit) (Syntax: 'x = x + y')
       Left: 
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
       Right: 
@@ -131,7 +129,6 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
             Assert.Equal(assignment3.Value.Kind, OperationKind.UnaryOperatorExpression)
             Dim negate3 As IUnaryOperatorExpression = DirectCast(assignment3.Value, IUnaryOperatorExpression)
             Assert.Equal(negate3.OperatorKind, CodeAnalysis.Semantics.UnaryOperatorKind.Minus)
-            Assert.False(negate3.UsesOperatorMethod)
             Assert.Null(negate3.OperatorMethod)
             Dim operand3 As IOperation = negate3.Operand
             Assert.Equal(operand3.Kind, OperationKind.LocalReferenceExpression)
@@ -140,7 +137,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = -x')
   Expression: 
-    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = -x')
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid, IsImplicit) (Syntax: 'x = -x')
       Left: 
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
       Right: 
@@ -195,13 +192,12 @@ End Module
             Assert.NotNull(value1)
             Assert.Equal(value1.Local.Name, "y")
             Assert.Equal(assignment1.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
-            Assert.False(assignment1.UsesOperatorMethod)
             Assert.Null(assignment1.OperatorMethod)
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
   Expression: 
-    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x += y')
+    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32, IsImplicit) (Syntax: 'x += y')
       Left: 
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
       Right: 
@@ -222,14 +218,13 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
             Assert.NotNull(value2)
             Assert.Equal(value2.Local.Name, "b")
             Assert.Equal(assignment2.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
-            Assert.True(assignment2.UsesOperatorMethod)
             Assert.NotNull(assignment2.OperatorMethod)
             Assert.Equal(assignment2.OperatorMethod.Name, "op_Addition")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b')
   Expression: 
-    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignmentExpression, Type: B2) (Syntax: 'a += b')
+    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignmentExpression, Type: B2, IsImplicit) (Syntax: 'a += b')
       Left: 
         ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'a')
       Right: 
@@ -258,7 +253,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If x <> 0 T ... End If')
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If x <> 0 T ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(x)')
         Expression: 
           IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(x)')
@@ -300,12 +295,12 @@ IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For
   LimitValue: 
     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   StepValue: 
-    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i = 0 T ... Next')
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
   Body: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For i = 0 T ... Next')
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'For i = 0 T ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(i)')
         Expression: 
           IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(i)')
@@ -446,7 +441,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .a = AddressOf c1.S')
         Left: 
-          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
             Instance Receiver: 
               null
         Right: 
@@ -589,7 +584,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If i = 0 Th ... End If')
       IEndStatement (OperationKind.EndStatement) (Syntax: 'End')
   IfFalse: 
     null
@@ -646,7 +641,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
       Right: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: 
-    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'If i = 0 Th ... End If')
       IStopStatement (OperationKind.StopStatement) (Syntax: 'Stop')
   IfFalse: 
     null
@@ -694,7 +689,7 @@ ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syn
           Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
   Handler: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Catch ex As ...  Is Nothing')
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Catch ex As ...  Is Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -702,6 +697,141 @@ ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syn
             VerifyOperationTreeAndDiagnosticsForTest(Of CatchBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestSubSingleLineLambda()
+            Dim source = <![CDATA[
+Imports System
 
+Class Test
+    Sub Method()
+        Dim a As Action = Sub() Console.Write("hello")'BIND:"Sub() Console.Write("hello")"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... te("hello")')
+  IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write("hello")')
+      Expression: 
+        IInvocationExpression (Sub System.Console.Write(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write("hello")')
+          Instance Receiver: 
+            null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"hello"')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "hello") (Syntax: '"hello"')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
+      Statement: 
+        null
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Conso ... te("hello")')
+      ReturnedValue: 
+        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestFunctionSingleLineLambda()
+            Dim source = <![CDATA[
+Imports System
+
+Class Test
+    Sub Method()
+        Dim a As Func(Of Integer) = Function() 1'BIND:"Function() 1"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() 1')
+  IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function() 1')
+    Locals: Local_1: <anonymous local> As System.Int32
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '1')
+      ReturnedValue: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Function() 1')
+      Statement: 
+        null
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Function() 1')
+      ReturnedValue: 
+        ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'Function() 1')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestFunctionMultiLineLambda()
+            Dim source = <![CDATA[
+Imports System
+
+Class Test
+    Sub Method()
+        Dim a As Func(Of Integer) = Function()'BIND:"Function()"
+                                        Return 1
+                                    End Function
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()' ... nd Function')
+  IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function()' ... nd Function')
+    Locals: Local_1: <anonymous local> As System.Int32
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
+      ReturnedValue: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Function')
+      Statement: 
+        null
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Function')
+      ReturnedValue: 
+        ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'End Function')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestSubMultiLineLambda()
+            Dim source = <![CDATA[
+Imports System
+
+Class Test
+    Sub Method()
+        Dim a As Action = Sub()'BIND:"Sub()"
+                              Return
+                          End Sub
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
+  IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub()'BIND: ... End Sub')
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
+      ReturnedValue: 
+        null
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'End Sub')
+      Statement: 
+        null
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'End Sub')
+      ReturnedValue: 
+        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

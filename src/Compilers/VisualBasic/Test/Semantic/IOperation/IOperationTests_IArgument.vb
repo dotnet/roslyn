@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -196,8 +196,8 @@ IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Dou
   Instance Receiver: 
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(3):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, IsImplicit) (Syntax: 'M2')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument) (Syntax: '')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: 'b:=1.0')
@@ -1091,7 +1091,7 @@ End Class]]>.Value
                                                                    End Function, SymbolFilter.Member).Single()
 
             Dim invocation = CType(result.operation, IInvocationExpression)
-            Dim argument = invocation.ArgumentsInEvaluationOrder(0)
+            Dim argument = invocation.Arguments(0)
 
             Dim inConversion = argument.GetInConversion()
             Assert.Same(expectedInMethod, inConversion.MethodSymbol)
@@ -1258,8 +1258,8 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(1, , 2)')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument, IsImplicit) (Syntax: 'M2')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
+          IArgument (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument) (Syntax: '')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument) (Syntax: '2')
@@ -1428,15 +1428,16 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a(0 To 20)')
     Variables: Local_1: a As System.Int32()
     Initializer: 
-      IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 20)')
-        Dimension Sizes(1):
-            IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 21, IsImplicit) (Syntax: '0 To 20')
-              Left: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-              Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 20')
-        Initializer: 
-          null
+      IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'a(0 To 20)')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit) (Syntax: 'a(0 To 20)')
+          Dimension Sizes(1):
+              IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 21, IsImplicit) (Syntax: '0 To 20')
+                Left: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+                Right: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 20')
+          Initializer: 
+            null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

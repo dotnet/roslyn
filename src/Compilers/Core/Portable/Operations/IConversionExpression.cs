@@ -11,12 +11,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IConversionExpression : IHasOperatorMethodExpression
+    public interface IConversionExpression : IOperation
     {
         /// <summary>
         /// Value to be converted.
         /// </summary>
         IOperation Operand { get; }
+        /// <summary>
+        /// Operator method used by the operation, null if the operation does not use an operator method.
+        /// </summary>
+        IMethodSymbol OperatorMethod { get; }
 
 #pragma warning disable RS0010 // Avoid using cref tags with a prefix
         /// <summary>

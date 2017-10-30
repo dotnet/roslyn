@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -27,13 +28,14 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = () => { }')
     Variables: Local_1: System.Action a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: '() => { }')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
-            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
-                ReturnedValue: 
-                  null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= () => { }')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: '() => { }')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
+              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
+                  ReturnedValue: 
+                    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -85,16 +87,17 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = () => 1')
     Variables: Local_1: System.Action a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: '() => 1')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => 1')
-            IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '1')
-              IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '1')
-                Expression: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '1')
-                ReturnedValue: 
-                  null
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= () => 1')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: '() => 1')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => 1')
+              IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '1')
+                IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '1')
+                  Expression: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '1')
+                  ReturnedValue: 
+                    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
@@ -124,10 +127,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = (int i) => { }')
     Variables: Local_1: System.Action a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: '(int i) => { }')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-            IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (int i) => { }')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: '(int i) => { }')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(int i) => { }')
+              IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1593: Delegate 'Action' does not take 1 arguments
@@ -249,13 +253,14 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = delegate() { }')
     Variables: Local_1: System.Action a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'delegate() { }')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'delegate() { }')
-            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-              IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
-                ReturnedValue: 
-                  null
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= delegate() { }')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'delegate() { }')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'delegate() { }')
+              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ }')
+                  ReturnedValue: 
+                    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -281,13 +286,14 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = delegat ... return 1; }')
     Variables: Local_1: System.Action a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'delegate() { return 1; }')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate() { return 1; }')
-            IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ return 1; }')
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return 1;')
-                ReturnedValue: 
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= delegate( ... return 1; }')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'delegate() { return 1; }')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate() { return 1; }')
+              IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ return 1; }')
+                IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return 1;')
+                  ReturnedValue: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8030: Anonymous function converted to a void returning delegate cannot return a value
@@ -317,10 +323,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = delegate(int i) { }')
     Variables: Local_1: System.Action a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'delegate(int i) { }')
-        Target: 
-          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate(int i) { }')
-            IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= delegate(int i) { }')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'delegate(int i) { }')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate(int i) { }')
+              IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1593: Delegate 'Action' does not take 1 arguments
@@ -351,11 +358,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = M1')
     Variables: Local_1: System.Action a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'M1')
-        Target: 
-          IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
-            Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= M1')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'M1')
+          Target: 
+            IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -364,6 +372,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        [WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")]
         public void DelegateCreationExpression_ImplicitMethodBinding_InitializerBindingReturnsJustMethodReference()
         {
             string source = @"
@@ -374,14 +383,14 @@ class Program
     {
         Action a = /*<bind>*/M1/*</bind>*/;
     }
-    void M1() { }
+    static void M1() { }
 }
 ";
 
             string expectedOperationTree = @"
-IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
+IMethodReferenceExpression: void Program.M1() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
   Instance Receiver: 
-    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -407,11 +416,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = M1')
     Variables: Local_1: System.Action a
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M1')
-            Children(0)
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= M1')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M1')
+              Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'M1' does not exist in the current context
@@ -471,11 +481,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = M1')
     Variables: Local_1: System.Action a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
-        Target: 
-          IMethodReferenceExpression: System.Int32 Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
-            Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= M1')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
+          Target: 
+            IMethodReferenceExpression: System.Int32 Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -537,11 +548,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = M1')
     Variables: Local_1: System.Action a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
-        Target: 
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-            Children(1):
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= M1')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
+          Target: 
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+              Children(1):
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0123: No overload for 'M1' matches delegate 'Action'
@@ -952,6 +964,70 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        [WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitStaticMethodBindingConversion_01()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action a = /*<bind>*/new Action(M1)/*</bind>*/;
+    }
+
+    static void M1()
+    { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action(M1)')
+  Target: 
+    IMethodReferenceExpression: void Program.M1() (Static) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
+      Instance Receiver: 
+        null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        [WorkItem(15513, "https://github.com/dotnet/roslyn/issues/15513")]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitStaticMethodBindingConversion_02()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action a = /*<bind>*/new Action(this.M1)/*</bind>*/;
+    }
+
+    static void M1()
+    { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(this.M1)')
+  Target: 
+    IMethodReferenceExpression: void Program.M1() (Static) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'this.M1')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'this')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (7,41): error CS0176: Member 'Program.M1()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         Action a = /*<bind>*/new Action(this.M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M1").WithArguments("Program.M1()").WithLocation(7, 41)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1527,17 +1603,18 @@ class Program
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'd1 = () =>/*</bind>*/')
   Variables: Local_1: Program.DType d1
   Initializer: 
-    IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Program.DType, IsInvalid, IsImplicit) (Syntax: '() =>/*</bind>*/')
-      Target: 
-        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() =>/*</bind>*/')
-          IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '')
-            IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '')
-              Expression: 
-                IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-                  Children(0)
-            IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '')
-              ReturnedValue: 
-                null
+    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= () =>/*</bind>*/')
+      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Program.DType, IsInvalid, IsImplicit) (Syntax: '() =>/*</bind>*/')
+        Target: 
+          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() =>/*</bind>*/')
+            IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: '')
+              IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '')
+                Expression: 
+                  IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+                    Children(0)
+              IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '')
+                ReturnedValue: 
+                  null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -1570,11 +1647,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = M1')
     Variables: Local_1: System.Action<System.Int32> a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'M1')
-        Target: 
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-            Children(1):
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= M1')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'M1')
+          Target: 
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+              Children(1):
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0123: No overload for 'Program.M1(object)' matches delegate 'Action<int>'
@@ -1606,11 +1684,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = M1')
     Variables: Local_1: System.Action<System.Int32> a
     Initializer: 
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.Int32>, IsImplicit) (Syntax: 'M1')
-        Target: 
-          IMethodReferenceExpression: void Program.M1(System.Int32 i) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
-            Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= M1')
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.Int32>, IsImplicit) (Syntax: 'M1')
+          Target: 
+            IMethodReferenceExpression: void Program.M1(System.Int32 i) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
+              Instance Receiver: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

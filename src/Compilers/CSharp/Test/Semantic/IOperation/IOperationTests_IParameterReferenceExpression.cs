@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -74,16 +74,15 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'var (x, y) = point')
-  Children(2):
-      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
+IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y) = point')
+  Left: 
+    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
         Elements(2):
             ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
             ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: 'point')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
-          IParameterReferenceExpression: point (OperationKind.ParameterReferenceExpression, Type: Point) (Syntax: 'point')
+  Right: 
+    IParameterReferenceExpression: point (OperationKind.ParameterReferenceExpression, Type: Point) (Syntax: 'point')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -108,14 +107,14 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'Amount = x')
         Left: 
-          IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 Amount, System.String Message>.Amount { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Amount')
+          IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 Amount, System.String Message>.Amount { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Amount')
             Instance Receiver: 
               null
         Right: 
           IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Message = ""Hello"" + y')
         Left: 
-          IPropertyReferenceExpression: System.String <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Message')
+          IPropertyReferenceExpression: System.String <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Message')
             Instance Receiver: 
               null
         Right: 
@@ -215,14 +214,14 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
             Left: 
               IPropertyReferenceExpression: System.Int32 Class.X { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'X')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'X')
             Right: 
               IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y = { x, y, 3 }')
             InitializedMember: 
               IPropertyReferenceExpression: System.Collections.Generic.List<System.Int32> Class.Y { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'Y')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'Y')
             Initializer: 
               IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ x, y, 3 }')
                 Initializers(3):
@@ -239,7 +238,7 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
             InitializedMember: 
               IPropertyReferenceExpression: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Class.Z { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'Z')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'Z')
             Initializer: 
               IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: '{ { x, y } }')
                 Initializers(1):
@@ -251,7 +250,7 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
             InitializedMember: 
               IPropertyReferenceExpression: Class Class.C { get; set; } (OperationKind.PropertyReferenceExpression, Type: Class) (Syntax: 'C')
                 Instance Receiver: 
-                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'C')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'C')
             Initializer: 
               IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Class) (Syntax: '{ X = z }')
                 Initializers(1):
@@ -259,7 +258,7 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
                       Left: 
                         IPropertyReferenceExpression: System.Int32 Class.X { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
                           Instance Receiver: 
-                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'X')
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'X')
                       Right: 
                         IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
 ";
@@ -395,7 +394,7 @@ IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitia
         InitializedMember: 
           IPropertyReferenceExpression: dynamic Class.X { get; set; } (OperationKind.PropertyReferenceExpression, Type: dynamic) (Syntax: 'X')
             Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'X')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'X')
         Initializer: 
           IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: dynamic) (Syntax: '{ { x, y } }')
             Initializers(1):
@@ -480,9 +479,10 @@ internal class Class
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p = array')
   Variables: Local_1: System.Int32* p
   Initializer: 
-    IOperation:  (OperationKind.None) (Syntax: 'array')
-      Children(1):
-          IParameterReferenceExpression: array (OperationKind.ParameterReferenceExpression, Type: System.Int32[]) (Syntax: 'array')
+    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= array')
+      IOperation:  (OperationKind.None) (Syntax: 'array')
+        Children(1):
+            IParameterReferenceExpression: array (OperationKind.ParameterReferenceExpression, Type: System.Int32[]) (Syntax: 'array')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -579,13 +579,14 @@ class Class1
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'y = d[x]')
   Variables: Local_1: dynamic y
   Initializer: 
-    IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'd[x]')
-      Expression: 
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
-      Arguments(1):
-          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-      ArgumentNames(0)
-      ArgumentRefKinds(0)
+    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= d[x]')
+      IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'd[x]')
+        Expression: 
+          IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+        Arguments(1):
+            IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        ArgumentNames(0)
+        ArgumentRefKinds(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

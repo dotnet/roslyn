@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -369,6 +369,61 @@ IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializer) (S
           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        public void FieldInitializer_ConstantConversions_01()
+        {
+            string source = @"
+class C
+{
+    private float f /*<bind>*/= 0.0/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializer (Field: System.Single C.f) (OperationKind.FieldInitializer, IsInvalid) (Syntax: '= 0.0')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (4,33): error CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type
+                //     private float f /*<bind>*/= 0.0/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "0.0").WithArguments("F", "float").WithLocation(4, 33),
+                // (4,19): warning CS0414: The field 'C.f' is assigned but its value is never used
+                //     private float f /*<bind>*/= 0.0/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(4, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        public void FieldInitializer_ConstantConversions_02()
+        {
+            string source = @"
+class C
+{
+    private float f /*<bind>*/= 0/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IFieldInitializer (Field: System.Single C.f) (OperationKind.FieldInitializer) (Syntax: '= 0')
+  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 0, IsImplicit) (Syntax: '0')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (4,19): warning CS0414: The field 'C.f' is assigned but its value is never used
+                //     private float f /*<bind>*/= 0/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(4, 19)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

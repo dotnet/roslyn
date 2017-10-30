@@ -168,11 +168,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( ? System.Int32.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'sizeof(M2()')
-  Instance Receiver: 
-    ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(M2')
-      TypeOperand: M2
-  Arguments(0)
+IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'sizeof(M2()')
+  Children(1):
+      ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(M2')
+        TypeOperand: M2
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1026: ) expected
