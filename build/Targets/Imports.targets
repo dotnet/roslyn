@@ -541,7 +541,7 @@
     <PathMap Condition="'$(DeterministicSourceRoot)' != ''">$(RepoRoot)=$(DeterministicSourceRoot)</PathMap>
   </PropertyGroup>
 
-  <Target Name="_CheckForSpaces"
+  <Target Name="_CheckForSpacesInPathMap"
           BeforeTargets="CoreCompile">
     <Error Text="PathMap, DeterministicSourceRoot and RepoRoot shall not contain spaces (https://github.com/dotnet/roslyn/issues/22835)" 
            Condition="$(PathMap.Contains(' '))" />

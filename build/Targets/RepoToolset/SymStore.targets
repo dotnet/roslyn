@@ -1,4 +1,14 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+
+<!--
+Copied from RepoToolset. Might be slightly modified to adjust for the current Roslyn build system specifics if necessary.
+
+Limit Roslyn specific changes to minumum.
+
+If a fix not specific to Roslyn is needed create a PR against https://github.com/dotnet/roslyn-tools repo updating the toolset.
+Update this file only if the change to RepoToolset gets approved and merged.
+-->
+
 <Project>
 
   <PropertyGroup>
@@ -68,7 +78,9 @@
 
   <!-- 
     The current MicroBuild symbol indexing task doesn't support specifying list of files to index.
-    Therefore we create hardlinks to the files in output directory, which will get signed.
+    Therefore we create hardlinks to the files in output directory, where DLLs and EXEs are signed.
+    These targets are executed after the signing phase so that we publish signed binaries to the
+    symbol store even if the files are copies and not hardlinked.
   -->
   <Target Name="_DeployWindowsSymbolsToSymStore"
           AfterTargets="_InnerDeployToSymStore"
