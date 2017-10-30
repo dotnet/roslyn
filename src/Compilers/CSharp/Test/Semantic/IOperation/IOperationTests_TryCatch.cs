@@ -60,10 +60,8 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Handler: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'throw ex;')
-              Expression: 
-                IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'throw ex;')
-                  ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
+            IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw ex;')
+              ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
   Finally: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
@@ -132,10 +130,8 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Handler: 
             IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'throw ex;')
-                Expression: 
-                  IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'throw ex;')
-                    ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
+              IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw ex;')
+                ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
     Finally: 
       IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')

@@ -354,17 +354,15 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
         WhenTrue: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If value >  ... End If')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Throw New S ... occurred.")')
-              Expression: 
-                IThrowOperation (OperationKind.Throw, Type: System.Exception, IsImplicit) (Syntax: 'Throw New S ... occurred.")')
-                  IObjectCreationOperation (Constructor: Sub System.Exception..ctor(message As System.String)) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'New System. ... occurred.")')
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: null) (Syntax: '"An excepti ...  occurred."')
-                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "An exception has occurred.") (Syntax: '"An excepti ...  occurred."')
-                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Initializer: 
-                      null
+            IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'Throw New S ... occurred.")')
+              IObjectCreationOperation (Constructor: Sub System.Exception..ctor(message As System.String)) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'New System. ... occurred.")')
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: null) (Syntax: '"An excepti ...  occurred."')
+                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "An exception has occurred.") (Syntax: '"An excepti ...  occurred."')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Initializer: 
+                  null
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... statement")')
@@ -1201,13 +1199,11 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
         Catch clauses(0)
         Finally: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally ... Exception()')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Throw New S ... Exception()')
-              Expression: 
-                IThrowOperation (OperationKind.Throw, Type: System.Exception, IsImplicit) (Syntax: 'Throw New S ... Exception()')
-                  IObjectCreationOperation (Constructor: Sub System.Exception..ctor()) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'New System.Exception()')
-                    Arguments(0)
-                    Initializer: 
-                      null
+            IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'Throw New S ... Exception()')
+              IObjectCreationOperation (Constructor: Sub System.Exception..ctor()) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'New System.Exception()')
+                Arguments(0)
+                Initializer: 
+                  null
 ]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)

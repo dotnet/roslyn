@@ -6,7 +6,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation to throw an exception.
     /// <para>
     /// Current usage:
-    ///  (1) C# throw expression in a throw statement or a standalone throw expression.
+    ///  (1) C# throw expression.
+    ///  (2) C# throw statement.
     ///  (2) VB Throw statement.
     /// </para>
     /// </summary>

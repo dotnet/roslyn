@@ -1858,7 +1858,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: System.Boolean[] b) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b = ... }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ... }')
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Boolean[]) (Syntax: '{ ... }')
+                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Boolean[], IsImplicit) (Syntax: '{ ... }')
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 8, IsImplicit) (Syntax: '{ ... }')
                   Initializer: 

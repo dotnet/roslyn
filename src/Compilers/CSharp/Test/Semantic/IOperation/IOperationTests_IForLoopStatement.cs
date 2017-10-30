@@ -1373,13 +1373,11 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
         AtLoopBottom(0)
         Body: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'throw new S ... xception();')
-              Expression: 
-                IThrowOperation (OperationKind.Throw, Type: System.Exception) (Syntax: 'throw new S ... xception();')
-                  IObjectCreationOperation (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new System.Exception()')
-                    Arguments(0)
-                    Initializer: 
-                      null
+            IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw new S ... xception();')
+              IObjectCreationOperation (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new System.Exception()')
+                Arguments(0)
+                Initializer: 
+                  null
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -1971,7 +1969,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
       IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
         Locals: Local_1: System.String item
         LoopControlVariable: 
-          ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, Constant: null) (Syntax: 'foreach (va ... }')
+          ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, Constant: null, IsImplicit) (Syntax: 'foreach (va ... }')
         Collection: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'str')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2792,7 +2790,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                     Parts(4):
                         IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'i=')
                           Text: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""i="") (Syntax: 'i=')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""i="", IsImplicit) (Syntax: 'i=')
                         IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
                           Expression: 
                             ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
@@ -2802,7 +2800,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
                             null
                         IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ', s=')
                           Text: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", s="") (Syntax: ', s=')
+                            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", s="", IsImplicit) (Syntax: ', s=')
                         IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{s}')
                           Expression: 
                             ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')

@@ -479,7 +479,7 @@ internal class Class
 IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = array')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= array')
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'array')
+      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'array')
         Children(1):
             IParameterReferenceOperation: array (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'array')
 ";
@@ -727,7 +727,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
   Parts(6):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""String "", IsImplicit) (Syntax: 'String ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{x,20}')
         Expression: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
@@ -737,7 +737,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and "") (Syntax: ' and ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and "", IsImplicit) (Syntax: ' and ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{y:D3}')
         Expression: 
           IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
@@ -747,7 +747,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and constant ')
         Text: 
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and constant "", IsImplicit) (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
         Expression: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1040,7 +1040,7 @@ ILocalFunctionOperation (Symbol: System.Collections.Generic.IEnumerable<T> Itera
     IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... rn element;')
       Locals: Local_1: T element
       LoopControlVariable: 
-        ILocalReferenceOperation: element (IsDeclaration: True) (OperationKind.LocalReference, Type: T, Constant: null) (Syntax: 'foreach (va ... rn element;')
+        ILocalReferenceOperation: element (IsDeclaration: True) (OperationKind.LocalReference, Type: T, Constant: null, IsImplicit) (Syntax: 'foreach (va ... rn element;')
       Collection: 
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<T>, IsImplicit) (Syntax: 'source')
           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

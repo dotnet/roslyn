@@ -1045,7 +1045,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(x, x) = null')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x, x) = null')
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(x, x)')
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1078,7 +1078,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(x, x) = undeclared')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x, x) = undeclared')
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(x, x)')
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -2437,7 +2437,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(int x1, int x2) = null')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(int x1, int x2) = null')
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, int x2)')
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
@@ -2471,10 +2471,11 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: 'var (x1, x2) = null')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = null')
-      Elements(2):
-          ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
-          ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
+    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
+      ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+        Elements(2):
+            ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
+            ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
   Right: 
     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 ";
@@ -2509,10 +2510,11 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: 'var (x1, x2) = (1, null)')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, null)')
-      Elements(2):
-          ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
-          ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
+    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
+      ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+        Elements(2):
+            ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
+            ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(1, null)')
       Elements(2):
@@ -2547,7 +2549,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(string x1, ... ull), null)')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, (System.Byte x2, var x3), var x4), IsInvalid) (Syntax: '(string x1, ... ull), null)')
+    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, (System.Byte x2, var x3), var x4), IsInvalid) (Syntax: '(string x1, ... 3), var x4)')
       Elements(3):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String) (Syntax: 'string x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String) (Syntax: 'x1')
@@ -2597,7 +2599,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '((string x1 ... = (null, 4)')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: ((System.String x1, System.Byte x2, var x3), System.Int32 x4), IsInvalid) (Syntax: '((string x1 ... = (null, 4)')
+    ITupleOperation (OperationKind.Tuple, Type: ((System.String x1, System.Byte x2, var x3), System.Int32 x4), IsInvalid) (Syntax: '((string x1 ... 3), int x4)')
       Elements(2):
           ITupleOperation (OperationKind.Tuple, Type: (System.String x1, System.Byte x2, var x3), IsInvalid) (Syntax: '(string x1, ... x2, var x3)')
             Elements(3):
@@ -2643,7 +2645,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(string x1, ...  (null, 2))')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, var x2), IsInvalid) (Syntax: '(string x1, ...  (null, 2))')
+    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, var x2), IsInvalid) (Syntax: '(string x1, var x2)')
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String) (Syntax: 'string x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String) (Syntax: 'x1')
