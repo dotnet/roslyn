@@ -112,7 +112,9 @@
       "values": [
         "Nuget\\PerBuildPreRelease\\*.nupkg",
         "Nuget\\PreRelease\\*.nupkg",
-        "Nuget\\Release\\*.nupkg"
+        "Nuget\\Release\\*.nupkg",
+        "DevDivPackages\\Roslyn\\VS.ExternalAPIs.Roslyn.2.6.0-dev-56735-00.nupkg",
+        "DevDivPackages\\Roslyn\\VS.Tools.Roslyn.2.6.0-dev-56735-00.nupkg"
       ]
     }
   ],
