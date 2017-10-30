@@ -480,7 +480,7 @@
       />
 
     <Error 
-      Text="The 2.0 SDK is required to build this repo"
+      Text="The 2.1 SDK is required to build this repo"
       Condition="'$(UsingMicrosoftNETSdk)' == '' AND '$(RoslynSdkProject)' == 'true'" />
   </Target> 
 
