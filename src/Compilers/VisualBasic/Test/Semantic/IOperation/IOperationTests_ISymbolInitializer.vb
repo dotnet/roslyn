@@ -128,7 +128,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IParameterInitializerOperation (Parameter: [ParamArray p2 As System.Int32() = Nothing]) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= Nothing')
-  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'Nothing')
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'Nothing')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -332,7 +332,7 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.s1 As System.Byte) (OperationKind.FieldInitializer, Type: null, IsInvalid) (Syntax: '= 0.0')
-  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
@@ -359,7 +359,7 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.s1 As System.Byte) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 0')
-  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 0, IsImplicit) (Syntax: '0')
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 0, IsImplicit) (Syntax: '0')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')

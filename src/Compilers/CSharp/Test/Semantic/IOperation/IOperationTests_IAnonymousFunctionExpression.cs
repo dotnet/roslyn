@@ -298,7 +298,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: System.Action<System.Int32> x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = (Action)(() => F())')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (Action)(() => F())')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: '(Action)(() => F())')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: '(Action)(() => F())')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)(() => F())')

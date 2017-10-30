@@ -141,7 +141,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: System.Object v1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v1 = new ... }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new ... }')
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new ... }')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new ... }')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'new ... }')
@@ -178,7 +178,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: System.Object v2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v2 = new ... }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new ... }')
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new ... }')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new ... }')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>) (Syntax: 'new ... }')
@@ -228,7 +228,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: System.Object v3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v3 = new { }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new { }')
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new { }')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new { }')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>) (Syntax: 'new { }')
@@ -583,7 +583,7 @@ IInvocationOperation (virtual System.Boolean System.Object.Equals(System.Object 
               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: System.Object) (Syntax: 'new { }')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new { }')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new { }')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>) (Syntax: 'new { }')
@@ -1121,7 +1121,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: System.Object v1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v1 = new ... }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new ... }')
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new ... }')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new ... }')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: ? aa, System.String BB, SSS CCC>, IsInvalid) (Syntax: 'new ... }')
@@ -1157,7 +1157,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: System.Object v2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v2 = new ... }')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new ... }')
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new ... }')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new ... }')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>, IsInvalid) (Syntax: 'new ... }')

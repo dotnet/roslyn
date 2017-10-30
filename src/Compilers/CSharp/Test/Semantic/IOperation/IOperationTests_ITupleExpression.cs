@@ -91,11 +91,11 @@ class C
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
   Elements(2):
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -128,16 +128,16 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: (System.UInt32, System.UInt32) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (1, 2)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.UInt32, System.UInt32), IsImplicit) (Syntax: '(1, 2)')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.UInt32, System.UInt32), IsImplicit) (Syntax: '(1, 2)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
                     Elements(2):
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -170,11 +170,11 @@ class C
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int64 a, System.Int64 b)) (Syntax: '(a, b)')
   Elements(2):
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'b')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'b')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'b')
@@ -209,16 +209,16 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: (System.Int64, System.Int64) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (a, b)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (a, b)')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int64, System.Int64), IsImplicit) (Syntax: '(a, b)')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int64, System.Int64), IsImplicit) (Syntax: '(a, b)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ITupleOperation (OperationKind.Tuple, Type: (System.Int64 a, System.Int64 b)) (Syntax: '(a, b)')
                     Elements(2):
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'b')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'b')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'b')
@@ -249,11 +249,11 @@ class C
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.String)) (Syntax: '(1, null)')
   Elements(2):
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -286,16 +286,16 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: (System.UInt32, System.String) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (1, null)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, null)')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.UInt32, System.String), IsImplicit) (Syntax: '(1, null)')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.UInt32, System.String), IsImplicit) (Syntax: '(1, null)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.String)) (Syntax: '(1, null)')
                     Elements(2):
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -419,7 +419,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: (System.Int32 A, System.Int32 B) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (1, 2)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 A, System.Int32 B), IsImplicit) (Syntax: '(1, 2)')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 A, System.Int32 B), IsImplicit) (Syntax: '(1, 2)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
@@ -453,11 +453,11 @@ class C
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int16 A, System.String B)) (Syntax: '(A: 1, B: null)')
   Elements(2):
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, Constant: 1, IsImplicit) (Syntax: '1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, Constant: 1, IsImplicit) (Syntax: '1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -497,16 +497,16 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: (System.Int16, System.String) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (A: 1, B: null)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (A: 1, B: null)')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(A: 1, B: null)')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(A: 1, B: null)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ITupleOperation (OperationKind.Tuple, Type: (System.Int16 A, System.String B)) (Syntax: '(A: 1, B: null)')
                     Elements(2):
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, Constant: 1, IsImplicit) (Syntax: '1')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, Constant: 1, IsImplicit) (Syntax: '1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -565,7 +565,7 @@ class C
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1)) (Syntax: '(new C(0), c1)')
   Elements(2):
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.Int16 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'new C(0)')
+      IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int16 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'new C(0)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int16 C.op_Implicit(C c))
         Operand: 
           IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(0)')
@@ -576,7 +576,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1)) (S
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Initializer: 
               null
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
+      IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String C.op_Implicit(C c))
         Operand: 
           IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
@@ -630,12 +630,12 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: (System.Int16, System.String) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (new C(0), c1)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (new C(0), c1)')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(new C(0), c1)')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(new C(0), c1)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1)) (Syntax: '(new C(0), c1)')
                     Elements(2):
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.Int16 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'new C(0)')
+                        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int16 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'new C(0)')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int16 C.op_Implicit(C c))
                           Operand: 
                             IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(0)')
@@ -646,7 +646,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Initializer: 
                                 null
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
+                        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String C.op_Implicit(C c))
                           Operand: 
                             IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
@@ -694,7 +694,7 @@ class C
 ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String)) (Syntax: '(0, null)')
   Elements(2):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -743,16 +743,16 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: C t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = (0, null)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (0, null)')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: C C.op_Implicit((System.Int32, System.String) x)) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: '(0, null)')
+              IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: C C.op_Implicit((System.Int32, System.String) x)) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: '(0, null)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C C.op_Implicit((System.Int32, System.String) x))
                 Operand: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, System.String), IsImplicit) (Syntax: '(0, null)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, System.String), IsImplicit) (Syntax: '(0, null)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String)) (Syntax: '(0, null)')
                         Elements(2):
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-                            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -843,7 +843,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: (System.Int32, System.String) t) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't = c1')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= c1')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: (System.Int32, System.String) C.op_Implicit(C c)) (OperationKind.Conversion, Type: (System.Int32, System.String), IsImplicit) (Syntax: 'c1')
+              IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: (System.Int32, System.String) C.op_Implicit(C c)) (OperationKind.Conversion, Type: (System.Int32, System.String), IsImplicit) (Syntax: 'c1')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: (System.Int32, System.String) C.op_Implicit(C c))
                 Operand: 
                   IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
@@ -895,10 +895,10 @@ class C
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1), IsInvalid) (Syntax: '(new C(0), c1)')
   Elements(2):
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.Int32 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
+          IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C.op_Implicit(C c))
             Operand: 
               IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C(0)')
@@ -909,7 +909,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1), Is
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Initializer: 
                   null
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
+      IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String C.op_Implicit(C c))
         Operand: 
           IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
@@ -967,15 +967,15 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: (System.Int16, System.String) t) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 't = (new C(0), c1)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (new C(0), c1)')
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsInvalid, IsImplicit) (Syntax: '(new C(0), c1)')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsInvalid, IsImplicit) (Syntax: '(new C(0), c1)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1), IsInvalid) (Syntax: '(new C(0), c1)')
                     Elements(2):
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.Int32 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
+                            IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C.op_Implicit(C c))
                               Operand: 
                                 IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C(0)')
@@ -986,7 +986,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Initializer: 
                                     null
-                        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
+                        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String C.op_Implicit(C c))
                           Operand: 
                             IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
@@ -1104,7 +1104,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
             ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.UInt32) (Syntax: 'x')
             ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.UInt32) (Syntax: 'y')
   Collection: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'new Point[] ... int(0, 1) }')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'new Point[] ... int(0, 1) }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')

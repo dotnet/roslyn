@@ -351,7 +351,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var operatorMethod = operation.OperatorMethod;
             var conversion = operation.Conversion;
-            var isExplicitInCode = operation.IsExplicitInCode;
             var isChecked = operation.IsChecked;
             var isTryCast = operation.IsTryCast;
             switch (operation.Language)

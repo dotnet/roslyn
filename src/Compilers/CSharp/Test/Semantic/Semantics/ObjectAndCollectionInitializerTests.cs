@@ -220,7 +220,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                 Instance Receiver: 
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MemberInitializerTest, IsImplicit) (Syntax: 'X')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: '0')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: '0')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -472,31 +472,31 @@ IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation,
       Initializers(5):
           ICollectionElementInitializerOperation (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '1')
             Arguments(1):
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '1')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ICollectionElementInitializerOperation (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '2')
             Arguments(1):
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 2, IsImplicit) (Syntax: '2')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 2, IsImplicit) (Syntax: '2')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
           ICollectionElementInitializerOperation (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '3')
             Arguments(1):
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
           ICollectionElementInitializerOperation (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '4')
             Arguments(1):
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
           ICollectionElementInitializerOperation (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '5')
             Arguments(1):
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 5, IsImplicit) (Syntax: '5')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 5, IsImplicit) (Syntax: '5')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
@@ -570,31 +570,31 @@ IObjectCreationOperation (Constructor: B<System.Int64>..ctor()) (OperationKind.O
       Initializers(5):
           ICollectionElementInitializerOperation (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '1')
             Arguments(1):
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '1')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ICollectionElementInitializerOperation (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '2')
             Arguments(1):
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 2, IsImplicit) (Syntax: '2')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 2, IsImplicit) (Syntax: '2')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
           ICollectionElementInitializerOperation (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '3')
             Arguments(1):
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
           ICollectionElementInitializerOperation (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '4')
             Arguments(1):
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
           ICollectionElementInitializerOperation (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '5')
             Arguments(1):
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 5, IsImplicit) (Syntax: '5')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 5, IsImplicit) (Syntax: '5')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')

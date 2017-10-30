@@ -232,7 +232,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
                 Instance Receiver: 
                   ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -295,7 +295,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
                 Instance Receiver: 
                   ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'e')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -362,7 +362,7 @@ ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'try ... }')
                 Instance Receiver: 
                   ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -832,7 +832,7 @@ ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.Cat
           Instance Receiver: 
             ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.IO.IOException) (Syntax: 'e')
       Right: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -921,7 +921,7 @@ IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, T
   Left: 
     IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')

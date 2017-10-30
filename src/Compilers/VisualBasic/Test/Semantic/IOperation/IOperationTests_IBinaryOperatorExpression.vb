@@ -316,17 +316,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x / y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x / y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.BinaryOperator, Type: System.Double) (Syntax: 'x / y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -358,17 +358,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x ^ y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x ^ y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Power, Checked) (OperationKind.BinaryOperator, Type: System.Double) (Syntax: 'x ^ y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -378,7 +378,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x = y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x = y')
@@ -392,7 +392,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <> y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x <> y')
@@ -406,7 +406,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x < y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x < y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x < y')
@@ -420,7 +420,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x > y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x > y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x > y')
@@ -434,7 +434,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x <= y')
@@ -448,7 +448,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x >= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x >= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x >= y')
@@ -462,17 +462,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x Like y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x Like y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Like, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x Like y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -482,17 +482,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x & y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x & y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'x & y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -557,17 +557,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... Object) = y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... Object) = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.ObjectValueEquals, Checked) (OperationKind.BinaryOperator, Type: System.Object) (Syntax: 'DirectCast( ... Object) = y')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -577,17 +577,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... bject) <> y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... bject) <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.ObjectValueNotEquals, Checked) (OperationKind.BinaryOperator, Type: System.Object) (Syntax: 'DirectCast( ... bject) <> y')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -705,17 +705,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x / y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x / y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Double) (Syntax: 'x / y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -747,17 +747,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x ^ y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x ^ y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Power) (OperationKind.BinaryOperator, Type: System.Double) (Syntax: 'x ^ y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -767,7 +767,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x = y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x = y')
@@ -781,7 +781,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <> y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x <> y')
@@ -795,7 +795,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x < y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x < y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x < y')
@@ -809,7 +809,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x > y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x > y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x > y')
@@ -823,7 +823,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x <= y')
@@ -837,7 +837,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x >= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x >= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x >= y')
@@ -851,17 +851,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x Like y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x Like y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Like) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x Like y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -871,17 +871,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x & y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x & y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Concatenate) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'x & y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -946,17 +946,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... Object) = y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... Object) = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.ObjectValueEquals) (OperationKind.BinaryOperator, Type: System.Object) (Syntax: 'DirectCast( ... Object) = y')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -966,17 +966,17 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: r (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... bject) <> y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... bject) <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.ObjectValueNotEquals) (OperationKind.BinaryOperator, Type: System.Object) (Syntax: 'DirectCast( ... bject) <> y')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -1025,7 +1025,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x = y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Equals, Checked, CompareText) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x = y')
@@ -1039,7 +1039,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <> y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.NotEquals, Checked, CompareText) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x <> y')
@@ -1053,7 +1053,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x < y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x < y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.LessThan, Checked, CompareText) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x < y')
@@ -1067,7 +1067,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x > y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x > y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked, CompareText) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x > y')
@@ -1081,7 +1081,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x <= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked, CompareText) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x <= y')
@@ -1095,7 +1095,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x >= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x >= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked, CompareText) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x >= y')
@@ -1109,17 +1109,17 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... Object) = y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... Object) = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.ObjectValueEquals, Checked, CompareText) (OperationKind.BinaryOperator, Type: System.Object) (Syntax: 'DirectCast( ... Object) = y')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
@@ -1129,17 +1129,17 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub 
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... bject) <> y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... bject) <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.ObjectValueNotEquals, Checked, CompareText) (OperationKind.BinaryOperator, Type: System.Object) (Syntax: 'DirectCast( ... bject) <> y')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
@@ -1224,17 +1224,17 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'x /= y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -1251,17 +1251,17 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Power, Checked) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'x ^= y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -1271,17 +1271,17 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String, IsImplicit) (Syntax: 'x &= y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -1378,17 +1378,17 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'x /= y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -1405,17 +1405,17 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Power) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'x ^= y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -1425,17 +1425,17 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Concatenate) (OperationKind.BinaryOperator, Type: System.String, IsImplicit) (Syntax: 'x &= y')
                 Left: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -1890,12 +1890,12 @@ IBlockOperation (6 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M
         Right: 
           IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'c1 Is c2')
             Left: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c2')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c2')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
@@ -1907,12 +1907,12 @@ IBlockOperation (6 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M
         Right: 
           IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'c1 IsNot c2')
             Left: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c1')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
             Right: 
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c2')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c2')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
@@ -1922,17 +1922,17 @@ IBlockOperation (6 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'DirectCast( ... bject) = c2')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'DirectCast( ... bject) = c2')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.ObjectValueEquals, Checked) (OperationKind.BinaryOperator, Type: System.Object) (Syntax: 'DirectCast( ... bject) = c2')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(c1, Object)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(c1, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c2')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c2')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
@@ -1942,17 +1942,17 @@ IBlockOperation (6 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M
         Left: 
           IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'r')
         Right: 
-          IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'DirectCast( ... ject) <> c2')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'DirectCast( ... ject) <> c2')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               IBinaryOperation (BinaryOperatorKind.ObjectValueNotEquals, Checked) (OperationKind.BinaryOperator, Type: System.Object) (Syntax: 'DirectCast( ... ject) <> c2')
                 Left: 
-                  IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(c1, Object)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object) (Syntax: 'DirectCast(c1, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
                 Right: 
-                  IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c2')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'c2')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')

@@ -137,14 +137,14 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'If x = Noth ... End If')
   Condition: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x = Nothing')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x = Nothing')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x = Nothing')
           Left: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
           Right: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, Constant: null, IsInvalid, IsImplicit) (Syntax: 'Nothing')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, Constant: null, IsInvalid, IsImplicit) (Syntax: 'Nothing')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'Nothing')
@@ -187,7 +187,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
   WhenFalse: 
     IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'ElseIf x Th ... x')
       Condition: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
@@ -243,7 +243,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid)
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   StepValue: 
-    IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For i As In ... Next i')
@@ -289,7 +289,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid)
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   StepValue: 
-    IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For Step (M ... Next')
@@ -335,12 +335,12 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid)
   InitialValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
   StepValue: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'x')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x')

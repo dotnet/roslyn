@@ -160,7 +160,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
         null
       Arguments(2):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: System.Collections.Generic.IEnumerable<Customer>, IsImplicit) (Syntax: 'from cust in customers')
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<Customer>, IsImplicit) (Syntax: 'from cust in customers')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<Customer>, IsImplicit) (Syntax: 'from cust in customers')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IParameterReferenceOperation: customers (OperationKind.ParameterReference, Type: System.Collections.Generic.List<Customer>) (Syntax: 'customers')
@@ -889,11 +889,11 @@ class P
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'x && y')
   Children(2):
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsImplicit) (Syntax: 'x')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsImplicit) (Syntax: 'x')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
-      IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsImplicit) (Syntax: 'y')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsImplicit) (Syntax: 'y')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C) (Syntax: 'y')
@@ -1042,7 +1042,7 @@ ILocalFunctionOperation (Symbol: System.Collections.Generic.IEnumerable<T> Itera
       LoopControlVariable: 
         ILocalReferenceOperation: element (IsDeclaration: True) (OperationKind.LocalReference, Type: T, Constant: null) (Syntax: 'foreach (va ... rn element;')
       Collection: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<T>, IsImplicit) (Syntax: 'source')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<T>, IsImplicit) (Syntax: 'source')
           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IParameterReferenceOperation: source (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
