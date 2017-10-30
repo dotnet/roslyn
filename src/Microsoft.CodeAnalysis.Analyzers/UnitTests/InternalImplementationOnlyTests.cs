@@ -95,7 +95,7 @@ class Bar : Microsoft.CodeAnalysis.IAssemblySymbol { }
             var source = @"
 // Causes many compile errors, because not all members are implemented.
 class Foo : Microsoft.CodeAnalysis.IOperation { }
-class Bar : Microsoft.CodeAnalysis.Semantics.IInvocationExpression { }
+class Bar : Microsoft.CodeAnalysis.Operations.IInvocationOperation { }
 ";
             DiagnosticResult[] expected = new[] { GetCSharpExpectedDiagnostic(3, 7, "Foo", "IOperation"), GetCSharpExpectedDiagnostic(4, 7, "Bar", "IOperation") };
 
@@ -215,7 +215,7 @@ Class Foo
     Implements Microsoft.CodeAnalysis.IOperation
 End Class
 Class Bar
-    Implements Microsoft.CodeAnalysis.Semantics.IInvocationExpression
+    Implements Microsoft.CodeAnalysis.Operations.IInvocationOperation
 End Class
 ";
             DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(3, 7, "Foo", "IOperation"), GetBasicExpectedDiagnostic(6, 7, "Bar", "IOperation") };

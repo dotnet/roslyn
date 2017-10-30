@@ -228,7 +228,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        context.RegisterOperationAction(AnalyzeOperation, OperationKind.InvocationExpression);
+        context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
     }
 
     private static void AnalyzeOperation(OperationAnalysisContext context)
@@ -291,7 +291,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
         context.RegisterCompilationStartAction(compilationContext =>
         {
-            compilationContext.RegisterOperationAction(AnalyzeOperation, OperationKind.InvocationExpression);
+            compilationContext.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
         });
 
         context.RegisterCompilationStartAction(compilationContext =>
@@ -310,7 +310,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeOperationBlockStart(OperationBlockStartAnalysisContext context)
     {
-        context.RegisterOperationAction(AnalyzeOperation, OperationKind.InvocationExpression);
+        context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
     }
 }";
 
@@ -420,7 +420,7 @@ Class MyAnalyzer
 	End Property
 
 	Public Overrides Sub Initialize(context As AnalysisContext)
-		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.InvocationExpression)
+		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
 	End Sub
 
 	Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
@@ -473,7 +473,7 @@ MustInherit Class MyAnalyzer
                                                End Function)
 
 		context.RegisterCompilationStartAction(Function(compilationContext) 
-		                                         compilationContext.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.InvocationExpression)
+		                                         compilationContext.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
                                                End Function)
 
 		context.RegisterCompilationStartAction(Function(compilationContext) 
@@ -488,7 +488,7 @@ MustInherit Class MyAnalyzer
 	End Sub
 
 	Private Shared Sub AnalyzeOperationBlockStart(context As OperationBlockStartAnalysisContext)
-		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.InvocationExpression)
+		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
 	End Sub
 End Class
 ";
