@@ -3870,6 +3870,35 @@ static class Extension
         }
 
         [Fact]
+        [WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")]
+        public void ForEachCollectionSymbol()
+        {
+            string source = @"
+using System.Collections.Generic;
+class Deconstructable
+{
+    void M(IEnumerable<Deconstructable> x)
+    {
+        foreach (var (y1, y2) in x)
+        {
+        }
+    }
+    void Deconstruct(out int i, out int j) { i = 0; j = 0; }
+}
+";
+            var compilation = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single().Expression;
+            Assert.Equal("x", collection.ToString());
+            var symbol = model.GetSymbolInfo(collection).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("x", symbol.Name);
+            Assert.Equal("System.Collections.Generic.IEnumerable<Deconstructable> x", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
         public void ForEachIEnumerableDeclarationWithNesting()
         {
             string source = @"

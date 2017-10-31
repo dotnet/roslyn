@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             context.RegisterOperationAction(
                 (operationContext) =>
                     {
-                        IArrayCreationExpression arrayCreation = (IArrayCreationExpression)operationContext.Operation;
+                        IArrayCreationOperation arrayCreation = (IArrayCreationOperation)operationContext.Operation;
 
                         // ToDo: Need to suppress analysis of array creation expressions within attribute applications.
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             }
                         }
                     },
-                OperationKind.ArrayCreationExpression);
+                OperationKind.ArrayCreation);
         }
     }
 }

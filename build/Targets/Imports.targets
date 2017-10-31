@@ -28,6 +28,7 @@
         <_CopyProjectReferences>false</_CopyProjectReferences>
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'Exe'">
@@ -35,6 +36,7 @@
         <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'WinExe'">
@@ -42,6 +44,7 @@
         <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
   </Choose>
@@ -518,4 +521,30 @@
     </ItemGroup>
   </Target>
 
+  <!-- 
+    Prepare inputs for Symbol Store publishing.
+     
+    The imported targets populate ArtifactsSymStoreDirectory with links to binaries and Windows PDBs produced either 
+    directly by the build or converted from Portable PDBs produced by the build.
+    In official build the content of ArtifactsSymStoreDirectory is uploaded to a symbol server.
+  -->
+  <PropertyGroup>
+    <UsingToolPdbConverter>true</UsingToolPdbConverter>
+    <PublishOutputToSymStore Condition="'$(Nonshipping)' == 'true'">false</PublishOutputToSymStore>
+    <ArtifactsSymStoreDirectory Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\SymStore\</ArtifactsSymStoreDirectory>
+  </PropertyGroup>
+
+  <Import Project="RepoToolset\SymStore.targets" />
+
+  <Import Project="RepoToolset\SourceLink.targets" Condition="'$(EnableSourceLink)' == 'true' and '$(GitHeadSha)' != ''"/>
+
+  <PropertyGroup>
+    <PathMap Condition="'$(DeterministicSourceRoot)' != ''">$(RepoRoot)=$(DeterministicSourceRoot)</PathMap>
+  </PropertyGroup>
+
+  <Target Name="_CheckForSpacesInPathMap"
+          BeforeTargets="CoreCompile">
+    <Error Text="PathMap, DeterministicSourceRoot and RepoRoot shall not contain spaces (https://github.com/dotnet/roslyn/issues/22835)" 
+           Condition="$(PathMap.Contains(' '))" />
+  </Target>
 </Project>

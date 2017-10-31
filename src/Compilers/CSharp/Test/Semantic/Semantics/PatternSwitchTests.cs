@@ -839,10 +839,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 3;").WithArguments("Color").WithLocation(15, 17),
                 // (15,17): error CS0159: No such label 'case 3:' within the scope of the goto statement
                 //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17),
-                // (15,17): warning CS0162: Unreachable code detected
-                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(15, 17)
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17)
                 );
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
@@ -857,10 +854,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 3;").WithArguments("Color").WithLocation(15, 17),
                 // (15,17): error CS0159: No such label 'case 3:' within the scope of the goto statement
                 //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17),
-                // (15,17): warning CS0162: Unreachable code detected
-                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(15, 17)
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17)
                 );
         }
 
