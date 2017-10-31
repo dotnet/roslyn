@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     if (operation != null)
                     {
                         // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
-                        Assert.True(node == operation.Syntax);
+                        Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
                     }
                 }
             }
