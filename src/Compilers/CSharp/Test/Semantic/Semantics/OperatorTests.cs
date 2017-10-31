@@ -1852,7 +1852,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
       Variables: Local_1: System.Boolean[] b
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ... }')
-          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Boolean[]) (Syntax: '{ ... }')
+          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Boolean[], IsImplicit) (Syntax: '{ ... }')
             Dimension Sizes(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 8, IsImplicit) (Syntax: '{ ... }')
             Initializer: 

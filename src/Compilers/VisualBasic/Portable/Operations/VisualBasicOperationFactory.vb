@@ -1225,15 +1225,13 @@ Namespace Microsoft.CodeAnalysis.Operations
                    TryCast(syntax.Parent, MultiLineLambdaExpressionSyntax)?.EndSubOrFunctionStatement Is syntax
         End Function
 
-        Private Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IExpressionStatementOperation
+        Private Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IThrowOperation
             Dim thrownObject As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundThrowStatement.ExpressionOpt))
             Dim syntax As SyntaxNode = boundThrowStatement.Syntax
-            Dim expressionType As ITypeSymbol = boundThrowStatement.ExpressionOpt?.Type
-            Dim statementType As ITypeSymbol = Nothing
+            Dim expressionType As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundThrowStatement.WasCompilerGenerated
-            Dim throwExpression As IOperation = New LazyThrowExpression(thrownObject, _semanticModel, syntax, expressionType, constantValue, isImplicit:=True)
-            Return New ExpressionStatement(throwExpression, _semanticModel, syntax, statementType, constantValue, isImplicit)
+            Return New LazyThrowExpression(thrownObject, _semanticModel, syntax, expressionType, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileLoopOperation
