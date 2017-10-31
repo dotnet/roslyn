@@ -278,9 +278,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return builder.ToImmutableAndFree();
         }
 
-        private IVariableDeclaratorOperation CreateVariableDeclaration(BoundLocalDeclaration boundNode)
+        private IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocalDeclaration boundNode)
         {
-            return (IVariableDeclaratorOperation)_cache.GetOrAdd(boundNode, n => CreateVariableDeclarationInternal((BoundLocalDeclaration)n, n.Syntax));
+            return (IVariableDeclaratorOperation)_cache.GetOrAdd(boundNode, n => CreateVariableDeclaratorInternal((BoundLocalDeclaration)n, n.Syntax));
         }
 
         private IPlaceholderOperation CreateBoundDeconstructValuePlaceholderOperation(BoundDeconstructValuePlaceholder boundDeconstructValuePlaceholder)
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundArrayCreation.Syntax;
             ITypeSymbol type = boundArrayCreation.Type;
             Optional<object> constantValue = ConvertToOptional(boundArrayCreation.ConstantValue);
-            bool isImplicit = boundArrayCreation.WasCompilerGenerated || 
+            bool isImplicit = boundArrayCreation.WasCompilerGenerated ||
                               (boundArrayCreation.InitializerOpt?.Syntax == syntax && !boundArrayCreation.InitializerOpt.WasCompilerGenerated);
             return new LazyArrayCreationExpression(dimensionSizes, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ICatchClauseOperation CreateBoundCatchBlockOperation(BoundCatchBlock boundCatchBlock)
         {
             var exceptionSourceOpt = (BoundLocal)boundCatchBlock.ExceptionSourceOpt;
-            Lazy<IOperation> expressionDeclarationOrExpression = new Lazy<IOperation>(() => exceptionSourceOpt != null ? CreateVariableDeclaration(exceptionSourceOpt) : null);
+            Lazy<IOperation> expressionDeclarationOrExpression = new Lazy<IOperation>(() => exceptionSourceOpt != null ? CreateVariableDeclarator(exceptionSourceOpt) : null);
             ITypeSymbol exceptionType = boundCatchBlock.ExceptionTypeOpt;
             ImmutableArray<ILocalSymbol> locals = boundCatchBlock.Locals.As<ILocalSymbol>();
             Lazy<IOperation> filter = new Lazy<IOperation>(() => Create(boundCatchBlock.ExceptionFilterOpt));
@@ -1518,42 +1518,42 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (kind)
             {
                 case SyntaxKind.LocalDeclarationStatement:
-                    {
-                        var statement = (LocalDeclarationStatementSyntax)node;
+                {
+                    var statement = (LocalDeclarationStatementSyntax)node;
 
-                        // this happen for simple int i = 0;
-                        // var statement points to LocalDeclarationStatementSyntax
-                        varStatement = statement;
+                    // this happen for simple int i = 0;
+                    // var statement points to LocalDeclarationStatementSyntax
+                    varStatement = statement;
 
-                        varDeclaration = statement.Declaration;
+                    varDeclaration = statement.Declaration;
 
-                        varDeclarator = statement.Declaration.Variables.First();
-                        break;
-                    }
+                    varDeclarator = statement.Declaration.Variables.First();
+                    break;
+                }
                 case SyntaxKind.VariableDeclarator:
-                    {
-                        // this happen for 'for loop' initializer
-                        // We generate a DeclarationGroup for this scenario to maintain tree shape consistency across IOperation.
-                        // var statement points to VariableDeclarationSyntax
-                        varStatement = node.Parent;
+                {
+                    // this happen for 'for loop' initializer
+                    // We generate a DeclarationGroup for this scenario to maintain tree shape consistency across IOperation.
+                    // var statement points to VariableDeclarationSyntax
+                    varStatement = node.Parent;
 
-                        varDeclaration = node.Parent;
+                    varDeclaration = node.Parent;
 
-                        // var declaration points to VariableDeclaratorSyntax
-                        varDeclarator = node;
-                        break;
-                    }
+                    // var declaration points to VariableDeclaratorSyntax
+                    varDeclarator = node;
+                    break;
+                }
                 default:
-                    {
-                        Debug.Fail($"Unexpected syntax: {kind}");
+                {
+                    Debug.Fail($"Unexpected syntax: {kind}");
 
-                        // otherwise, they points to whatever bound nodes are pointing to.
-                        varStatement = varDeclaration = varDeclarator = node;
-                        break;
-                    }
+                    // otherwise, they points to whatever bound nodes are pointing to.
+                    varStatement = varDeclaration = varDeclarator = node;
+                    break;
+                }
             }
 
-            Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarations = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() => ImmutableArray.Create(CreateVariableDeclarationInternal(boundLocalDeclaration, varDeclarator)));
+            Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarations = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() => ImmutableArray.Create(CreateVariableDeclaratorInternal(boundLocalDeclaration, varDeclarator)));
             bool multiVariableImplicit = boundLocalDeclaration.WasCompilerGenerated;
             // In C#, the MultiVariable initializer will always be null, but we can't pass null as the actual lazy. We assume that all lazy elements always exist
             Lazy<IVariableInitializerOperation> initializer = OperationFactory.EmptyInitializer;
@@ -1568,8 +1568,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IVariableDeclarationGroupOperation CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
         {
-            Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarations = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() =>
-                boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration => CreateVariableDeclaration(declaration)));
+            Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarators = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() =>
+                boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration => CreateVariableDeclarator(declaration)));
             // In C#, the MultiVariable initializer will always be null, but we can't pass null as the actual lazy. We assume that all lazy elements always exist
             Lazy<IVariableInitializerOperation> initializer = OperationFactory.EmptyInitializer;
 
@@ -1581,7 +1581,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     ((LocalDeclarationStatementSyntax)declarationGroupSyntax).Declaration :
                     declarationGroupSyntax;
             bool declarationIsImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
-            IVariableDeclarationOperation multiVariableDeclaration = new LazyVariableDeclaration(declarations, initializer, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
+            IVariableDeclarationOperation multiVariableDeclaration = new LazyVariableDeclaration(declarators, initializer, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
 
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);

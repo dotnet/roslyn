@@ -401,16 +401,16 @@ class Program
             var variableDeclaration = syntaxTree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var lambdaSyntax = (LambdaExpressionSyntax)variableDeclaration.Declaration.Variables.Single().Initializer.Value;
 
-            var variableDeclarationOperation = (IVariableDeclarationGroupOperation)semanticModel.GetOperationInternal(variableDeclaration);
-            var variableTreeLambdaOperation = (IAnonymousFunctionOperation)variableDeclarationOperation.Declarations.Single().Declarators.Single().Initializer.Value;
+            var variableDeclarationGroupOperation = (IVariableDeclarationGroupOperation)semanticModel.GetOperationInternal(variableDeclaration);
+            var variableTreeLambdaOperation = (IAnonymousFunctionOperation)variableDeclarationGroupOperation.Declarations.Single().Declarators.Single().Initializer.Value;
             var lambdaOperation = (IAnonymousFunctionOperation)semanticModel.GetOperationInternal(lambdaSyntax);
 
             // Assert that both ways of getting to the lambda (requesting the lambda directly, and requesting via the lambda syntax)
             // return the same bound node.
             Assert.Same(variableTreeLambdaOperation, lambdaOperation);
 
-            var variableDeclarationOperationSecondRequest = (IVariableDeclarationGroupOperation)semanticModel.GetOperationInternal(variableDeclaration);
-            var variableTreeLambdaOperationSecondRequest = (IAnonymousFunctionOperation)variableDeclarationOperation.Declarations.Single().Declarators.Single(). Initializer.Value;
+            var variableDeclarationGroupOperationSecondRequest = (IVariableDeclarationGroupOperation)semanticModel.GetOperationInternal(variableDeclaration);
+            var variableTreeLambdaOperationSecondRequest = (IAnonymousFunctionOperation)variableDeclarationGroupOperation.Declarations.Single().Declarators.Single(). Initializer.Value;
             var lambdaOperationSecondRequest = (IAnonymousFunctionOperation)semanticModel.GetOperationInternal(lambdaSyntax);
 
             // Assert that, when request the variable declaration or the lambda for a second time, there is no rebinding of the

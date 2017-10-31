@@ -265,10 +265,10 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim builder = ArrayBuilder(Of IVariableDeclarationOperation).GetInstance()
             For Each declarationGroup In groupedDeclarations
                 Dim first = declarationGroup.First()
-                Dim singleDeclarations As ImmutableArray(Of IVariableDeclaratorOperation) = Nothing
+                Dim declarators As ImmutableArray(Of IVariableDeclaratorOperation) = Nothing
                 Dim initializer As IVariableInitializerOperation = Nothing
                 If first.Kind = BoundKind.LocalDeclaration Then
-                    singleDeclarations = declarationGroup.Cast(Of BoundLocalDeclaration).SelectAsArray(AddressOf GetVariableDeclarator)
+                    declarators = declarationGroup.Cast(Of BoundLocalDeclaration).SelectAsArray(AddressOf GetVariableDeclarator)
 
                     ' The initializer we use for this group is the initializer attached to the last declaration in this declarator, as that's
                     ' where it will be parsed in an error case.
@@ -294,13 +294,13 @@ Namespace Microsoft.CodeAnalysis.Operations
                     End If
                 Else
                     Dim asNewDeclarations = DirectCast(first, BoundAsNewLocalDeclarations)
-                    singleDeclarations = asNewDeclarations.LocalDeclarations.SelectAsArray(AddressOf GetVariableDeclarator)
+                    declarators = asNewDeclarations.LocalDeclarations.SelectAsArray(AddressOf GetVariableDeclarator)
                     Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
                     Dim initializerValue As IOperation = Create(asNewDeclarations.Initializer)
                     initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit:=False)
                 End If
 
-                builder.Add(New VariableDeclaration(singleDeclarations,
+                builder.Add(New VariableDeclaration(declarators,
                                                          initializer,
                                                          _semanticModel,
                                                          declarationGroup.Key,

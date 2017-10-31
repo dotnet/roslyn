@@ -134,7 +134,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDe
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20175")]
+        [Fact]
         public void ConversionExpression_Implicit_NumericConversion_InvalidNoInitializer()
         {
             string source = @"
@@ -149,11 +149,11 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarators) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int /*<bind ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'int /*<bind ... *</bind>*/;')
-    Variables: Local_1: System.Int32 i1
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 =/*</bind>*/')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=/*</bind>*/')
+      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+        Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -162,7 +162,22 @@ IVariableDeclarationStatement (1 declarators) (OperationKind.VariableDeclaration
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: (operation, compilation, syntax) =>
+                {
+                    // This scenario, where the syntax has IsMissing set, is special cased. We remove the conversion, and leave
+                    // just an IInvalidOperation with null type. First assert that our assumptions are true, then test the actual
+                    // result
+                    var initializerSyntax = ((VariableDeclaratorSyntax)syntax).Initializer.Value;
+                    var typeInfo = compilation.GetSemanticModel(syntax.SyntaxTree).GetTypeInfo(initializerSyntax);
+                    Assert.Equal(SyntaxKind.IdentifierName, initializerSyntax.Kind());
+                    Assert.True(initializerSyntax.IsMissing);
+                    Assert.Null(typeInfo.Type);
+                    Assert.Null(typeInfo.ConvertedType);
+
+                    var initializerOperation = ((IVariableDeclaratorOperation)operation).Initializer.Value;
+                    Assert.Null(initializerOperation.Type);
+                    Assert.Equal(OperationKind.Invalid, initializerOperation.Kind);
+                });
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
