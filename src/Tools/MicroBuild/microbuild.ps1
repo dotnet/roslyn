@@ -59,47 +59,27 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
     Exec-Console $msbuild $args
 }
 
-function Build-InsertionItems() { 
-    Push-Location $setupDir
-    try { 
-        Create-PerfTests
-        Exec-Command (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir) `"$assemblyVersion`"" | Out-Host
-        
-        # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
-        # matter, just that it's provided some value.
-        $extraArgs = ""
-        if (-not $official) { 
-            $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
-        }
 
-        Run-MSBuild "DevDivPackages\Roslyn.proj"
-        Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj $extraArgs"
-        Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj $extraArgs"
-        Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj $extraArgs"
-        Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
-    }
-    finally {
-        Pop-Location
-    }
-}
+# Create the Insertion folder. This is where the insertion tool pulls all of its 
+# binaries from. 
+function Copy-InsertionItems() {
+    $insertionDir = Join-Path $binariesdir 
+    Create-Directory $insertionDir
 
-# Create the PerfTests directory under Binaries\$(Configuration).  There are still a number
-# of tools (in roslyn and roslyn-internal) that depend on this combined directory.
-function Create-PerfTests() {
-    $target = Join-Path $configDir "PerfTests"
-    Write-Host "PerfTests: $target"
-    Create-Directory $target
+    $items = @(
+        "Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json",
+        "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
+        "Vsix\VisualStudioInteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json",
+        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
+        "Vsix\VisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.json",
+        "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
+        "Vsix\VisualStudioSetup.Next\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
+        "Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix",
 
-    Push-Location $configDir
-    foreach ($subDir in @("Dlls", "UnitTests")) {
-        Push-Location $subDir
-        foreach ($path in Get-ChildItem -re -in "PerfTests") {
-            Write-Host "`tcopying $path"
-            Copy-Item -force -recurse "$path\*" $target
-        }
-        Pop-Location
+    foreach ($item in $items) { 
+        $itemPath = Join-Path $configDir $item
+        Copy-Item $itemPath $insertionDir
     }
-    Pop-Location
 }
 
 Push-Location $PSScriptRoot
@@ -130,10 +110,9 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop:$testDesktop }
-
-    Build-InsertionItems
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop:$testDesktop -assemblyVersion:$assemblyVersion }
     Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
+    Copy-InsertionItems
 
     # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
     # and ready to be inserted 
@@ -145,8 +124,6 @@ try {
     if ($publish) { 
         Exec-Block { & .\publish-assets.ps1 -configDir $configDir -branchName $branchName -mygetApiKey $mygetApiKey -nugetApiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
     }
-
-    Exec-Block { & .\copy-insertion-items.ps1 -binariesPath $configDir -test:$(-not $official) }
 
     exit 0
 }

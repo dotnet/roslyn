@@ -15,12 +15,7 @@
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
 
-  <ItemGroup>
-    <RoslynVsixFileToCopy Include="..\..\MSBuildScripts\roslyn.bat" />
-  </ItemGroup>
-
   <Target Name="BeforeBuild">
-    <Copy SourceFiles="@(RoslynVsixFileToCopy)" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
     <MSBuild Projects="Microsoft.CodeAnalysis.Compilers.swixproj" Targets="Build" />
   </Target>
 

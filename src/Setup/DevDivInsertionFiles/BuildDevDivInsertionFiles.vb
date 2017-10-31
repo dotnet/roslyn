@@ -829,6 +829,10 @@ Public Class BuildDevDivInsertionFiles
                     Continue For
                 End If
 
+                If parent.EndsWith("DevDivPackages\Roslyn", StringComparison.OrdinalIgnoreCase) Then
+                    Continue For
+                End If
+
                 ' Wild cards aren't supported
                 If item.Contains("*") Then
                     Continue For
