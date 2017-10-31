@@ -130,7 +130,7 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop:$testDesktop }
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop:$testDesktop }
 
     Build-InsertionItems
     Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
