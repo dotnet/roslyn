@@ -24314,7 +24314,7 @@ BC37208: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture
 
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
-        Public Sub MultipleForwardsThatChainResultinTheSameAssemblyShouldStillProduceAnError()
+        Public Sub MultipleForwardsThatChainResultInTheSameAssemblyShouldStillProduceAnError()
             ' The scenario Is that assembly A Is calling a method from assembly B. This method has a parameter of a type that lives
             ' in assembly C. Now if assembly C Is replaced with assembly C2, that forwards the type to both D And E, And D fowards it to E,
             ' it should fail with the appropriate error.

@@ -79,7 +79,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // right now, there is no way to observe diagnostics for closed file.
                 if (!_workspace.IsDocumentOpen(document.Id) ||
-                    !_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Syntax))
+                    !_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Syntax) ||
+                    !document.SupportsSyntaxTree)
                 {
                     return;
                 }

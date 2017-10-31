@@ -888,7 +888,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim containingType As ITypeSymbol = Nothing
             ' If there's nothing being late-bound against, something is very wrong
             Debug.Assert(boundLateMemberAccess.ReceiverOpt IsNot Nothing OrElse boundLateMemberAccess.ContainerTypeOpt IsNot Nothing)
-            ' Only set containing type if the container is set to something, and either there is no reciever, or the receiver's type
+            ' Only set containing type if the container is set to something, and either there is no receiver, or the receiver's type
             ' does not match the type of the containing type.
             If (boundLateMemberAccess.ContainerTypeOpt IsNot Nothing AndAlso
                 (boundLateMemberAccess.ReceiverOpt Is Nothing OrElse

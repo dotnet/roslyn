@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitGreatestMethodToken()
         {
-            // A magic value indicates that the token value is to be the literal value of the greatest method defnition token.
+            // A magic value indicates that the token value is to be the literal value of the greatest method definition token.
             this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
         }
 

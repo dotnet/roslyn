@@ -371,7 +371,7 @@ Public Class VisualBasicParseOptionsTests
     End Sub
 
     <Fact>
-    Public Sub BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpacetring()
+    Public Sub BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpaceString()
         Dim symbols = New Dictionary(Of String, Object)
         symbols.Add(" ", Nothing)
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)

@@ -103,6 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInRefContext();
 
+        public bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => (node as ExpressionSyntax).IsInInContext();
+
         public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
         {
             return (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);

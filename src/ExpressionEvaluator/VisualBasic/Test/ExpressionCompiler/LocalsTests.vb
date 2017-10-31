@@ -728,6 +728,7 @@ End Class
   IL_0001:  ldfld      ""C._Closure$__2-1.$VB$Local_w As Integer""
   IL_0006:  ret
 }")
+                    locals.Free()
                 End Sub)
         End Sub
 
@@ -807,17 +808,7 @@ End Class
   IL_0000:  ldarg.1
   IL_0001:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(2), "<>m2", "y", expectedILOpt:=
-"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  .locals init (C._Closure$__2-0 V_0, //$VB$Closure_0
-                Object V_1)
-  IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""C._Closure$__2-0.$VB$Local_y As Object""
-  IL_0006:  ret
-}")
-                    VerifyLocal(testData, typeName, locals(3), "<>m3", "x", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(2), "<>m2", "x", expectedILOpt:=
 "{
   // Code size        7 (0x7)
   .maxstack  1
@@ -827,6 +818,17 @@ End Class
   IL_0001:  ldfld      ""C._Closure$__2-1.$VB$Local_x As Object""
   IL_0006:  ret
 }")
+                    VerifyLocal(testData, typeName, locals(3), "<>m3", "y", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C._Closure$__2-0 V_0, //$VB$Closure_0
+                Object V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""C._Closure$__2-0.$VB$Local_y As Object""
+  IL_0006:  ret
+}")
+                    locals.Free()
                 End Sub)
         End Sub
 
@@ -1811,6 +1813,7 @@ End Class
   IL_0009:  newobj     ""Sub Date..ctor(Long)""
   IL_000e:  ret
 }")
+                    locals.Free()
                 End Sub)
         End Sub
 
@@ -1850,6 +1853,7 @@ End Class
   IL_0006:  newobj     ""Sub Decimal..ctor(Integer, Integer, Integer, Boolean, Byte)""
   IL_000b:  ret
 }")
+                    locals.Free()
                 End Sub)
         End Sub
 
@@ -2013,6 +2017,7 @@ End Class
                     Dim typeVariablesType = DirectCast(method.ReturnType, NamedTypeSymbol)
                     Assert.Equal("T", typeVariablesType.TypeParameters.Single().Name)
                     Assert.Equal("T", typeVariablesType.TypeArguments.Single().Name)
+                    locals.Free()
                 End Sub)
         End Sub
 

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = lambdaBody.Parent;
             if (lambda.Kind() == SyntaxKind.ArrowExpressionClause)
             {
-                // In case of expression bodied local functionsm there is a three level hierarchy: 
+                // In case of expression bodied local functions there is a three level hierarchy: 
                 // LocalFunctionStatement -> ArrowExpressionClause -> Expression.
                 // And the lambda is the LocalFunctionStatement.
                 lambda = lambda.Parent;
