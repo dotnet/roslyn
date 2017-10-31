@@ -28,7 +28,7 @@ param (
     [switch]$pack = $false,
     [string]$msbuildDir = "",
 
-    # DELEET THIS
+    # JTODO DELETE THIS
     [string]$assemblyVersion = "42.42.42.4242",
 
     # Test options 
@@ -507,13 +507,16 @@ function Deploy-VsixViaTool() {
 function Run-SignTool() { 
     Push-Location $repoDir
     try {
+
         $signTool = Join-Path (Get-PackageDir "RoslynTools.Microsoft.SignTool") "tools\SignTool.exe"
+        # JTODO DELETE THIS
+        $signTool = "E:\code\roslyn-tools\artifacts\Debug\bin\SignTool\net461\SignTool.exe";
         $signToolArgs = "-msbuildPath `"$msbuild`""
         if (-not $official) {
             $signToolArgs += " -test"
         }
         $signToolArgs += " `"$configDir`""
-        Exec-Command $signTool $signToolArgs
+        Exec-Console $signTool $signToolArgs
     }
     finally { 
         Pop-Location

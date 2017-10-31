@@ -6,7 +6,7 @@
   <PropertyGroup>
     <FinalizeManifest>true</FinalizeManifest>
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
-    <OutputPath>$(OutputPath)\Insertion</OutputPath>
+    <OutputPath>$(OutputPath)\Vsix\CodeAnalysisLanguageServices</OutputPath>
     <IsPackage>true</IsPackage>
     <FinalizeValidate>false</FinalizeValidate>
     <ValidateManifest>false</ValidateManifest>
@@ -16,10 +16,10 @@
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
 
   <ItemGroup>
-    <MergeManifest Include="$(OutputPath)\..\Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
-    <MergeManifest Include="$(OutputPath)\..\Vsix\VisualStudioInteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json" />
-    <MergeManifest Include="$(OutputPath)\..\Vsix\VisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
-    <MergeManifest Include="$(OutputPath)\..\Vsix\VisualStudioSetup.Next\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
+    <MergeManifest Include="$(OutputPath)\..\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
+    <MergeManifest Include="$(OutputPath)\..\VisualStudioInteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json" />
+    <MergeManifest Include="$(OutputPath)\..\VisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
+    <MergeManifest Include="$(OutputPath)\..\VisualStudioSetup.Next\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
   </ItemGroup>
 
   <Target Name="ValidateManifest" />

@@ -63,7 +63,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
 # Create the Insertion folder. This is where the insertion tool pulls all of its 
 # binaries from. 
 function Copy-InsertionItems() {
-    $insertionDir = Join-Path $binariesdir 
+    $insertionDir = Join-Path $binariesdir "Insertion"
     Create-Directory $insertionDir
 
     $items = @(
@@ -75,6 +75,11 @@ function Copy-InsertionItems() {
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\VisualStudioSetup.Next\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
         "Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix",
+        "Vsix\CodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsman",
+        "Vsix\PortableFacades\PortableFacades.vsix",
+        "Vsix\PortableFacades\PortableFacades.vsman",
+        "Vsix\PortableFacades\PortableFacades.vsmand",
+        "Vsix\PortableFacades\PortableFacades.json",
         "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsix",
         "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsman",
         "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsmand",

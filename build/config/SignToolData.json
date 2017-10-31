@@ -103,7 +103,8 @@
         "Vsix\\VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\\VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\\Roslyn\\RoslynDeployment.vsix",
-        "Vsix\\Templates\\Roslyn SDK.vsix"
+        "Vsix\\Templates\\Roslyn SDK.vsix",
+        "Vsix\\CodeAnalysisCompilers\\Microsoft.CodeAnalysis.Compilers.vsix"
       ]
     },
     {
@@ -112,9 +113,7 @@
       "values": [
         "Nuget\\PerBuildPreRelease\\*.nupkg",
         "Nuget\\PreRelease\\*.nupkg",
-        "Nuget\\Release\\*.nupkg",
-        "DevDivPackages\\Roslyn\\VS.ExternalAPIs.Roslyn.2.6.0-dev-56735-00.nupkg",
-        "DevDivPackages\\Roslyn\\VS.Tools.Roslyn.2.6.0-dev-56735-00.nupkg"
+        "Nuget\\Release\\*.nupkg"
       ]
     }
   ],

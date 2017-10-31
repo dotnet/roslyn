@@ -6,7 +6,7 @@
   <PropertyGroup>
     <OutputArchitecture>neutral</OutputArchitecture>
     <OutputLocalized>false</OutputLocalized>
-    <OutputPath>$(OutputPath)\Insertion</OutputPath>
+    <OutputPath>$(OutputPath)\Vsix\PortableFacades</OutputPath>
     <IsPackage>true</IsPackage>
     <OutputType>vsix</OutputType>
   </PropertyGroup>
