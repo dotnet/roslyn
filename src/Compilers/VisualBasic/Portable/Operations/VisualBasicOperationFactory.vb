@@ -1054,7 +1054,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDoLoopStatement.ConditionOpt))
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDoLoopStatement.Body))
             Dim ignoredConditionOpt As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
-                                                                                         If doLoopKind = doLoopKind.None Then
+                                                                                         If doLoopKind = DoLoopKind.None Then
                                                                                              Debug.Assert(boundDoLoopStatement.TopConditionOpt IsNot Nothing)
                                                                                              Debug.Assert(boundDoLoopStatement.BottomConditionOpt IsNot Nothing)
                                                                                              Debug.Assert(boundDoLoopStatement.ConditionOpt Is boundDoLoopStatement.TopConditionOpt)
@@ -1276,7 +1276,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundGotoStatementOperation(boundGotoStatement As BoundGotoStatement) As IBranchOperation
             Dim target As ILabelSymbol = boundGotoStatement.Label
-            Dim branchKind As BranchKind = branchKind.GoTo
+            Dim branchKind As BranchKind = BranchKind.GoTo
             Dim syntax As SyntaxNode = boundGotoStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1286,7 +1286,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundContinueStatementOperation(boundContinueStatement As BoundContinueStatement) As IBranchOperation
             Dim target As ILabelSymbol = boundContinueStatement.Label
-            Dim branchKind As BranchKind = branchKind.Continue
+            Dim branchKind As BranchKind = BranchKind.Continue
             Dim syntax As SyntaxNode = boundContinueStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1296,7 +1296,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundExitStatementOperation(boundExitStatement As BoundExitStatement) As IBranchOperation
             Dim target As ILabelSymbol = boundExitStatement.Label
-            Dim branchKind As BranchKind = branchKind.Break
+            Dim branchKind As BranchKind = BranchKind.Break
             Dim syntax As SyntaxNode = boundExitStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
