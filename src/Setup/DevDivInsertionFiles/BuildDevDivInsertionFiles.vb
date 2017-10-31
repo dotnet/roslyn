@@ -587,6 +587,14 @@ Public Class BuildDevDivInsertionFiles
                     Continue For
                 End If
 
+                ' No need to insert Visual Studio packages back into the repository itself
+                If packageName.StartsWith("Microsoft.VisualStudio.") OrElse
+                   packageName = "EnvDTE" OrElse
+                   packageName = "stdole" OrElse
+                   packageName.StartsWith("Microsoft.Build") Then
+                    Continue For
+                End If
+
                 For Each assemblyProperty In implementations.Properties()
                     Dim fileName = Path.GetFileName(assemblyProperty.Name)
                     If fileName <> "_._" Then
