@@ -165,7 +165,7 @@ public class Test
             var options = TestOptions.ReleaseDll
                 .WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\")));
 
-            // verify failure 
+            // verify failure
             var comp = CSharpCompilation.Create(GetUniqueName(), new[] { syntaxTree }, new[] { MscorlibRef }, options: options);
 
             var provider = (DesktopStrongNameProvider)comp.Options.StrongNameProvider;
@@ -402,8 +402,8 @@ public class C {}";
         {
             // attributes are ignored
             string source = @"
-[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] 
-[assembly: System.Reflection.AssemblyKeyFile(""some file"")] 
+[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
+[assembly: System.Reflection.AssemblyKeyFile(""some file"")]
 public class C {}
 ";
 
@@ -442,8 +442,8 @@ public class C {}
             var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
 
             string source1 = @"
-[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] 
-[assembly: System.Reflection.AssemblyKeyFile(@""" + snk.Path + @""")] 
+[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
+[assembly: System.Reflection.AssemblyKeyFile(@""" + snk.Path + @""")]
 public class C {}
 ";
 
@@ -989,7 +989,7 @@ namespace ClassLibrary2
     internal class A
     {
         public void Goo(ClassLibrary1.Class1 a)
-        {   
+        {
         }
     }
 }",
@@ -1079,7 +1079,7 @@ class D
         C.M();
     }
 }";
-            var comp2 = CreateStandardCompilation(src, 
+            var comp2 = CreateStandardCompilation(src,
 references: new[] { comp.ToMetadataReference() },
 assemblyName: "MaxSizeComp2",
 options: TestOptions.ReleaseExe
@@ -1090,7 +1090,7 @@ options: TestOptions.ReleaseExe
             Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey);
             Assert.Equal<byte>(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken);
 
-            var comp3 = CreateStandardCompilation(src, 
+            var comp3 = CreateStandardCompilation(src,
 references: new[] { comp.EmitToImageReference() },
 assemblyName: "MaxSizeComp2",
 options: TestOptions.ReleaseExe
@@ -1379,7 +1379,34 @@ public class C {}";
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute, legacyStrongName: false);
         }
 
-        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
+        [Fact]
+        public void BothLegacyAndNonLegacyGiveTheSameOutput()
+        {
+            string s = "public class C {}";
+
+            var commonOptions = TestOptions.ReleaseDll
+                .WithDeterministic(true)
+                .WithModuleName("a.dll")
+                .WithCryptoKeyFile(s_keyPairFile);
+            var emitOptions = EmitOptions.Default.WithOutputNameOverride("a.dll");
+
+            ImmutableArray<byte> EmitAndGetPublicKey(StrongNameProvider provider)
+            {
+                var options = commonOptions.WithStrongNameProvider(s_defaultPortableProvider);
+                var compilation = CreateStandardCompilation(s, options: options);
+                var stream = compilation.EmitToStream(emitOptions);
+                stream.Position = 0;
+                using (var metadata = AssemblyMetadata.CreateFromStream(stream))
+                {
+                    return metadata.GetAssembly().Identity.PublicKey;
+                }
+            }
+
+            var portable = EmitAndGetPublicKey(s_defaultPortableProvider);
+            var desktop = EmitAndGetPublicKey(s_defaultDesktopProvider);
+            Assert.True(portable.SequenceEqual(desktop));
+        }
+
         [Fact()]
         public void SignRefAssemblyKeyFileCmdLine()
         {
@@ -1588,7 +1615,7 @@ public class C
 
             //In the native compiler, when the AssemblySignatureKey attribute is present, and
             //the binary is configured for delay signing, the contents of the assemblySignatureKey attribute
-            //(rather than the contents of the keyfile or container) are used to compute the size needed to 
+            //(rather than the contents of the keyfile or container) are used to compute the size needed to
             //reserve in the binary for its signature. Signing using this key is only supported via sn.exe
 
             var options = TestOptions.ReleaseDll
@@ -1642,7 +1669,7 @@ public class C
 .class private auto ansi beforefieldinit Base
        extends [mscorlib]System.Object
 {
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     ldarg.0
@@ -1653,7 +1680,7 @@ public class C
 ";
 
             var csharp = @"
-class Derived : Base 
+class Derived : Base
 {
 }
 ";
@@ -1665,7 +1692,7 @@ class Derived : Base
                 // NOTE: dev10 reports WRN_InvalidAssemblyName, but Roslyn won't (DevDiv #15099).
 
                 // (2,17): error CS0122: 'Base' is inaccessible due to its protection level
-                // class Derived : Base 
+                // class Derived : Base
                 Diagnostic(ErrorCode.ERR_BadAccess, "Base").WithArguments("Base"));
         }
 
@@ -1709,7 +1736,7 @@ public class C : B
         c.E += null;
     }
 
-    void TestET() 
+    void TestET()
     {
         C c = new C();
         Expression<Action> expr = () => c.M();
@@ -1826,7 +1853,7 @@ public class D : C
         d.E += null;
     }
 
-    void TestET() 
+    void TestET()
     {
         D d = new D();
         Expression<Action> expr = () => d.M();
@@ -1918,7 +1945,7 @@ public class A
             // [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""asm3"")]
             // public class B : A
             // {
-            //     internal override void F(int[] a) { }                            
+            //     internal override void F(int[] a) { }
             //     internal override void G(System.Action<object> a) { }
             //     internal override void H() { }
             //     internal override int this[int x, int[] a] { get { return 0; } }
@@ -1942,8 +1969,8 @@ public class A
 .class public auto ansi beforefieldinit B extends [asm1]A
 {
   .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )                      // ...Item..
-  
-  .method assembly hidebysig strict virtual instance void  F(int32[] a) cil managed 
+
+  .method assembly hidebysig strict virtual instance void  F(int32[] a) cil managed
   {
     nop
     ret
