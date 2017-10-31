@@ -61,7 +61,7 @@
     <ToolsetCompilerPackageVersion Condition="'$(OS)' == 'Windows_NT'">$(MicrosoftNetCompilersVersion)</ToolsetCompilerPackageVersion>
     <ToolsetCompilerPackageVersion Condition="'$(OS)' != 'Windows_NT'">$(MicrosoftNETCoreCompilersVersion)</ToolsetCompilerPackageVersion>
     <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)/$(ToolsetCompilerPackageName.ToLower())/$(ToolsetCompilerPackageVersion)/build/$(ToolsetCompilerPackageName).props</ToolsetCompilerPropsFilePath>
-    <TargetFrameworkRootPath>$(NuGetPackageRoot)\RoslynTools.ReferenceAssemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\Framework</TargetFrameworkRootPath>
+    <TargetFrameworkRootPath>$(NuGetPackageRoot)\roslyntools.referenceassemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\framework</TargetFrameworkRootPath>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
@@ -156,12 +156,7 @@
 
   <!-- Unix specific settings -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-    <!-- Presently can't build anything with a net46 TargetFramework on non-Windows. Disabling
-         for now. 
-         
-         https://github.com/dotnet/roslyn/issues/20932 -->
-    <RoslynPortableTargetFrameworks>netcoreapp2.0</RoslynPortableTargetFrameworks>
-    <RoslynPortableTargetFrameworks46>netcoreapp2.0</RoslynPortableTargetFrameworks46>
+    <RoslynDebugType>portable</RoslynDebugType>
     <RoslynPortableRuntimeIdentifiers>ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.12-x64</RoslynPortableRuntimeIdentifiers>
   </PropertyGroup>
 

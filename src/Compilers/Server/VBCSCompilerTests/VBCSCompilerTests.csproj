@@ -10,7 +10,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CompilerServer.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
   </PropertyGroup>

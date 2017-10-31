@@ -198,7 +198,7 @@ End Module")
             var client = ServerUtil.CreateBuildClient(language);
             client.TimeoutOverride = Timeout.Infinite;
 
-#if NET46
+#if NET461
             var sdkDir = RuntimeEnvironment.GetRuntimeDirectory();
 #else
             string sdkDir = null;
@@ -222,7 +222,7 @@ End Module")
 
         private static void RunCompilerOutput(TempFile file, string expectedOutput)
         {
-#if NET46
+#if NET461
             var result = ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
             Assert.Equal(expectedOutput, result.Output);
 #endif
