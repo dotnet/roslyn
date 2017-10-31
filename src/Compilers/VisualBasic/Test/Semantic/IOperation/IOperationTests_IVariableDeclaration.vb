@@ -884,7 +884,9 @@ Imports System.Text
 
 Module M1
     Sub Sub1()
+#Disable Warning BC42024
         Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
+#Enable Warning BC42024
     End Sub
 End Module]]>.Value
 
@@ -975,84 +977,9 @@ IVariableDeclarationOperation (26 declarators) (OperationKind.VariableDeclaratio
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC42024: Unused local variable: 'a'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-            ~
 BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
         Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC42024: Unused local variable: 'b'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-               ~
-BC42024: Unused local variable: 'c'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                  ~
-BC42024: Unused local variable: 'd'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                     ~
-BC42024: Unused local variable: 'e'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                        ~
-BC42024: Unused local variable: 'f'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                           ~
-BC42024: Unused local variable: 'g'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                              ~
-BC42024: Unused local variable: 'h'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                 ~
-BC42024: Unused local variable: 'i'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                    ~
-BC42024: Unused local variable: 'j'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                       ~
-BC42024: Unused local variable: 'k'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                          ~
-BC42024: Unused local variable: 'l'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                             ~
-BC42024: Unused local variable: 'm'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                ~
-BC42024: Unused local variable: 'n'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                   ~
-BC42024: Unused local variable: 'o'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                      ~
-BC42024: Unused local variable: 'p'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                         ~
-BC42024: Unused local variable: 'q'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                            ~
-BC42024: Unused local variable: 'r'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                               ~
-BC42024: Unused local variable: 's'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                                  ~
-BC42024: Unused local variable: 't'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                                     ~
-BC42024: Unused local variable: 'u'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                                        ~
-BC42024: Unused local variable: 'v'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                                           ~
-BC42024: Unused local variable: 'w'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                                              ~
-BC42024: Unused local variable: 'x'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                                                 ~
-BC42024: Unused local variable: 'y'.
-        Dim a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1'BIND:"a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z As Integer = 1"
-                                                                                    ~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -1093,54 +1020,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
-
-            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
-        End Sub
-
-        <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact()>
-        Public Sub SingleIdentifier_ArrayBoundsAndAsNew()
-            Dim source = <![CDATA[
-Option Strict On
-Imports System.Text
-
-Module M1
-    Sub Sub1()
-        Dim x(1) As New Integer'BIND:"Dim x(1) As New Integer"
-    End Sub
-End Module]]>.Value
-
-            Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim x(1) As New Integer')
-  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'x(1) As New Integer')
-    Declarators:
-        IVariableDeclaratorOperation (Symbol: x As System.Int32()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x(1)')
-          Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x(1)')
-              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'x(1)')
-                Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
-                      Left: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                      Right: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-                Initializer: 
-                  null
-    Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer')
-        IInvalidOperation (OperationKind.Invalid, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'As New Integer')
-          Children(1):
-              IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
-                Arguments(0)
-                Initializer: 
-                  null
-]]>.Value
-
-            Dim expectedDiagnostics = <![CDATA[
-BC30053: Arrays cannot be declared with 'New'.
-        Dim x(1) As New Integer'BIND:"Dim x(1) As New Integer"
-                    ~~~
-]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub

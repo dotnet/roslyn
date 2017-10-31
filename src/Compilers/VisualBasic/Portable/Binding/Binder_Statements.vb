@@ -1069,7 +1069,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim declarationInitializer As BoundExpression = Nothing
             Dim declType As TypeSymbol = Nothing
             Dim boundArrayBounds As ImmutableArray(Of BoundExpression) = Nothing
-            Dim identifierInitializer As BoundArrayCreation = Nothing
 
             If name.ArrayBounds IsNot Nothing Then
                 ' So as not to trigger order of simple name binding checks, must bind array bounds before initializer.
@@ -1194,6 +1193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             End If
 
+            Dim identifierInitializer As BoundArrayCreation = Nothing
             If name.ArrayBounds IsNot Nothing Then
                 ' It is an error to have both array bounds and an initializer expression
                 identifierInitializer = New BoundArrayCreation(name, boundArrayBounds, Nothing, type).MakeCompilerGenerated()

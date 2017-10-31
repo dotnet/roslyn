@@ -146,7 +146,12 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <param name="declarationOperation">Single variable declaration to retrieve initializer for.</param>
         public static IVariableInitializerOperation GetVariableInitializer(this IVariableDeclaratorOperation declarationOperation)
         {
-            return declarationOperation?.Initializer ?? (declarationOperation?.Parent as IVariableDeclarationOperation)?.Initializer;
+            if (declarationOperation == null)
+            {
+                throw new ArgumentNullException(nameof(declarationOperation));
+            }
+
+            return declarationOperation.Initializer ?? (declarationOperation.Parent as IVariableDeclarationOperation)?.Initializer;
         }
 
         /// <summary>

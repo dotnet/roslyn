@@ -1556,7 +1556,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarations = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() => ImmutableArray.Create(CreateVariableDeclarationInternal(boundLocalDeclaration, varDeclarator)));
             bool multiVariableImplicit = boundLocalDeclaration.WasCompilerGenerated;
             // In C#, the MultiVariable initializer will always be null, but we can't pass null as the actual lazy. We assume that all lazy elements always exist
-            Lazy<IVariableInitializerOperation> initializer = new Lazy<IVariableInitializerOperation>(() => null);
+            Lazy<IVariableInitializerOperation> initializer = OperationFactory.EmptyInitializer;
             IVariableDeclarationOperation multiVariableDeclaration = new LazyVariableDeclaration(declarations, initializer, _semanticModel, varDeclaration, null, default, multiVariableImplicit);
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -1571,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarations = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() =>
                 boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration => CreateVariableDeclaration(declaration)));
             // In C#, the MultiVariable initializer will always be null, but we can't pass null as the actual lazy. We assume that all lazy elements always exist
-            Lazy<IVariableInitializerOperation> initializer = new Lazy<IVariableInitializerOperation>(() => null);
+            Lazy<IVariableInitializerOperation> initializer = OperationFactory.EmptyInitializer;
 
             // The syntax for the boundMultipleLocalDeclarations can either be a LocalDeclarationStatement or a VariableDeclaration, depending on the context
             // (using/fixed statements vs variable declaration)
