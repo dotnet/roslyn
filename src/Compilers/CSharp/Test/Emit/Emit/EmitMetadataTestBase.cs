@@ -90,18 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         #region DeclSecurityTable Validation
-
-        /// <summary>
-        /// Validate the contents of the DeclSecurity metadata table.
-        /// </summary>
-        internal static void ValidateDeclSecurity(CSharpCompilation compilation, params DeclSecurityEntry[] expectedEntries)
-        {
-            using (var metadata = ModuleMetadata.CreateFromImage(compilation.EmitToArray()))
-            {
-                ValidateDeclSecurity(metadata.Module.GetMetadataReader(), expectedEntries);
-            }
-        }
-
         /// <summary>
         /// Validate the contents of the DeclSecurity metadata table.
         /// </summary>

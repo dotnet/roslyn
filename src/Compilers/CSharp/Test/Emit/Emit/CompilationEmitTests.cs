@@ -3725,25 +3725,28 @@ class C
 }";
             // Setting the CompilationOption.AllowUnsafe causes an entry to be inserted into the DeclSecurity table
             var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
-                {
-                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
-                    ParentKind = SymbolKind.Assembly,
-                    PermissionSet =
-                        "." + // always start with a dot
-                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                        "\u0015" + // number of bytes in the encoding of the named arguments
-                        "\u0001" + // number of named arguments
-                        "\u0054" + // property (vs field)
-                        "\u0002" + // type bool
-                        "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
-                        "SkipVerification" + // property name
-                        "\u0001", // argument value (true)
-                });
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
+                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
+                    new DeclSecurityEntry
+                    {
+                        ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                        ParentKind = SymbolKind.Assembly,
+                        PermissionSet =
+                            "." + // always start with a dot
+                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                            "\u0015" + // number of bytes in the encoding of the named arguments
+                            "\u0001" + // number of named arguments
+                            "\u0054" + // property (vs field)
+                            "\u0002" + // type bool
+                            "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
+                            "SkipVerification" + // property name
+                            "\u0001", // argument value (true)
+                    });
+            });
         }
 
         // Verify via MetadataReader - comp option, module case
@@ -3760,7 +3763,12 @@ class C
             // Setting the CompilationOption.AllowUnsafe causes an entry to be inserted into the DeclSecurity table
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
             compilation.VerifyDiagnostics();
-            ValidateDeclSecurity(compilation); //no assembly => no decl security row
+
+            CompileAndVerify(compilation, verify: false, symbolValidator: module =>
+            {
+                var peModule = (PEModuleSymbol)module;
+                ValidateDeclSecurity(peModule.GetMetadata().GetMetadataReader());//no assembly => no decl security row
+            });
         }
 
         // Verify via MetadataReader - attr in source
@@ -3788,24 +3796,28 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
-                {
-                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
-                    ParentKind = SymbolKind.Assembly,
-                    PermissionSet =
-                        "." + // always start with a dot
-                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                        "\u0015" + // number of bytes in the encoding of the named arguments
-                        "\u0001" + // number of named arguments
-                        "\u0054" + // property (vs field)
-                        "\u0002" + // type bool
-                        "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
-                        "SkipVerification" + // property name
-                        "\u0001", // argument value (true)
-                });
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
+                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
+                    new DeclSecurityEntry
+                    {
+                        ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                        ParentKind = SymbolKind.Assembly,
+                        PermissionSet =
+                            "." + // always start with a dot
+                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                            "\u0015" + // number of bytes in the encoding of the named arguments
+                            "\u0001" + // number of named arguments
+                            "\u0054" + // property (vs field)
+                            "\u0002" + // type bool
+                            "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
+                            "SkipVerification" + // property name
+                            "\u0001", // argument value (true)
+                    });
+            });
         }
 
         // Verify via MetadataReader - two attrs in source, same action
@@ -3836,35 +3848,39 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, UnmanagedCode = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
-                {
-                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
-                    ParentKind = SymbolKind.Assembly,
-                    PermissionSet =
-                        "." + // always start with a dot
-                        "\u0002" + // number of attributes (small enough to fit in 1 byte)
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
+                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
+                    new DeclSecurityEntry
+                    {
+                        ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                        ParentKind = SymbolKind.Assembly,
+                        PermissionSet =
+                            "." + // always start with a dot
+                            "\u0002" + // number of attributes (small enough to fit in 1 byte)
 
-                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                        "\u001a" + // number of bytes in the encoding of the named arguments
-                        "\u0001" + // number of named arguments
-                        "\u0054" + // property (vs field)
-                        "\u0002" + // type bool
-                        "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
-                        "RemotingConfiguration" + // property name
-                        "\u0001" + // argument value (true)
+                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                            "\u001a" + // number of bytes in the encoding of the named arguments
+                            "\u0001" + // number of named arguments
+                            "\u0054" + // property (vs field)
+                            "\u0002" + // type bool
+                            "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
+                            "RemotingConfiguration" + // property name
+                            "\u0001" + // argument value (true)
 
-                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                        "\u0012" + // number of bytes in the encoding of the named arguments
-                        "\u0001" + // number of named arguments
-                        "\u0054" + // property (vs field)
-                        "\u0002" + // type bool
-                        "\u000d" + // length of UTF-8 string (small enough to fit in 1 byte)
-                        "UnmanagedCode" + // property name
-                        "\u0001", // argument value (true)
-                });
+                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                            "\u0012" + // number of bytes in the encoding of the named arguments
+                            "\u0001" + // number of named arguments
+                            "\u0054" + // property (vs field)
+                            "\u0002" + // type bool
+                            "\u000d" + // length of UTF-8 string (small enough to fit in 1 byte)
+                            "UnmanagedCode" + // property name
+                            "\u0001", // argument value (true)
+                    });
+            });
         }
 
         // Verify via MetadataReader - two attrs in source, different actions
@@ -3895,41 +3911,45 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, UnmanagedCode = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
-                {
-                    ActionFlags = DeclarativeSecurityAction.RequestOptional,
-                    ParentKind = SymbolKind.Assembly,
-                    PermissionSet =
-                        "." + // always start with a dot
-                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                        "\u001a" + // number of bytes in the encoding of the named arguments
-                        "\u0001" + // number of named arguments
-                        "\u0054" + // property (vs field)
-                        "\u0002" + // type bool
-                        "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
-                        "RemotingConfiguration" + // property name
-                        "\u0001", // argument value (true)
-                },
-                new DeclSecurityEntry
-                {
-                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
-                    ParentKind = SymbolKind.Assembly,
-                    PermissionSet =
-                        "." + // always start with a dot
-                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                        "\u0012" + // number of bytes in the encoding of the named arguments
-                        "\u0001" + // number of named arguments
-                        "\u0054" + // property (vs field)
-                        "\u0002" + // type bool
-                        "\u000d" + // length of UTF-8 string (small enough to fit in 1 byte)
-                        "UnmanagedCode" + // property name
-                        "\u0001", // argument value (true)
-                });
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
+                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
+                    new DeclSecurityEntry
+                    {
+                        ActionFlags = DeclarativeSecurityAction.RequestOptional,
+                        ParentKind = SymbolKind.Assembly,
+                        PermissionSet =
+                            "." + // always start with a dot
+                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                            "\u001a" + // number of bytes in the encoding of the named arguments
+                            "\u0001" + // number of named arguments
+                            "\u0054" + // property (vs field)
+                            "\u0002" + // type bool
+                            "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
+                            "RemotingConfiguration" + // property name
+                            "\u0001", // argument value (true)
+                    },
+                    new DeclSecurityEntry
+                    {
+                        ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                        ParentKind = SymbolKind.Assembly,
+                        PermissionSet =
+                            "." + // always start with a dot
+                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                            "\u0012" + // number of bytes in the encoding of the named arguments
+                            "\u0001" + // number of named arguments
+                            "\u0054" + // property (vs field)
+                            "\u0002" + // type bool
+                            "\u000d" + // length of UTF-8 string (small enough to fit in 1 byte)
+                            "UnmanagedCode" + // property name
+                            "\u0001", // argument value (true)
+                    });
+            });
         }
 
         // Verify via MetadataReader - one attr in source, one synthesized, same action
@@ -3956,35 +3976,39 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, RemotingConfiguration = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
-                {
-                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
-                    ParentKind = SymbolKind.Assembly,
-                    PermissionSet =
-                        "." + // always start with a dot
-                        "\u0002" + // number of attributes (small enough to fit in 1 byte)
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
+                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
+                    new DeclSecurityEntry
+                    {
+                        ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                        ParentKind = SymbolKind.Assembly,
+                        PermissionSet =
+                            "." + // always start with a dot
+                            "\u0002" + // number of attributes (small enough to fit in 1 byte)
 
-                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                        "\u001a" + // number of bytes in the encoding of the named arguments
-                        "\u0001" + // number of named arguments
-                        "\u0054" + // property (vs field)
-                        "\u0002" + // type bool
-                        "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
-                        "RemotingConfiguration" + // property name
-                        "\u0001" + // argument value (true)
+                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                            "\u001a" + // number of bytes in the encoding of the named arguments
+                            "\u0001" + // number of named arguments
+                            "\u0054" + // property (vs field)
+                            "\u0002" + // type bool
+                            "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
+                            "RemotingConfiguration" + // property name
+                            "\u0001" + // argument value (true)
 
-                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                        "\u0015" + // number of bytes in the encoding of the named arguments
-                        "\u0001" + // number of named arguments
-                        "\u0054" + // property (vs field)
-                        "\u0002" + // type bool
-                        "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
-                        "SkipVerification" + // property name
-                        "\u0001", // argument value (true)
-                });
+                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                            "\u0015" + // number of bytes in the encoding of the named arguments
+                            "\u0001" + // number of named arguments
+                            "\u0054" + // property (vs field)
+                            "\u0002" + // type bool
+                            "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
+                            "SkipVerification" + // property name
+                            "\u0001", // argument value (true)
+                    });
+            });
         }
 
         // Verify via MetadataReader - one attr in source, one synthesized, different actions
@@ -4011,42 +4035,47 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestOptional").WithArguments("System.Security.Permissions.SecurityAction.RequestOptional", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation,
-                new DeclSecurityEntry
-                {
-                    ActionFlags = DeclarativeSecurityAction.RequestOptional,
-                    ParentKind = SymbolKind.Assembly,
-                    PermissionSet =
-                        "." + // always start with a dot
-                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                        "\u001a" + // number of bytes in the encoding of the named arguments
-                        "\u0001" + // number of named arguments
-                        "\u0054" + // property (vs field)
-                        "\u0002" + // type bool
-                        "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
-                        "RemotingConfiguration" + // property name
-                        "\u0001", // argument value (true)
-                },
-                new DeclSecurityEntry
-                {
-                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
-                    ParentKind = SymbolKind.Assembly,
-                    PermissionSet =
-                        "." + // always start with a dot
-                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                        "\u0015" + // number of bytes in the encoding of the named arguments
-                        "\u0001" + // number of named arguments
-                        "\u0054" + // property (vs field)
-                        "\u0002" + // type bool
-                        "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
-                        "SkipVerification" + // property name
-                        "\u0001", // argument value (true)
-                });
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
+                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
+                    new DeclSecurityEntry
+                    {
+                        ActionFlags = DeclarativeSecurityAction.RequestOptional,
+                        ParentKind = SymbolKind.Assembly,
+                        PermissionSet =
+                            "." + // always start with a dot
+                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                            "\u001a" + // number of bytes in the encoding of the named arguments
+                            "\u0001" + // number of named arguments
+                            "\u0054" + // property (vs field)
+                            "\u0002" + // type bool
+                            "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
+                            "RemotingConfiguration" + // property name
+                            "\u0001", // argument value (true)
+                    },
+                    new DeclSecurityEntry
+                    {
+                        ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                        ParentKind = SymbolKind.Assembly,
+                        PermissionSet =
+                            "." + // always start with a dot
+                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                            "\u0015" + // number of bytes in the encoding of the named arguments
+                            "\u0001" + // number of named arguments
+                            "\u0054" + // property (vs field)
+                            "\u0002" + // type bool
+                            "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
+                            "SkipVerification" + // property name
+                            "\u0001", // argument value (true)
+                    });
+            });
         }
+
         [Fact]
         [WorkItem(545651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545651")]
 
