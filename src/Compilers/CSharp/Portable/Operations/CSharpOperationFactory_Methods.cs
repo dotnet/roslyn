@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 SyntaxNode syntax = value.Syntax?.Parent ?? expression.Syntax;
                 ITypeSymbol type = target.Type;
                 Optional<object> constantValue = value.ConstantValue;
-                var assignment = new SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit: false);
+                var assignment = new SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit: expression.WasCompilerGenerated);
                 builder.Add(assignment);
             }
 
