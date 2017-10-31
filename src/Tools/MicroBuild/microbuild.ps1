@@ -90,6 +90,8 @@ function Copy-InsertionItems() {
         $itemPath = Join-Path $configDir $item
         Copy-Item $itemPath $insertionDir
     }
+
+    Copy-Item (Join-Path $binariesDir "DevDivPackages\Roslyn\*.nupkg") $insertionDir
 }
 
 Push-Location $PSScriptRoot
