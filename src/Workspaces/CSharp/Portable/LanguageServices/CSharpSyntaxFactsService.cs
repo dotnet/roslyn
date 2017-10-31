@@ -1789,5 +1789,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             type = cast.Type;
             expression = cast.Expression;
         }
+
+        public int GetDeclarationPositionIfOverride(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var token = Shared.Extensions.SyntaxTreeExtensions.GetTouchingTokenAsync(syntaxTree, position, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (token.Kind() == SyntaxKind.OverrideKeyword && token.Parent is MemberDeclarationSyntax member)
+            {
+                return member.GetNameToken().SpanStart;
+            }
+
+            return -1;
+        }
     }
 }

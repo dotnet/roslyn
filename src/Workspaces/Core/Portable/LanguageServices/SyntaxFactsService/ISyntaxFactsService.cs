@@ -339,6 +339,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers);
 
         Location GetDeconstructionReferenceLocation(SyntaxNode node);
+
+        int GetDeclarationPositionIfOverride(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
     }
 
     [Flags]
