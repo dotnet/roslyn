@@ -39,11 +39,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             var registration = GetWorkspaceRegistration(textContainer);
-            registration.SetWorkspace(this);
-            this.ScheduleTask(() =>
-            {
-                registration.RaiseEvents();
-            }, "Workspace.RegisterText");
+
+            RaiseTextRegistrationChangedEvents(registration, newWorkspace: this);
         }
 
         /// <summary>
@@ -58,10 +55,25 @@ namespace Microsoft.CodeAnalysis
 
             var registration = GetWorkspaceRegistration(textContainer);
 
+            // guard us from being called with wrong text container.
             if (registration.Workspace == this)
             {
-                registration.SetWorkspaceAndRaiseEvents(null);
+                RaiseTextRegistrationChangedEvents(registration, newWorkspace: null);
             }
+        }
+
+        private void RaiseTextRegistrationChangedEvents(WorkspaceRegistration registration, Workspace newWorkspace, [CallerMemberName] string eventName = null)
+        {
+            var oldWorkspace = registration.Workspace;
+
+            // set workspace right away, but events are lazy. 
+            // people, who is checking Registration.Workspace directly, will see the change right away but
+            // people, that listens to the event, won't see the change right away
+            registration.SetWorkspace(newWorkspace);
+            this.ScheduleTask(() =>
+            {
+                registration.RaiseEvents(oldWorkspace, newWorkspace);
+            }, eventName);
         }
 
         private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)

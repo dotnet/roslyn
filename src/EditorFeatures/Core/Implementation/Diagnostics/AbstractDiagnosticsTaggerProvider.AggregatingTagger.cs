@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private class AggregatingTagger : ForegroundThreadAffinitizedObject, IAccurateTagger<TTag>, IDisposable
         {
             private readonly AbstractDiagnosticsTaggerProvider<TTag> _owner;
+            private readonly WorkspaceRegistration _registration;
             private readonly ITextBuffer _subjectBuffer;
 
             private int _refCount;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private readonly object _taskGate = new object();
             private Task _taskChain;
 
-            private readonly CancellationTokenSource _initialDiagnosticsCancellationSource = new CancellationTokenSource();
+            private readonly CancellationTokenSource _shutdownCancellationSource = new CancellationTokenSource();
 
             public AggregatingTagger(
                 AbstractDiagnosticsTaggerProvider<TTag> owner,
@@ -56,13 +57,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 _owner = owner;
                 _subjectBuffer = subjectBuffer;
 
+                // track context changes
+                _registration = Workspace.GetWorkspaceRegistration(_subjectBuffer.AsTextContainer());
+                _registration.WorkspaceChanged += OnWorkspaceChanged;
+                _registration.Workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
                 _currentDocumentId = document?.Id;
 
                 // Kick off a background task to collect the initial set of diagnostics.
-                var cancellationToken = _initialDiagnosticsCancellationSource.Token;
                 var asyncToken = _owner._listener.BeginAsyncOperation(GetType() + ".GetInitialDiagnostics");
-                var task = Task.Run(() => GetInitialDiagnosticsInBackground(document, cancellationToken), cancellationToken);
+                var task = Task.Run(() => GetInitialDiagnosticsInBackground(document), _shutdownCancellationSource.Token);
                 task.CompletesAsyncOperation(asyncToken);
 
                 _taskChain = task;
@@ -74,21 +79,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 _owner._diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
             }
 
-            private void GetInitialDiagnosticsInBackground(
-                Document document, CancellationToken cancellationToken)
+            private void GetInitialDiagnosticsInBackground(Document document)
             {
                 this.AssertIsBackground();
-                cancellationToken.ThrowIfCancellationRequested();
+                _shutdownCancellationSource.Token.ThrowIfCancellationRequested();
 
                 if (document != null)
                 {
                     var project = document.Project;
                     var workspace = project.Solution.Workspace;
-                    foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
+                    foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, _shutdownCancellationSource.Token))
                     {
-                        var diagnostics = AdjustInitialDiagnostics(project.Solution, updateArgs, cancellationToken);
-                        if (diagnostics.Length == 0)
+                        var diagnostics = AdjustInitialDiagnostics(project.Solution, updateArgs, _shutdownCancellationSource.Token);
+                        if (diagnostics.Length == 0 || !diagnostics.Any(d => _owner.IncludeDiagnostic(d)))
                         {
+                            // if there is no diagnostics or none of diagnostics belong to this tagger, move on
                             continue;
                         }
 
@@ -153,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                     // Stop listening to diagnostic changes from the diagnostic service.
                     _owner._diagnosticService.DiagnosticsUpdated -= OnDiagnosticsUpdated;
-                    _initialDiagnosticsCancellationSource.Cancel();
+                    _shutdownCancellationSource.Cancel();
 
                     // Disconnect us from our underlying taggers and make sure they're
                     // released as well.
@@ -190,19 +195,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private void RegisterNotification(Action action)
             {
                 var token = _owner._listener.BeginAsyncOperation(GetType().Name + "RegisterNotification");
-                _owner._notificationService.RegisterNotification(action, token);
+                _owner._notificationService.RegisterNotification(action, token, _shutdownCancellationSource.Token);
             }
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
+                // special case events from preview workspace, when workspace goes away, we gets a lot of
+                // events. unlike regular workspace, preview workspace can get created and disposed many times
+                // within short amount of times. current design of tagger where we push every manipulation of states
+                // to UI thread can cause big issue for preview workspace. either we move back to old implementation 
+                // where we specialize tagger for preview window that doesn't require any of this complex states, 
+                // or we need to do this to cut down events.
+                if (e.Workspace is Shared.Preview.PreviewWorkspace &&
+                    e.Diagnostics.Length == 0)
+                {
+                    // we never need to clean up diagnostics 
+                    // since preview window is read only and never change
+                    return;
+                }
+
                 lock (_taskGate)
                 {
+                    if (e.DocumentId != _currentDocumentId)
+                    {
+                        // ignore diagnostics that belong to different documents
+                        return;
+                    }
+
                     // Chain the events so we process them serially.  This also ensures
                     // that we don't process events while still getting our initial set
                     // of diagnostics.
                     var asyncToken = _owner._listener.BeginAsyncOperation(GetType() + ".OnDiagnosticsUpdated");
                     _taskChain = _taskChain.SafeContinueWith(
-                        _ => OnDiagnosticsUpdatedOnBackground(e), TaskScheduler.Default);
+                        _ => OnDiagnosticsUpdatedOnBackground(e), _shutdownCancellationSource.Token, TaskScheduler.Default);
                     _taskChain.CompletesAsyncOperation(asyncToken);
                 }
             }
@@ -211,6 +236,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 this.AssertIsBackground();
                 RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e));
+            }
+
+            private void OnWorkspaceChanged(object sender, EventArgs e)
+            {
+                this.AssertIsForeground();
+
+                // workspace the buffer is assoicated with got changed.
+                // subscribe to active context changed event to set proper currentDocumentId
+                var eventArgs = (WorkspaceChangedEventArgs)e;
+                if (eventArgs.OldWorkspace != null)
+                {
+                    eventArgs.OldWorkspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
+                }
+
+                if (eventArgs.NewWorkspace != null)
+                {
+                    eventArgs.NewWorkspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+                }
+
+                // if context changed, reset currentDocumentId;
+                _currentDocumentId = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext()?.Id;
+            }
+
+            private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
+            {
+                this.AssertIsForeground();
+
+                // set right currentDocumentId
+                _currentDocumentId = e.NewActiveContextDocumentId;
             }
 
             /// <summary>
@@ -235,6 +289,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
+
+                _shutdownCancellationSource.Token.ThrowIfCancellationRequested();
 
                 // Do some quick checks to avoid doing any further work for diagnostics  we don't
                 // care about.
@@ -363,6 +419,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 this.AssertIsForeground();
                 Debug.Assert(!_disposed);
+
+                _shutdownCancellationSource.Token.ThrowIfCancellationRequested();
 
                 // Find the appropriate async tagger for this diagnostics id, and let it know that
                 // there were new diagnostics produced for it.

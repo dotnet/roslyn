@@ -231,6 +231,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Simplifier_ExpandNode,
         Simplifier_ExpandToken,
 
+        ForegroundNotificationService_Added,
         ForegroundNotificationService_Processed,
         ForegroundNotificationService_NotifyOnForeground,
 

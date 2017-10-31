@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
         private const int MinimumDelayBetweenProcessing = 50;
 
         private static readonly Func<int, string> s_notifyOnForegroundLogger = c => string.Format("Processed : {0}", c);
+        private static readonly Func<int, string> s_addedLogger = c => string.Format("Pending : {0}", c);
+
         private readonly PriorityQueue _workQueue;
 
         private int _lastProcessedTimeInMS;
@@ -282,6 +284,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
             public void Enqueue(PendingWork work)
             {
+                if (work.CancellationToken.IsCancellationRequested)
+                {
+                    // already cancelled. no point to enqueue.
+                    // dispose asyncToken and return
+                    work.AsyncToken.Dispose();
+                    return;
+                }
+
                 var entry = s_pool.Allocate();
                 entry.Value = work;
 
@@ -293,6 +303,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
             private void Enqueue_NoLock(LinkedListNode<PendingWork> entry)
             {
+                Logger.Log(FunctionId.ForegroundNotificationService_Added, s_addedLogger, _list.Count);
+
                 // TODO: if this cost shows up in the trace, either use tree based implementation
                 // or just have separate lists for each delay (short, medium, long)
                 if (_list.Count == 0)
@@ -311,9 +323,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                         return;
                     }
 
-                    current = current.Previous;
+                    var previous = current.Previous;
+
+                    // eagarly clean up cancelled entry from the list backward
+                    if (current.Value.CancellationToken.IsCancellationRequested)
+                    {
+                        Discard_NoLock(current);
+                    }
+
+                    current = previous;
                 }
 
+                // eagarly clean up cancelled entry from the list forward
+                current = _list.First;
+                while (current != null)
+                {
+                    if (!current.Value.CancellationToken.IsCancellationRequested)
+                    {
+                        // we only clean up to first non cancelled item so that we
+                        // don't repeatedly iterate through whole list
+                        break;
+                    }
+
+                    var next = current.Next;
+                    Discard_NoLock(current);
+                    current = next;
+                }
+
+                // add new entry to head
                 _list.AddFirst(entry);
                 _hasItemsGate.Release();
                 return;
@@ -354,13 +391,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 var entry = _list.First;
                 var work = entry.Value;
 
-                _list.RemoveFirst();
+                FreeEntry_NoLock(entry);
+                return work;
+            }
+
+            private void Discard_NoLock(LinkedListNode<PendingWork> entry)
+            {
+                // dispose asyncToken and then free the entry
+                entry.Value.AsyncToken.Dispose();
+                FreeEntry_NoLock(entry);
+            }
+
+            private void FreeEntry_NoLock(LinkedListNode<PendingWork> entry)
+            {
+                // detach the entry
+                _list.Remove(entry);
 
                 // reset the value and put it back to pool
                 entry.Value = default;
                 s_pool.Free(entry);
-
-                return work;
             }
         }
     }
