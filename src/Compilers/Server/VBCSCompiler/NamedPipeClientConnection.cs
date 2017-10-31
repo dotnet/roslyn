@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                 }
             });
+            // Why IsBackground is set: https://github.com/dotnet/corefx/issues/24973
             listenThread.IsBackground = true;
             listenThread.Start();
 
