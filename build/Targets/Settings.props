@@ -9,6 +9,7 @@
 
   <Import Project="Packages.props" />
   <Import Project="FixedPackages.props" />
+  <Import Project="Tools.props" />
   <Import Project="Versions.props" />
 
   <PropertyGroup>

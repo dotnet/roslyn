@@ -479,8 +479,13 @@
       MSBuildMinimumDisplayVersion="MSBuild 15.3"
       />
 
+    <PropertyGroup>
+      <ShortSdkVersion Condition=" $(dotnetSdkVersion.IndexOf('-')) > 0 ">$(dotnetSdkVersion.Substring(0, $(dotnetSdkVersion.IndexOf('-'))))</ShortSdkVersion>
+      <ShortSdkVersion Condition=" $(dotnetSdkVersion.IndexOf('-')) &lt;= 0 ">$(dotnetSdkVersion)</ShortSdkVersion>
+    </PropertyGroup>
+
     <Error 
-      Text="The 2.0 SDK is required to build this repo"
+      Text="The $(ShortSdkVersion) SDK is required to build this repo"
       Condition="'$(UsingMicrosoftNETSdk)' == '' AND '$(RoslynSdkProject)' == 'true'" />
   </Target> 
 
