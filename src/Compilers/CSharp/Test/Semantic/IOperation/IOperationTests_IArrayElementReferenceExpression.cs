@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -948,6 +948,57 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/22229")]
+        public void ArrayElementReference_MultipleExplicitOperation()
+        {
+            var source = @"
+public class Cls
+{
+    public static void Main()
+    {
+        int[][] e = null;
+        var z2 = /*<bind>*/e?[out var x2]?[out var x3]/*</bind>*/;
+    }
+}";
+            string expectedOperationTree = @"
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'e?[out var  ... out var x3]')
+  Operation: 
+    ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Int32[][]) (Syntax: 'e')
+  WhenNotNull: 
+    IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: '[out var x2 ... out var x3]')
+      Operation: 
+        IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32[], IsInvalid) (Syntax: '[out var x2]')
+          Array reference: 
+            IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: System.Int32[][], IsImplicit) (Syntax: 'e')
+          Indices(1):
+              IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: var, IsInvalid) (Syntax: 'var x2')
+                ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
+      WhenNotNull: 
+        IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: '[out var x3]')
+          Array reference: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32[], IsInvalid) (Syntax: '[out var x2]')
+              Array reference: 
+                IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: System.Int32[][], IsImplicit) (Syntax: 'e')
+              Indices(1):
+                  IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: var, IsInvalid) (Syntax: 'var x2')
+                    ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
+          Indices(1):
+              IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: var) (Syntax: 'var x3')
+                ILocalReferenceOperation: x3 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x3')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,35): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         var z2 = /*<bind>*/e?[out var x2]?[out var x3]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x2").WithArguments("1", "out").WithLocation(7, 35),
+                // file.cs(7,39): error CS8197: Cannot infer the type of implicitly-typed out variable 'x2'.
+                //         var z2 = /*<bind>*/e?[out var x2]?[out var x3]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x2").WithArguments("x2").WithLocation(7, 39)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ConditionalAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

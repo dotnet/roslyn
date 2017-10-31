@@ -19343,7 +19343,7 @@ public class Cls
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/22229")]
         public void ElementAccess_06()
         {
             var text = @"
