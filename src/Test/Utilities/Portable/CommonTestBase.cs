@@ -204,9 +204,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (symbolValidator != null)
             {
-                var peModuleSymbol = verifier.GetModuleSymbolForEmittedImage();
-                Debug.Assert(peModuleSymbol != null);
-                symbolValidator(peModuleSymbol);
+                using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
+                {
+                    var reference = emittedMetadata.GetReference();
+                    var moduleSymbol = verifier.GetModuleSymbolFromMetadata(reference, verifier.Compilation.Options.MetadataImportOptions);
+
+                    symbolValidator(moduleSymbol);
+                }
             }
         }
 

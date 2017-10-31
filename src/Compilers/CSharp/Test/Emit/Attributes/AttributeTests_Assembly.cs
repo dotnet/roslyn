@@ -956,26 +956,26 @@ public class C {}
             return ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray());
         }
 
-        private void TestDuplicateAssemblyAttributesNotEmitted(AssemblySymbol sourceAssembly, int expectedSrcAttrCount, int expectedDuplicateAttrCount, string attributeName)
+        private void TestDuplicateAssemblyAttributesNotEmitted(CSharpCompilation compilation, int expectedSrcAttrCount, int expectedDuplicateAttrCount, string attrTypeName)
         {
             // SOURCE ATTRIBUTES
 
-            var sourceAttributes = sourceAssembly
+            var sourceAttributes = compilation.Assembly
                 .GetAttributes()
-                .Where(a => string.Equals(a.AttributeClass.Name, attributeName, StringComparison.Ordinal));
+                .Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal));
 
             Assert.Equal(expectedSrcAttrCount, sourceAttributes.Count());
 
             // EMITTED ATTRIBUTES
 
-            CompileAndVerify(sourceAssembly.DeclaringCompilation, symbolValidator: module =>
+            CompileAndVerify(compilation, symbolValidator: module =>
             {
                 // We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
                 var expectedEmittedAttrsCount = expectedSrcAttrCount - expectedDuplicateAttrCount;
 
                 var metadataAttributes = module.ContainingAssembly
                     .GetAttributes()
-                    .Where(a => string.Equals(a.AttributeClass.Name, attributeName, StringComparison.Ordinal));
+                    .Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal));
 
                 Assert.Equal(expectedEmittedAttrsCount, metadataAttributes.Count());
 
@@ -1208,15 +1208,15 @@ public class C {}
             var consoleappCompilation = CreateStandardCompilation(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
             var diagnostics = consoleappCompilation.GetDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
-               attributeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
+               attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
 
-            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
-               attributeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
+               attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
 
             var attrs = consoleappCompilation.Assembly.GetAttributes();
             foreach (var a in attrs)
@@ -1259,10 +1259,10 @@ public class C {}
 
             var consoleappCompilation = CreateStandardCompilation(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
 
-            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
-               attributeName: "AssemblyTitleAttribute");
+               attrTypeName: "AssemblyTitleAttribute");
 
             CompileAndVerify(consoleappCompilation, symbolValidator: module =>
             {
@@ -1394,10 +1394,10 @@ using System.Runtime.CompilerServices;
             var compilation = CreateStandardCompilation(source);
             CompileAndVerify(compilation);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                 expectedSrcAttrCount: 2,
                 expectedDuplicateAttrCount: 1,
-                attributeName: "InternalsVisibleToAttribute");
+                attrTypeName: "InternalsVisibleToAttribute");
         }
 
         [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
@@ -1433,10 +1433,10 @@ class Program
 
             var compilation = CreateStandardCompilation(source, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                 expectedSrcAttrCount: 20,
                 expectedDuplicateAttrCount: 5,
-                attributeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
+                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
         [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
@@ -1461,20 +1461,20 @@ using System;
             // duplicate ignored, no error because identical
             compilation.VerifyDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
-               attributeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
+               attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
 
             MetadataReference netmodule2Ref = GetNetModuleWithAssemblyAttributesRef(source1, references: new[] { defsRef });
             compilation = CreateStandardCompilation("", references: new[] { defsRef, netmodule1Ref, netmodule2Ref }, options: TestOptions.ReleaseDll);
             // duplicate ignored, no error because identical
             compilation.VerifyDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
-               attributeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
+               attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
         }
 
         [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
@@ -1512,10 +1512,10 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 20,
                expectedDuplicateAttrCount: 5,
-               attributeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
+               attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
         [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
@@ -1565,10 +1565,10 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleDefsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 21,
                expectedDuplicateAttrCount: 6,
-               attributeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
+               attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
         [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
@@ -1607,10 +1607,10 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 20,
                expectedDuplicateAttrCount: 5,
-               attributeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
+               attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
         [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
@@ -1654,10 +1654,10 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 25,
                expectedDuplicateAttrCount: 10,
-               attributeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
+               attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
         [Fact, WorkItem(546825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546825")]

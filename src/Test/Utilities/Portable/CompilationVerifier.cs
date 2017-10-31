@@ -206,7 +206,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (_lazyModuleSymbol == null)
             {
-                _lazyModuleSymbol = GetModuleSymbolForEmittedImage(EmittedAssemblyData, MetadataImportOptions.All);
+                var targetReference = LoadTestEmittedExecutableForSymbolValidation(EmittedAssemblyData, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
+                _lazyModuleSymbol = GetModuleSymbolFromMetadata(targetReference, MetadataImportOptions.All);
             }
 
             return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
@@ -224,42 +225,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return this;
         }
 
-        public IModuleSymbol GetModuleSymbolForEmittedImage()
-        {
-            return GetModuleSymbolForEmittedImage(EmittedAssemblyData, _compilation.Options.MetadataImportOptions);
-        }
-
-        private IModuleSymbol GetModuleSymbolForEmittedImage(ImmutableArray<byte> peImage, MetadataImportOptions importOptions)
-        {
-            if (peImage.IsDefault)
-            {
-                return null;
-            }
-            var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
-            var references = _compilation.References.Concat(new[] { targetReference });
-            var assemblies = GetReferencesToModuleSymbols(references, importOptions);
-            return assemblies.Last();
-        }
-
-        private IEnumerable<IModuleSymbol> GetReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions)
+        internal IModuleSymbol GetModuleSymbolFromMetadata(MetadataReference metadataReference, MetadataImportOptions importOptions)
         {
             var dummy = _compilation
                 .RemoveAllSyntaxTrees()
-                .WithReferences(references)
+                .WithReferences(_compilation.References.Concat(new[] { metadataReference }))
                 .WithAssemblyName("Dummy")
                 .WithOptions(_compilation.Options.WithMetadataImportOptions(importOptions));
 
-            return references.Select(reference =>
+            var symbol = dummy.GetAssemblyOrModuleSymbol(metadataReference);
+
+            if (metadataReference.Properties.Kind == MetadataImageKind.Assembly)
             {
-                if (reference.Properties.Kind == MetadataImageKind.Assembly)
-                {
-                    return ((IAssemblySymbol)dummy.GetAssemblyOrModuleSymbol(reference))?.Modules.First();
-                }
-                else
-                {
-                    return (IModuleSymbol)dummy.GetAssemblyOrModuleSymbol(reference);
-                }
-            });
+                return ((IAssemblySymbol)symbol).Modules.First();
+            }
+            else
+            {
+                return (IModuleSymbol)symbol;
+            }
         }
 
         internal static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
