@@ -6,7 +6,7 @@
   <PropertyGroup>
     <FinalizeManifest>true</FinalizeManifest>
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
-    <OutputPath>$(OutputPath)Insertion\</OutputPath>
+    <OutputPath>$(OutputPath)Vsix\CodeAnalysisCompilers</OutputPath>
     <IsPackage>true</IsPackage>
     <FinalizeValidate>false</FinalizeValidate>
     <ValidateManifest>false</ValidateManifest>
@@ -20,7 +20,7 @@
   </Target>
 
   <ItemGroup>
-    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.Compilers.json" />
+    <MergeManifest Include="$(OutputPath)\Microsoft.CodeAnalysis.Compilers.json" />
   </ItemGroup>
 
   <Target Name="ValidateManifest" />

@@ -75,6 +75,11 @@ function Copy-InsertionItems() {
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\VisualStudioSetup.Next\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
         "Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix",
+        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsix",
+        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsman",
+        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.vsmand",
+        "Vsix\CodeAnalysisCompilers\Microsoft.CodeAnalysis.Compilers.json")
+
 
     foreach ($item in $items) { 
         $itemPath = Join-Path $configDir $item
