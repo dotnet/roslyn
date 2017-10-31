@@ -49,81 +49,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // starting listening.
             NamedPipeServerStream pipeStream = ConstructPipe(_pipeName);
 
-            // Unfortunately the version of .Net we are using doesn't support the WaitForConnectionAsync
-            // method.  When it is available it should absolutely be used here.  In the meantime we
-            // have to deal with the idea that this WaitForConnection call will block a thread
-            // for a significant period of time.  It is unadvisable to do this to a thread pool thread 
-            // hence we will use an explicit thread here.
-            var listenSource = new TaskCompletionSource<NamedPipeServerStream>();
-            var listenTask = listenSource.Task;
-            var listenThread = new Thread(() =>
+            CompilerServerLogger.Log("Waiting for new connection");
+            await pipeStream.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
+            CompilerServerLogger.Log("Pipe connection detected.");
+
+            if (Environment.Is64BitProcess || MemoryHelper.IsMemoryAvailable())
             {
-                try
-                {
-                    CompilerServerLogger.Log("Waiting for new connection");
-                    pipeStream.WaitForConnection();
-                    CompilerServerLogger.Log("Pipe connection detected.");
-
-                    if (Environment.Is64BitProcess || MemoryHelper.IsMemoryAvailable())
-                    {
-                        CompilerServerLogger.Log("Memory available - accepting connection");
-                        listenSource.SetResult(pipeStream);
-                        return;
-                    }
-
-                    listenSource.SetException(new Exception("Insufficient resources to process new connection."));
-                }
-                catch (Exception ex)
-                {
-                    listenSource.SetException(ex);
-                }
-
-                // If the task didn't complete for whatever reason ensure that we did close out the 
-                // named pipe so the client can continue processing locally.
-                if (listenSource.Task.Status != TaskStatus.RanToCompletion)
-                {
-                    if (pipeStream.IsConnected)
-                    {
-                        try
-                        {
-                            pipeStream.Close();
-                        }
-                        catch
-                        {
-                            // Okay for Close failure here
-                        }
-                    }
-                }
-            });
-            // Why IsBackground is set: https://github.com/dotnet/corefx/issues/24973
-            listenThread.IsBackground = true;
-            listenThread.Start();
-
-            // Create a tasks that waits indefinitely (-1) and completes only when cancelled.
-            var waitCancellationTokenSource = new CancellationTokenSource();
-            var waitTask = Task.Delay(
-                Timeout.Infinite,
-                CancellationTokenSource.CreateLinkedTokenSource(waitCancellationTokenSource.Token, cancellationToken).Token);
-            await Task.WhenAny(listenTask, waitTask).ConfigureAwait(false);
-            if (listenTask.IsCompleted)
-            {
-                waitCancellationTokenSource.Cancel();
-                return await listenTask.ConfigureAwait(false);
+                CompilerServerLogger.Log("Memory available - accepting connection");
+                return pipeStream;
             }
 
-            // The listen operation was cancelled.  Close the pipe stream throw a cancellation exception to
-            // simulate the cancel operation.
-            waitCancellationTokenSource.Cancel();
-            try
-            {
-                pipeStream.Close();
-            }
-            catch
-            {
-                // Okay for Close failure here.
-            }
-
-            throw new OperationCanceledException();
+            pipeStream.Close();
+            throw new Exception("Insufficient resources to process new connection.");
         }
 
         /// <summary>
