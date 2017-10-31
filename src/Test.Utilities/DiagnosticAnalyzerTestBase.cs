@@ -357,12 +357,6 @@ namespace Test.Utilities
                 .WithProjectCompilationOptions(projectId, options)
                 .GetProject(projectId);
 
-#if !USE_INTERNAL_IOPERATION_APIS
-            // Enable IOperation Feature on the project
-            var parseOptions = project.ParseOptions.WithFeatures(project.ParseOptions.Features.Concat(SpecializedCollections.SingletonEnumerable(KeyValuePair.Create("IOperation", "true"))));
-            project = project.WithParseOptions(parseOptions);
-#endif
-
             if (addLanguageSpecificCodeAnalysisReference)
             {
                 MetadataReference symbolsReference = language == LanguageNames.CSharp ? s_csharpSymbolsReference : s_visualBasicSymbolsReference;
