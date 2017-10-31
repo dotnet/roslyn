@@ -28,12 +28,13 @@ namespace Microsoft.CodeAnalysis.Operations
             return new VariableInitializer(initializerValue, semanticModel, syntax, type: null, constantValue: default, isImplicit: isImplicit);
         }
 
-        public static IConditionalOperation CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
+        public static IConditionalOperation CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, bool isRef, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
             return new ConditionalOperation(
                 condition,
                 whenTrue,
                 whenFalse,
+                isRef,
                 semanticModel,
                 syntax,
                 resultType,
@@ -41,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit);
         }
 
-        public static IExpressionStatementOperation CreateSimpleAssignmentExpressionStatement(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
+        public static IExpressionStatementOperation CreateSimpleAssignmentExpressionStatement(IOperation target, bool isRef, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            var expression = new SimpleAssignmentExpression(target, value, semanticModel, syntax, target.Type, default(Optional<object>), isImplicit);
+            var expression = new SimpleAssignmentExpression(target, isRef, value, semanticModel, syntax, target.Type, default(Optional<object>), isImplicit);
             return new ExpressionStatement(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
 
