@@ -290,22 +290,31 @@ namespace Microsoft.CodeAnalysis.Execution
                 return;
             }
 
-            if (metadata is AssemblyMetadata assemblyMetadata)
+            try
             {
-                writer.WriteInt32((int)assemblyMetadata.Kind);
-
-                var modules = assemblyMetadata.GetModules();
-                writer.WriteInt32(modules.Length);
-
-                foreach (var module in modules)
+                if (metadata is AssemblyMetadata assemblyMetadata)
                 {
-                    WriteMvidTo(module, writer, cancellationToken);
+                    writer.WriteInt32((int)assemblyMetadata.Kind);
+
+                    var modules = assemblyMetadata.GetModules();
+                    writer.WriteInt32(modules.Length);
+
+                    foreach (var module in modules)
+                    {
+                        WriteMvidTo(module, writer, cancellationToken);
+                    }
+
+                    return;
                 }
 
+                WriteMvidTo((ModuleMetadata)metadata, writer, cancellationToken);
+            }
+            catch (Exception e) when (e is BadImageFormatException || e is IOException)
+            {
+                // Handle error cases where we can't read the metadata or a PE image format is 
+                // invalid.
                 return;
             }
-
-            WriteMvidTo((ModuleMetadata)metadata, writer, cancellationToken);
         }
 
         private void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
