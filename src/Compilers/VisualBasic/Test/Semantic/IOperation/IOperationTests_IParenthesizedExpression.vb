@@ -1,6 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -21,13 +21,13 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
   Operand: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
       Left: 
-        IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
       Right: 
-        IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -46,11 +46,11 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
   Left: 
-    IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
   Right: 
-    IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -69,15 +69,15 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return (a + b)')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return (a + b)')
   ReturnedValue: 
-    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
       Operand: 
-        IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
           Left: 
-            IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -96,19 +96,19 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '((a + b) * c)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '((a + b) * c)')
   Operand: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '(a + b) * c')
+    IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a + b) * c')
       Left: 
-        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
           Operand: 
-            IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
               Left: 
-                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
               Right: 
-                IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
       Right: 
-        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'c')
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -127,17 +127,17 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(((a + b)))')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(((a + b)))')
   Operand: 
-    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '((a + b))')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '((a + b))')
       Operand: 
-        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
           Operand: 
-            IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
               Left: 
-                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
               Right: 
-                IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -156,13 +156,13 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
   Operand: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
       Left: 
-        IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
       Right: 
-        IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -181,11 +181,11 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
   Left: 
-    IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
   Right: 
-    IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -204,13 +204,13 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
   Operand: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
       Left: 
-        IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
       Right: 
-        IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -229,18 +229,18 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return (a + b)')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return (a + b)')
   ReturnedValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: '(a + b)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: '(a + b)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
           Operand: 
-            IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
               Left: 
-                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
               Right: 
-                IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -259,9 +259,9 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32, Constant: 5) (Syntax: '(5)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32, Constant: 5) (Syntax: '(5)')
   Operand: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -348,22 +348,22 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Action) (Syntax: '(Sub() Syst ... riteLine())')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '(Sub() Syst ... riteLine())')
   Operand: 
-    IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
       Target: 
-        IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Syste ... WriteLine()')
-          IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... WriteLine()')
+        IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Syste ... WriteLine()')
+          IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... WriteLine()')
               Expression: 
-                IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... WriteLine()')
+                IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... WriteLine()')
                   Instance Receiver: 
                     null
                   Arguments(0)
-            ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+            ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
               Statement: 
                 null
-            IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
               ReturnedValue: 
                 null
 ]]>.Value
@@ -384,24 +384,24 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return (Sub ... riteLine())')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return (Sub ... riteLine())')
   ReturnedValue: 
-    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Action) (Syntax: '(Sub() Syst ... riteLine())')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Action) (Syntax: '(Sub() Syst ... riteLine())')
       Operand: 
-        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
           Target: 
-            IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Syste ... WriteLine()')
-              IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
-                IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... WriteLine()')
+            IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() Syste ... WriteLine()')
+              IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... WriteLine()')
                   Expression: 
-                    IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... WriteLine()')
+                    IInvocationOperation (Sub System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... WriteLine()')
                       Instance Receiver: 
                         null
                       Arguments(0)
-                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
                   Statement: 
                     null
-                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
                   ReturnedValue: 
                     null
 ]]>.Value
@@ -424,11 +424,11 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(-r)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(-r)')
   Operand: 
-    IUnaryOperatorExpression (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-r')
+    IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-r')
       Operand: 
-        IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'r')
+        IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -447,9 +447,9 @@ Class P
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid) (Syntax: '(a)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: ?, IsInvalid) (Syntax: '(a)')
   Operand: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'a')
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a')
       Children(0)
 ]]>.Value
 

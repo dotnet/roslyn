@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
             => InitializeParameterHelpers.GetBody(containingMember);
 
-        protected override SyntaxNode TryGetLastStatement(IBlockStatement blockStatementOpt)
+        protected override SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
             => InitializeParameterHelpers.TryGetLastStatement(blockStatementOpt);
 
         protected override void InsertStatement(SyntaxEditor editor, BaseMethodDeclarationSyntax methodDeclaration, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)

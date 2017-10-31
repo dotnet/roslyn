@@ -3,7 +3,7 @@
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
@@ -27,13 +27,13 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
   Operand: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
       Left: 
-        IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
       Right: 
-        IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -54,11 +54,11 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
   Left: 
-    IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
   Right: 
-    IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -79,15 +79,15 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return (a + b);')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (a + b);')
   ReturnedValue: 
-    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
       Operand: 
-        IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
           Left: 
-            IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -108,15 +108,15 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '((a + b))')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '((a + b))')
   Operand: 
-    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
       Operand: 
-        IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
           Left: 
-            IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
-            IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -137,19 +137,19 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '((a + b) * c)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '((a + b) * c)')
   Operand: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '(a + b) * c')
+    IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a + b) * c')
       Left: 
-        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
           Operand: 
-            IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
               Left: 
-                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
               Right: 
-                IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
       Right: 
-        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'c')
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -170,17 +170,17 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(((a + b)))')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(((a + b)))')
   Operand: 
-    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '((a + b))')
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '((a + b))')
       Operand: 
-        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
           Operand: 
-            IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
               Left: 
-                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
               Right: 
-                IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -201,13 +201,13 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
   Operand: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
       Left: 
-        IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
       Right: 
-        IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -228,11 +228,11 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
   Left: 
-    IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
   Right: 
-    IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -253,13 +253,13 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
   Operand: 
-    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
       Left: 
-        IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
       Right: 
-        IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -280,18 +280,18 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return (a + b);')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (a + b);')
   ReturnedValue: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
           Operand: 
-            IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
               Left: 
-                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
               Right: 
-                IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -312,9 +312,9 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32, Constant: 5) (Syntax: '(5)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32, Constant: 5) (Syntax: '(5)')
   Operand: 
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -337,11 +337,11 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(-r)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(-r)')
   Operand: 
-    IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-r')
+    IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-r')
       Operand: 
-        IOperation:  (OperationKind.None) (Syntax: 'r')
+        IOperation:  (OperationKind.None, Type: null) (Syntax: 'r')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -362,9 +362,9 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid) (Syntax: '(a)')
+IParenthesizedOperation (OperationKind.Parenthesized, Type: ?, IsInvalid) (Syntax: '(a)')
   Operand: 
-    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'a')
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a')
       Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

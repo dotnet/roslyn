@@ -27,10 +27,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
   Elements(2):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -54,15 +54,15 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, int) t = (1, 2);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, 2)')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: '(int, int) t = (1, 2);')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 't = (1, 2)')
     Variables: Local_1: (System.Int32, System.Int32) t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, 2)')
-        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
+        ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
           Elements(2):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -86,16 +86,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
+ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
   Elements(2):
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -119,24 +119,24 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, uint) t = (1, 2);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, 2)')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: '(uint, uint) t = (1, 2);')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 't = (1, 2)')
     Variables: Local_1: (System.UInt32, System.UInt32) t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, 2)')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32), IsImplicit) (Syntax: '(1, 2)')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.UInt32, System.UInt32), IsImplicit) (Syntax: '(1, 2)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
+            ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
               Elements(2):
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -162,16 +162,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 a, System.Int64 b)) (Syntax: '(a, b)')
+ITupleOperation (OperationKind.Tuple, Type: (System.Int64 a, System.Int64 b)) (Syntax: '(a, b)')
   Elements(2):
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'a')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'b')
+          ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'b')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+          ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -197,24 +197,24 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(long, long) t = (a, b);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (a, b)')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: '(long, long) t = (a, b);')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 't = (a, b)')
     Variables: Local_1: (System.Int64, System.Int64) t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (a, b)')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int64, System.Int64), IsImplicit) (Syntax: '(a, b)')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (a, b)')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int64, System.Int64), IsImplicit) (Syntax: '(a, b)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 a, System.Int64 b)) (Syntax: '(a, b)')
+            ITupleOperation (OperationKind.Tuple, Type: (System.Int64 a, System.Int64 b)) (Syntax: '(a, b)')
               Elements(2):
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'a')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'b')
+                      ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'b')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+                      ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -238,16 +238,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, null)')
+ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.String)) (Syntax: '(1, null)')
   Elements(2):
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -271,24 +271,24 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, stri ...  (1, null);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, null)')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: '(uint, stri ...  (1, null);')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 't = (1, null)')
     Variables: Local_1: (System.UInt32, System.String) t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, null)')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String), IsImplicit) (Syntax: '(1, null)')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, null)')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.UInt32, System.String), IsImplicit) (Syntax: '(1, null)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, null)')
+            ITupleOperation (OperationKind.Tuple, Type: (System.UInt32, System.String)) (Syntax: '(1, null)')
               Elements(2):
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 1, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -312,10 +312,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 A, System.Int32 B)) (Syntax: '(A: 1, B: 2)')
+ITupleOperation (OperationKind.Tuple, Type: (System.Int32 A, System.Int32 B)) (Syntax: '(A: 1, B: 2)')
   Elements(2):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -339,15 +339,15 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var t = (A: 1, B: 2);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (A: 1, B: 2)')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'var t = (A: 1, B: 2);')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 't = (A: 1, B: 2)')
     Variables: Local_1: (System.Int32 A, System.Int32 B) t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (A: 1, B: 2)')
-        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 A, System.Int32 B)) (Syntax: '(A: 1, B: 2)')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (A: 1, B: 2)')
+        ITupleOperation (OperationKind.Tuple, Type: (System.Int32 A, System.Int32 B)) (Syntax: '(A: 1, B: 2)')
           Elements(2):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -371,10 +371,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
   Elements(2):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -398,18 +398,18 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int A, int ... t = (1, 2);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, 2)')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: '(int A, int ... t = (1, 2);')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 't = (1, 2)')
     Variables: Local_1: (System.Int32 A, System.Int32 B) t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, 2)')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 A, System.Int32 B), IsImplicit) (Syntax: '(1, 2)')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 A, System.Int32 B), IsImplicit) (Syntax: '(1, 2)')
           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
+            ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
               Elements(2):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -433,16 +433,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16 A, System.String B)) (Syntax: '(A: 1, B: null)')
+ITupleOperation (OperationKind.Tuple, Type: (System.Int16 A, System.String B)) (Syntax: '(A: 1, B: null)')
   Elements(2):
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 1, IsImplicit) (Syntax: '1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, Constant: 1, IsImplicit) (Syntax: '1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8123: The tuple element name 'A' is ignored because a different name or no name is specified by the target type '(short, string)'.
@@ -473,24 +473,24 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ... , B: null);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (A: 1, B: null)')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: '(short, str ... , B: null);')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 't = (A: 1, B: null)')
     Variables: Local_1: (System.Int16, System.String) t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (A: 1, B: null)')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(A: 1, B: null)')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (A: 1, B: null)')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(A: 1, B: null)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16 A, System.String B)) (Syntax: '(A: 1, B: null)')
+            ITupleOperation (OperationKind.Tuple, Type: (System.Int16 A, System.String B)) (Syntax: '(A: 1, B: null)')
               Elements(2):
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 1, IsImplicit) (Syntax: '1')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, Constant: 1, IsImplicit) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8123: The tuple element name 'A' is ignored because a different name or no name is specified by the target type '(short, string)'.
@@ -542,23 +542,23 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, System.String c1)) (Syntax: '(new C(0), c1)')
+ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1)) (Syntax: '(new C(0), c1)')
   Elements(2):
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.Int16 C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.Int16, IsImplicit) (Syntax: 'new C(0)')
+      IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int16 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'new C(0)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int16 C.op_Implicit(C c))
         Operand: 
-          IObjectCreationExpression (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C(0)')
+          IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(0)')
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Initializer: 
               null
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'c1')
+      IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String C.op_Implicit(C c))
         Operand: 
-          IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
+          IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -603,31 +603,31 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ...  C(0), c1);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (new C(0), c1)')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: '(short, str ...  C(0), c1);')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 't = (new C(0), c1)')
     Variables: Local_1: (System.Int16, System.String) t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (new C(0), c1)')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(new C(0), c1)')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (new C(0), c1)')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsImplicit) (Syntax: '(new C(0), c1)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, System.String c1)) (Syntax: '(new C(0), c1)')
+            ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1)) (Syntax: '(new C(0), c1)')
               Elements(2):
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.Int16 C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.Int16, IsImplicit) (Syntax: 'new C(0)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int16 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'new C(0)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int16 C.op_Implicit(C c))
                     Operand: 
-                      IObjectCreationExpression (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C(0)')
+                      IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(0)')
                         Arguments(1):
-                            IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-                              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Initializer: 
                           null
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'c1')
+                  IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String C.op_Implicit(C c))
                     Operand: 
-                      IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
+                      IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -667,13 +667,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.String)) (Syntax: '(0, null)')
+ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String)) (Syntax: '(0, null)')
   Elements(2):
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -713,24 +713,24 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C t = (0, null);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (0, null)')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'C t = (0, null);')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 't = (0, null)')
     Variables: Local_1: C t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (0, null)')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C C.op_Implicit((System.Int32, System.String) x)) (OperationKind.ConversionExpression, Type: C, IsImplicit) (Syntax: '(0, null)')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (0, null)')
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: C C.op_Implicit((System.Int32, System.String) x)) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: '(0, null)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C C.op_Implicit((System.Int32, System.String) x))
           Operand: 
-            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.String), IsImplicit) (Syntax: '(0, null)')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, System.String), IsImplicit) (Syntax: '(0, null)')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.String)) (Syntax: '(0, null)')
+                ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String)) (Syntax: '(0, null)')
                   Elements(2):
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -770,7 +770,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
+IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -810,15 +810,15 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, string) t = c1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = c1')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: '(int, string) t = c1;')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 't = c1')
     Variables: Local_1: (System.Int32, System.String) t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= c1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: (System.Int32, System.String) C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: (System.Int32, System.String), IsImplicit) (Syntax: 'c1')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= c1')
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: (System.Int32, System.String) C.op_Implicit(C c)) (OperationKind.Conversion, Type: (System.Int32, System.String), IsImplicit) (Syntax: 'c1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: (System.Int32, System.String) C.op_Implicit(C c))
           Operand: 
-            IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -863,26 +863,26 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, System.String c1), IsInvalid) (Syntax: '(new C(0), c1)')
+ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1), IsInvalid) (Syntax: '(new C(0), c1)')
   Elements(2):
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.Int32 C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
+          IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C.op_Implicit(C c))
             Operand: 
-              IObjectCreationExpression (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C(0)')
+              IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C(0)')
                 Arguments(1):
-                    IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32, IsInvalid) (Syntax: '0')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Initializer: 
                   null
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'c1')
+      IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String C.op_Implicit(C c))
         Operand: 
-          IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
+          IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C' to 'short'
@@ -931,34 +931,34 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: '(short, str ...  C(0), c1);')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 't = (new C(0), c1)')
+IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: '(short, str ...  C(0), c1);')
+  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 't = (new C(0), c1)')
     Variables: Local_1: (System.Int16, System.String) t
     Initializer: 
-      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (new C(0), c1)')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int16, System.String), IsInvalid, IsImplicit) (Syntax: '(new C(0), c1)')
+      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (new C(0), c1)')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int16, System.String), IsInvalid, IsImplicit) (Syntax: '(new C(0), c1)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, System.String c1), IsInvalid) (Syntax: '(new C(0), c1)')
+            ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1), IsInvalid) (Syntax: '(new C(0), c1)')
               Elements(2):
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.Int32 C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
+                      IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new C(0)')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C.op_Implicit(C c))
                         Operand: 
-                          IObjectCreationExpression (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C(0)')
+                          IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C(0)')
                             Arguments(1):
-                                IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: '0')
-                                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32, IsInvalid) (Syntax: '0')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
                                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Initializer: 
                               null
-                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'c1')
+                  IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.String C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'c1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String C.op_Implicit(C c))
                     Operand: 
-                      IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
+                      IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C' to 'short'
@@ -1001,22 +1001,22 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)  ... Point(0, 1)')
+IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)  ... Point(0, 1)')
   Left: 
-    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
-      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
+      ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
         Elements(2):
-            ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+            ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+            ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
   Right: 
-    IObjectCreationExpression (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreationExpression, Type: Point) (Syntax: 'new Point(0, 1)')
+    IObjectCreationOperation (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreation, Type: Point) (Syntax: 'new Point(0, 1)')
       Arguments(2):
-          IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '1')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Initializer: 
@@ -1061,39 +1061,39 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
+IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
   Locals: Local_1: System.UInt32 x
     Local_2: System.UInt32 y
   LoopControlVariable: 
-    IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: 'var (x, y)')
-      ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(x, y)')
+    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: 'var (x, y)')
+      ITupleOperation (OperationKind.Tuple, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(x, y)')
         Elements(2):
-            ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'x')
-            ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'y')
+            ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.UInt32) (Syntax: 'x')
+            ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.UInt32) (Syntax: 'y')
   Collection: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'new Point[] ... int(0, 1) }')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'new Point[] ... int(0, 1) }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')
+        IArrayCreationOperation (OperationKind.ArrayCreation, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new Point[] ... int(0, 1) }')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new Point[] ... int(0, 1) }')
           Initializer: 
-            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ new Point(0, 1) }')
+            IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ new Point(0, 1) }')
               Element Values(1):
-                  IObjectCreationExpression (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreationExpression, Type: Point) (Syntax: 'new Point(0, 1)')
+                  IObjectCreationOperation (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreation, Type: Point) (Syntax: 'new Point(0, 1)')
                     Arguments(2):
-                        IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '1')
-                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Initializer: 
                       null
   Body: 
-    IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   NextVariables(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1133,23 +1133,23 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(uint x, ui ... Point(0, 1)')
+IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(uint x, ui ... Point(0, 1)')
   Left: 
-    ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(uint x, uint y)')
+    ITupleOperation (OperationKind.Tuple, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(uint x, uint y)')
       Elements(2):
-          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.UInt32) (Syntax: 'uint x')
-            ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'x')
-          IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.UInt32) (Syntax: 'uint y')
-            ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'y')
+          IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.UInt32) (Syntax: 'uint x')
+            ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.UInt32) (Syntax: 'x')
+          IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.UInt32) (Syntax: 'uint y')
+            ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.UInt32) (Syntax: 'y')
   Right: 
-    IObjectCreationExpression (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreationExpression, Type: Point) (Syntax: 'new Point(0, 1)')
+    IObjectCreationOperation (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreation, Type: Point) (Syntax: 'new Point(0, 1)')
       Arguments(2):
-          IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '1')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Initializer: 
