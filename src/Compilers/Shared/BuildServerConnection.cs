@@ -495,6 +495,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 else
                 {
                     // TODO(ashauck)
+                    // NamedPipeServerStream exposes GetImpersonationUserName,
+                    // which the underlying linux APIs exist for client streams too,
+                    // but it's not exposed.
                     return true;
                 }
             }
@@ -603,6 +606,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // (it uses ${TMPDIR} if set, otherwise, it returns /tmp)
                 return Path.GetTempPath();
             }
+
             var tmp = Environment.GetEnvironmentVariable("TMP");
             if (Path.IsPathRooted(tmp))
             {

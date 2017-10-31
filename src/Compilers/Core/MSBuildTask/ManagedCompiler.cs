@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // we can use our own csc.
         private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);
 
-        protected override bool IsManagedTask => !HasToolBeenOverridden;
+        protected sealed override bool IsManagedTool => !HasToolBeenOverridden;
 
         /// <summary>
         /// Method for testing only
@@ -473,13 +473,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         workingDir: workingDir,
                         tempDir: BuildServerConnection.GetTempPath(workingDir));
 
-                    // Note: using CommandLineArguments here (the property) since
+                    // Note: using ToolArguments here (the property) since
                     // commandLineCommands (the parameter) may have been mucked with
                     // (to support using the dotnet cli)
                     var responseTask = BuildServerConnection.RunServerCompilation(
                         Language,
                         string.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
-                        GetArguments(CommandLineArguments, responseFileCommands).ToList(),
+                        GetArguments(ToolArguments, responseFileCommands).ToList(),
                         buildPaths,
                         keepAlive: null,
                         libEnvVariable: LibDirectoryToUse(),
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return GenerateCommandLineCommands();
         }
 
-        protected sealed override string CommandLineArguments
+        protected sealed override string ToolArguments
         {
             get
             {

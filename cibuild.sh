@@ -135,4 +135,4 @@ then
 fi
 
 echo "Killing VBCSCompiler"
-dotnet exec "${BOOTSTRAP_PATH}"/bincore/VBCSCompiler.dll -shutdown
+dotnet "${BOOTSTRAP_PATH}"/bincore/VBCSCompiler.dll -shutdown

@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // See ManagedCompiler.cs on the logic of this property
         private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);
 
-        protected override bool IsManagedTask => !HasToolBeenOverridden;
+        protected sealed override bool IsManagedTool => !HasToolBeenOverridden;
 
         protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public string GenerateCommandLineContents() => GenerateCommandLineCommands();
 
-        protected sealed override string CommandLineArguments
+        protected sealed override string ToolArguments
         {
             get
             {

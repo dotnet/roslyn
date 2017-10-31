@@ -8,9 +8,6 @@
 
 # This is a function to keep variable assignments out of the parent script (that is sourcing this file)
 install_dotnet () {
-    set -e
-    set -u
-
     # Download and install `dotnet` locally
     local THIS_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     source "${THIS_DIR}"/build-utils.sh
