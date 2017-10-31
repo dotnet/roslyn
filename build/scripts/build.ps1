@@ -506,8 +506,6 @@ function Run-SignTool() {
     try {
 
         $signTool = Join-Path (Get-PackageDir "RoslynTools.Microsoft.SignTool") "tools\SignTool.exe"
-        # JTODO DELETE THIS
-        $signTool = "E:\code\roslyn-tools\artifacts\Debug\bin\SignTool\net461\SignTool.exe";
         $signToolArgs = "-msbuildPath `"$msbuild`""
         if (-not $official) {
             $signToolArgs += " -test"
