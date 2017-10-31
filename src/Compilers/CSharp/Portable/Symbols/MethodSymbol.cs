@@ -1162,18 +1162,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
+            var compilation = this.DeclaringCompilation;
             var type = this.ReturnType;
 
-            if (type.TypeSymbol.ContainsDynamic())
+            if (type.TypeSymbol.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
             {
-                var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
-            if (type.TypeSymbol.ContainsTupleNames())
+            if (type.TypeSymbol.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
             {
-                AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
             if (type.ContainsNullableReferenceTypes())
