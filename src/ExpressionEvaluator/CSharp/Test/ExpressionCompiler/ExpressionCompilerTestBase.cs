@@ -386,9 +386,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
         }
         
-        internal static void CheckAttribute(AssemblyMetadata assembly, IMethodSymbol method, AttributeDescription description, bool expected)
+        internal static void CheckAttribute(IEnumerable<byte> assembly, IMethodSymbol method, AttributeDescription description, bool expected)
         {
-            var module = assembly.GetModules().Single().Module;
+            var module = AssemblyMetadata.CreateFromImage(assembly).GetModules().Single().Module;
 
             var typeHandle = module
                 .GroupTypesByNamespaceOrThrow(StringComparer.Ordinal)
@@ -404,20 +404,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             if (returnParamHandle.IsNil)
             {
                 Assert.False(expected);
-                return;
-            }
-
-            var attributes = module
-                .GetCustomAttributesOrThrow(returnParamHandle)
-                .Where(handle => module.GetTargetAttributeSignatureIndex(handle, description) != -1);
-
-            if (expected)
-            {
-                Assert.Equal(1, attributes.Count());
             }
             else
             {
-                Assert.Empty(attributes);
+                var attributes = module
+                    .GetCustomAttributesOrThrow(returnParamHandle)
+                    .Where(handle => module.GetTargetAttributeSignatureIndex(handle, description) != -1);
+
+                if (expected)
+                {
+                    Assert.Equal(1, attributes.Count());
+                }
+                else
+                {
+                    Assert.Empty(attributes);
+                }
             }
         }
     }

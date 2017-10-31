@@ -94,26 +94,21 @@ public struct Struct
 
 public delegate dynamic[] MyDelegate(dynamic[] x);
 ";
-        [Fact]
-        public void TestCompileDynamicAttributes()
-        {
-            CompileAndVerify(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, additionalRefs: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
-        }
 
         [Fact]
-        public void TestDynamicAttributesAreSynthesized()
+        public void TestCompileDynamicAttributes()
         {
             var comp = CreateCompilationWithMscorlibAndSystemCore(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                DynamicAttributeValidator.ValidateDynamicAttributes((PEModuleSymbol)module);
+                DynamicAttributeValidator.ValidateDynamicAttributes(module);
             });
         }
 
         internal struct DynamicAttributeValidator
         {
-            private readonly PEModuleSymbol _module;
+            private readonly ModuleSymbol _module;
             private readonly NamedTypeSymbol _base0Class, _base1Class, _base2Class, _derivedClass;
             private readonly NamedTypeSymbol _outerClass, _innerClass, _innerInnerClass;
             private readonly NamedTypeSymbol _outer2Class, _inner2Class, _innerInner2Class;
@@ -123,7 +118,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             private readonly NamedTypeSymbol _synthesizedMyDelegateType;
             private bool[] _expectedTransformFlags;
 
-            private DynamicAttributeValidator(PEModuleSymbol module)
+            private DynamicAttributeValidator(ModuleSymbol module)
             {
                 _module = module;
 
@@ -146,7 +141,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 _expectedTransformFlags = null;
             }
 
-            internal static void ValidateDynamicAttributes(PEModuleSymbol module)
+            internal static void ValidateDynamicAttributes(ModuleSymbol module)
             {
                 var validator = new DynamicAttributeValidator(module);
 
@@ -812,130 +807,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(33, 19)
                 );
         }
-
-        private static string GetNoCS1980String(string typeName)
-        {
-            const string noCS1980String = @"
-[Attr(typeof(%TYPENAME%))]            // No CS1980
-public class Gen<T>
-{
-  public object f = typeof(%TYPENAME%);  // No CS1980
-  public const object Const = null;
-
-  private void M([Attr(Gen<dynamic>.Const)]object param = Gen<dynamic>.Const)     // No CS1980
-  {
-    %TYPENAME% x = null;             // No CS1980
-    System.Console.WriteLine(x);
-    object y = typeof(%TYPENAME%);   // No CS1980
-  }
-}
-
-class Attr: System.Attribute
-{
-  public Attr(object x) {}
-}
-";
-            return noCS1980String.Replace("%TYPENAME%", typeName);
-        }
-
-        [Fact]
-        public void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute()
-        {
-            // Regular mode
-            TestNoCS1980WhenNotInContextWhichNeedsDynamicAttributeHelper(parseOptions: TestOptions.Regular);
-
-            // Script
-            TestNoCS1980WhenNotInContextWhichNeedsDynamicAttributeHelper(parseOptions: TestOptions.Script);
-        }
-
-        private void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttributeHelper(CSharpParseOptions parseOptions)
-        {
-            var source = GetNoCS1980String(typeName: @"dynamic");
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: parseOptions);
-            comp.VerifyDiagnostics(
-                // (2,7): error CS1962: The typeof operator cannot be used on the dynamic type
-                // [Attr(typeof(dynamic))]            // No CS1980
-                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(2, 7),
-                // (5,21): error CS1962: The typeof operator cannot be used on the dynamic type
-                //   public object f = typeof(dynamic);  // No CS1980
-                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(5, 21),
-                // (12,16): error CS1962: The typeof operator cannot be used on the dynamic type
-                //     object y = typeof(dynamic);   // No CS1980
-                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(12, 16)
-                );
-
-            source = GetNoCS1980String(typeName: @"Gen<dynamic>");
-            comp = CreateCompilationWithMscorlib45(source, parseOptions: parseOptions);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp);
-        }
-
-        [Fact]
-        public void TestDynamicAttributeInAliasContext()
-        {
-            // Regular mode
-            TestDynamicAttributeInAliasContextHelper(parseOptions: TestOptions.Regular);
-
-            // Script
-            TestDynamicAttributeInAliasContextHelper(parseOptions: TestOptions.Script);
-        }
-
-        private void TestDynamicAttributeInAliasContextHelper(CSharpParseOptions parseOptions)
-        {
-            // Dynamic type in Alias target
-            string aliasDecl = @"using X = Gen<dynamic>;     // No CS1980";
-
-            // NO ERROR CASES
-            string source = aliasDecl + GetNoCS1980String(typeName: "X");
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: parseOptions);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp);
-
-            // ERROR CASES
-            string source2 = source + @"
-public class Gen2<T> : X    // CS1980
-{
-  public X field = null;   // CS1980
-
-  private X Method(X param) // CS1980, CS1980
-  {
-     return param;
-  }
-
-  private X Prop { get; set; } // CS1980
-
-  private X this[X param]   // CS1980, CS1980
-  {
-    get { return null; }
-    set {}
-  }
-}";
-            comp = CreateCompilationWithMscorlib45(source2, parseOptions: parseOptions);
-            comp.VerifyDiagnostics(
-                // (21,24): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
-                // public class Gen2<T> : X    // CS1980
-                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(21, 24),
-                // (25,20): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
-                //   private X Method(X param) // CS1980, CS1980
-                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(25, 20),
-                // (25,11): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
-                //   private X Method(X param) // CS1980, CS1980
-                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(25, 11),
-                // (30,11): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
-                //   private X Prop { get; set; } // CS1980
-                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(30, 11),
-                // (32,18): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
-                //   private X this[X param]   // CS1980, CS1980
-                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(32, 18),
-                // (32,11): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
-                //   private X this[X param]   // CS1980, CS1980
-                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(32, 11),
-                // (23,10): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
-                //   public X field = null;   // CS1980
-                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(23, 10)
-                );
-        }
-
+        
         [Fact]
         public void TestDynamicAttributeForScript_Field()
         {
@@ -1035,30 +907,7 @@ Gen<dynamic> x = null;";
                 // X x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
         }
-
-        [Fact]
-        public void TestDynamicAttributeForSubmissionGlobalStatement()
-        {
-            // Script
-            TestDynamicAttributeForSubmissionGlobalStatementHelper(parseOptions: TestOptions.Script);
-        }
-
-        private void TestDynamicAttributeForSubmissionGlobalStatementHelper(CSharpParseOptions parseOptions)
-        {
-            // Ensure no CS1980 for use of dynamic in global statement
-            string aliasDecl = @"using X = Gen<dynamic>;     // No CS1980";
-            string source = GetNoCS1980String(typeName: @"Gen<dynamic>");
-            string source2 = aliasDecl + source + @"
-System.Console.WriteLine(typeof(dynamic));
-System.Console.WriteLine(typeof(Gen<dynamic>));
-System.Console.WriteLine(typeof(X));";
-            var comp = CreateCompilationWithMscorlib45(source2, parseOptions: parseOptions);
-            comp.VerifyDiagnostics(
-                // (20,26): error CS1962: The typeof operator cannot be used on the dynamic type
-                // System.Console.WriteLine(typeof(dynamic));
-                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)"));
-        }
-
+        
         [Fact, WorkItem(531108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531108")]
         public void DynamicAttributeCtorCS1980BreakingChange()
         {
@@ -1393,6 +1242,142 @@ class C
                     "d",
                     ".field [System.Runtime.CompilerServices.DynamicAttribute()] public instance System.Object d")
             });
+        }
+
+        [Theory]
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        public void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute(SourceCodeKind sourceCodeKind)
+        {
+            CompileAndVerify(CreateCompilationWithMscorlib45(
+                source: GetNoCS1980String(typeName: @"Gen<dynamic>"),
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)));
+        }
+
+        [Theory]
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        public void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute_Errors(SourceCodeKind sourceCodeKind)
+        {
+            var comp = CreateCompilationWithMscorlib45(
+                source: GetNoCS1980String(typeName: @"dynamic"),
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest));
+
+            comp.VerifyDiagnostics(
+                // (2,7): error CS1962: The typeof operator cannot be used on the dynamic type
+                // [Attr(typeof(dynamic))]            // No CS1980
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(2, 7),
+                // (5,21): error CS1962: The typeof operator cannot be used on the dynamic type
+                //   public object f = typeof(dynamic);  // No CS1980
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(5, 21),
+                // (12,16): error CS1962: The typeof operator cannot be used on the dynamic type
+                //     object y = typeof(dynamic);   // No CS1980
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(12, 16));
+        }
+
+        [Fact]
+        public void TestDynamicAttributeForSubmissionGlobalStatement()
+        {
+            string source =
+                "using X = Gen<dynamic>;     // No CS1980"
+                + GetNoCS1980String(typeName: @"Gen<dynamic>")
+                + "System.Console.WriteLine(typeof(dynamic));"
+                + "System.Console.WriteLine(typeof(Gen<dynamic>));"
+                + "System.Console.WriteLine(typeof(X));";
+
+            CreateCompilationWithMscorlib45(source: source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (20,26): error CS1962: The typeof operator cannot be used on the dynamic type
+                // System.Console.WriteLine(typeof(dynamic));
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)"));
+        }
+
+        [Theory]
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        public void TestDynamicAttributeInAliasContext(SourceCodeKind sourceCodeKind)
+        {
+            string source =
+                "using X = Gen<dynamic>;     // No CS1980" 
+                + GetNoCS1980String(typeName: "X");
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(
+                source: source,
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)));
+        }
+
+        [Theory]
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        public void TestDynamicAttributeInAliasContext_Errors(SourceCodeKind sourceCodeKind)
+        {
+            string source =
+                "using X = Gen<dynamic>;     // No CS1980"
+                + GetNoCS1980String(typeName: "X") + @"
+public class Gen2<T> : X    // CS1980
+{
+  public X field = null;   // CS1980
+
+  private X Method(X param) // CS1980, CS1980
+  {
+     return param;
+  }
+
+  private X Prop { get; set; } // CS1980
+
+  private X this[X param]   // CS1980, CS1980
+  {
+    get { return null; }
+    set {}
+  }
+}";
+
+            CreateCompilationWithMscorlib45(source: source, parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)).VerifyDiagnostics(
+                // (21,24): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // public class Gen2<T> : X    // CS1980
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(21, 24),
+                // (25,20): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                //   private X Method(X param) // CS1980, CS1980
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(25, 20),
+                // (25,11): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                //   private X Method(X param) // CS1980, CS1980
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(25, 11),
+                // (30,11): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                //   private X Prop { get; set; } // CS1980
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(30, 11),
+                // (32,18): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                //   private X this[X param]   // CS1980, CS1980
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(32, 18),
+                // (32,11): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                //   private X this[X param]   // CS1980, CS1980
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(32, 11),
+                // (23,10): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                //   public X field = null;   // CS1980
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(23, 10));
+        }
+
+        private static string GetNoCS1980String(string typeName)
+        {
+            const string noCS1980String = @"
+[Attr(typeof(%TYPENAME%))]            // No CS1980
+public class Gen<T>
+{
+  public object f = typeof(%TYPENAME%);  // No CS1980
+  public const object Const = null;
+
+  private void M([Attr(Gen<dynamic>.Const)]object param = Gen<dynamic>.Const)     // No CS1980
+  {
+    %TYPENAME% x = null;             // No CS1980
+    System.Console.WriteLine(x);
+    object y = typeof(%TYPENAME%);   // No CS1980
+  }
+}
+
+class Attr: System.Attribute
+{
+  public Attr(object x) {}
+}
+";
+            return noCS1980String.Replace("%TYPENAME%", typeName);
         }
     }
 }

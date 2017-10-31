@@ -4749,7 +4749,7 @@ namespace AttributeTest
 
                 var useParamsMethod = (MethodSymbol)type.GetMember("UseParams");
                 var paramsParameter = useParamsMethod.Parameters[0];
-                VerifyParamArrayAttribute((PEParameterSymbol)paramsParameter);
+                VerifyParamArrayAttribute(paramsParameter);
 
                 var noParamsMethod = (MethodSymbol)type.GetMember("NoParams");
                 var noParamsParameter = noParamsMethod.Parameters[0];

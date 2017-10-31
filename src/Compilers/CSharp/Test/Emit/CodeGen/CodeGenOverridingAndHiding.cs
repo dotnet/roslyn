@@ -3985,7 +3985,7 @@ class B : A
                 Assert.Equal(ConstantValue.Null, parameterB.ExplicitDefaultConstantValue);
                 Assert.False(parameterB.IsOptional, "ParameterArray param cannot be optional");
 
-                WellKnownAttributesTestBase.VerifyParamArrayAttribute((PEParameterSymbol)parameterB);
+                WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB);
             };
 
             var verifier = CompileAndVerify(source, symbolValidator: validator, expectedOutput: @"System.Int32[]");

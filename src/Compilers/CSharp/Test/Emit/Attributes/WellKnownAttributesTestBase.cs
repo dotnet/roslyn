@@ -79,11 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal static void VerifyParamArrayAttribute(PEParameterSymbol parameter, bool expected = true)
+        internal static void VerifyParamArrayAttribute(ParameterSymbol parameter, bool expected = true)
         {
             Assert.Equal(expected, parameter.IsParams);
 
-            var allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(parameter.Handle);
+            var peParameter = (PEParameterSymbol)parameter;
+            var allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(peParameter.Handle);
             var paramArrayAttributes = allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.ParamArrayAttribute");
 
             if (expected)

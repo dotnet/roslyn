@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests : CompilingTestBase
+    public class AttributeTests : WellKnownAttributesTestBase
     {
         #region Function Tests
 
@@ -1165,7 +1165,7 @@ class C
                 Assert.Equal(1, parameters[1].GetAttributes(paramAttrType).Count());
 
                 // verify ParamArrayAttribute on p2
-                WellKnownAttributesTestBase.VerifyParamArrayAttribute((PEParameterSymbol)parameters[1]);
+                VerifyParamArrayAttribute(parameters[1]);
 
                 // Delegate Constructor: Doesn't have any parameter attributes
                 var ctor = (MethodSymbol)delegateType.GetMember(".ctor");
@@ -1186,7 +1186,7 @@ class C
                 Assert.Equal(0, parameters[3].GetAttributes(paramAttrType).Count());
 
                 // verify no ParamArrayAttribute on p2
-                WellKnownAttributesTestBase.VerifyParamArrayAttribute((PEParameterSymbol)parameters[1], expected: false);
+                VerifyParamArrayAttribute(parameters[1], expected: false);
             };
 
             CompileAndVerify(source, symbolValidator: symbolValidator);

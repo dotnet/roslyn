@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -27,17 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AttributeTests_Synthesized: WellKnownAttributesTestBase
     {
         #region Theory Data
-        public static IEnumerable<object[]> OutputKindTheoryData
-        {
-            get
-            {
-                foreach (var kind in Enum.GetValues(typeof(OutputKind)))
-                {
-                    yield return new object[] { kind };
-                }
-            }
-        }
-
         public static IEnumerable<object[]> OptimizationLevelTheoryData
         {
             get
@@ -1178,7 +1166,8 @@ public class Test
 
         #region UnverifiableCode, SecurityPermission
         [Theory]
-        [MemberData(nameof(OutputKindTheoryData))]
+        [InlineData(OutputKind.DynamicallyLinkedLibrary)]
+        [InlineData(OutputKind.NetModule)]
         public void CheckUnsafeAttributes(OutputKind outputKind)
         {
             string source = @"
