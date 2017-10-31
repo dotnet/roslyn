@@ -1045,7 +1045,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(x, x) = null')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x, x) = null')
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(x, x)')
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1078,7 +1078,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(x, x) = undeclared')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(x, x) = undeclared')
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(x, x)')
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1159,7 +1159,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Byte) (Syntax: 'x')
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.String) (Syntax: 'y')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Byte, System.String), IsInvalid, IsImplicit) (Syntax: '(1, 2)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Byte, System.String), IsInvalid, IsImplicit) (Syntax: '(1, 2)')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(1, 2)')
@@ -1979,7 +1979,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                 ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
                 ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'z')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, (System.Int32, System.Int32)), IsInvalid, IsImplicit) (Syntax: '(null, (null, null))')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, (System.Int32, System.Int32)), IsInvalid, IsImplicit) (Syntax: '(null, (null, null))')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: null, IsInvalid) (Syntax: '(null, (null, null))')
@@ -2438,7 +2438,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(int x1, int x2) = null')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2), IsInvalid) (Syntax: '(int x1, int x2) = null')
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x1, System.Int32 x2)) (Syntax: '(int x1, int x2)')
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
@@ -2472,10 +2472,11 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: 'var (x1, x2) = null')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = null')
-      Elements(2):
-          ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
-          ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
+    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
+      ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+        Elements(2):
+            ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
+            ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
   Right: 
     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 ";
@@ -2510,10 +2511,11 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: 'var (x1, x2) = (1, null)')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, null)')
-      Elements(2):
-          ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
-          ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
+    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2)')
+      ITupleOperation (OperationKind.Tuple, Type: (var x1, var x2), IsInvalid) (Syntax: '(x1, x2)')
+        Elements(2):
+            ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
+            ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(1, null)')
       Elements(2):
@@ -2548,7 +2550,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(string x1, ... ull), null)')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, (System.Byte x2, var x3), var x4), IsInvalid) (Syntax: '(string x1, ... ull), null)')
+    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, (System.Byte x2, var x3), var x4), IsInvalid) (Syntax: '(string x1, ... 3), var x4)')
       Elements(3):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String) (Syntax: 'string x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String) (Syntax: 'x1')
@@ -2598,7 +2600,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '((string x1 ... = (null, 4)')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: ((System.String x1, System.Byte x2, var x3), System.Int32 x4), IsInvalid) (Syntax: '((string x1 ... = (null, 4)')
+    ITupleOperation (OperationKind.Tuple, Type: ((System.String x1, System.Byte x2, var x3), System.Int32 x4), IsInvalid) (Syntax: '((string x1 ... 3), int x4)')
       Elements(2):
           ITupleOperation (OperationKind.Tuple, Type: (System.String x1, System.Byte x2, var x3), IsInvalid) (Syntax: '(string x1, ... x2, var x3)')
             Elements(3):
@@ -2644,7 +2646,7 @@ class C
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: System.Void, IsInvalid) (Syntax: '(string x1, ...  (null, 2))')
   Left: 
-    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, var x2), IsInvalid) (Syntax: '(string x1, ...  (null, 2))')
+    ITupleOperation (OperationKind.Tuple, Type: (System.String x1, var x2), IsInvalid) (Syntax: '(string x1, var x2)')
       Elements(2):
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String) (Syntax: 'string x1')
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String) (Syntax: 'x1')
@@ -2693,12 +2695,12 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int x3')
             ILocalReferenceOperation: x3 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x3')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.String), IsInvalid, IsImplicit) (Syntax: '(null, ""hello"")')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.String), IsInvalid, IsImplicit) (Syntax: '(null, ""hello"")')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.String, System.String), IsInvalid) (Syntax: '(null, ""hello"")')
           Elements(2):
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
@@ -2737,12 +2739,12 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.String, IsInvalid) (Syntax: 'var y1')
             ILocalReferenceOperation: y1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsInvalid) (Syntax: 'y1')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: '(null, ""hello"", 3)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: '(null, ""hello"", 3)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.String, System.String, System.Int32), IsInvalid) (Syntax: '(null, ""hello"", 3)')
           Elements(3):
-              IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
@@ -2787,7 +2789,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'x2')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, var), IsInvalid, IsImplicit) (Syntax: '(1, 2)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, var), IsInvalid, IsImplicit) (Syntax: '(1, 2)')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(1, 2)')
@@ -2837,7 +2839,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x3 (IsDeclaration: True) (OperationKind.LocalReference, Type: D, IsInvalid) (Syntax: 'x3')
             ILocalReferenceOperation: x4 (IsDeclaration: True) (OperationKind.LocalReference, Type: D, IsInvalid) (Syntax: 'x4')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (D, D), IsInvalid, IsImplicit) (Syntax: '(3, 4)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (D, D), IsInvalid, IsImplicit) (Syntax: '(3, 4)')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(3, 4)')
@@ -2929,7 +2931,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x2')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, var), IsInvalid, IsImplicit) (Syntax: '(1, x1)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, var), IsInvalid, IsImplicit) (Syntax: '(1, x1)')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, var x1), IsInvalid) (Syntax: '(1, x1)')
@@ -2971,7 +2973,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, System.Int32), IsInvalid, IsImplicit) (Syntax: '(x2, 2)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, System.Int32), IsInvalid, IsImplicit) (Syntax: '(x2, 2)')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (var x2, System.Int32), IsInvalid) (Syntax: '(x2, 2)')
@@ -3291,7 +3293,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x2')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, var), IsInvalid, IsImplicit) (Syntax: '(1, x1)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, var), IsInvalid, IsImplicit) (Syntax: '(1, x1)')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, var x1), IsInvalid) (Syntax: '(1, x1)')
@@ -3333,7 +3335,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x1')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
   Right: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, System.Int32), IsInvalid, IsImplicit) (Syntax: '(x2, 2)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (var, System.Int32), IsInvalid, IsImplicit) (Syntax: '(x2, 2)')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ITupleOperation (OperationKind.Tuple, Type: (var x2, System.Int32), IsInvalid) (Syntax: '(x2, 2)')
@@ -3381,7 +3383,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x2')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
   Collection: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'M()')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'M()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IInvocationOperation ((System.Int32, System.Int32)[] C.M()) (OperationKind.Invocation, Type: (System.Int32, System.Int32)[]) (Syntax: 'M()')
@@ -3427,7 +3429,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x2')
             ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x2')
   Collection: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'M(out int x1)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'M(out int x1)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IInvocationOperation ((System.Int32, System.Int32)[] C.M(out System.Int32 a)) (OperationKind.Invocation, Type: (System.Int32, System.Int32)[]) (Syntax: 'M(out int x1)')
@@ -3908,7 +3910,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: (System.Int32 x, System.Int32 y) 
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (1, 2)')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32 x, System.Int32 y), IsImplicit) (Syntax: '(1, 2)')
           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -488,7 +488,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (int.
                   Parts(4):
                       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'i =')
                         Text: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""i ="", IsImplicit) (Syntax: 'i =')
                       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
                         Expression: 
                           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
@@ -498,7 +498,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (int.
                           null
                       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ', s =')
                         Text: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", s ="", IsImplicit) (Syntax: ', s =')
                       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{s}')
                         Expression: 
                           ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
@@ -520,7 +520,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (int.
                   Parts(4):
                       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'i =')
                         Text: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""i ="", IsImplicit) (Syntax: 'i =')
                       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
                         Expression: 
                           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
@@ -530,7 +530,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (int.
                           null
                       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ', s =')
                         Text: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", s ="", IsImplicit) (Syntax: ', s =')
                       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{s}')
                         Expression: 
                           ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
@@ -797,7 +797,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: System.Object) (Syntax: '25')
-                IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '25')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '25')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 25) (Syntax: '25')
@@ -1140,13 +1140,13 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (d.Ge
           Right: 
             IInvocationOperation (virtual System.Boolean System.ValueType.Equals(System.Object obj)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: '((T)d).Equals(x)')
               Instance Receiver: 
-                IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: T) (Syntax: '(T)d')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T) (Syntax: '(T)d')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
                     IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: System.Object) (Syntax: 'x')
-                    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')

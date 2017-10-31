@@ -163,7 +163,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf oT Is TRef')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TRef')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TRef')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceOperation: oT (OperationKind.LocalReference, Type: T) (Syntax: 'oT')
@@ -200,7 +200,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf oT Is TVal')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TVal')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TVal')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceOperation: oT (OperationKind.LocalReference, Type: T) (Syntax: 'oT')
@@ -237,7 +237,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf vVal Is TRef')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf vVal Is TRef')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf vVal Is TRef')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceOperation: vVal (OperationKind.LocalReference, Type: TVal) (Syntax: 'vVal')
@@ -274,7 +274,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf oT Is String')
   Operand: 
-    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is String')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is String')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILocalReferenceOperation: oT (OperationKind.LocalReference, Type: T) (Syntax: 'oT')

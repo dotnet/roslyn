@@ -240,6 +240,16 @@ namespace Microsoft.CodeAnalysis.Operations
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
+                    if (!isImplicit)
+                    {
+                        switch (boundNode.Kind)
+                        {
+                            case BoundKind.FixedLocalCollectionInitializer:
+                                isImplicit = true;
+                                break;
+                        }
+                    }
+
                     return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode), isImplicit: isImplicit);
             }
         }
@@ -447,12 +457,12 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ParameterReferenceExpression(parameter, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ILiteralOperation CreateBoundLiteralOperation(BoundLiteral boundLiteral)
+        private ILiteralOperation CreateBoundLiteralOperation(BoundLiteral boundLiteral, bool @implicit = false)
         {
             SyntaxNode syntax = boundLiteral.Syntax;
             ITypeSymbol type = boundLiteral.Type;
             Optional<object> constantValue = ConvertToOptional(boundLiteral.ConstantValue);
-            bool isImplicit = boundLiteral.WasCompilerGenerated;
+            bool isImplicit = boundLiteral.WasCompilerGenerated || @implicit;
             return new LiteralExpression(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -779,11 +789,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 else
                 {
                     Conversion conversion = boundConversion.Conversion;
-                    bool isExplicitCastInCode = boundConversion.ExplicitCastInCode;
                     bool isTryCast = false;
                     // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
                     bool isChecked = conversion.IsNumeric && boundConversion.Checked;
-                    return new LazyCSharpConversionExpression(operand, conversion, isExplicitCastInCode, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new LazyCSharpConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
                 }
             }
         }
@@ -793,13 +802,12 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundAsOperator.Operand));
             SyntaxNode syntax = boundAsOperator.Syntax;
             Conversion conversion = boundAsOperator.Conversion;
-            bool isExplicit = true;
             bool isTryCast = true;
             bool isChecked = false;
             ITypeSymbol type = boundAsOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAsOperator.ConstantValue);
             bool isImplicit = boundAsOperator.WasCompilerGenerated;
-            return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyCSharpConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDelegateCreationOperation CreateBoundDelegateCreationExpressionOperation(BoundDelegateCreationExpression boundDelegateCreationExpression)
@@ -886,7 +894,8 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundArrayCreation.Syntax;
             ITypeSymbol type = boundArrayCreation.Type;
             Optional<object> constantValue = ConvertToOptional(boundArrayCreation.ConstantValue);
-            bool isImplicit = boundArrayCreation.WasCompilerGenerated;
+            bool isImplicit = boundArrayCreation.WasCompilerGenerated || 
+                              (boundArrayCreation.InitializerOpt?.Syntax == syntax && !boundArrayCreation.InitializerOpt.WasCompilerGenerated);
             return new LazyArrayCreationExpression(dimensionSizes, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -1348,7 +1357,8 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 var local = (LocalSymbol)locals.Single();
                 bool isDeclaration = true;
-                loopControlVariable = new Lazy<IOperation>(() => new LocalReferenceExpression(local, isDeclaration, _semanticModel, local.GetDeclaratorSyntax(), local.Type, local.ConstantValue, local.IsImplicitlyDeclared));
+                // This node is implicit because there is no good syntax for it other than the entire 'foreach' statement.
+                loopControlVariable = new Lazy<IOperation>(() => new LocalReferenceExpression(local, isDeclaration, _semanticModel, local.GetDeclaratorSyntax(), local.Type, local.ConstantValue, isImplicit: true));
             }
             else
             {
@@ -1443,16 +1453,14 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LazyUsingStatement(resources, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IExpressionStatementOperation CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
+        private IThrowOperation CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
         {
             Lazy<IOperation> thrownObject = new Lazy<IOperation>(() => Create(boundThrowStatement.ExpressionOpt));
             SyntaxNode syntax = boundThrowStatement.Syntax;
-            ITypeSymbol throwExpressionType = boundThrowStatement.ExpressionOpt?.Type;
             ITypeSymbol statementType = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundThrowStatement.WasCompilerGenerated;
-            IOperation throwExpression = new LazyThrowExpression(thrownObject, _semanticModel, syntax, throwExpressionType, constantValue, isImplicit);
-            return new ExpressionStatement(throwExpression, _semanticModel, syntax, statementType, constantValue, isImplicit);
+            return new LazyThrowExpression(thrownObject, _semanticModel, syntax, statementType, constantValue, isImplicit);
         }
 
         private IReturnOperation CreateBoundReturnStatementOperation(BoundReturnStatement boundReturnStatement)
@@ -1630,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
-                return CreateBoundInterpolatedStringTextOperation(boundNode);
+                return CreateBoundInterpolatedStringTextOperation((BoundLiteral)boundNode);
             }
         }
 
@@ -1646,9 +1654,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LazyInterpolation(expression, alignment, format, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IInterpolatedStringTextOperation CreateBoundInterpolatedStringTextOperation(BoundNode boundNode)
+        private IInterpolatedStringTextOperation CreateBoundInterpolatedStringTextOperation(BoundLiteral boundNode)
         {
-            Lazy<IOperation> text = new Lazy<IOperation>(() => Create(boundNode));
+            Lazy<IOperation> text = new Lazy<IOperation>(() => CreateBoundLiteralOperation(boundNode, @implicit: true));
             SyntaxNode syntax = boundNode.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);

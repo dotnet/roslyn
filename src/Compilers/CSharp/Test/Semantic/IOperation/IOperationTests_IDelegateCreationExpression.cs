@@ -417,7 +417,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: System.Action a
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= M1')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'M1')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M1')
@@ -637,7 +637,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M1')
@@ -667,7 +667,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, IsInvalid) (Syntax: '(Action)o.M1')
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, IsInvalid) (Syntax: '(Action)o.M1')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'o.M1')
@@ -1402,7 +1402,7 @@ class Program
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M1)')
   Children(1):
-      IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M1')

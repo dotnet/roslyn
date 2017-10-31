@@ -218,7 +218,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
                 Locals: Local_1: <anonymous local> As System.String
                 IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
                   ReturnedValue: 
-                    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         IInvalidOperation (OperationKind.Invalid, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
@@ -265,7 +265,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
                 Locals: Local_1: <anonymous local> As System.String
                 IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
                   ReturnedValue: 
-                    IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -512,7 +512,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.String
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -553,7 +553,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.String
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IInvalidOperation (OperationKind.Invalid, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
@@ -595,7 +595,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: a As System.Action(Of System.Object)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= CType(Sub ... f Integer))')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Sub(i ... f Integer))')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Sub(i ... f Integer))')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Sub(i ... f Integer))')
@@ -645,7 +645,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.Object
         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '1')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -753,7 +753,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: a As System.Action(Of System.Object)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= CType(Add ... f Integer))')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Addre ... f Integer))')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action(Of System.Object), IsInvalid, IsImplicit) (Syntax: 'CType(Addre ... f Integer))')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Addre ... f Integer))')
@@ -920,7 +920,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.String
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: '1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -962,7 +962,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.String
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IInvalidOperation (OperationKind.Invalid, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
@@ -1046,7 +1046,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.Object
         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '1')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1290,7 +1290,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.Object
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IInvalidOperation (OperationKind.Invalid, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
@@ -1733,7 +1733,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
         Locals: Local_1: <anonymous local> As System.Object
         IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
           ReturnedValue: 
-            IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New NonExistant()')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 IInvalidOperation (OperationKind.Invalid, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
@@ -2107,7 +2107,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: a As System.String
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= AddressOf Method2')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'AddressOf Method2')

@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Remote
             // 4KB buffer size
             private const int BUFFERSIZE = 4 * 1024;
             private const int ConnectWithoutTimeout = 1;
+            private const int MaxRetryAttemptsForFileNotFoundException = 3;
+            private const int ErrorSemTimeoutHResult = unchecked((int)0x80070079);
 
             private static readonly TimeSpan ConnectRetryIntervalMs = TimeSpan.FromMilliseconds(20);
-
-            private const int ERROR_SEM_TIMEOUT_HRESULT = unchecked((int)0x80070079);
 
             private readonly string _name;
             private readonly NamedPipeClientStream _pipe;
@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public async Task ConnectAsync(CancellationToken cancellationToken)
             {
+                var retryCount = 0;
                 while (true)
                 {
                     try
@@ -73,13 +74,18 @@ namespace Microsoft.CodeAnalysis.Remote
                         cancellationToken.ThrowIfCancellationRequested();
                         throw;
                     }
-                    catch (IOException ex) when (ex.HResult == ERROR_SEM_TIMEOUT_HRESULT)
+                    catch (IOException ex) when (ex.HResult == ErrorSemTimeoutHResult)
                     {
                         // Ignore and retry.
                     }
                     catch (TimeoutException)
                     {
                         // Ignore and retry.
+                    }
+                    catch (FileNotFoundException) when (retryCount < MaxRetryAttemptsForFileNotFoundException)
+                    {
+                        // Ignore and retry
+                        retryCount++;
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();
