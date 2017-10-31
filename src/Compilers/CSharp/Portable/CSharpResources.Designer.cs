@@ -692,6 +692,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use attribute constructor &apos;{0}&apos; because it is has &apos;in&apos; parameters..
+        /// </summary>
+        internal static string ERR_AttributeCtorInParameter {
+            get {
+                return ResourceManager.GetString("ERR_AttributeCtorInParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is not valid on property or event accessors. It is only valid on &apos;{1}&apos; declarations..
         /// </summary>
         internal static string ERR_AttributeNotOnAccessor {
