@@ -67,7 +67,7 @@ function Print-Usage() {
     Write-Host "  -testCoreClr              Run CoreClr unit tests"
     Write-Host "  -testVsi                  Run all integration tests"
     Write-Host "  -testVsiNetCore           Run just dotnet core integration tests"
-    Write-Host "  -testIOperation          Run extra checks to validate IOperations"
+    Write-Host "  -testIOperation           Run extra checks to validate IOperations"
     Write-Host ""
     Write-Host "Special Test options" 
     Write-Host "  -testBuildCorrectness     Run build correctness tests"

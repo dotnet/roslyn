@@ -41,7 +41,7 @@ Friend Module CompilationUtils
                                             references,
                                             options)
                                       End Function
-        ValidateIOperations(createCompilationLambda)
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -76,7 +76,7 @@ Friend Module CompilationUtils
                                           Return VisualBasicCompilation.Create(assemblyName, sourceTrees, metadataReferences, options)
                                       End Function
 
-        ValidateIOperations(createCompilationLambda)
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -106,7 +106,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
                                       End Function
-        ValidateIOperations(createCompilationLambda)
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -120,7 +120,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), {Parse(source, parseOptions)}, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
                                       End Function
-        ValidateIOperations(createCompilationLambda)
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -131,7 +131,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
                                       End Function
-        ValidateIOperations(createCompilationLambda)
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -141,7 +141,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(GetUniqueName(), {sourceTree}, If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
                                       End Function
-        ValidateIOperations(createCompilationLambda)
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -333,7 +333,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
                                       End Function
-        ValidateIOperations(createCompilationLambda)
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -360,7 +360,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(identity.Name, trees, references, options)
                                       End Function
-        ValidateIOperations(createCompilationLambda)
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
         Dim c = createCompilationLambda()
         Assert.NotNull(c.Assembly) ' force creation of SourceAssemblySymbol
 
@@ -1289,11 +1289,4 @@ Friend Module CompilationUtils
         Dim result = If(namespacesAndTypesOnly, model.LookupNamespacesAndTypes(position, container), model.LookupSymbols(position, container))
         Return result.Select(Function(s) s.Name).Distinct().ToList()
     End Function
-
-    Private Sub ValidateIOperations(createCompilation As Func(Of Compilation))
-#If TEST_IOPERATION_INTERFACE Then
-        Dim compilation = createCompilation()
-        compilation.CheckOperations()
-#End If
-    End Sub
 End Module

@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 trees,
                 references,
                 options);
-            ValidateIOperations(createCompilationLambda);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
             return createCompilationLambda();
         }
 
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var trees = (sources == null) ? null : sources.Select(s => Parse(s, options: parseOptions)).ToArray();
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
 
-            ValidateIOperations(createCompilationLambda);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
             var c = createCompilationLambda();
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
-            ValidateIOperations(createCompilationLambda);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
             return createCompilationLambda();
         }
 
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
-            ValidateIOperations(createCompilationLambda);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
             return createCompilationLambda();
         }
 
@@ -1253,13 +1253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return ilReference;
         }
 
-        private static void ValidateIOperations(Func<Compilation> createCompilation)
-        {
-#if TEST_IOPERATION_INTERFACE
-            var compilation = createCompilation();
-            compilation.CheckOperations();
-#endif
-        }
         #endregion
 
         #region Span

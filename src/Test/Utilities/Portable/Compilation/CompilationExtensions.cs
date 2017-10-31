@@ -251,8 +251,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static void CheckOperations(this Compilation compilation)
+        public static void ValidateIOperations(Func<Compilation> createCompilation)
         {
+#if TEST_IOPERATION_INTERFACE
+            var compilation = createCompilation();
+
             foreach (var tree in compilation.SyntaxTrees)
             {
                 var semanticModel = compilation.GetSemanticModel(tree);
@@ -268,6 +271,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
             }
+#endif
         }
     }
 }
