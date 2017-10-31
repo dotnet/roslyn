@@ -339,6 +339,80 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
+        Public Sub TestParenthesizedDelegateCreationWithImplicitConversion()
+            Dim source = <![CDATA[
+Class P
+    Private Shared Function M1() As System.Action
+        Return (Sub() System.Console.WriteLine())'BIND:"(Sub() System.Console.WriteLine())"
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Action) (Syntax: '(Sub() Syst ... riteLine())')
+  Operand: 
+    IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+      Target: 
+        IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Syste ... WriteLine()')
+          IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... WriteLine()')
+              Expression: 
+                IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... WriteLine()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+            ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+              Statement: 
+                null
+            IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+              ReturnedValue: 
+                null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ParenthesizedExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestParenthesizedDelegateCreationWithImplicitConversionParent()
+            Dim source = <![CDATA[
+Class P
+    Private Shared Function M1() As System.Action
+        Return (Sub() System.Console.WriteLine())'BIND:"Return (Sub() System.Console.WriteLine())"
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return (Sub ... riteLine())')
+  ReturnedValue: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Action) (Syntax: '(Sub() Syst ... riteLine())')
+      Operand: 
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+          Target: 
+            IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Syste ... WriteLine()')
+              IBlockStatement (3 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+                IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... WriteLine()')
+                  Expression: 
+                    IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... WriteLine()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+                ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+                  Statement: 
+                    null
+                IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Sub() Syste ... WriteLine()')
+                  ReturnedValue: 
+                    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ReturnStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
         Public Sub TestParenthesizedQueryClause()
             Dim source = <![CDATA[
 Imports System.Linq

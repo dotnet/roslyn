@@ -47,8 +47,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             IOperation operation = CreateInternalCore(boundNode);
 
             // If the syntax for the bound node is parenthesized, walk up the parentheses wrapping the operation with ParenthesizedExpression operation nodes.
-            // Compiler generated and lowered bound nodes shouldn't be parenthesized.
-            if (!boundNode.WasCompilerGenerated && boundNode.Syntax.Parent is ParenthesizedExpressionSyntax parenthesizedSyntax)
+            // Compiler generated, implicit conversions and lowered bound nodes shouldn't be parenthesized.
+            if (!boundNode.WasCompilerGenerated &&
+                boundNode.Syntax.Parent is ParenthesizedExpressionSyntax parenthesizedSyntax &&
+                !IsImplicitConversion(boundNode as BoundConversion))
             {
                 do
                 {
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return operation;
         }
 
-        private IOperation CreateInternalCore(BoundNode boundNode, bool createParenthesized = true)
+        private IOperation CreateInternalCore(BoundNode boundNode)
         {
             switch (boundNode.Kind)
             {
@@ -749,9 +751,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyLocalFunctionStatement(symbol, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+        private static bool IsImplicitConversion(BoundConversion boundConversion) => boundConversion != null && (boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode);
+
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
-            bool isImplicit = boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode;
+            bool isImplicit = IsImplicitConversion(boundConversion);
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
                 // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,

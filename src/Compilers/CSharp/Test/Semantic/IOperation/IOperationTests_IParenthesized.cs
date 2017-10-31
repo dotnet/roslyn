@@ -253,18 +253,13 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int64) (Syntax: '(a + b)')
+IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
   Operand: 
-    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
-      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: 
-        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
-          Operand: 
-            IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
-              Left: 
-                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
-              Right: 
-                IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+    IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+      Left: 
+        IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+      Right: 
+        IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -287,18 +282,16 @@ class P
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return (a + b);')
   ReturnedValue: 
-    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int64) (Syntax: '(a + b)')
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
           Operand: 
-            IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(a + b)')
-              Operand: 
-                IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
-                  Left: 
-                    IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
-                  Right: 
-                    IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+            IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'a + b')
+              Left: 
+                IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+              Right: 
+                IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -319,15 +312,9 @@ class P
 }
 ";
             string expectedOperationTree = @"
-False
-	Exception stacktrace
-   at Xunit.Assert.True(Nullable`1 condition, String userMessage)
-   at Xunit.Assert.True(Boolean condition, String userMessage)
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly)
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected)
-   at Microsoft.CodeAnalysis.CSharp.Test.Utilities.CSharpTestBaseBase.VerifyOperationTreeAndDiagnosticsForTest[TSyntaxNode](CSharpCompilation compilation, String expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, Action`3 additionalOperationTreeVerifier)
-   at Microsoft.CodeAnalysis.CSharp.Test.Utilities.CSharpTestBaseBase.VerifyOperationTreeAndDiagnosticsForTest[TSyntaxNode](String testSrc, String expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpCompilationOptions compilationOptions, CSharpParseOptions parseOptions, MetadataReference[] additionalReferences, Action`3 additionalOperationTreeVerifier, Boolean useLatestFrameworkReferences)
-   at Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.TestParenthesizedConstantValue() in c:\roslyn-internal\Open\src\Compilers\CSharp\Test\Semantic\IOperation\IOperationTests_IParenthesized.cs:line 354
+IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32, Constant: 5) (Syntax: '(5)')
+  Operand: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
