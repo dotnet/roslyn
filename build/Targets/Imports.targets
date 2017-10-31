@@ -201,7 +201,6 @@
 
   <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(RoslynSdkProject)' == 'true'" />
-  <Import Project="Tools.props" />
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\'to '/', even when the '\'
