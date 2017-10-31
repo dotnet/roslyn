@@ -1598,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (node != null);
 
-            done:
+done:
             return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }

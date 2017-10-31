@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
+        [Conditional("DEBUG")]
         internal void VerifyExplicitInvariant(IOperation operation)
         {
             var lookup = operation.DescendantsAndSelf().GroupBy(o => o.Syntax);
