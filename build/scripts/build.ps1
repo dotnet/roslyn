@@ -28,9 +28,6 @@ param (
     [switch]$pack = $false,
     [string]$msbuildDir = "",
 
-    # JTODO DELETE THIS
-    [string]$assemblyVersion = "42.42.42.4242",
-
     # Test options 
     [switch]$test32 = $false,
     [switch]$test64 = $false,
@@ -238,7 +235,7 @@ function Build-InsertionItems() {
     Push-Location $setupDir
     try { 
         Create-PerfTests
-        Exec-Console (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir) `"$assemblyVersion`""
+        Exec-Console (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir) "
         
         # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
         # matter, just that it's provided some value.

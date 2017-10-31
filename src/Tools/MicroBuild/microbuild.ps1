@@ -6,7 +6,6 @@ param (
     [string]$msbuildDir = "",
     [switch]$cibuild = $false,
     [string]$branchName = "master",
-    [string]$assemblyVersion = "42.42.42.4242",
     [switch]$testDesktop = $false,
     [switch]$publish = $false,
     [switch]$help = $false,
@@ -122,7 +121,7 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop:$testDesktop -assemblyVersion:$assemblyVersion }
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -buildAll -cibuild:$cibuild -official:$official -msbuildDir $msbuildDir -release:$release -sign -pack -testDesktop:$testDesktop }
     Exec-Block { & (Join-Path $scriptDir "check-toolset-insertion.ps1") -sourcePath $repoDir -binariesPath $configDir }
     Copy-InsertionItems
 

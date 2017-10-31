@@ -19,7 +19,6 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly _outputPackageDirectory As String
     Private ReadOnly _setupDirectory As String
     Private ReadOnly _nugetPackageRoot As String
-    Private ReadOnly _assemblyVersion As String
     Private ReadOnly _pathMap As Dictionary(Of String, String)
 
     Private Sub New(args As String())
@@ -28,7 +27,6 @@ Public Class BuildDevDivInsertionFiles
         _nugetPackageRoot = Path.GetFullPath(args(2))
         _outputDirectory = Path.Combine(_binDirectory, DevDivInsertionFilesDirName)
         _outputPackageDirectory = Path.Combine(_binDirectory, DevDivPackagesDirName)
-        _assemblyVersion = args(3)
         _pathMap = CreatePathMap()
     End Sub
 
