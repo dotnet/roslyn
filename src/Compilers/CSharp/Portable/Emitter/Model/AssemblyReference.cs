@@ -2,11 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System.Diagnostics;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -19,6 +19,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert((object)assemblySymbol != null);
             _targetAssembly = assemblySymbol;
+        }
+
+        /// <summary>
+        /// Does the assembly reference the recognizable error assembly (directly or indirectly)
+        /// </summary>
+        private static bool HasMetadataError(AssemblySymbol assembly)
+        {
+            ImmutableArray<ModuleSymbol> modules = assembly.Modules;
+
+            for (int i = 0; i < modules.Length; i++)
+            {
+                foreach (AssemblySymbol assemblyRef in modules[i].GetReferencedAssemblySymbols())
+                {
+                    if (ErrorAssembly.IsErrorAssembly(assemblyRef))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         public AssemblyIdentity Identity => _targetAssembly.Identity;
@@ -35,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         string Cci.INamedEntity.Name => Identity.Name;
+
+        bool IAssemblyReference.HasMetadataError => HasMetadataError(_targetAssembly);
 
         Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(CodeAnalysis.Emit.EmitContext context)
         {

@@ -14,6 +14,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -911,7 +912,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new INamedTypeSymbol with the given element types and (optional) element names.
         /// </summary>
         public INamedTypeSymbol CreateTupleTypeSymbol(
-            ImmutableArray<ITypeSymbol> elementTypes, 
+            ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string> elementNames = default(ImmutableArray<string>),
             ImmutableArray<Location> elementLocations = default(ImmutableArray<Location>))
         {
@@ -976,7 +977,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected static void CheckTupleElementLocations(
-            int cardinality, 
+            int cardinality,
             ImmutableArray<Location> elementLocations)
         {
             if (!elementLocations.IsDefault)
@@ -989,7 +990,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
-            ImmutableArray<ITypeSymbol> elementTypes, 
+            ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string> elementNames,
             ImmutableArray<Location> elementLocations);
 
@@ -1002,7 +1003,7 @@ namespace Microsoft.CodeAnalysis
         /// Also, the underlying type needs to be tuple-compatible.
         /// </remarks>
         public INamedTypeSymbol CreateTupleTypeSymbol(
-            INamedTypeSymbol underlyingType, 
+            INamedTypeSymbol underlyingType,
             ImmutableArray<string> elementNames = default(ImmutableArray<string>),
             ImmutableArray<Location> elementLocations = default(ImmutableArray<Location>))
         {
@@ -1017,7 +1018,7 @@ namespace Microsoft.CodeAnalysis
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
-            INamedTypeSymbol underlyingType, 
+            INamedTypeSymbol underlyingType,
             ImmutableArray<string> elementNames,
             ImmutableArray<Location> elementLocations);
 
@@ -1085,7 +1086,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
-            ImmutableArray<ITypeSymbol> memberTypes, 
+            ImmutableArray<ITypeSymbol> memberTypes,
             ImmutableArray<string> memberNames,
             ImmutableArray<Location> memberLocations,
             ImmutableArray<bool> memberIsReadOnly);
@@ -1134,7 +1135,7 @@ namespace Microsoft.CodeAnalysis
         internal void CompleteCompilationEventQueue_NoLock()
         {
             Debug.Assert(EventQueue != null);
-            
+
             // Signal the end of compilation.
             EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
             EventQueue.PromiseNotToEnqueue();
@@ -1387,7 +1388,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             switch (resourceForm)
-            { 
+            {
                 case Win32ResourceForm.COFF:
                     moduleBeingBuilt.Win32ResourceSection = MakeWin32ResourcesFromCOFF(win32Resources, diagnostics);
                     break;
@@ -1746,6 +1747,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
             bool emitMetadataOnly,
+            bool tolerateErrors,
             bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
@@ -1807,8 +1809,8 @@ namespace Microsoft.CodeAnalysis
                     if (existingDoc == null)
                     {
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
-                            normalizedPath, 
-                            DebugSourceDocumentLanguageId, 
+                            normalizedPath,
+                            DebugSourceDocumentLanguageId,
                             () => tree.GetDebugSourceInfo()));
                     }
                 }
@@ -1874,6 +1876,7 @@ namespace Microsoft.CodeAnalysis
                     moduleBuilder,
                     emittingPdb,
                     emitMetadataOnly: false,
+                    tolerateErrors: false, // PROTOTYPE(tolerate-errors)
                     emitTestCoverageData: false,
                     diagnostics: diagnostics,
                     filterOpt: filterOpt,
@@ -2124,9 +2127,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
             }
 
-            if (embeddedTexts != null && 
-                !embeddedTexts.IsEmpty() && 
-                pdbStream == null && 
+            if (embeddedTexts != null &&
+                !embeddedTexts.IsEmpty() &&
+                pdbStream == null &&
                 options?.DebugInformationFormat != DebugInformationFormat.Embedded)
             {
                 throw new ArgumentException(CodeAnalysisResources.EmbeddedTextsRequirePdb, nameof(embeddedTexts));
@@ -2192,6 +2195,7 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt,
                         emittingPdb: pdbStream != null || embedPdb,
                         emitMetadataOnly: options.EmitMetadataOnly,
+                        tolerateErrors: options.TolerateErrors,
                         emitTestCoverageData: options.EmitTestCoverageData,
                         diagnostics: diagnostics,
                         filterOpt: null,
@@ -2214,7 +2218,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             ReportUnusedImports(null, diagnostics, cancellationToken);
                         }
-                   }
+                    }
                 }
                 finally
                 {
@@ -2231,14 +2235,32 @@ namespace Microsoft.CodeAnalysis
                         testData?.SymWriterFactory,
                         diagnostics,
                         metadataOnly: options.EmitMetadataOnly,
+                        tolerateErrors: options.TolerateErrors,
                         includePrivateMembers: options.IncludePrivateMembers,
                         emitTestCoverageData: options.EmitTestCoverageData,
                         pePdbFilePath: options.PdbFilePath,
                         cancellationToken: cancellationToken);
                 }
+                else
+                {
+                    // PROTOTYPE(tolerate-errors) Should some of the parameters be hardcoded instead?
+                    var context = new EmitContext(moduleBeingBuilt, syntaxNodeOpt: null, diagnostics, metadataOnly: false, includePrivateMembers: true);
+                    var mdWriter = FullMetadataWriter.Create(context, MessageProvider, context.MetadataOnly, this.Options.Deterministic, emitTestCoverageData: false, hasPdbStream: false, cancellationToken);
+                    var indexer = new ErrorReferenceReporter(mdWriter, MessageProvider);
+                    indexer.Visit(moduleBeingBuilt);
+                }
             }
 
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
+        }
+
+        // PROTOTYPE(tolerate-errors) Maybe we should use a specialized indexer?
+        private sealed class ErrorReferenceReporter : ReferenceIndexer
+        {
+            internal ErrorReferenceReporter(MetadataWriter metadataWriter, CommonMessageProvider messageProvider)
+                : base(metadataWriter, messageProvider)
+            {
+            }
         }
 
         /// <summary>
@@ -2395,6 +2417,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             bool metadataOnly,
             bool includePrivateMembers,
+            bool tolerateErrors,
             bool emitTestCoverageData,
             string pePdbFilePath,
             CancellationToken cancellationToken)
@@ -2462,7 +2485,8 @@ namespace Microsoft.CodeAnalysis
 
                 Func<Stream> getPeStream = () =>
                 {
-                    if (metadataDiagnostics.HasAnyErrors())
+                    if (metadataDiagnostics.HasAnyErrors() &&
+                        !(metadataOnly && tolerateErrors))
                     {
                         return null;
                     }
@@ -2536,6 +2560,7 @@ namespace Microsoft.CodeAnalysis
                         pePdbFilePath,
                         metadataOnly,
                         includePrivateMembers,
+                        tolerateErrors,
                         deterministic,
                         emitTestCoverageData,
                         cancellationToken))
@@ -2574,7 +2599,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // translate metadata errors.
-                if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics))
+                if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics) && !(metadataOnly && tolerateErrors))
                 {
                     return false;
                 }
@@ -2622,6 +2647,7 @@ namespace Microsoft.CodeAnalysis
             string pdbPathOpt,
             bool metadataOnly,
             bool includePrivateMembers,
+            bool tolerateErrors,
             bool isDeterministic,
             bool emitTestCoverageData,
             CancellationToken cancellationToken)
@@ -2638,6 +2664,7 @@ namespace Microsoft.CodeAnalysis
                 nativePdbWriterOpt,
                 pdbPathOpt,
                 metadataOnly,
+                tolerateErrors,
                 deterministicPrimaryOutput,
                 emitTestCoverageData,
                 cancellationToken))
@@ -2659,6 +2686,7 @@ namespace Microsoft.CodeAnalysis
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     metadataOnly: true,
+                    tolerateErrors: false,
                     isDeterministic: true,
                     emitTestCoverageData: false,
                     cancellationToken: cancellationToken))
@@ -2708,8 +2736,8 @@ namespace Microsoft.CodeAnalysis
 
                     writer.WriteMetadataAndIL(
                         nativePdbWriterOpt,
-                        metadataStream, 
-                        ilStream, 
+                        metadataStream,
+                        ilStream,
                         (nativePdbWriterOpt == null) ? pdbStream : null,
                         out MetadataSizes metadataSizes);
 
@@ -2933,7 +2961,7 @@ namespace Microsoft.CodeAnalysis
         {
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }
-        
+
         internal abstract bool IsIOperationFeatureEnabled();
 
         /// <summary>
@@ -2996,4 +3024,59 @@ namespace Microsoft.CodeAnalysis
             return foundVersion;
         }
     }
+
+    /// <summary>
+    /// A fake containing assembly for an ErrorTypeSymbol object.
+    /// </summary>
+    internal sealed class ErrorAssembly : Cci.IAssemblyReference
+    {
+        private const string errorAssemblyName = "CodeAnalysisError";
+        public static readonly ErrorAssembly Singleton = new ErrorAssembly();
+
+        public static bool IsErrorAssembly(IAssemblySymbol symbol)
+        {
+            return symbol.Name == errorAssemblyName && symbol.Identity.Version == AssemblyIdentity.NullVersion;
+        }
+
+        /// <summary>
+        /// For the name we will use a word "Error" followed by a guid, generated on the spot.
+        /// </summary>
+        private static readonly AssemblyIdentity s_identity = new AssemblyIdentity(
+            name: errorAssemblyName,
+            version: AssemblyIdentity.NullVersion,
+            cultureName: "",
+            publicKeyOrToken: ImmutableArray<byte>.Empty,
+            hasPublicKey: false,
+            isRetargetable: false,
+            contentType: AssemblyContentType.Default);
+
+        AssemblyIdentity Cci.IAssemblyReference.Identity => s_identity;
+        Version Cci.IAssemblyReference.AssemblyVersionPattern => null;
+
+        Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
+        {
+            return this;
+        }
+
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
+        {
+            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
+        }
+
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            visitor.Visit((Cci.IAssemblyReference)this);
+        }
+
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+        {
+            return null;
+        }
+
+        string Cci.INamedEntity.Name => s_identity.Name;
+
+        // PROTOTYPE(tolerate-errors)
+        bool IAssemblyReference.HasMetadataError => false;
+    }
+
 }

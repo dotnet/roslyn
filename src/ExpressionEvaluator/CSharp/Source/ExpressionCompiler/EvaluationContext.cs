@@ -9,10 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -270,9 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             nativePdbWriterOpt: null,
                             pdbPathOpt: null,
                             metadataOnly: false,
+                            tolerateErrors: false,
                             isDeterministic: false,
                             emitTestCoverageData: false,
-                            cancellationToken: default(CancellationToken));
+                            cancellationToken: default);
                         if (!diagnostics.HasAnyErrors())
                         {
                             assembly = stream.ToArray();
@@ -332,9 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     metadataOnly: false,
+                    tolerateErrors: false,
                     isDeterministic: false,
                     emitTestCoverageData: false,
-                    cancellationToken: default(CancellationToken));
+                    cancellationToken: default);
 
                 if (diagnostics.HasAnyErrors())
                 {
@@ -417,13 +417,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     metadataOnly: false,
+                    tolerateErrors: false,
                     isDeterministic: false,
                     emitTestCoverageData: false,
-                    cancellationToken: default(CancellationToken));
+                    cancellationToken: default);
 
                 if (diagnostics.HasAnyErrors())
                 {
-                    resultProperties = default(ResultProperties);
+                    resultProperties = default;
                     return null;
                 }
 
@@ -465,9 +466,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         nativePdbWriterOpt: null,
                         pdbPathOpt: null,
                         metadataOnly: false,
+                        tolerateErrors: false,
                         isDeterministic: false,
                         emitTestCoverageData: false,
-                        cancellationToken: default(CancellationToken));
+                        cancellationToken: default);
 
                     if (!diagnostics.HasAnyErrors())
                     {

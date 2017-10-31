@@ -3950,6 +3950,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; cannot be found. It was referenced by a compilation that had errors.
+        /// </summary>
+        internal static string ERR_ErrorType {
+            get {
+                return ResourceManager.GetString("ERR_ErrorType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot use a result of &apos;{0}&apos; in this context because it may expose variables referenced by parameter &apos;{1}&apos; outside of their declaration scope.
         /// </summary>
         internal static string ERR_EscapeCall {
@@ -8293,6 +8302,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ReferenceDirectiveOnlyAllowedInScripts {
             get {
                 return ResourceManager.GetString("ERR_ReferenceDirectiveOnlyAllowedInScripts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot emit a full assembly when referencing a metadata-only assembly with tolerated error: {0}..
+        /// </summary>
+        internal static string ERR_ReferencingMetadataWithErrors {
+            get {
+                return ResourceManager.GetString("ERR_ReferencingMetadataWithErrors", resourceCulture);
             }
         }
         

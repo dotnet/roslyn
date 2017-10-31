@@ -2462,6 +2462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
             bool emitMetadataOnly,
+            bool tolerateErrors,
             bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
@@ -2485,7 +2486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (emitMetadataOnly)
             {
-                if (hasDeclarationErrors)
+                if (hasDeclarationErrors && !tolerateErrors)
                 {
                     return false;
                 }

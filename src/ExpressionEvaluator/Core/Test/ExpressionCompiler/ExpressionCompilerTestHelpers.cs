@@ -807,6 +807,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         () => pdbStream,
                         null, null,
                         metadataOnly: true,
+                        tolerateErrors: false,
                         isDeterministic: false,
                         emitTestCoverageData: false,
                         cancellationToken: default(CancellationToken));

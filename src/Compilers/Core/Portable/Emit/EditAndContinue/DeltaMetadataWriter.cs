@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.Emit
             private readonly SymbolChanges _changes;
 
             public DeltaReferenceIndexer(DeltaMetadataWriter writer)
-                : base(writer)
+                : base(writer, messageProviderOpt: null)
             {
                 _changes = writer._changes;
             }

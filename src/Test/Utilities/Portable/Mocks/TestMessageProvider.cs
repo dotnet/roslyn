@@ -449,5 +449,13 @@ namespace Roslyn.Test.Utilities
                 throw new NotImplementedException();
             }
         }
+
+        public override int ERR_ReferencingMetadataWithErrors
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }

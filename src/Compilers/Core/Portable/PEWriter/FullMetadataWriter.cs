@@ -311,7 +311,7 @@ namespace Microsoft.Cci
 
         protected override ReferenceIndexer CreateReferenceVisitor()
         {
-            return new FullReferenceIndexer(this);
+            return new FullReferenceIndexer(this, this.messageProvider);
         }
 
         protected override void ReportReferencesToAddedSymbols()
@@ -321,8 +321,8 @@ namespace Microsoft.Cci
 
         private sealed class FullReferenceIndexer : ReferenceIndexer
         {
-            internal FullReferenceIndexer(MetadataWriter metadataWriter)
-                : base(metadataWriter)
+            internal FullReferenceIndexer(MetadataWriter metadataWriter, CommonMessageProvider messageProvider)
+                : base(metadataWriter, messageProvider)
             {
             }
         }

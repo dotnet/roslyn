@@ -33,6 +33,7 @@ namespace Microsoft.Cci
             PdbWriter nativePdbWriterOpt,
             string pdbPathOpt,
             bool metadataOnly,
+            bool tolerateErrors,
             bool isDeterministic,
             bool emitTestCoverageData,
             CancellationToken cancellationToken)

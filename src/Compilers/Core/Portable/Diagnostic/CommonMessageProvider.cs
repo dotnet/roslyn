@@ -221,6 +221,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_ModuleEmitFailure { get; }
         public abstract int ERR_EncUpdateFailedMissingAttribute { get; }
         public abstract int ERR_InvalidDebugInfo { get; }
+        public abstract int ERR_ReferencingMetadataWithErrors { get; }
 
         /// <summary>
         /// Takes an exception produced while writing to a file stream and produces a diagnostic.

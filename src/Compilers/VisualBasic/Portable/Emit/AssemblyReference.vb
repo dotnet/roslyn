@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -36,6 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly Property INamedEntityName As String Implements Cci.INamedEntity.Name
             Get
                 Return Identity.Name
+            End Get
+        End Property
+
+        Public ReadOnly Property HasMetadataError As Boolean Implements IAssemblyReference.HasMetadataError
+            Get
+                Throw New NotImplementedException()
             End Get
         End Property
 
