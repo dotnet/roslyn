@@ -74,11 +74,30 @@ ValueC = 257 // Out of underlying range
 }; 
 ";
             var comp = CreateStandardCompilation(text);
-            VerifyEnumsValue(comp, "Suits", SpecialType.System_Byte, null, null, null);
+            VerifyEnumsValue(comp, "Suits", SpecialType.System_Byte, null, (byte)2, null);
+
+            comp.VerifyDiagnostics(
+                // (3,10): error CS0029: Cannot implicitly convert type 'string' to 'byte'
+                // ValueA = "3", // Can't implicitly convert 
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""3""").WithArguments("string", "byte").WithLocation(3, 10),
+                // (4,10): error CS0266: Cannot implicitly convert type 'double' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                // ValueB = 2.2, // Can't implicitly convert 
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "2.2").WithArguments("double", "byte").WithLocation(4, 10),
+                // (5,10): error CS0031: Constant value '257' cannot be converted to a 'byte'
+                // ValueC = 257 // Out of underlying range 
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "257").WithArguments("257", "byte").WithLocation(5, 10)
+                );
+
             text =
 @"enum Suits : short { a, b, c, d = -65536, e, f }";
             comp = CreateStandardCompilation(text);
             VerifyEnumsValue(comp, "Suits", SpecialType.System_Int16, (short)0, (short)1, (short)2, null, null, null);
+
+            comp.VerifyDiagnostics(
+                // (1,35): error CS0031: Constant value '-65536' cannot be converted to a 'short'
+                // enum Suits : short { a, b, c, d = -65536, e, f }
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "-65536").WithArguments("-65536", "short").WithLocation(1, 35)
+                );
         }
 
         // Explicit associated value 

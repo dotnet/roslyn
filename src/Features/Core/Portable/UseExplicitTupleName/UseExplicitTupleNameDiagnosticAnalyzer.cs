@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             => s_registerMethod.Invoke(context, new object[]
                {
                    new Action<OperationAnalysisContext>(AnalyzeOperation),
-                   ImmutableArray.Create(OperationKind.FieldReferenceExpression)
+                   ImmutableArray.Create(OperationKind.FieldReference)
                });
 
         private void AnalyzeOperation(OperationAnalysisContext context)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                 return;
             }
 
-            var fieldReferenceOperation = (IFieldReferenceExpression)context.Operation;
+            var fieldReferenceOperation = (IFieldReferenceOperation)context.Operation;
 
             var field = fieldReferenceOperation.Field;
             if (field.ContainingType.IsTupleType)

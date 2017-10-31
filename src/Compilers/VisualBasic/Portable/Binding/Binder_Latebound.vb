@@ -68,7 +68,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 receiver = MakeRValue(receiver, diagnostics)
             End If
 
-            Return New BoundLateMemberAccess(node, name, containerType, receiver, boundTypeArguments, LateBoundAccessKind.Unknown, objType)
+            Dim result = New BoundLateMemberAccess(node, name, containerType, receiver, boundTypeArguments, LateBoundAccessKind.Unknown, objType)
+
+            If receiver IsNot Nothing AndAlso Not receiver.WasCompilerGenerated AndAlso result.Syntax Is receiver.Syntax Then
+                result.SetWasCompilerGenerated()
+            End If
+
+            Return result
         End Function
 
         Private Function BindLateBoundInvocation(node As SyntaxNode,
