@@ -12,6 +12,7 @@
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <SignAssembly>false</SignAssembly>
     <AutomaticBindingRedirects>true</AutomaticBindingRedirects>
+    <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

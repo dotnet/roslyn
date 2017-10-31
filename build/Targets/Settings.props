@@ -2,14 +2,26 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <PropertyGroup>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
+    <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
+  </PropertyGroup>
+
+  <Import Project="Packages.props" />
+  <Import Project="FixedPackages.props" />
   <Import Project="Versions.props" />
 
   <PropertyGroup>
+    <Company>Microsoft Corporation</Company>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <Authors>Microsoft</Authors>
+
     <JenkinsBuild>false</JenkinsBuild>
     <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
     <DeveloperBuild>false</DeveloperBuild>
     <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
-    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
+
+    <ArtifactsSymStoreDirectory Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\SymStore\</ArtifactsSymStoreDirectory>
     <NuGetToolPath>$(RepoRoot)nuget.exe</NuGetToolPath>
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
@@ -24,6 +36,7 @@
     <RoslynPortableTargetFrameworks46>net46;netcoreapp2.0</RoslynPortableTargetFrameworks46>
     <RoslynPortableRuntimeIdentifiers>win7;win7-x64</RoslynPortableRuntimeIdentifiers>
  
+    <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <Features>strict, IOperation</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -92,12 +105,42 @@
 
     <!-- https://github.com/dotnet/roslyn/issues/21272 -->
     <GenerateResourceMSBuildRuntime Condition="'$(TargetFramework)' == 'netcoreapp2.0'">CurrentRuntime</GenerateResourceMSBuildRuntime>
+   
+    <!-- 
+      Official build:
+       - Build standalone Portable PDBs to reduce the size of the binaries.
+       - Convert Portable PDBs to Windows PDBs and publish the converted PDBs to Symbol Store to allow WinDBG, 
+         Watson and other tools to find symbol format they understand.
+        
+      Jenkins build:
+       - Embed PDBs to make it easier to debug Jenkins crash dumps.
+       
+      Developer build:
+       - Embed PDBs to be consistent with Jenkins builds.
+    -->
+    <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
+    <RoslynDebugType Condition="'$(OfficialBuild)' != 'true'">embedded</RoslynDebugType>
+
+    <!-- 
+      The source root path used for deterministic normalization of source paths.
+      
+      If set the value is used in PathMap to instruct the compiler to normalize source paths 
+      emitted to the binary and PDB and as a root for Source Link mapping.
+      If set must end with a directory separator.
+      
+      If unset the PathMap need to be set explicitly to facilitate full determinism.
+      
+      The path can't be just a single '/' due to bug in Roslyn compilers:
+      https://github.com/dotnet/roslyn/issues/22815
+    -->
+    <DeterministicSourceRoot Condition="'$(DeveloperBuild)' != 'true'">/_/</DeterministicSourceRoot>
+
+    <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
-    <RoslynDebugType>full</RoslynDebugType>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy
@@ -113,8 +156,6 @@
 
   <!-- Unix specific settings -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-    <RoslynDebugType>portable</RoslynDebugType>
-    
     <!-- Presently can't build anything with a net46 TargetFramework on non-Windows. Disabling
          for now. 
          
