@@ -922,7 +922,7 @@ class C
             .OrderBy(x => x)
             .Count();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
@@ -958,7 +958,7 @@ class C
             .OrderBy(x => x)
             .Count(); /* Bar */
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
@@ -1038,7 +1038,7 @@ class C
             .OrderBy(x => x)
             .Count();
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }
