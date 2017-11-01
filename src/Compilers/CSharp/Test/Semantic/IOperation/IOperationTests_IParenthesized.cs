@@ -241,7 +241,7 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: S
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void TestParenthesizedConversion()
+        public void TestParenthesizedImplicitConversion()
         {
             string source = @"
 class P
@@ -249,6 +249,68 @@ class P
     static long M1(int a, int b)
     {
         return /*<bind>*/(a + b)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int64) (Syntax: '(a + b)')
+  Operand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedImplicitConversionParent()
+        {
+            string source = @"
+class P
+{
+    static long M1(int a, int b)
+    {
+        /*<bind>*/return (a + b);/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (a + b);')
+  ReturnedValue: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int64) (Syntax: '(a + b)')
+      Operand: 
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+              Left: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedExplicitConversion()
+        {
+            string source = @"
+class P
+{
+    static double M1(int a, int b)
+    {
+        return /*<bind>*/(double)(a + b)/*</bind>*/;
     }
 }
 ";
@@ -268,21 +330,21 @@ IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Synta
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void TestParenthesizedConversionParent()
+        public void TestParenthesizedExplicitConversionParent()
         {
             string source = @"
 class P
 {
-    static long M1(int a, int b)
+    static double M1(int a, int b)
     {
-        /*<bind>*/return (a + b);/*</bind>*/
+        /*<bind>*/return (double)(a + b);/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (a + b);')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (double)(a + b);')
   ReturnedValue: 
-    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double) (Syntax: '(double)(a + b)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')

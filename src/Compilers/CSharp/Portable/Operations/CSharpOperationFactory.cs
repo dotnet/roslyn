@@ -47,10 +47,9 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation operation = CreateInternalCore(boundNode);
 
             // If the syntax for the bound node is parenthesized, walk up the parentheses wrapping the operation with ParenthesizedExpression operation nodes.
-            // Compiler generated, implicit conversions and lowered bound nodes shouldn't be parenthesized.
+            // Compiler generated and lowered bound nodes shouldn't be parenthesized.
             if (!boundNode.WasCompilerGenerated &&
-                boundNode.Syntax.Parent is ParenthesizedExpressionSyntax parenthesizedSyntax &&
-                !IsImplicitConversion(boundNode as BoundConversion))
+                boundNode.Syntax.Parent is ParenthesizedExpressionSyntax parenthesizedSyntax)
             {
                 do
                 {
@@ -760,11 +759,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LazyLocalFunctionStatement(symbol, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private static bool IsImplicitConversion(BoundConversion boundConversion) => boundConversion != null && (boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode);
-
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
-            bool isImplicit = IsImplicitConversion(boundConversion);
+            bool isImplicit = boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
                 // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
@@ -794,10 +791,13 @@ namespace Microsoft.CodeAnalysis.Operations
                     // and instead directly return the operand, which will be a BoundBadExpression. When we generate a node for the BoundBadExpression,
                     // the resulting IOperation will also have a null Type.
                     Debug.Assert(boundConversion.Operand.Kind == BoundKind.BadExpression);
-                    return Create(boundConversion.Operand);
+                    
+                    // We invoke CreateInternalCore for implicit conversions to avoid duplicate IParenthesizedOperation for bound conversion and its operand.
+                    return isImplicit ? CreateInternalCore(boundConversion.Operand) : Create(boundConversion.Operand);
                 }
 
-                Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
+                // We invoke CreateInternalCore for implicit conversions to avoid duplicate IParenthesizedOperation for bound conversion and its operand.
+                Lazy<IOperation> operand = new Lazy<IOperation>(() => isImplicit ? CreateInternalCore(boundConversion.Operand) : Create(boundConversion.Operand));
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
 
