@@ -7670,7 +7670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal abstract partial class BoundTreeWalker: BoundTreeVisitor
+    internal abstract partial class BoundTreeWalker : BoundTreeVisitor
     {
         public override BoundNode VisitFieldInitializer(BoundFieldInitializer node)
         {

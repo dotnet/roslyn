@@ -209,54 +209,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
 
-    Friend MustInherit Partial Class BoundExpression
-        Inherits BoundNode
+    Friend MustInherit Partial Class BoundExpression : Inherits BoundNode
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
             Me._Type = type
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax)
             Me._Type = type
         End Sub
 
 
-        Private ReadOnly _Type As TypeSymbol
         Public ReadOnly Property Type As TypeSymbol
-            Get
-                Return _Type
-            End Get
-        End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundTypeArguments
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundTypeArguments : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, arguments As ImmutableArray(Of TypeSymbol), hasErrors As Boolean)
             MyBase.New(BoundKind.TypeArguments, syntax, Nothing, hasErrors)
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Arguments = arguments
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, arguments As ImmutableArray(Of TypeSymbol))
+        Public  Sub New(syntax As SyntaxNode, arguments As ImmutableArray(Of TypeSymbol))
             MyBase.New(BoundKind.TypeArguments, syntax, Nothing)
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Arguments = arguments
         End Sub
 
 
-        Private ReadOnly _Arguments As ImmutableArray(Of TypeSymbol)
         Public ReadOnly Property Arguments As ImmutableArray(Of TypeSymbol)
-            Get
-                Return _Arguments
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeArguments(Me)
@@ -264,26 +252,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(arguments As ImmutableArray(Of TypeSymbol)) As BoundTypeArguments
             If arguments <> Me.Arguments Then
-                Dim result = New BoundTypeArguments(Me.Syntax, arguments, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundTypeArguments(Me.Syntax, arguments, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundOmittedArgument
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundOmittedArgument : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.OmittedArgument, syntax, type, hasErrors)
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.OmittedArgument, syntax, type)
         End Sub
 
@@ -294,20 +277,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundOmittedArgument
             If type IsNot Me.Type Then
-                Dim result = New BoundOmittedArgument(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundOmittedArgument(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundValuePlaceholderBase
-        Inherits BoundExpression
+    Friend MustInherit Partial Class BoundValuePlaceholderBase : Inherits BoundExpression
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
@@ -316,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -325,8 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Friend NotInheritable Partial Class BoundLValueToRValueWrapper
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundLValueToRValueWrapper : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, underlyingLValue As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LValueToRValueWrapper, syntax, type, hasErrors OrElse underlyingLValue.NonNullAndHasErrors())
@@ -335,7 +312,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._UnderlyingLValue = underlyingLValue
-
             Validate()
         End Sub
 
@@ -343,12 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _UnderlyingLValue As BoundExpression
         Public ReadOnly Property UnderlyingLValue As BoundExpression
-            Get
-                Return _UnderlyingLValue
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLValueToRValueWrapper(Me)
@@ -356,20 +327,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(underlyingLValue As BoundExpression, type As TypeSymbol) As BoundLValueToRValueWrapper
             If underlyingLValue IsNot Me.UnderlyingLValue OrElse type IsNot Me.Type Then
-                Dim result = New BoundLValueToRValueWrapper(Me.Syntax, underlyingLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLValueToRValueWrapper(Me.Syntax, underlyingLValue, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundLValuePlaceholderBase
-        Inherits BoundValuePlaceholderBase
+    Friend MustInherit Partial Class BoundLValuePlaceholderBase : Inherits BoundValuePlaceholderBase
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
@@ -378,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -387,8 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Friend MustInherit Partial Class BoundRValuePlaceholderBase
-        Inherits BoundValuePlaceholderBase
+    Friend MustInherit Partial Class BoundRValuePlaceholderBase : Inherits BoundValuePlaceholderBase
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
@@ -397,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -406,8 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Friend NotInheritable Partial Class BoundWithLValueExpressionPlaceholder
-        Inherits BoundLValuePlaceholderBase
+    Friend NotInheritable Partial Class BoundWithLValueExpressionPlaceholder : Inherits BoundLValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.WithLValueExpressionPlaceholder, syntax, type, hasErrors)
@@ -416,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.WithLValueExpressionPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -430,20 +394,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundWithLValueExpressionPlaceholder
             If type IsNot Me.Type Then
-                Dim result = New BoundWithLValueExpressionPlaceholder(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundWithLValueExpressionPlaceholder(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundWithRValueExpressionPlaceholder
-        Inherits BoundRValuePlaceholderBase
+    Friend NotInheritable Partial Class BoundWithRValueExpressionPlaceholder : Inherits BoundRValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.WithRValueExpressionPlaceholder, syntax, type, hasErrors)
@@ -452,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.WithRValueExpressionPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -466,26 +425,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundWithRValueExpressionPlaceholder
             If type IsNot Me.Type Then
-                Dim result = New BoundWithRValueExpressionPlaceholder(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundWithRValueExpressionPlaceholder(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRValuePlaceholder
-        Inherits BoundRValuePlaceholderBase
+    Friend NotInheritable Partial Class BoundRValuePlaceholder : Inherits BoundRValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.RValuePlaceholder, syntax, type, hasErrors)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-
 
             Validate()
         End Sub
@@ -493,11 +446,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.RValuePlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-
 
             Validate()
         End Sub
@@ -509,26 +461,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundRValuePlaceholder
             If type IsNot Me.Type Then
-                Dim result = New BoundRValuePlaceholder(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundRValuePlaceholder(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLValuePlaceholder
-        Inherits BoundLValuePlaceholderBase
+    Friend NotInheritable Partial Class BoundLValuePlaceholder : Inherits BoundLValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.LValuePlaceholder, syntax, type, hasErrors)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-
 
             Validate()
         End Sub
@@ -536,11 +482,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.LValuePlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-
 
             Validate()
         End Sub
@@ -552,38 +497,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundLValuePlaceholder
             If type IsNot Me.Type Then
-                Dim result = New BoundLValuePlaceholder(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLValuePlaceholder(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundDup
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundDup : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, isReference As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.Dup, syntax, type, hasErrors)
             Me._IsReference = isReference
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, isReference As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, isReference As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.Dup, syntax, type)
             Me._IsReference = isReference
         End Sub
 
 
-        Private ReadOnly _IsReference As Boolean
         Public ReadOnly Property IsReference As Boolean
-            Get
-                Return _IsReference
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitDup(Me)
@@ -591,31 +526,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(isReference As Boolean, type As TypeSymbol) As BoundDup
             If isReference <> Me.IsReference OrElse type IsNot Me.Type Then
-                Dim result = New BoundDup(Me.Syntax, isReference, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundDup(Me.Syntax, isReference, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBadExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundBadExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, resultKind As LookupResultKind, symbols As ImmutableArray(Of Symbol), childBoundNodes As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BadExpression, syntax, type, hasErrors OrElse childBoundNodes.NonNullAndHasErrors())
 
-            Debug.Assert(Not (symbols.IsDefault), "Field 'symbols' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (childBoundNodes.IsDefault), "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not symbols.IsDefault, "Field 'symbols' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not childBoundNodes.IsDefault, "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ResultKind = resultKind
             Me._Symbols = symbols
             Me._ChildBoundNodes = childBoundNodes
-
             Validate()
         End Sub
 
@@ -623,26 +552,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ResultKind As LookupResultKind
         Public Overrides ReadOnly Property ResultKind As LookupResultKind
-            Get
-                Return _ResultKind
-            End Get
-        End Property
 
-        Private ReadOnly _Symbols As ImmutableArray(Of Symbol)
         Public ReadOnly Property Symbols As ImmutableArray(Of Symbol)
-            Get
-                Return _Symbols
-            End Get
-        End Property
 
-        Private ReadOnly _ChildBoundNodes As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property ChildBoundNodes As ImmutableArray(Of BoundExpression)
-            Get
-                Return _ChildBoundNodes
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBadExpression(Me)
@@ -650,36 +564,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(resultKind As LookupResultKind, symbols As ImmutableArray(Of Symbol), childBoundNodes As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundBadExpression
             If resultKind <> Me.ResultKind OrElse symbols <> Me.Symbols OrElse childBoundNodes <> Me.ChildBoundNodes OrElse type IsNot Me.Type Then
-                Dim result = New BoundBadExpression(Me.Syntax, resultKind, symbols, childBoundNodes, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundBadExpression(Me.Syntax, resultKind, symbols, childBoundNodes, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBadStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundBadStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, childBoundNodes As ImmutableArray(Of BoundNode), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BadStatement, syntax, hasErrors OrElse childBoundNodes.NonNullAndHasErrors())
 
-            Debug.Assert(Not (childBoundNodes.IsDefault), "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not childBoundNodes.IsDefault, "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ChildBoundNodes = childBoundNodes
         End Sub
 
 
-        Private ReadOnly _ChildBoundNodes As ImmutableArray(Of BoundNode)
         Public ReadOnly Property ChildBoundNodes As ImmutableArray(Of BoundNode)
-            Get
-                Return _ChildBoundNodes
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBadStatement(Me)
@@ -687,20 +591,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(childBoundNodes As ImmutableArray(Of BoundNode)) As BoundBadStatement
             If childBoundNodes <> Me.ChildBoundNodes Then
-                Dim result = New BoundBadStatement(Me.Syntax, childBoundNodes, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundBadStatement(Me.Syntax, childBoundNodes, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundParenthesized
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundParenthesized : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Parenthesized, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
@@ -708,7 +607,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
-
             Validate()
         End Sub
 
@@ -716,12 +614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitParenthesized(Me)
@@ -729,20 +622,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundExpression, type As TypeSymbol) As BoundParenthesized
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
-                Dim result = New BoundParenthesized(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundParenthesized(Me.Syntax, expression, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBadVariable
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundBadVariable : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BadVariable, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
@@ -754,19 +642,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBadVariable(Me)
@@ -774,32 +652,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundExpression, isLValue As Boolean, type As TypeSymbol) As BoundBadVariable
             If expression IsNot Me.Expression OrElse isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
-                Dim result = New BoundBadVariable(Me.Syntax, expression, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundBadVariable(Me.Syntax, expression, isLValue, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundArrayAccess
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundArrayAccess : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, indices As ImmutableArray(Of BoundExpression), isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayAccess, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors() OrElse indices.NonNullAndHasErrors())
 
             Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (indices.IsDefault), "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not indices.IsDefault, "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
             Me._Indices = indices
             Me._IsLValue = isLValue
-
             Validate()
         End Sub
 
@@ -807,26 +679,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
-        Private ReadOnly _Indices As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Indices As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Indices
-            End Get
-        End Property
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayAccess(Me)
@@ -834,20 +691,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundExpression, indices As ImmutableArray(Of BoundExpression), isLValue As Boolean, type As TypeSymbol) As BoundArrayAccess
             If expression IsNot Me.Expression OrElse indices <> Me.Indices OrElse isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
-                Dim result = New BoundArrayAccess(Me.Syntax, expression, indices, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundArrayAccess(Me.Syntax, expression, indices, isLValue, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundArrayLength
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundArrayLength : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayLength, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
@@ -859,12 +711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayLength(Me)
@@ -872,20 +719,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundExpression, type As TypeSymbol) As BoundArrayLength
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
-                Dim result = New BoundArrayLength(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundArrayLength(Me.Syntax, expression, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundGetType
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundGetType : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, sourceType As BoundTypeExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GetType, syntax, type, hasErrors OrElse sourceType.NonNullAndHasErrors())
@@ -897,12 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _SourceType As BoundTypeExpression
         Public ReadOnly Property SourceType As BoundTypeExpression
-            Get
-                Return _SourceType
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGetType(Me)
@@ -910,20 +747,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(sourceType As BoundTypeExpression, type As TypeSymbol) As BoundGetType
             If sourceType IsNot Me.SourceType OrElse type IsNot Me.Type Then
-                Dim result = New BoundGetType(Me.Syntax, sourceType, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundGetType(Me.Syntax, sourceType, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundFieldInfo
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundFieldInfo : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, field As FieldSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.FieldInfo, syntax, type, hasErrors)
@@ -934,7 +766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Field = field
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, field As FieldSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, field As FieldSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.FieldInfo, syntax, type)
 
             Debug.Assert(field IsNot Nothing, "Field 'field' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -944,12 +776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Field As FieldSymbol
         Public ReadOnly Property Field As FieldSymbol
-            Get
-                Return _Field
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitFieldInfo(Me)
@@ -957,20 +784,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(field As FieldSymbol, type As TypeSymbol) As BoundFieldInfo
             If field IsNot Me.Field OrElse type IsNot Me.Type Then
-                Dim result = New BoundFieldInfo(Me.Syntax, field, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundFieldInfo(Me.Syntax, field, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMethodInfo
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundMethodInfo : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MethodInfo, syntax, type, hasErrors)
@@ -981,7 +803,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Method = method
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.MethodInfo, syntax, type)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -991,12 +813,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Method As MethodSymbol
         Public ReadOnly Property Method As MethodSymbol
-            Get
-                Return _Method
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodInfo(Me)
@@ -1004,20 +821,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(method As MethodSymbol, type As TypeSymbol) As BoundMethodInfo
             If method IsNot Me.Method OrElse type IsNot Me.Type Then
-                Dim result = New BoundMethodInfo(Me.Syntax, method, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundMethodInfo(Me.Syntax, method, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTypeExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundTypeExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, unevaluatedReceiverOpt As BoundExpression, aliasOpt As AliasSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TypeExpression, syntax, type, hasErrors OrElse unevaluatedReceiverOpt.NonNullAndHasErrors())
@@ -1029,19 +841,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _UnevaluatedReceiverOpt As BoundExpression
         Public ReadOnly Property UnevaluatedReceiverOpt As BoundExpression
-            Get
-                Return _UnevaluatedReceiverOpt
-            End Get
-        End Property
 
-        Private ReadOnly _AliasOpt As AliasSymbol
         Public ReadOnly Property AliasOpt As AliasSymbol
-            Get
-                Return _AliasOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeExpression(Me)
@@ -1049,20 +851,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(unevaluatedReceiverOpt As BoundExpression, aliasOpt As AliasSymbol, type As TypeSymbol) As BoundTypeExpression
             If unevaluatedReceiverOpt IsNot Me.UnevaluatedReceiverOpt OrElse aliasOpt IsNot Me.AliasOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundTypeExpression(Me.Syntax, unevaluatedReceiverOpt, aliasOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundTypeExpression(Me.Syntax, unevaluatedReceiverOpt, aliasOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTypeOrValueExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundTypeOrValueExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, data As BoundTypeOrValueData, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.TypeOrValueExpression, syntax, type, hasErrors)
@@ -1072,7 +869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Data = data
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, data As BoundTypeOrValueData, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, data As BoundTypeOrValueData, type As TypeSymbol)
             MyBase.New(BoundKind.TypeOrValueExpression, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1081,12 +878,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Data As BoundTypeOrValueData
         Public ReadOnly Property Data As BoundTypeOrValueData
-            Get
-                Return _Data
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeOrValueExpression(Me)
@@ -1094,20 +886,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(data As BoundTypeOrValueData, type As TypeSymbol) As BoundTypeOrValueExpression
             If data <> Me.Data OrElse type IsNot Me.Type Then
-                Dim result = New BoundTypeOrValueExpression(Me.Syntax, data, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundTypeOrValueExpression(Me.Syntax, data, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNamespaceExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundNamespaceExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, unevaluatedReceiverOpt As BoundExpression, aliasOpt As AliasSymbol, namespaceSymbol As NamespaceSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NamespaceExpression, syntax, Nothing, hasErrors OrElse unevaluatedReceiverOpt.NonNullAndHasErrors())
@@ -1117,7 +904,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._UnevaluatedReceiverOpt = unevaluatedReceiverOpt
             Me._AliasOpt = aliasOpt
             Me._NamespaceSymbol = namespaceSymbol
-
             Validate()
         End Sub
 
@@ -1125,26 +911,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _UnevaluatedReceiverOpt As BoundExpression
         Public ReadOnly Property UnevaluatedReceiverOpt As BoundExpression
-            Get
-                Return _UnevaluatedReceiverOpt
-            End Get
-        End Property
 
-        Private ReadOnly _AliasOpt As AliasSymbol
         Public ReadOnly Property AliasOpt As AliasSymbol
-            Get
-                Return _AliasOpt
-            End Get
-        End Property
 
-        Private ReadOnly _NamespaceSymbol As NamespaceSymbol
         Public ReadOnly Property NamespaceSymbol As NamespaceSymbol
-            Get
-                Return _NamespaceSymbol
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNamespaceExpression(Me)
@@ -1152,20 +923,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(unevaluatedReceiverOpt As BoundExpression, aliasOpt As AliasSymbol, namespaceSymbol As NamespaceSymbol) As BoundNamespaceExpression
             If unevaluatedReceiverOpt IsNot Me.UnevaluatedReceiverOpt OrElse aliasOpt IsNot Me.AliasOpt OrElse namespaceSymbol IsNot Me.NamespaceSymbol Then
-                Dim result = New BoundNamespaceExpression(Me.Syntax, unevaluatedReceiverOpt, aliasOpt, namespaceSymbol, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundNamespaceExpression(Me.Syntax, unevaluatedReceiverOpt, aliasOpt, namespaceSymbol, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMethodDefIndex
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundMethodDefIndex : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MethodDefIndex, syntax, type, hasErrors)
@@ -1176,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Method = method
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.MethodDefIndex, syntax, type)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1186,12 +952,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Method As MethodSymbol
         Public ReadOnly Property Method As MethodSymbol
-            Get
-                Return _Method
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodDefIndex(Me)
@@ -1199,20 +960,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(method As MethodSymbol, type As TypeSymbol) As BoundMethodDefIndex
             If method IsNot Me.Method OrElse type IsNot Me.Type Then
-                Dim result = New BoundMethodDefIndex(Me.Syntax, method, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundMethodDefIndex(Me.Syntax, method, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMaximumMethodDefIndex
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundMaximumMethodDefIndex : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MaximumMethodDefIndex, syntax, type, hasErrors)
@@ -1221,7 +977,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MaximumMethodDefIndex, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1235,20 +991,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundMaximumMethodDefIndex
             If type IsNot Me.Type Then
-                Dim result = New BoundMaximumMethodDefIndex(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundMaximumMethodDefIndex(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundInstrumentationPayloadRoot
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundInstrumentationPayloadRoot : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, analysisKind As Integer, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.InstrumentationPayloadRoot, syntax, type, hasErrors)
@@ -1259,7 +1010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsLValue = isLValue
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, analysisKind As Integer, isLValue As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, analysisKind As Integer, isLValue As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.InstrumentationPayloadRoot, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1269,19 +1020,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _AnalysisKind As Integer
         Public ReadOnly Property AnalysisKind As Integer
-            Get
-                Return _AnalysisKind
-            End Get
-        End Property
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitInstrumentationPayloadRoot(Me)
@@ -1289,20 +1030,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(analysisKind As Integer, isLValue As Boolean, type As TypeSymbol) As BoundInstrumentationPayloadRoot
             If analysisKind <> Me.AnalysisKind OrElse isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
-                Dim result = New BoundInstrumentationPayloadRoot(Me.Syntax, analysisKind, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundInstrumentationPayloadRoot(Me.Syntax, analysisKind, isLValue, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundModuleVersionId
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundModuleVersionId : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ModuleVersionId, syntax, type, hasErrors)
@@ -1312,7 +1048,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsLValue = isLValue
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, isLValue As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, isLValue As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.ModuleVersionId, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1321,12 +1057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitModuleVersionId(Me)
@@ -1334,20 +1065,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(isLValue As Boolean, type As TypeSymbol) As BoundModuleVersionId
             If isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
-                Dim result = New BoundModuleVersionId(Me.Syntax, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundModuleVersionId(Me.Syntax, isLValue, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundModuleVersionIdString
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundModuleVersionIdString : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ModuleVersionIdString, syntax, type, hasErrors)
@@ -1356,7 +1082,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.ModuleVersionIdString, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1370,20 +1096,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundModuleVersionIdString
             If type IsNot Me.Type Then
-                Dim result = New BoundModuleVersionIdString(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundModuleVersionIdString(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSourceDocumentIndex
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundSourceDocumentIndex : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, document As Cci.DebugSourceDocument, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.SourceDocumentIndex, syntax, type, hasErrors)
@@ -1394,7 +1115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Document = document
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, document As Cci.DebugSourceDocument, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, document As Cci.DebugSourceDocument, type As TypeSymbol)
             MyBase.New(BoundKind.SourceDocumentIndex, syntax, type)
 
             Debug.Assert(document IsNot Nothing, "Field 'document' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1404,12 +1125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Document As Cci.DebugSourceDocument
         Public ReadOnly Property Document As Cci.DebugSourceDocument
-            Get
-                Return _Document
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSourceDocumentIndex(Me)
@@ -1417,20 +1133,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(document As Cci.DebugSourceDocument, type As TypeSymbol) As BoundSourceDocumentIndex
             If document IsNot Me.Document OrElse type IsNot Me.Type Then
-                Dim result = New BoundSourceDocumentIndex(Me.Syntax, document, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundSourceDocumentIndex(Me.Syntax, document, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUnaryOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundUnaryOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operatorKind As UnaryOperatorKind, operand As BoundExpression, checked As Boolean, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UnaryOperator, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors())
@@ -1442,7 +1153,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Operand = operand
             Me._Checked = checked
             Me._ConstantValueOpt = constantValueOpt
-
             Validate()
         End Sub
 
@@ -1450,33 +1160,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _OperatorKind As UnaryOperatorKind
         Public ReadOnly Property OperatorKind As UnaryOperatorKind
-            Get
-                Return _OperatorKind
-            End Get
-        End Property
 
-        Private ReadOnly _Operand As BoundExpression
         Public ReadOnly Property Operand As BoundExpression
-            Get
-                Return _Operand
-            End Get
-        End Property
 
-        Private ReadOnly _Checked As Boolean
         Public ReadOnly Property Checked As Boolean
-            Get
-                Return _Checked
-            End Get
-        End Property
 
-        Private ReadOnly _ConstantValueOpt As ConstantValue
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
-            Get
-                Return _ConstantValueOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnaryOperator(Me)
@@ -1484,20 +1174,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operatorKind As UnaryOperatorKind, operand As BoundExpression, checked As Boolean, constantValueOpt As ConstantValue, type As TypeSymbol) As BoundUnaryOperator
             If operatorKind <> Me.OperatorKind OrElse operand IsNot Me.Operand OrElse checked <> Me.Checked OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundUnaryOperator(Me.Syntax, operatorKind, operand, checked, constantValueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundUnaryOperator(Me.Syntax, operatorKind, operand, checked, constantValueOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUserDefinedUnaryOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundUserDefinedUnaryOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operatorKind As UnaryOperatorKind, underlyingExpression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UserDefinedUnaryOperator, syntax, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
@@ -1507,7 +1192,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._OperatorKind = operatorKind
             Me._UnderlyingExpression = underlyingExpression
-
             Validate()
         End Sub
 
@@ -1515,19 +1199,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _OperatorKind As UnaryOperatorKind
         Public ReadOnly Property OperatorKind As UnaryOperatorKind
-            Get
-                Return _OperatorKind
-            End Get
-        End Property
 
-        Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
-            Get
-                Return _UnderlyingExpression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedUnaryOperator(Me)
@@ -1535,20 +1209,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operatorKind As UnaryOperatorKind, underlyingExpression As BoundExpression, type As TypeSymbol) As BoundUserDefinedUnaryOperator
             If operatorKind <> Me.OperatorKind OrElse underlyingExpression IsNot Me.UnderlyingExpression OrElse type IsNot Me.Type Then
-                Dim result = New BoundUserDefinedUnaryOperator(Me.Syntax, operatorKind, underlyingExpression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundUserDefinedUnaryOperator(Me.Syntax, operatorKind, underlyingExpression, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNullableIsTrueOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundNullableIsTrueOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NullableIsTrueOperator, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors())
@@ -1557,7 +1226,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
-
             Validate()
         End Sub
 
@@ -1565,12 +1233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Operand As BoundExpression
         Public ReadOnly Property Operand As BoundExpression
-            Get
-                Return _Operand
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNullableIsTrueOperator(Me)
@@ -1578,20 +1241,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operand As BoundExpression, type As TypeSymbol) As BoundNullableIsTrueOperator
             If operand IsNot Me.Operand OrElse type IsNot Me.Type Then
-                Dim result = New BoundNullableIsTrueOperator(Me.Syntax, operand, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundNullableIsTrueOperator(Me.Syntax, operand, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBinaryOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundBinaryOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operatorKind As BinaryOperatorKind, left As BoundExpression, right As BoundExpression, checked As Boolean, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BinaryOperator, syntax, type, hasErrors OrElse left.NonNullAndHasErrors() OrElse right.NonNullAndHasErrors())
@@ -1605,7 +1263,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Right = right
             Me._Checked = checked
             Me._ConstantValueOpt = constantValueOpt
-
             Validate()
         End Sub
 
@@ -1613,40 +1270,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _OperatorKind As BinaryOperatorKind
         Public ReadOnly Property OperatorKind As BinaryOperatorKind
-            Get
-                Return _OperatorKind
-            End Get
-        End Property
 
-        Private ReadOnly _Left As BoundExpression
         Public ReadOnly Property Left As BoundExpression
-            Get
-                Return _Left
-            End Get
-        End Property
 
-        Private ReadOnly _Right As BoundExpression
         Public ReadOnly Property Right As BoundExpression
-            Get
-                Return _Right
-            End Get
-        End Property
 
-        Private ReadOnly _Checked As Boolean
         Public ReadOnly Property Checked As Boolean
-            Get
-                Return _Checked
-            End Get
-        End Property
 
-        Private ReadOnly _ConstantValueOpt As ConstantValue
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
-            Get
-                Return _ConstantValueOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBinaryOperator(Me)
@@ -1654,20 +1286,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operatorKind As BinaryOperatorKind, left As BoundExpression, right As BoundExpression, checked As Boolean, constantValueOpt As ConstantValue, type As TypeSymbol) As BoundBinaryOperator
             If operatorKind <> Me.OperatorKind OrElse left IsNot Me.Left OrElse right IsNot Me.Right OrElse checked <> Me.Checked OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundBinaryOperator(Me.Syntax, operatorKind, left, right, checked, constantValueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundBinaryOperator(Me.Syntax, operatorKind, left, right, checked, constantValueOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUserDefinedBinaryOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundUserDefinedBinaryOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operatorKind As BinaryOperatorKind, underlyingExpression As BoundExpression, checked As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UserDefinedBinaryOperator, syntax, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
@@ -1678,7 +1305,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._OperatorKind = operatorKind
             Me._UnderlyingExpression = underlyingExpression
             Me._Checked = checked
-
             Validate()
         End Sub
 
@@ -1686,26 +1312,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _OperatorKind As BinaryOperatorKind
         Public ReadOnly Property OperatorKind As BinaryOperatorKind
-            Get
-                Return _OperatorKind
-            End Get
-        End Property
 
-        Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
-            Get
-                Return _UnderlyingExpression
-            End Get
-        End Property
 
-        Private ReadOnly _Checked As Boolean
         Public ReadOnly Property Checked As Boolean
-            Get
-                Return _Checked
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedBinaryOperator(Me)
@@ -1713,20 +1324,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operatorKind As BinaryOperatorKind, underlyingExpression As BoundExpression, checked As Boolean, type As TypeSymbol) As BoundUserDefinedBinaryOperator
             If operatorKind <> Me.OperatorKind OrElse underlyingExpression IsNot Me.UnderlyingExpression OrElse checked <> Me.Checked OrElse type IsNot Me.Type Then
-                Dim result = New BoundUserDefinedBinaryOperator(Me.Syntax, operatorKind, underlyingExpression, checked, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundUserDefinedBinaryOperator(Me.Syntax, operatorKind, underlyingExpression, checked, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUserDefinedShortCircuitingOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundUserDefinedShortCircuitingOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, leftOperand As BoundExpression, leftOperandPlaceholder As BoundRValuePlaceholder, leftTest As BoundExpression, bitwiseOperator As BoundUserDefinedBinaryOperator, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UserDefinedShortCircuitingOperator, syntax, type, hasErrors OrElse leftOperand.NonNullAndHasErrors() OrElse leftOperandPlaceholder.NonNullAndHasErrors() OrElse leftTest.NonNullAndHasErrors() OrElse bitwiseOperator.NonNullAndHasErrors())
@@ -1738,7 +1344,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._LeftOperandPlaceholder = leftOperandPlaceholder
             Me._LeftTest = leftTest
             Me._BitwiseOperator = bitwiseOperator
-
             Validate()
         End Sub
 
@@ -1746,33 +1351,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LeftOperand As BoundExpression
         Public ReadOnly Property LeftOperand As BoundExpression
-            Get
-                Return _LeftOperand
-            End Get
-        End Property
 
-        Private ReadOnly _LeftOperandPlaceholder As BoundRValuePlaceholder
         Public ReadOnly Property LeftOperandPlaceholder As BoundRValuePlaceholder
-            Get
-                Return _LeftOperandPlaceholder
-            End Get
-        End Property
 
-        Private ReadOnly _LeftTest As BoundExpression
         Public ReadOnly Property LeftTest As BoundExpression
-            Get
-                Return _LeftTest
-            End Get
-        End Property
 
-        Private ReadOnly _BitwiseOperator As BoundUserDefinedBinaryOperator
         Public ReadOnly Property BitwiseOperator As BoundUserDefinedBinaryOperator
-            Get
-                Return _BitwiseOperator
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedShortCircuitingOperator(Me)
@@ -1780,20 +1365,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(leftOperand As BoundExpression, leftOperandPlaceholder As BoundRValuePlaceholder, leftTest As BoundExpression, bitwiseOperator As BoundUserDefinedBinaryOperator, type As TypeSymbol) As BoundUserDefinedShortCircuitingOperator
             If leftOperand IsNot Me.LeftOperand OrElse leftOperandPlaceholder IsNot Me.LeftOperandPlaceholder OrElse leftTest IsNot Me.LeftTest OrElse bitwiseOperator IsNot Me.BitwiseOperator OrElse type IsNot Me.Type Then
-                Dim result = New BoundUserDefinedShortCircuitingOperator(Me.Syntax, leftOperand, leftOperandPlaceholder, leftTest, bitwiseOperator, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundUserDefinedShortCircuitingOperator(Me.Syntax, leftOperand, leftOperandPlaceholder, leftTest, bitwiseOperator, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCompoundAssignmentTargetPlaceholder
-        Inherits BoundValuePlaceholderBase
+    Friend NotInheritable Partial Class BoundCompoundAssignmentTargetPlaceholder : Inherits BoundValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.CompoundAssignmentTargetPlaceholder, syntax, type, hasErrors)
@@ -1802,7 +1382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.CompoundAssignmentTargetPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1816,20 +1396,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundCompoundAssignmentTargetPlaceholder
             If type IsNot Me.Type Then
-                Dim result = New BoundCompoundAssignmentTargetPlaceholder(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundCompoundAssignmentTargetPlaceholder(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAssignmentOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundAssignmentOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, left As BoundExpression, leftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder, right As BoundExpression, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AssignmentOperator, syntax, type, hasErrors OrElse left.NonNullAndHasErrors() OrElse leftOnTheRightOpt.NonNullAndHasErrors() OrElse right.NonNullAndHasErrors())
@@ -1842,7 +1417,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._LeftOnTheRightOpt = leftOnTheRightOpt
             Me._Right = right
             Me._SuppressObjectClone = suppressObjectClone
-
             Validate()
         End Sub
 
@@ -1850,33 +1424,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Left As BoundExpression
         Public ReadOnly Property Left As BoundExpression
-            Get
-                Return _Left
-            End Get
-        End Property
 
-        Private ReadOnly _LeftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder
         Public ReadOnly Property LeftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder
-            Get
-                Return _LeftOnTheRightOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Right As BoundExpression
         Public ReadOnly Property Right As BoundExpression
-            Get
-                Return _Right
-            End Get
-        End Property
 
-        Private ReadOnly _SuppressObjectClone As Boolean
         Public ReadOnly Property SuppressObjectClone As Boolean
-            Get
-                Return _SuppressObjectClone
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAssignmentOperator(Me)
@@ -1884,20 +1438,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(left As BoundExpression, leftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder, right As BoundExpression, suppressObjectClone As Boolean, type As TypeSymbol) As BoundAssignmentOperator
             If left IsNot Me.Left OrElse leftOnTheRightOpt IsNot Me.LeftOnTheRightOpt OrElse right IsNot Me.Right OrElse suppressObjectClone <> Me.SuppressObjectClone OrElse type IsNot Me.Type Then
-                Dim result = New BoundAssignmentOperator(Me.Syntax, left, leftOnTheRightOpt, right, suppressObjectClone, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundAssignmentOperator(Me.Syntax, left, leftOnTheRightOpt, right, suppressObjectClone, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundReferenceAssignment
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundReferenceAssignment : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, byRefLocal As BoundLocal, lValue As BoundExpression, isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ReferenceAssignment, syntax, type, hasErrors OrElse byRefLocal.NonNullAndHasErrors() OrElse lValue.NonNullAndHasErrors())
@@ -1908,7 +1457,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ByRefLocal = byRefLocal
             Me._LValue = lValue
             Me._IsLValue = isLValue
-
             Validate()
         End Sub
 
@@ -1916,26 +1464,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ByRefLocal As BoundLocal
         Public ReadOnly Property ByRefLocal As BoundLocal
-            Get
-                Return _ByRefLocal
-            End Get
-        End Property
 
-        Private ReadOnly _LValue As BoundExpression
         Public ReadOnly Property LValue As BoundExpression
-            Get
-                Return _LValue
-            End Get
-        End Property
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitReferenceAssignment(Me)
@@ -1943,20 +1476,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(byRefLocal As BoundLocal, lValue As BoundExpression, isLValue As Boolean, type As TypeSymbol) As BoundReferenceAssignment
             If byRefLocal IsNot Me.ByRefLocal OrElse lValue IsNot Me.LValue OrElse isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
-                Dim result = New BoundReferenceAssignment(Me.Syntax, byRefLocal, lValue, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundReferenceAssignment(Me.Syntax, byRefLocal, lValue, isLValue, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAddressOfOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundAddressOfOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder, methodGroup As BoundMethodGroup, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AddressOfOperator, syntax, Nothing, hasErrors OrElse methodGroup.NonNullAndHasErrors())
@@ -1969,19 +1497,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Binder As Binder
         Public ReadOnly Property Binder As Binder
-            Get
-                Return _Binder
-            End Get
-        End Property
 
-        Private ReadOnly _MethodGroup As BoundMethodGroup
         Public ReadOnly Property MethodGroup As BoundMethodGroup
-            Get
-                Return _MethodGroup
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAddressOfOperator(Me)
@@ -1989,20 +1507,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(binder As Binder, methodGroup As BoundMethodGroup) As BoundAddressOfOperator
             If binder IsNot Me.Binder OrElse methodGroup IsNot Me.MethodGroup Then
-                Dim result = New BoundAddressOfOperator(Me.Syntax, binder, methodGroup, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundAddressOfOperator(Me.Syntax, binder, methodGroup, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTernaryConditionalExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundTernaryConditionalExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, whenTrue As BoundExpression, whenFalse As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TernaryConditionalExpression, syntax, type, hasErrors OrElse condition.NonNullAndHasErrors() OrElse whenTrue.NonNullAndHasErrors() OrElse whenFalse.NonNullAndHasErrors())
@@ -2016,7 +1529,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._WhenTrue = whenTrue
             Me._WhenFalse = whenFalse
             Me._ConstantValueOpt = constantValueOpt
-
             Validate()
         End Sub
 
@@ -2024,33 +1536,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Condition As BoundExpression
         Public ReadOnly Property Condition As BoundExpression
-            Get
-                Return _Condition
-            End Get
-        End Property
 
-        Private ReadOnly _WhenTrue As BoundExpression
         Public ReadOnly Property WhenTrue As BoundExpression
-            Get
-                Return _WhenTrue
-            End Get
-        End Property
 
-        Private ReadOnly _WhenFalse As BoundExpression
         Public ReadOnly Property WhenFalse As BoundExpression
-            Get
-                Return _WhenFalse
-            End Get
-        End Property
 
-        Private ReadOnly _ConstantValueOpt As ConstantValue
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
-            Get
-                Return _ConstantValueOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTernaryConditionalExpression(Me)
@@ -2058,20 +1550,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(condition As BoundExpression, whenTrue As BoundExpression, whenFalse As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol) As BoundTernaryConditionalExpression
             If condition IsNot Me.Condition OrElse whenTrue IsNot Me.WhenTrue OrElse whenFalse IsNot Me.WhenFalse OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundTernaryConditionalExpression(Me.Syntax, condition, whenTrue, whenFalse, constantValueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundTernaryConditionalExpression(Me.Syntax, condition, whenTrue, whenFalse, constantValueOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBinaryConditionalExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundBinaryConditionalExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, testExpression As BoundExpression, convertedTestExpression As BoundExpression, testExpressionPlaceholder As BoundRValuePlaceholder, elseExpression As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BinaryConditionalExpression, syntax, type, hasErrors OrElse testExpression.NonNullAndHasErrors() OrElse convertedTestExpression.NonNullAndHasErrors() OrElse testExpressionPlaceholder.NonNullAndHasErrors() OrElse elseExpression.NonNullAndHasErrors())
@@ -2085,7 +1572,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._TestExpressionPlaceholder = testExpressionPlaceholder
             Me._ElseExpression = elseExpression
             Me._ConstantValueOpt = constantValueOpt
-
             Validate()
         End Sub
 
@@ -2093,40 +1579,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _TestExpression As BoundExpression
         Public ReadOnly Property TestExpression As BoundExpression
-            Get
-                Return _TestExpression
-            End Get
-        End Property
 
-        Private ReadOnly _ConvertedTestExpression As BoundExpression
         Public ReadOnly Property ConvertedTestExpression As BoundExpression
-            Get
-                Return _ConvertedTestExpression
-            End Get
-        End Property
 
-        Private ReadOnly _TestExpressionPlaceholder As BoundRValuePlaceholder
         Public ReadOnly Property TestExpressionPlaceholder As BoundRValuePlaceholder
-            Get
-                Return _TestExpressionPlaceholder
-            End Get
-        End Property
 
-        Private ReadOnly _ElseExpression As BoundExpression
         Public ReadOnly Property ElseExpression As BoundExpression
-            Get
-                Return _ElseExpression
-            End Get
-        End Property
 
-        Private ReadOnly _ConstantValueOpt As ConstantValue
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
-            Get
-                Return _ConstantValueOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBinaryConditionalExpression(Me)
@@ -2134,20 +1595,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(testExpression As BoundExpression, convertedTestExpression As BoundExpression, testExpressionPlaceholder As BoundRValuePlaceholder, elseExpression As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol) As BoundBinaryConditionalExpression
             If testExpression IsNot Me.TestExpression OrElse convertedTestExpression IsNot Me.ConvertedTestExpression OrElse testExpressionPlaceholder IsNot Me.TestExpressionPlaceholder OrElse elseExpression IsNot Me.ElseExpression OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundBinaryConditionalExpression(Me.Syntax, testExpression, convertedTestExpression, testExpressionPlaceholder, elseExpression, constantValueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundBinaryConditionalExpression(Me.Syntax, testExpression, convertedTestExpression, testExpressionPlaceholder, elseExpression, constantValueOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundConversion
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundConversion : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, extendedInfoOpt As BoundExtendedConversionInfo, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Conversion, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse extendedInfoOpt.NonNullAndHasErrors())
@@ -2161,7 +1617,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ExplicitCastInCode = explicitCastInCode
             Me._ConstantValueOpt = constantValueOpt
             Me._ExtendedInfoOpt = extendedInfoOpt
-
             Validate()
         End Sub
 
@@ -2169,47 +1624,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Operand As BoundExpression
         Public ReadOnly Property Operand As BoundExpression
-            Get
-                Return _Operand
-            End Get
-        End Property
 
-        Private ReadOnly _ConversionKind As ConversionKind
         Public ReadOnly Property ConversionKind As ConversionKind
-            Get
-                Return _ConversionKind
-            End Get
-        End Property
 
-        Private ReadOnly _Checked As Boolean
         Public ReadOnly Property Checked As Boolean
-            Get
-                Return _Checked
-            End Get
-        End Property
 
-        Private ReadOnly _ExplicitCastInCode As Boolean
         Public ReadOnly Property ExplicitCastInCode As Boolean
-            Get
-                Return _ExplicitCastInCode
-            End Get
-        End Property
 
-        Private ReadOnly _ConstantValueOpt As ConstantValue
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
-            Get
-                Return _ConstantValueOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ExtendedInfoOpt As BoundExtendedConversionInfo
         Public ReadOnly Property ExtendedInfoOpt As BoundExtendedConversionInfo
-            Get
-                Return _ExtendedInfoOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConversion(Me)
@@ -2217,33 +1642,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, extendedInfoOpt As BoundExtendedConversionInfo, type As TypeSymbol) As BoundConversion
             If operand IsNot Me.Operand OrElse conversionKind <> Me.ConversionKind OrElse checked <> Me.Checked OrElse explicitCastInCode <> Me.ExplicitCastInCode OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse extendedInfoOpt IsNot Me.ExtendedInfoOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundConversion(Me.Syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt, extendedInfoOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundConversion(Me.Syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt, extendedInfoOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundExtendedConversionInfo
-        Inherits BoundNode
+    Friend MustInherit Partial Class BoundExtendedConversionInfo : Inherits BoundNode
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
     End Class
 
-    Friend NotInheritable Partial Class BoundRelaxationLambda
-        Inherits BoundExtendedConversionInfo
+    Friend NotInheritable Partial Class BoundRelaxationLambda : Inherits BoundExtendedConversionInfo
 
         Public Sub New(syntax As SyntaxNode, lambda As BoundLambda, receiverPlaceholderOpt As BoundRValuePlaceholder, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RelaxationLambda, syntax, hasErrors OrElse lambda.NonNullAndHasErrors() OrElse receiverPlaceholderOpt.NonNullAndHasErrors())
@@ -2255,19 +1674,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Lambda As BoundLambda
         Public ReadOnly Property Lambda As BoundLambda
-            Get
-                Return _Lambda
-            End Get
-        End Property
 
-        Private ReadOnly _ReceiverPlaceholderOpt As BoundRValuePlaceholder
         Public ReadOnly Property ReceiverPlaceholderOpt As BoundRValuePlaceholder
-            Get
-                Return _ReceiverPlaceholderOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRelaxationLambda(Me)
@@ -2275,30 +1684,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(lambda As BoundLambda, receiverPlaceholderOpt As BoundRValuePlaceholder) As BoundRelaxationLambda
             If lambda IsNot Me.Lambda OrElse receiverPlaceholderOpt IsNot Me.ReceiverPlaceholderOpt Then
-                Dim result = New BoundRelaxationLambda(Me.Syntax, lambda, receiverPlaceholderOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundRelaxationLambda(Me.Syntax, lambda, receiverPlaceholderOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundConvertedTupleElements
-        Inherits BoundExtendedConversionInfo
+    Friend NotInheritable Partial Class BoundConvertedTupleElements : Inherits BoundExtendedConversionInfo
 
         Public Sub New(syntax As SyntaxNode, elementPlaceholders As ImmutableArray(Of BoundRValuePlaceholder), convertedElements As ImmutableArray(Of BoundExpression), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ConvertedTupleElements, syntax, hasErrors OrElse elementPlaceholders.NonNullAndHasErrors() OrElse convertedElements.NonNullAndHasErrors())
 
-            Debug.Assert(Not (elementPlaceholders.IsDefault), "Field 'elementPlaceholders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (convertedElements.IsDefault), "Field 'convertedElements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not elementPlaceholders.IsDefault, "Field 'elementPlaceholders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not convertedElements.IsDefault, "Field 'convertedElements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ElementPlaceholders = elementPlaceholders
             Me._ConvertedElements = convertedElements
-
             Validate()
         End Sub
 
@@ -2306,19 +1709,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ElementPlaceholders As ImmutableArray(Of BoundRValuePlaceholder)
         Public ReadOnly Property ElementPlaceholders As ImmutableArray(Of BoundRValuePlaceholder)
-            Get
-                Return _ElementPlaceholders
-            End Get
-        End Property
 
-        Private ReadOnly _ConvertedElements As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property ConvertedElements As ImmutableArray(Of BoundExpression)
-            Get
-                Return _ConvertedElements
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConvertedTupleElements(Me)
@@ -2326,20 +1719,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(elementPlaceholders As ImmutableArray(Of BoundRValuePlaceholder), convertedElements As ImmutableArray(Of BoundExpression)) As BoundConvertedTupleElements
             If elementPlaceholders <> Me.ElementPlaceholders OrElse convertedElements <> Me.ConvertedElements Then
-                Dim result = New BoundConvertedTupleElements(Me.Syntax, elementPlaceholders, convertedElements, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundConvertedTupleElements(Me.Syntax, elementPlaceholders, convertedElements, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUserDefinedConversion
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundUserDefinedConversion : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, underlyingExpression As BoundExpression, inOutConversionFlags As Byte, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UserDefinedConversion, syntax, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
@@ -2349,7 +1737,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._UnderlyingExpression = underlyingExpression
             Me._InOutConversionFlags = inOutConversionFlags
-
             Validate()
         End Sub
 
@@ -2357,19 +1744,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
-            Get
-                Return _UnderlyingExpression
-            End Get
-        End Property
 
-        Private ReadOnly _InOutConversionFlags As Byte
         Public ReadOnly Property InOutConversionFlags As Byte
-            Get
-                Return _InOutConversionFlags
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedConversion(Me)
@@ -2377,20 +1754,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(underlyingExpression As BoundExpression, inOutConversionFlags As Byte, type As TypeSymbol) As BoundUserDefinedConversion
             If underlyingExpression IsNot Me.UnderlyingExpression OrElse inOutConversionFlags <> Me.InOutConversionFlags OrElse type IsNot Me.Type Then
-                Dim result = New BoundUserDefinedConversion(Me.Syntax, underlyingExpression, inOutConversionFlags, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundUserDefinedConversion(Me.Syntax, underlyingExpression, inOutConversionFlags, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundDirectCast
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundDirectCast : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, suppressVirtualCalls As Boolean, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.DirectCast, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse relaxationLambdaOpt.NonNullAndHasErrors())
@@ -2403,7 +1775,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._SuppressVirtualCalls = suppressVirtualCalls
             Me._ConstantValueOpt = constantValueOpt
             Me._RelaxationLambdaOpt = relaxationLambdaOpt
-
             Validate()
         End Sub
 
@@ -2411,40 +1782,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Operand As BoundExpression
         Public ReadOnly Property Operand As BoundExpression
-            Get
-                Return _Operand
-            End Get
-        End Property
 
-        Private ReadOnly _ConversionKind As ConversionKind
         Public ReadOnly Property ConversionKind As ConversionKind
-            Get
-                Return _ConversionKind
-            End Get
-        End Property
 
-        Private ReadOnly _SuppressVirtualCalls As Boolean
         Public Overrides ReadOnly Property SuppressVirtualCalls As Boolean
-            Get
-                Return _SuppressVirtualCalls
-            End Get
-        End Property
 
-        Private ReadOnly _ConstantValueOpt As ConstantValue
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
-            Get
-                Return _ConstantValueOpt
-            End Get
-        End Property
 
-        Private ReadOnly _RelaxationLambdaOpt As BoundLambda
         Public ReadOnly Property RelaxationLambdaOpt As BoundLambda
-            Get
-                Return _RelaxationLambdaOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitDirectCast(Me)
@@ -2452,20 +1798,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operand As BoundExpression, conversionKind As ConversionKind, suppressVirtualCalls As Boolean, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol) As BoundDirectCast
             If operand IsNot Me.Operand OrElse conversionKind <> Me.ConversionKind OrElse suppressVirtualCalls <> Me.SuppressVirtualCalls OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse relaxationLambdaOpt IsNot Me.RelaxationLambdaOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundDirectCast(Me.Syntax, operand, conversionKind, suppressVirtualCalls, constantValueOpt, relaxationLambdaOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundDirectCast(Me.Syntax, operand, conversionKind, suppressVirtualCalls, constantValueOpt, relaxationLambdaOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTryCast
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundTryCast : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TryCast, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse relaxationLambdaOpt.NonNullAndHasErrors())
@@ -2477,7 +1818,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ConversionKind = conversionKind
             Me._ConstantValueOpt = constantValueOpt
             Me._RelaxationLambdaOpt = relaxationLambdaOpt
-
             Validate()
         End Sub
 
@@ -2485,33 +1825,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Operand As BoundExpression
         Public ReadOnly Property Operand As BoundExpression
-            Get
-                Return _Operand
-            End Get
-        End Property
 
-        Private ReadOnly _ConversionKind As ConversionKind
         Public ReadOnly Property ConversionKind As ConversionKind
-            Get
-                Return _ConversionKind
-            End Get
-        End Property
 
-        Private ReadOnly _ConstantValueOpt As ConstantValue
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
-            Get
-                Return _ConstantValueOpt
-            End Get
-        End Property
 
-        Private ReadOnly _RelaxationLambdaOpt As BoundLambda
         Public ReadOnly Property RelaxationLambdaOpt As BoundLambda
-            Get
-                Return _RelaxationLambdaOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTryCast(Me)
@@ -2519,20 +1839,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol) As BoundTryCast
             If operand IsNot Me.Operand OrElse conversionKind <> Me.ConversionKind OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse relaxationLambdaOpt IsNot Me.RelaxationLambdaOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundTryCast(Me.Syntax, operand, conversionKind, constantValueOpt, relaxationLambdaOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundTryCast(Me.Syntax, operand, conversionKind, constantValueOpt, relaxationLambdaOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTypeOf
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundTypeOf : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, isTypeOfIsNotExpression As Boolean, targetType As TypeSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TypeOf, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors())
@@ -2547,26 +1862,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Operand As BoundExpression
         Public ReadOnly Property Operand As BoundExpression
-            Get
-                Return _Operand
-            End Get
-        End Property
 
-        Private ReadOnly _IsTypeOfIsNotExpression As Boolean
         Public ReadOnly Property IsTypeOfIsNotExpression As Boolean
-            Get
-                Return _IsTypeOfIsNotExpression
-            End Get
-        End Property
 
-        Private ReadOnly _TargetType As TypeSymbol
         Public ReadOnly Property TargetType As TypeSymbol
-            Get
-                Return _TargetType
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeOf(Me)
@@ -2574,33 +1874,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operand As BoundExpression, isTypeOfIsNotExpression As Boolean, targetType As TypeSymbol, type As TypeSymbol) As BoundTypeOf
             If operand IsNot Me.Operand OrElse isTypeOfIsNotExpression <> Me.IsTypeOfIsNotExpression OrElse targetType IsNot Me.TargetType OrElse type IsNot Me.Type Then
-                Dim result = New BoundTypeOf(Me.Syntax, operand, isTypeOfIsNotExpression, targetType, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundTypeOf(Me.Syntax, operand, isTypeOfIsNotExpression, targetType, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundStatement
-        Inherits BoundNode
+    Friend MustInherit Partial Class BoundStatement : Inherits BoundNode
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
     End Class
 
-    Friend NotInheritable Partial Class BoundSequencePoint
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundSequencePoint : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, statementOpt As BoundStatement, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SequencePoint, syntax, hasErrors OrElse statementOpt.NonNullAndHasErrors())
@@ -2608,12 +1902,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _StatementOpt As BoundStatement
         Public ReadOnly Property StatementOpt As BoundStatement
-            Get
-                Return _StatementOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequencePoint(Me)
@@ -2621,20 +1910,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(statementOpt As BoundStatement) As BoundSequencePoint
             If statementOpt IsNot Me.StatementOpt Then
-                Dim result = New BoundSequencePoint(Me.Syntax, statementOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundSequencePoint(Me.Syntax, statementOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSequencePointExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundSequencePointExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SequencePointExpression, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
@@ -2645,12 +1929,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequencePointExpression(Me)
@@ -2658,20 +1937,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundExpression, type As TypeSymbol) As BoundSequencePointExpression
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
-                Dim result = New BoundSequencePointExpression(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundSequencePointExpression(Me.Syntax, expression, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSequencePointWithSpan
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundSequencePointWithSpan : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, statementOpt As BoundStatement, span As TextSpan, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SequencePointWithSpan, syntax, hasErrors OrElse statementOpt.NonNullAndHasErrors())
@@ -2680,19 +1954,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _StatementOpt As BoundStatement
         Public ReadOnly Property StatementOpt As BoundStatement
-            Get
-                Return _StatementOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Span As TextSpan
         Public ReadOnly Property Span As TextSpan
-            Get
-                Return _Span
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequencePointWithSpan(Me)
@@ -2700,38 +1964,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(statementOpt As BoundStatement, span As TextSpan) As BoundSequencePointWithSpan
             If statementOpt IsNot Me.StatementOpt OrElse span <> Me.Span Then
-                Dim result = New BoundSequencePointWithSpan(Me.Syntax, statementOpt, span, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundSequencePointWithSpan(Me.Syntax, statementOpt, span, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNoOpStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundNoOpStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, flavor As NoOpStatementFlavor, hasErrors As Boolean)
             MyBase.New(BoundKind.NoOpStatement, syntax, hasErrors)
             Me._Flavor = flavor
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, flavor As NoOpStatementFlavor)
+        Public  Sub New(syntax As SyntaxNode, flavor As NoOpStatementFlavor)
             MyBase.New(BoundKind.NoOpStatement, syntax)
             Me._Flavor = flavor
         End Sub
 
 
-        Private ReadOnly _Flavor As NoOpStatementFlavor
         Public ReadOnly Property Flavor As NoOpStatementFlavor
-            Get
-                Return _Flavor
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNoOpStatement(Me)
@@ -2739,20 +1993,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(flavor As NoOpStatementFlavor) As BoundNoOpStatement
             If flavor <> Me.Flavor Then
-                Dim result = New BoundNoOpStatement(Me.Syntax, flavor, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundNoOpStatement(Me.Syntax, flavor, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundMethodOrPropertyGroup
-        Inherits BoundExpression
+    Friend MustInherit Partial Class BoundMethodOrPropertyGroup : Inherits BoundExpression
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, Nothing, hasErrors)
@@ -2761,28 +2010,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ReceiverOpt As BoundExpression
         Public ReadOnly Property ReceiverOpt As BoundExpression
-            Get
-                Return _ReceiverOpt
-            End Get
-        End Property
 
-        Private ReadOnly _QualificationKind As QualificationKind
         Public ReadOnly Property QualificationKind As QualificationKind
-            Get
-                Return _QualificationKind
-            End Get
-        End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundMethodGroup
-        Inherits BoundMethodOrPropertyGroup
+    Friend NotInheritable Partial Class BoundMethodGroup : Inherits BoundMethodOrPropertyGroup
 
         Public Sub New(syntax As SyntaxNode, typeArgumentsOpt As BoundTypeArguments, methods As ImmutableArray(Of MethodSymbol), pendingExtensionMethodsOpt As ExtensionMethodGroup, resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.MethodGroup, syntax, receiverOpt, qualificationKind, hasErrors OrElse typeArgumentsOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (methods.IsDefault), "Field 'methods' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not methods.IsDefault, "Field 'methods' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._TypeArgumentsOpt = typeArgumentsOpt
             Me._Methods = methods
@@ -2791,33 +2029,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _TypeArgumentsOpt As BoundTypeArguments
         Public ReadOnly Property TypeArgumentsOpt As BoundTypeArguments
-            Get
-                Return _TypeArgumentsOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Methods As ImmutableArray(Of MethodSymbol)
         Public ReadOnly Property Methods As ImmutableArray(Of MethodSymbol)
-            Get
-                Return _Methods
-            End Get
-        End Property
 
-        Private ReadOnly _PendingExtensionMethodsOpt As ExtensionMethodGroup
         Public ReadOnly Property PendingExtensionMethodsOpt As ExtensionMethodGroup
-            Get
-                Return _PendingExtensionMethodsOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ResultKind As LookupResultKind
         Public Overrides ReadOnly Property ResultKind As LookupResultKind
-            Get
-                Return _ResultKind
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodGroup(Me)
@@ -2825,44 +2043,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(typeArgumentsOpt As BoundTypeArguments, methods As ImmutableArray(Of MethodSymbol), pendingExtensionMethodsOpt As ExtensionMethodGroup, resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind) As BoundMethodGroup
             If typeArgumentsOpt IsNot Me.TypeArgumentsOpt OrElse methods <> Me.Methods OrElse pendingExtensionMethodsOpt IsNot Me.PendingExtensionMethodsOpt OrElse resultKind <> Me.ResultKind OrElse receiverOpt IsNot Me.ReceiverOpt OrElse qualificationKind <> Me.QualificationKind Then
-                Dim result = New BoundMethodGroup(Me.Syntax, typeArgumentsOpt, methods, pendingExtensionMethodsOpt, resultKind, receiverOpt, qualificationKind, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundMethodGroup(Me.Syntax, typeArgumentsOpt, methods, pendingExtensionMethodsOpt, resultKind, receiverOpt, qualificationKind, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundPropertyGroup
-        Inherits BoundMethodOrPropertyGroup
+    Friend NotInheritable Partial Class BoundPropertyGroup : Inherits BoundMethodOrPropertyGroup
 
         Public Sub New(syntax As SyntaxNode, properties As ImmutableArray(Of PropertySymbol), resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.PropertyGroup, syntax, receiverOpt, qualificationKind, hasErrors OrElse receiverOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (properties.IsDefault), "Field 'properties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not properties.IsDefault, "Field 'properties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Properties = properties
             Me._ResultKind = resultKind
         End Sub
 
 
-        Private ReadOnly _Properties As ImmutableArray(Of PropertySymbol)
         Public ReadOnly Property Properties As ImmutableArray(Of PropertySymbol)
-            Get
-                Return _Properties
-            End Get
-        End Property
 
-        Private ReadOnly _ResultKind As LookupResultKind
         Public Overrides ReadOnly Property ResultKind As LookupResultKind
-            Get
-                Return _ResultKind
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPropertyGroup(Me)
@@ -2870,27 +2073,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(properties As ImmutableArray(Of PropertySymbol), resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind) As BoundPropertyGroup
             If properties <> Me.Properties OrElse resultKind <> Me.ResultKind OrElse receiverOpt IsNot Me.ReceiverOpt OrElse qualificationKind <> Me.QualificationKind Then
-                Dim result = New BoundPropertyGroup(Me.Syntax, properties, resultKind, receiverOpt, qualificationKind, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundPropertyGroup(Me.Syntax, properties, resultKind, receiverOpt, qualificationKind, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundReturnStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundReturnStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, expressionOpt As BoundExpression, functionLocalOpt As LocalSymbol, exitLabelOpt As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ReturnStatement, syntax, hasErrors OrElse expressionOpt.NonNullAndHasErrors())
             Me._ExpressionOpt = expressionOpt
             Me._FunctionLocalOpt = functionLocalOpt
             Me._ExitLabelOpt = exitLabelOpt
-
             Validate()
         End Sub
 
@@ -2898,26 +2095,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ExpressionOpt As BoundExpression
         Public ReadOnly Property ExpressionOpt As BoundExpression
-            Get
-                Return _ExpressionOpt
-            End Get
-        End Property
 
-        Private ReadOnly _FunctionLocalOpt As LocalSymbol
         Public ReadOnly Property FunctionLocalOpt As LocalSymbol
-            Get
-                Return _FunctionLocalOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ExitLabelOpt As LabelSymbol
         Public ReadOnly Property ExitLabelOpt As LabelSymbol
-            Get
-                Return _ExitLabelOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitReturnStatement(Me)
@@ -2925,20 +2107,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expressionOpt As BoundExpression, functionLocalOpt As LocalSymbol, exitLabelOpt As LabelSymbol) As BoundReturnStatement
             If expressionOpt IsNot Me.ExpressionOpt OrElse functionLocalOpt IsNot Me.FunctionLocalOpt OrElse exitLabelOpt IsNot Me.ExitLabelOpt Then
-                Dim result = New BoundReturnStatement(Me.Syntax, expressionOpt, functionLocalOpt, exitLabelOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundReturnStatement(Me.Syntax, expressionOpt, functionLocalOpt, exitLabelOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundYieldStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundYieldStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.YieldStatement, syntax, hasErrors OrElse expression.NonNullAndHasErrors())
@@ -2946,7 +2123,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
-
             Validate()
         End Sub
 
@@ -2954,12 +2130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitYieldStatement(Me)
@@ -2967,20 +2138,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundExpression) As BoundYieldStatement
             If expression IsNot Me.Expression Then
-                Dim result = New BoundYieldStatement(Me.Syntax, expression, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundYieldStatement(Me.Syntax, expression, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundThrowStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundThrowStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, expressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ThrowStatement, syntax, hasErrors OrElse expressionOpt.NonNullAndHasErrors())
@@ -2988,12 +2154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ExpressionOpt As BoundExpression
         Public ReadOnly Property ExpressionOpt As BoundExpression
-            Get
-                Return _ExpressionOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitThrowStatement(Me)
@@ -3001,36 +2162,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expressionOpt As BoundExpression) As BoundThrowStatement
             If expressionOpt IsNot Me.ExpressionOpt Then
-                Dim result = New BoundThrowStatement(Me.Syntax, expressionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundThrowStatement(Me.Syntax, expressionOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRedimStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundRedimStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, clauses As ImmutableArray(Of BoundRedimClause), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RedimStatement, syntax, hasErrors OrElse clauses.NonNullAndHasErrors())
 
-            Debug.Assert(Not (clauses.IsDefault), "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not clauses.IsDefault, "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Clauses = clauses
         End Sub
 
 
-        Private ReadOnly _Clauses As ImmutableArray(Of BoundRedimClause)
         Public ReadOnly Property Clauses As ImmutableArray(Of BoundRedimClause)
-            Get
-                Return _Clauses
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRedimStatement(Me)
@@ -3038,32 +2189,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(clauses As ImmutableArray(Of BoundRedimClause)) As BoundRedimStatement
             If clauses <> Me.Clauses Then
-                Dim result = New BoundRedimStatement(Me.Syntax, clauses, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundRedimStatement(Me.Syntax, clauses, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRedimClause
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundRedimClause : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, indices As ImmutableArray(Of BoundExpression), arrayTypeOpt As ArrayTypeSymbol, preserve As Boolean, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RedimClause, syntax, hasErrors OrElse operand.NonNullAndHasErrors() OrElse indices.NonNullAndHasErrors())
 
             Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (indices.IsDefault), "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not indices.IsDefault, "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
             Me._Indices = indices
             Me._ArrayTypeOpt = arrayTypeOpt
             Me._Preserve = preserve
-
             Validate()
         End Sub
 
@@ -3071,33 +2216,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Operand As BoundExpression
         Public ReadOnly Property Operand As BoundExpression
-            Get
-                Return _Operand
-            End Get
-        End Property
 
-        Private ReadOnly _Indices As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Indices As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Indices
-            End Get
-        End Property
 
-        Private ReadOnly _ArrayTypeOpt As ArrayTypeSymbol
         Public ReadOnly Property ArrayTypeOpt As ArrayTypeSymbol
-            Get
-                Return _ArrayTypeOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Preserve As Boolean
         Public ReadOnly Property Preserve As Boolean
-            Get
-                Return _Preserve
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRedimClause(Me)
@@ -3105,36 +2230,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operand As BoundExpression, indices As ImmutableArray(Of BoundExpression), arrayTypeOpt As ArrayTypeSymbol, preserve As Boolean) As BoundRedimClause
             If operand IsNot Me.Operand OrElse indices <> Me.Indices OrElse arrayTypeOpt IsNot Me.ArrayTypeOpt OrElse preserve <> Me.Preserve Then
-                Dim result = New BoundRedimClause(Me.Syntax, operand, indices, arrayTypeOpt, preserve, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundRedimClause(Me.Syntax, operand, indices, arrayTypeOpt, preserve, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundEraseStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundEraseStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, clauses As ImmutableArray(Of BoundAssignmentOperator), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.EraseStatement, syntax, hasErrors OrElse clauses.NonNullAndHasErrors())
 
-            Debug.Assert(Not (clauses.IsDefault), "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not clauses.IsDefault, "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Clauses = clauses
         End Sub
 
 
-        Private ReadOnly _Clauses As ImmutableArray(Of BoundAssignmentOperator)
         Public ReadOnly Property Clauses As ImmutableArray(Of BoundAssignmentOperator)
-            Get
-                Return _Clauses
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitEraseStatement(Me)
@@ -3142,26 +2257,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(clauses As ImmutableArray(Of BoundAssignmentOperator)) As BoundEraseStatement
             If clauses <> Me.Clauses Then
-                Dim result = New BoundEraseStatement(Me.Syntax, clauses, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundEraseStatement(Me.Syntax, clauses, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCall
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundCall : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, methodGroupOpt As BoundMethodGroup, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), constantValueOpt As ConstantValue, isLValue As Boolean, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Call, syntax, type, hasErrors OrElse methodGroupOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
@@ -3171,7 +2281,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ConstantValueOpt = constantValueOpt
             Me._IsLValue = isLValue
             Me._SuppressObjectClone = suppressObjectClone
-
             Validate()
         End Sub
 
@@ -3179,54 +2288,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Method As MethodSymbol
         Public ReadOnly Property Method As MethodSymbol
-            Get
-                Return _Method
-            End Get
-        End Property
 
-        Private ReadOnly _MethodGroupOpt As BoundMethodGroup
         Public ReadOnly Property MethodGroupOpt As BoundMethodGroup
-            Get
-                Return _MethodGroupOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ReceiverOpt As BoundExpression
         Public ReadOnly Property ReceiverOpt As BoundExpression
-            Get
-                Return _ReceiverOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Arguments As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Arguments As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Arguments
-            End Get
-        End Property
 
-        Private ReadOnly _ConstantValueOpt As ConstantValue
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
-            Get
-                Return _ConstantValueOpt
-            End Get
-        End Property
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
-        Private ReadOnly _SuppressObjectClone As Boolean
         Public ReadOnly Property SuppressObjectClone As Boolean
-            Get
-                Return _SuppressObjectClone
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitCall(Me)
@@ -3234,26 +2308,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(method As MethodSymbol, methodGroupOpt As BoundMethodGroup, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), constantValueOpt As ConstantValue, isLValue As Boolean, suppressObjectClone As Boolean, type As TypeSymbol) As BoundCall
             If method IsNot Me.Method OrElse methodGroupOpt IsNot Me.MethodGroupOpt OrElse receiverOpt IsNot Me.ReceiverOpt OrElse arguments <> Me.Arguments OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse isLValue <> Me.IsLValue OrElse suppressObjectClone <> Me.SuppressObjectClone OrElse type IsNot Me.Type Then
-                Dim result = New BoundCall(Me.Syntax, method, methodGroupOpt, receiverOpt, arguments, constantValueOpt, isLValue, suppressObjectClone, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundCall(Me.Syntax, method, methodGroupOpt, receiverOpt, arguments, constantValueOpt, isLValue, suppressObjectClone, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAttribute
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundAttribute : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, constructor As MethodSymbol, constructorArguments As ImmutableArray(Of BoundExpression), namedArguments As ImmutableArray(Of BoundExpression), resultKind As LookupResultKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Attribute, syntax, type, hasErrors OrElse constructorArguments.NonNullAndHasErrors() OrElse namedArguments.NonNullAndHasErrors())
 
-            Debug.Assert(Not (constructorArguments.IsDefault), "Field 'constructorArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (namedArguments.IsDefault), "Field 'namedArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not constructorArguments.IsDefault, "Field 'constructorArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not namedArguments.IsDefault, "Field 'namedArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Constructor = constructor
@@ -3263,33 +2332,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Constructor As MethodSymbol
         Public ReadOnly Property Constructor As MethodSymbol
-            Get
-                Return _Constructor
-            End Get
-        End Property
 
-        Private ReadOnly _ConstructorArguments As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property ConstructorArguments As ImmutableArray(Of BoundExpression)
-            Get
-                Return _ConstructorArguments
-            End Get
-        End Property
 
-        Private ReadOnly _NamedArguments As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property NamedArguments As ImmutableArray(Of BoundExpression)
-            Get
-                Return _NamedArguments
-            End Get
-        End Property
 
-        Private ReadOnly _ResultKind As LookupResultKind
         Public Overrides ReadOnly Property ResultKind As LookupResultKind
-            Get
-                Return _ResultKind
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAttribute(Me)
@@ -3297,20 +2346,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(constructor As MethodSymbol, constructorArguments As ImmutableArray(Of BoundExpression), namedArguments As ImmutableArray(Of BoundExpression), resultKind As LookupResultKind, type As TypeSymbol) As BoundAttribute
             If constructor IsNot Me.Constructor OrElse constructorArguments <> Me.ConstructorArguments OrElse namedArguments <> Me.NamedArguments OrElse resultKind <> Me.ResultKind OrElse type IsNot Me.Type Then
-                Dim result = New BoundAttribute(Me.Syntax, constructor, constructorArguments, namedArguments, resultKind, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundAttribute(Me.Syntax, constructor, constructorArguments, namedArguments, resultKind, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLateMemberAccess
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundLateMemberAccess : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, nameOpt As String, containerTypeOpt As TypeSymbol, receiverOpt As BoundExpression, typeArgumentsOpt As BoundTypeArguments, accessKind As LateBoundAccessKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LateMemberAccess, syntax, type, hasErrors OrElse receiverOpt.NonNullAndHasErrors() OrElse typeArgumentsOpt.NonNullAndHasErrors())
@@ -3322,7 +2366,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ReceiverOpt = receiverOpt
             Me._TypeArgumentsOpt = typeArgumentsOpt
             Me._AccessKind = accessKind
-
             Validate()
         End Sub
 
@@ -3330,40 +2373,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _NameOpt As String
         Public ReadOnly Property NameOpt As String
-            Get
-                Return _NameOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ContainerTypeOpt As TypeSymbol
         Public ReadOnly Property ContainerTypeOpt As TypeSymbol
-            Get
-                Return _ContainerTypeOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ReceiverOpt As BoundExpression
         Public ReadOnly Property ReceiverOpt As BoundExpression
-            Get
-                Return _ReceiverOpt
-            End Get
-        End Property
 
-        Private ReadOnly _TypeArgumentsOpt As BoundTypeArguments
         Public ReadOnly Property TypeArgumentsOpt As BoundTypeArguments
-            Get
-                Return _TypeArgumentsOpt
-            End Get
-        End Property
 
-        Private ReadOnly _AccessKind As LateBoundAccessKind
         Public ReadOnly Property AccessKind As LateBoundAccessKind
-            Get
-                Return _AccessKind
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateMemberAccess(Me)
@@ -3371,20 +2389,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(nameOpt As String, containerTypeOpt As TypeSymbol, receiverOpt As BoundExpression, typeArgumentsOpt As BoundTypeArguments, accessKind As LateBoundAccessKind, type As TypeSymbol) As BoundLateMemberAccess
             If nameOpt IsNot Me.NameOpt OrElse containerTypeOpt IsNot Me.ContainerTypeOpt OrElse receiverOpt IsNot Me.ReceiverOpt OrElse typeArgumentsOpt IsNot Me.TypeArgumentsOpt OrElse accessKind <> Me.AccessKind OrElse type IsNot Me.Type Then
-                Dim result = New BoundLateMemberAccess(Me.Syntax, nameOpt, containerTypeOpt, receiverOpt, typeArgumentsOpt, accessKind, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLateMemberAccess(Me.Syntax, nameOpt, containerTypeOpt, receiverOpt, typeArgumentsOpt, accessKind, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLateInvocation
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundLateInvocation : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, member As BoundExpression, argumentsOpt As ImmutableArray(Of BoundExpression), argumentNamesOpt As ImmutableArray(Of string), accessKind As LateBoundAccessKind, methodOrPropertyGroupOpt As BoundMethodOrPropertyGroup, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LateInvocation, syntax, type, hasErrors OrElse member.NonNullAndHasErrors() OrElse argumentsOpt.NonNullAndHasErrors() OrElse methodOrPropertyGroupOpt.NonNullAndHasErrors())
@@ -3397,7 +2410,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ArgumentNamesOpt = argumentNamesOpt
             Me._AccessKind = accessKind
             Me._MethodOrPropertyGroupOpt = methodOrPropertyGroupOpt
-
             Validate()
         End Sub
 
@@ -3405,40 +2417,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Member As BoundExpression
         Public ReadOnly Property Member As BoundExpression
-            Get
-                Return _Member
-            End Get
-        End Property
 
-        Private ReadOnly _ArgumentsOpt As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property ArgumentsOpt As ImmutableArray(Of BoundExpression)
-            Get
-                Return _ArgumentsOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ArgumentNamesOpt As ImmutableArray(Of string)
         Public ReadOnly Property ArgumentNamesOpt As ImmutableArray(Of string)
-            Get
-                Return _ArgumentNamesOpt
-            End Get
-        End Property
 
-        Private ReadOnly _AccessKind As LateBoundAccessKind
         Public ReadOnly Property AccessKind As LateBoundAccessKind
-            Get
-                Return _AccessKind
-            End Get
-        End Property
 
-        Private ReadOnly _MethodOrPropertyGroupOpt As BoundMethodOrPropertyGroup
         Public ReadOnly Property MethodOrPropertyGroupOpt As BoundMethodOrPropertyGroup
-            Get
-                Return _MethodOrPropertyGroupOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateInvocation(Me)
@@ -3446,20 +2433,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(member As BoundExpression, argumentsOpt As ImmutableArray(Of BoundExpression), argumentNamesOpt As ImmutableArray(Of string), accessKind As LateBoundAccessKind, methodOrPropertyGroupOpt As BoundMethodOrPropertyGroup, type As TypeSymbol) As BoundLateInvocation
             If member IsNot Me.Member OrElse argumentsOpt <> Me.ArgumentsOpt OrElse argumentNamesOpt <> Me.ArgumentNamesOpt OrElse accessKind <> Me.AccessKind OrElse methodOrPropertyGroupOpt IsNot Me.MethodOrPropertyGroupOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundLateInvocation(Me.Syntax, member, argumentsOpt, argumentNamesOpt, accessKind, methodOrPropertyGroupOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLateInvocation(Me.Syntax, member, argumentsOpt, argumentNamesOpt, accessKind, methodOrPropertyGroupOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLateAddressOfOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundLateAddressOfOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder, memberAccess As BoundLateMemberAccess, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LateAddressOfOperator, syntax, type, hasErrors OrElse memberAccess.NonNullAndHasErrors())
@@ -3472,19 +2454,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Binder As Binder
         Public ReadOnly Property Binder As Binder
-            Get
-                Return _Binder
-            End Get
-        End Property
 
-        Private ReadOnly _MemberAccess As BoundLateMemberAccess
         Public ReadOnly Property MemberAccess As BoundLateMemberAccess
-            Get
-                Return _MemberAccess
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateAddressOfOperator(Me)
@@ -3492,45 +2464,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(binder As Binder, memberAccess As BoundLateMemberAccess, type As TypeSymbol) As BoundLateAddressOfOperator
             If binder IsNot Me.Binder OrElse memberAccess IsNot Me.MemberAccess OrElse type IsNot Me.Type Then
-                Dim result = New BoundLateAddressOfOperator(Me.Syntax, binder, memberAccess, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLateAddressOfOperator(Me.Syntax, binder, memberAccess, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundTupleExpression
-        Inherits BoundExpression
+    Friend MustInherit Partial Class BoundTupleExpression : Inherits BoundExpression
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Arguments = arguments
         End Sub
 
 
-        Private ReadOnly _Arguments As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Arguments As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Arguments
-            End Get
-        End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundTupleLiteral
-        Inherits BoundTupleExpression
+    Friend NotInheritable Partial Class BoundTupleLiteral : Inherits BoundTupleExpression
 
         Public Sub New(syntax As SyntaxNode, inferredType As TupleTypeSymbol, argumentNamesOpt As ImmutableArray(Of String), inferredNamesOpt As ImmutableArray(Of Boolean), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TupleLiteral, syntax, arguments, type, hasErrors OrElse arguments.NonNullAndHasErrors())
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InferredType = inferredType
             Me._ArgumentNamesOpt = argumentNamesOpt
@@ -3538,26 +2499,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _InferredType As TupleTypeSymbol
         Public ReadOnly Property InferredType As TupleTypeSymbol
-            Get
-                Return _InferredType
-            End Get
-        End Property
 
-        Private ReadOnly _ArgumentNamesOpt As ImmutableArray(Of String)
         Public ReadOnly Property ArgumentNamesOpt As ImmutableArray(Of String)
-            Get
-                Return _ArgumentNamesOpt
-            End Get
-        End Property
 
-        Private ReadOnly _InferredNamesOpt As ImmutableArray(Of Boolean)
         Public ReadOnly Property InferredNamesOpt As ImmutableArray(Of Boolean)
-            Get
-                Return _InferredNamesOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTupleLiteral(Me)
@@ -3565,37 +2511,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(inferredType As TupleTypeSymbol, argumentNamesOpt As ImmutableArray(Of String), inferredNamesOpt As ImmutableArray(Of Boolean), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundTupleLiteral
             If inferredType IsNot Me.InferredType OrElse argumentNamesOpt <> Me.ArgumentNamesOpt OrElse inferredNamesOpt <> Me.InferredNamesOpt OrElse arguments <> Me.Arguments OrElse type IsNot Me.Type Then
-                Dim result = New BoundTupleLiteral(Me.Syntax, inferredType, argumentNamesOpt, inferredNamesOpt, arguments, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundTupleLiteral(Me.Syntax, inferredType, argumentNamesOpt, inferredNamesOpt, arguments, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundConvertedTupleLiteral
-        Inherits BoundTupleExpression
+    Friend NotInheritable Partial Class BoundConvertedTupleLiteral : Inherits BoundTupleExpression
 
         Public Sub New(syntax As SyntaxNode, naturalTypeOpt As TypeSymbol, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ConvertedTupleLiteral, syntax, arguments, type, hasErrors OrElse arguments.NonNullAndHasErrors())
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._NaturalTypeOpt = naturalTypeOpt
         End Sub
 
 
-        Private ReadOnly _NaturalTypeOpt As TypeSymbol
         Public ReadOnly Property NaturalTypeOpt As TypeSymbol
-            Get
-                Return _NaturalTypeOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConvertedTupleLiteral(Me)
@@ -3603,20 +2539,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(naturalTypeOpt As TypeSymbol, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundConvertedTupleLiteral
             If naturalTypeOpt IsNot Me.NaturalTypeOpt OrElse arguments <> Me.Arguments OrElse type IsNot Me.Type Then
-                Dim result = New BoundConvertedTupleLiteral(Me.Syntax, naturalTypeOpt, arguments, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundConvertedTupleLiteral(Me.Syntax, naturalTypeOpt, arguments, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundObjectCreationExpressionBase
-        Inherits BoundExpression
+    Friend MustInherit Partial Class BoundObjectCreationExpressionBase : Inherits BoundExpression
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
@@ -3624,7 +2555,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InitializerOpt = initializerOpt
-
             Validate()
         End Sub
 
@@ -3632,21 +2562,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _InitializerOpt As BoundObjectInitializerExpressionBase
         Public ReadOnly Property InitializerOpt As BoundObjectInitializerExpressionBase
-            Get
-                Return _InitializerOpt
-            End Get
-        End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundObjectCreationExpression
-        Inherits BoundObjectCreationExpressionBase
+    Friend NotInheritable Partial Class BoundObjectCreationExpression : Inherits BoundObjectCreationExpressionBase
 
         Public Sub New(syntax As SyntaxNode, constructorOpt As MethodSymbol, methodGroupOpt As BoundMethodGroup, arguments As ImmutableArray(Of BoundExpression), initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ObjectCreationExpression, syntax, initializerOpt, type, hasErrors OrElse methodGroupOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors() OrElse initializerOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ConstructorOpt = constructorOpt
@@ -3655,26 +2579,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ConstructorOpt As MethodSymbol
         Public ReadOnly Property ConstructorOpt As MethodSymbol
-            Get
-                Return _ConstructorOpt
-            End Get
-        End Property
 
-        Private ReadOnly _MethodGroupOpt As BoundMethodGroup
         Public ReadOnly Property MethodGroupOpt As BoundMethodGroup
-            Get
-                Return _MethodGroupOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Arguments As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Arguments As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Arguments
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitObjectCreationExpression(Me)
@@ -3682,20 +2591,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(constructorOpt As MethodSymbol, methodGroupOpt As BoundMethodGroup, arguments As ImmutableArray(Of BoundExpression), initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol) As BoundObjectCreationExpression
             If constructorOpt IsNot Me.ConstructorOpt OrElse methodGroupOpt IsNot Me.MethodGroupOpt OrElse arguments <> Me.Arguments OrElse initializerOpt IsNot Me.InitializerOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundObjectCreationExpression(Me.Syntax, constructorOpt, methodGroupOpt, arguments, initializerOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundObjectCreationExpression(Me.Syntax, constructorOpt, methodGroupOpt, arguments, initializerOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNoPiaObjectCreationExpression
-        Inherits BoundObjectCreationExpressionBase
+    Friend NotInheritable Partial Class BoundNoPiaObjectCreationExpression : Inherits BoundObjectCreationExpressionBase
 
         Public Sub New(syntax As SyntaxNode, guidString As string, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NoPiaObjectCreationExpression, syntax, initializerOpt, type, hasErrors OrElse initializerOpt.NonNullAndHasErrors())
@@ -3706,12 +2610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _GuidString As string
         Public ReadOnly Property GuidString As string
-            Get
-                Return _GuidString
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNoPiaObjectCreationExpression(Me)
@@ -3719,26 +2618,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(guidString As string, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol) As BoundNoPiaObjectCreationExpression
             If guidString IsNot Me.GuidString OrElse initializerOpt IsNot Me.InitializerOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundNoPiaObjectCreationExpression(Me.Syntax, guidString, initializerOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundNoPiaObjectCreationExpression(Me.Syntax, guidString, initializerOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAnonymousTypeCreationExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundAnonymousTypeCreationExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binderOpt As Binder.AnonymousTypeCreationBinder, declarations As ImmutableArray(Of BoundAnonymousTypePropertyAccess), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AnonymousTypeCreationExpression, syntax, type, hasErrors OrElse declarations.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
-            Debug.Assert(Not (declarations.IsDefault), "Field 'declarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not declarations.IsDefault, "Field 'declarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._BinderOpt = binderOpt
             Me._Declarations = declarations
@@ -3746,26 +2640,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _BinderOpt As Binder.AnonymousTypeCreationBinder
         Public ReadOnly Property BinderOpt As Binder.AnonymousTypeCreationBinder
-            Get
-                Return _BinderOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Declarations As ImmutableArray(Of BoundAnonymousTypePropertyAccess)
         Public ReadOnly Property Declarations As ImmutableArray(Of BoundAnonymousTypePropertyAccess)
-            Get
-                Return _Declarations
-            End Get
-        End Property
 
-        Private ReadOnly _Arguments As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Arguments As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Arguments
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAnonymousTypeCreationExpression(Me)
@@ -3773,20 +2652,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(binderOpt As Binder.AnonymousTypeCreationBinder, declarations As ImmutableArray(Of BoundAnonymousTypePropertyAccess), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundAnonymousTypeCreationExpression
             If binderOpt IsNot Me.BinderOpt OrElse declarations <> Me.Declarations OrElse arguments <> Me.Arguments OrElse type IsNot Me.Type Then
-                Dim result = New BoundAnonymousTypeCreationExpression(Me.Syntax, binderOpt, declarations, arguments, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundAnonymousTypeCreationExpression(Me.Syntax, binderOpt, declarations, arguments, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAnonymousTypePropertyAccess
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundAnonymousTypePropertyAccess : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeCreationBinder, propertyIndex As Integer, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.AnonymousTypePropertyAccess, syntax, type, hasErrors)
@@ -3797,7 +2671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._PropertyIndex = propertyIndex
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeCreationBinder, propertyIndex As Integer, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeCreationBinder, propertyIndex As Integer, type As TypeSymbol)
             MyBase.New(BoundKind.AnonymousTypePropertyAccess, syntax, type)
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -3807,19 +2681,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Binder As Binder.AnonymousTypeCreationBinder
         Public ReadOnly Property Binder As Binder.AnonymousTypeCreationBinder
-            Get
-                Return _Binder
-            End Get
-        End Property
 
-        Private ReadOnly _PropertyIndex As Integer
         Public ReadOnly Property PropertyIndex As Integer
-            Get
-                Return _PropertyIndex
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAnonymousTypePropertyAccess(Me)
@@ -3827,20 +2691,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(binder As Binder.AnonymousTypeCreationBinder, propertyIndex As Integer, type As TypeSymbol) As BoundAnonymousTypePropertyAccess
             If binder IsNot Me.Binder OrElse propertyIndex <> Me.PropertyIndex OrElse type IsNot Me.Type Then
-                Dim result = New BoundAnonymousTypePropertyAccess(Me.Syntax, binder, propertyIndex, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundAnonymousTypePropertyAccess(Me.Syntax, binder, propertyIndex, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAnonymousTypeFieldInitializer
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundAnonymousTypeFieldInitializer : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeFieldInitializerBinder, value As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AnonymousTypeFieldInitializer, syntax, type, hasErrors OrElse value.NonNullAndHasErrors())
@@ -3853,19 +2712,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Binder As Binder.AnonymousTypeFieldInitializerBinder
         Public ReadOnly Property Binder As Binder.AnonymousTypeFieldInitializerBinder
-            Get
-                Return _Binder
-            End Get
-        End Property
 
-        Private ReadOnly _Value As BoundExpression
         Public ReadOnly Property Value As BoundExpression
-            Get
-                Return _Value
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAnonymousTypeFieldInitializer(Me)
@@ -3873,58 +2722,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(binder As Binder.AnonymousTypeFieldInitializerBinder, value As BoundExpression, type As TypeSymbol) As BoundAnonymousTypeFieldInitializer
             If binder IsNot Me.Binder OrElse value IsNot Me.Value OrElse type IsNot Me.Type Then
-                Dim result = New BoundAnonymousTypeFieldInitializer(Me.Syntax, binder, value, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundAnonymousTypeFieldInitializer(Me.Syntax, binder, value, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundObjectInitializerExpressionBase
-        Inherits BoundExpression
+    Friend MustInherit Partial Class BoundObjectInitializerExpressionBase : Inherits BoundExpression
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializers.IsDefault, "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PlaceholderOpt = placeholderOpt
             Me._Initializers = initializers
         End Sub
 
 
-        Private ReadOnly _PlaceholderOpt As BoundWithLValueExpressionPlaceholder
         Public ReadOnly Property PlaceholderOpt As BoundWithLValueExpressionPlaceholder
-            Get
-                Return _PlaceholderOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Initializers As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Initializers As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Initializers
-            End Get
-        End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundObjectInitializerExpression
-        Inherits BoundObjectInitializerExpressionBase
+    Friend NotInheritable Partial Class BoundObjectInitializerExpression : Inherits BoundObjectInitializerExpressionBase
 
         Public Sub New(syntax As SyntaxNode, createTemporaryLocalForInitialization As Boolean, binder As Binder, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ObjectInitializerExpression, syntax, placeholderOpt, initializers, type, hasErrors OrElse placeholderOpt.NonNullAndHasErrors() OrElse initializers.NonNullAndHasErrors())
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializers.IsDefault, "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CreateTemporaryLocalForInitialization = createTemporaryLocalForInitialization
             Me._Binder = binder
-
             Validate()
         End Sub
 
@@ -3932,19 +2764,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _CreateTemporaryLocalForInitialization As Boolean
         Public ReadOnly Property CreateTemporaryLocalForInitialization As Boolean
-            Get
-                Return _CreateTemporaryLocalForInitialization
-            End Get
-        End Property
 
-        Private ReadOnly _Binder As Binder
         Public ReadOnly Property Binder As Binder
-            Get
-                Return _Binder
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitObjectInitializerExpression(Me)
@@ -3952,26 +2774,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(createTemporaryLocalForInitialization As Boolean, binder As Binder, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundObjectInitializerExpression
             If createTemporaryLocalForInitialization <> Me.CreateTemporaryLocalForInitialization OrElse binder IsNot Me.Binder OrElse placeholderOpt IsNot Me.PlaceholderOpt OrElse initializers <> Me.Initializers OrElse type IsNot Me.Type Then
-                Dim result = New BoundObjectInitializerExpression(Me.Syntax, createTemporaryLocalForInitialization, binder, placeholderOpt, initializers, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundObjectInitializerExpression(Me.Syntax, createTemporaryLocalForInitialization, binder, placeholderOpt, initializers, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCollectionInitializerExpression
-        Inherits BoundObjectInitializerExpressionBase
+    Friend NotInheritable Partial Class BoundCollectionInitializerExpression : Inherits BoundObjectInitializerExpressionBase
 
         Public Sub New(syntax As SyntaxNode, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.CollectionInitializerExpression, syntax, placeholderOpt, initializers, type, hasErrors OrElse placeholderOpt.NonNullAndHasErrors() OrElse initializers.NonNullAndHasErrors())
 
-            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-
+            Debug.Assert(Not initializers.IsDefault, "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Validate()
         End Sub
@@ -3986,26 +2802,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundCollectionInitializerExpression
             If placeholderOpt IsNot Me.PlaceholderOpt OrElse initializers <> Me.Initializers OrElse type IsNot Me.Type Then
-                Dim result = New BoundCollectionInitializerExpression(Me.Syntax, placeholderOpt, initializers, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundCollectionInitializerExpression(Me.Syntax, placeholderOpt, initializers, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNewT
-        Inherits BoundObjectCreationExpressionBase
+    Friend NotInheritable Partial Class BoundNewT : Inherits BoundObjectCreationExpressionBase
 
         Public Sub New(syntax As SyntaxNode, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NewT, syntax, initializerOpt, type, hasErrors OrElse initializerOpt.NonNullAndHasErrors())
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-
 
             Validate()
         End Sub
@@ -4020,20 +2830,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol) As BoundNewT
             If initializerOpt IsNot Me.InitializerOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundNewT(Me.Syntax, initializerOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundNewT(Me.Syntax, initializerOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundDelegateCreationExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundDelegateCreationExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, method As MethodSymbol, relaxationLambdaOpt As BoundLambda, relaxationReceiverPlaceholderOpt As BoundRValuePlaceholder, methodGroupOpt As BoundMethodGroup, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.DelegateCreationExpression, syntax, type, hasErrors OrElse receiverOpt.NonNullAndHasErrors() OrElse relaxationLambdaOpt.NonNullAndHasErrors() OrElse relaxationReceiverPlaceholderOpt.NonNullAndHasErrors() OrElse methodGroupOpt.NonNullAndHasErrors())
@@ -4049,40 +2854,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ReceiverOpt As BoundExpression
         Public ReadOnly Property ReceiverOpt As BoundExpression
-            Get
-                Return _ReceiverOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Method As MethodSymbol
         Public ReadOnly Property Method As MethodSymbol
-            Get
-                Return _Method
-            End Get
-        End Property
 
-        Private ReadOnly _RelaxationLambdaOpt As BoundLambda
         Public ReadOnly Property RelaxationLambdaOpt As BoundLambda
-            Get
-                Return _RelaxationLambdaOpt
-            End Get
-        End Property
 
-        Private ReadOnly _RelaxationReceiverPlaceholderOpt As BoundRValuePlaceholder
         Public ReadOnly Property RelaxationReceiverPlaceholderOpt As BoundRValuePlaceholder
-            Get
-                Return _RelaxationReceiverPlaceholderOpt
-            End Get
-        End Property
 
-        Private ReadOnly _MethodGroupOpt As BoundMethodGroup
         Public ReadOnly Property MethodGroupOpt As BoundMethodGroup
-            Get
-                Return _MethodGroupOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitDelegateCreationExpression(Me)
@@ -4090,25 +2870,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(receiverOpt As BoundExpression, method As MethodSymbol, relaxationLambdaOpt As BoundLambda, relaxationReceiverPlaceholderOpt As BoundRValuePlaceholder, methodGroupOpt As BoundMethodGroup, type As TypeSymbol) As BoundDelegateCreationExpression
             If receiverOpt IsNot Me.ReceiverOpt OrElse method IsNot Me.Method OrElse relaxationLambdaOpt IsNot Me.RelaxationLambdaOpt OrElse relaxationReceiverPlaceholderOpt IsNot Me.RelaxationReceiverPlaceholderOpt OrElse methodGroupOpt IsNot Me.MethodGroupOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundDelegateCreationExpression(Me.Syntax, receiverOpt, method, relaxationLambdaOpt, relaxationReceiverPlaceholderOpt, methodGroupOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundDelegateCreationExpression(Me.Syntax, receiverOpt, method, relaxationLambdaOpt, relaxationReceiverPlaceholderOpt, methodGroupOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundArrayCreation
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundArrayCreation : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, isParamArrayArgument As Boolean, bounds As ImmutableArray(Of BoundExpression), initializerOpt As BoundArrayInitialization, arrayLiteralOpt As BoundArrayLiteral, arrayLiteralConversion As ConversionKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayCreation, syntax, type, hasErrors OrElse bounds.NonNullAndHasErrors() OrElse initializerOpt.NonNullAndHasErrors() OrElse arrayLiteralOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (bounds.IsDefault), "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not bounds.IsDefault, "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._IsParamArrayArgument = isParamArrayArgument
@@ -4116,7 +2891,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._InitializerOpt = initializerOpt
             Me._ArrayLiteralOpt = arrayLiteralOpt
             Me._ArrayLiteralConversion = arrayLiteralConversion
-
             Validate()
         End Sub
 
@@ -4124,40 +2898,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _IsParamArrayArgument As Boolean
         Public ReadOnly Property IsParamArrayArgument As Boolean
-            Get
-                Return _IsParamArrayArgument
-            End Get
-        End Property
 
-        Private ReadOnly _Bounds As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Bounds As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Bounds
-            End Get
-        End Property
 
-        Private ReadOnly _InitializerOpt As BoundArrayInitialization
         Public ReadOnly Property InitializerOpt As BoundArrayInitialization
-            Get
-                Return _InitializerOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ArrayLiteralOpt As BoundArrayLiteral
         Public ReadOnly Property ArrayLiteralOpt As BoundArrayLiteral
-            Get
-                Return _ArrayLiteralOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ArrayLiteralConversion As ConversionKind
         Public ReadOnly Property ArrayLiteralConversion As ConversionKind
-            Get
-                Return _ArrayLiteralConversion
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayCreation(Me)
@@ -4165,26 +2914,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(isParamArrayArgument As Boolean, bounds As ImmutableArray(Of BoundExpression), initializerOpt As BoundArrayInitialization, arrayLiteralOpt As BoundArrayLiteral, arrayLiteralConversion As ConversionKind, type As TypeSymbol) As BoundArrayCreation
             If isParamArrayArgument <> Me.IsParamArrayArgument OrElse bounds <> Me.Bounds OrElse initializerOpt IsNot Me.InitializerOpt OrElse arrayLiteralOpt IsNot Me.ArrayLiteralOpt OrElse arrayLiteralConversion <> Me.ArrayLiteralConversion OrElse type IsNot Me.Type Then
-                Dim result = New BoundArrayCreation(Me.Syntax, isParamArrayArgument, bounds, initializerOpt, arrayLiteralOpt, arrayLiteralConversion, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundArrayCreation(Me.Syntax, isParamArrayArgument, bounds, initializerOpt, arrayLiteralOpt, arrayLiteralConversion, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundArrayLiteral
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundArrayLiteral : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, hasDominantType As Boolean, numberOfCandidates As Integer, inferredType As ArrayTypeSymbol, bounds As ImmutableArray(Of BoundExpression), initializer As BoundArrayInitialization, binder As Binder, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayLiteral, syntax, Nothing, hasErrors OrElse bounds.NonNullAndHasErrors() OrElse initializer.NonNullAndHasErrors())
 
             Debug.Assert(inferredType IsNot Nothing, "Field 'inferredType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (bounds.IsDefault), "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not bounds.IsDefault, "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initializer IsNot Nothing, "Field 'initializer' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
@@ -4197,47 +2941,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _HasDominantType As Boolean
         Public ReadOnly Property HasDominantType As Boolean
-            Get
-                Return _HasDominantType
-            End Get
-        End Property
 
-        Private ReadOnly _NumberOfCandidates As Integer
         Public ReadOnly Property NumberOfCandidates As Integer
-            Get
-                Return _NumberOfCandidates
-            End Get
-        End Property
 
-        Private ReadOnly _InferredType As ArrayTypeSymbol
         Public ReadOnly Property InferredType As ArrayTypeSymbol
-            Get
-                Return _InferredType
-            End Get
-        End Property
 
-        Private ReadOnly _Bounds As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Bounds As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Bounds
-            End Get
-        End Property
 
-        Private ReadOnly _Initializer As BoundArrayInitialization
         Public ReadOnly Property Initializer As BoundArrayInitialization
-            Get
-                Return _Initializer
-            End Get
-        End Property
 
-        Private ReadOnly _Binder As Binder
         Public ReadOnly Property Binder As Binder
-            Get
-                Return _Binder
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayLiteral(Me)
@@ -4245,36 +2959,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(hasDominantType As Boolean, numberOfCandidates As Integer, inferredType As ArrayTypeSymbol, bounds As ImmutableArray(Of BoundExpression), initializer As BoundArrayInitialization, binder As Binder) As BoundArrayLiteral
             If hasDominantType <> Me.HasDominantType OrElse numberOfCandidates <> Me.NumberOfCandidates OrElse inferredType IsNot Me.InferredType OrElse bounds <> Me.Bounds OrElse initializer IsNot Me.Initializer OrElse binder IsNot Me.Binder Then
-                Dim result = New BoundArrayLiteral(Me.Syntax, hasDominantType, numberOfCandidates, inferredType, bounds, initializer, binder, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundArrayLiteral(Me.Syntax, hasDominantType, numberOfCandidates, inferredType, bounds, initializer, binder, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundArrayInitialization
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundArrayInitialization : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayInitialization, syntax, type, hasErrors OrElse initializers.NonNullAndHasErrors())
 
-            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializers.IsDefault, "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Initializers = initializers
         End Sub
 
 
-        Private ReadOnly _Initializers As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Initializers As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Initializers
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayInitialization(Me)
@@ -4282,20 +2986,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundArrayInitialization
             If initializers <> Me.Initializers OrElse type IsNot Me.Type Then
-                Dim result = New BoundArrayInitialization(Me.Syntax, initializers, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundArrayInitialization(Me.Syntax, initializers, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundFieldAccess
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundFieldAccess : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, constantsInProgressOpt As SymbolsInProgress(Of FieldSymbol), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.FieldAccess, syntax, type, hasErrors OrElse receiverOpt.NonNullAndHasErrors())
@@ -4308,7 +3007,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsLValue = isLValue
             Me._SuppressVirtualCalls = suppressVirtualCalls
             Me._ConstantsInProgressOpt = constantsInProgressOpt
-
             Validate()
         End Sub
 
@@ -4316,40 +3014,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ReceiverOpt As BoundExpression
         Public ReadOnly Property ReceiverOpt As BoundExpression
-            Get
-                Return _ReceiverOpt
-            End Get
-        End Property
 
-        Private ReadOnly _FieldSymbol As FieldSymbol
         Public ReadOnly Property FieldSymbol As FieldSymbol
-            Get
-                Return _FieldSymbol
-            End Get
-        End Property
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
-        Private ReadOnly _SuppressVirtualCalls As Boolean
         Public Overrides ReadOnly Property SuppressVirtualCalls As Boolean
-            Get
-                Return _SuppressVirtualCalls
-            End Get
-        End Property
 
-        Private ReadOnly _ConstantsInProgressOpt As SymbolsInProgress(Of FieldSymbol)
         Public ReadOnly Property ConstantsInProgressOpt As SymbolsInProgress(Of FieldSymbol)
-            Get
-                Return _ConstantsInProgressOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitFieldAccess(Me)
@@ -4357,26 +3030,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, constantsInProgressOpt As SymbolsInProgress(Of FieldSymbol), type As TypeSymbol) As BoundFieldAccess
             If receiverOpt IsNot Me.ReceiverOpt OrElse fieldSymbol IsNot Me.FieldSymbol OrElse isLValue <> Me.IsLValue OrElse suppressVirtualCalls <> Me.SuppressVirtualCalls OrElse constantsInProgressOpt IsNot Me.ConstantsInProgressOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundFieldAccess(Me.Syntax, receiverOpt, fieldSymbol, isLValue, suppressVirtualCalls, constantsInProgressOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundFieldAccess(Me.Syntax, receiverOpt, fieldSymbol, isLValue, suppressVirtualCalls, constantsInProgressOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundPropertyAccess
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundPropertyAccess : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, isLValue As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.PropertyAccess, syntax, type, hasErrors OrElse propertyGroupOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
             Debug.Assert(propertySymbol IsNot Nothing, "Field 'propertySymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PropertySymbol = propertySymbol
@@ -4386,7 +3054,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsLValue = isLValue
             Me._ReceiverOpt = receiverOpt
             Me._Arguments = arguments
-
             Validate()
         End Sub
 
@@ -4394,54 +3061,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _PropertySymbol As PropertySymbol
         Public ReadOnly Property PropertySymbol As PropertySymbol
-            Get
-                Return _PropertySymbol
-            End Get
-        End Property
 
-        Private ReadOnly _PropertyGroupOpt As BoundPropertyGroup
         Public ReadOnly Property PropertyGroupOpt As BoundPropertyGroup
-            Get
-                Return _PropertyGroupOpt
-            End Get
-        End Property
 
-        Private ReadOnly _AccessKind As PropertyAccessKind
         Public ReadOnly Property AccessKind As PropertyAccessKind
-            Get
-                Return _AccessKind
-            End Get
-        End Property
 
-        Private ReadOnly _IsWriteable As Boolean
         Public ReadOnly Property IsWriteable As Boolean
-            Get
-                Return _IsWriteable
-            End Get
-        End Property
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
-        Private ReadOnly _ReceiverOpt As BoundExpression
         Public ReadOnly Property ReceiverOpt As BoundExpression
-            Get
-                Return _ReceiverOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Arguments As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property Arguments As ImmutableArray(Of BoundExpression)
-            Get
-                Return _Arguments
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPropertyAccess(Me)
@@ -4449,20 +3081,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, isLValue As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundPropertyAccess
             If propertySymbol IsNot Me.PropertySymbol OrElse propertyGroupOpt IsNot Me.PropertyGroupOpt OrElse accessKind <> Me.AccessKind OrElse isWriteable <> Me.IsWriteable OrElse isLValue <> Me.IsLValue OrElse receiverOpt IsNot Me.ReceiverOpt OrElse arguments <> Me.Arguments OrElse type IsNot Me.Type Then
-                Dim result = New BoundPropertyAccess(Me.Syntax, propertySymbol, propertyGroupOpt, accessKind, isWriteable, isLValue, receiverOpt, arguments, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundPropertyAccess(Me.Syntax, propertySymbol, propertyGroupOpt, accessKind, isWriteable, isLValue, receiverOpt, arguments, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundEventAccess
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundEventAccess : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, eventSymbol As EventSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.EventAccess, syntax, type, hasErrors OrElse receiverOpt.NonNullAndHasErrors())
@@ -4475,19 +3102,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ReceiverOpt As BoundExpression
         Public ReadOnly Property ReceiverOpt As BoundExpression
-            Get
-                Return _ReceiverOpt
-            End Get
-        End Property
 
-        Private ReadOnly _EventSymbol As EventSymbol
         Public ReadOnly Property EventSymbol As EventSymbol
-            Get
-                Return _EventSymbol
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitEventAccess(Me)
@@ -4495,26 +3112,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(receiverOpt As BoundExpression, eventSymbol As EventSymbol, type As TypeSymbol) As BoundEventAccess
             If receiverOpt IsNot Me.ReceiverOpt OrElse eventSymbol IsNot Me.EventSymbol OrElse type IsNot Me.Type Then
-                Dim result = New BoundEventAccess(Me.Syntax, receiverOpt, eventSymbol, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundEventAccess(Me.Syntax, receiverOpt, eventSymbol, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBlock
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundBlock : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, statementListSyntax As SyntaxList(Of StatementSyntax), locals As ImmutableArray(Of LocalSymbol), statements As ImmutableArray(Of BoundStatement), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Block, syntax, hasErrors OrElse statements.NonNullAndHasErrors())
 
-            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not locals.IsDefault, "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not statements.IsDefault, "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._StatementListSyntax = statementListSyntax
             Me._Locals = locals
@@ -4522,26 +3134,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _StatementListSyntax As SyntaxList(Of StatementSyntax)
         Public ReadOnly Property StatementListSyntax As SyntaxList(Of StatementSyntax)
-            Get
-                Return _StatementListSyntax
-            End Get
-        End Property
 
-        Private ReadOnly _Locals As ImmutableArray(Of LocalSymbol)
         Public ReadOnly Property Locals As ImmutableArray(Of LocalSymbol)
-            Get
-                Return _Locals
-            End Get
-        End Property
 
-        Private ReadOnly _Statements As ImmutableArray(Of BoundStatement)
         Public ReadOnly Property Statements As ImmutableArray(Of BoundStatement)
-            Get
-                Return _Statements
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitBlock(Me)
@@ -4549,25 +3146,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(statementListSyntax As SyntaxList(Of StatementSyntax), locals As ImmutableArray(Of LocalSymbol), statements As ImmutableArray(Of BoundStatement)) As BoundBlock
             If statementListSyntax <> Me.StatementListSyntax OrElse locals <> Me.Locals OrElse statements <> Me.Statements Then
-                Dim result = New BoundBlock(Me.Syntax, statementListSyntax, locals, statements, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundBlock(Me.Syntax, statementListSyntax, locals, statements, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundStateMachineScope
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundStateMachineScope : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, fields As ImmutableArray(Of FieldSymbol), statement As BoundStatement, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.StateMachineScope, syntax, hasErrors OrElse statement.NonNullAndHasErrors())
 
-            Debug.Assert(Not (fields.IsDefault), "Field 'fields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not fields.IsDefault, "Field 'fields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(statement IsNot Nothing, "Field 'statement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Fields = fields
@@ -4575,19 +3167,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Fields As ImmutableArray(Of FieldSymbol)
         Public ReadOnly Property Fields As ImmutableArray(Of FieldSymbol)
-            Get
-                Return _Fields
-            End Get
-        End Property
 
-        Private ReadOnly _Statement As BoundStatement
         Public ReadOnly Property Statement As BoundStatement
-            Get
-                Return _Statement
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitStateMachineScope(Me)
@@ -4595,33 +3177,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(fields As ImmutableArray(Of FieldSymbol), statement As BoundStatement) As BoundStateMachineScope
             If fields <> Me.Fields OrElse statement IsNot Me.Statement Then
-                Dim result = New BoundStateMachineScope(Me.Syntax, fields, statement, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundStateMachineScope(Me.Syntax, fields, statement, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundLocalDeclarationBase
-        Inherits BoundStatement
+    Friend MustInherit Partial Class BoundLocalDeclarationBase : Inherits BoundStatement
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
     End Class
 
-    Friend NotInheritable Partial Class BoundLocalDeclaration
-        Inherits BoundLocalDeclarationBase
+    Friend NotInheritable Partial Class BoundLocalDeclaration : Inherits BoundLocalDeclarationBase
 
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, initializerOpt As BoundExpression, initializedByAsNew As Boolean, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LocalDeclaration, syntax, hasErrors OrElse initializerOpt.NonNullAndHasErrors())
@@ -4631,7 +3207,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._LocalSymbol = localSymbol
             Me._InitializerOpt = initializerOpt
             Me._InitializedByAsNew = initializedByAsNew
-
             Validate()
         End Sub
 
@@ -4639,26 +3214,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LocalSymbol As LocalSymbol
         Public ReadOnly Property LocalSymbol As LocalSymbol
-            Get
-                Return _LocalSymbol
-            End Get
-        End Property
 
-        Private ReadOnly _InitializerOpt As BoundExpression
         Public ReadOnly Property InitializerOpt As BoundExpression
-            Get
-                Return _InitializerOpt
-            End Get
-        End Property
 
-        Private ReadOnly _InitializedByAsNew As Boolean
         Public ReadOnly Property InitializedByAsNew As Boolean
-            Get
-                Return _InitializedByAsNew
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLocalDeclaration(Me)
@@ -4666,25 +3226,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(localSymbol As LocalSymbol, initializerOpt As BoundExpression, initializedByAsNew As Boolean) As BoundLocalDeclaration
             If localSymbol IsNot Me.LocalSymbol OrElse initializerOpt IsNot Me.InitializerOpt OrElse initializedByAsNew <> Me.InitializedByAsNew Then
-                Dim result = New BoundLocalDeclaration(Me.Syntax, localSymbol, initializerOpt, initializedByAsNew, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLocalDeclaration(Me.Syntax, localSymbol, initializerOpt, initializedByAsNew, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAsNewLocalDeclarations
-        Inherits BoundLocalDeclarationBase
+    Friend NotInheritable Partial Class BoundAsNewLocalDeclarations : Inherits BoundLocalDeclarationBase
 
         Public Sub New(syntax As SyntaxNode, localDeclarations As ImmutableArray(Of BoundLocalDeclaration), initializer As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AsNewLocalDeclarations, syntax, hasErrors OrElse localDeclarations.NonNullAndHasErrors() OrElse initializer.NonNullAndHasErrors())
 
-            Debug.Assert(Not (localDeclarations.IsDefault), "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initializer IsNot Nothing, "Field 'initializer' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalDeclarations = localDeclarations
@@ -4692,19 +3247,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LocalDeclarations As ImmutableArray(Of BoundLocalDeclaration)
         Public ReadOnly Property LocalDeclarations As ImmutableArray(Of BoundLocalDeclaration)
-            Get
-                Return _LocalDeclarations
-            End Get
-        End Property
 
-        Private ReadOnly _Initializer As BoundExpression
         Public ReadOnly Property Initializer As BoundExpression
-            Get
-                Return _Initializer
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAsNewLocalDeclarations(Me)
@@ -4712,44 +3257,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(localDeclarations As ImmutableArray(Of BoundLocalDeclaration), initializer As BoundExpression) As BoundAsNewLocalDeclarations
             If localDeclarations <> Me.LocalDeclarations OrElse initializer IsNot Me.Initializer Then
-                Dim result = New BoundAsNewLocalDeclarations(Me.Syntax, localDeclarations, initializer, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundAsNewLocalDeclarations(Me.Syntax, localDeclarations, initializer, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundDimStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundDimStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, localDeclarations As ImmutableArray(Of BoundLocalDeclarationBase), initializerOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.DimStatement, syntax, hasErrors OrElse localDeclarations.NonNullAndHasErrors() OrElse initializerOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (localDeclarations.IsDefault), "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalDeclarations = localDeclarations
             Me._InitializerOpt = initializerOpt
         End Sub
 
 
-        Private ReadOnly _LocalDeclarations As ImmutableArray(Of BoundLocalDeclarationBase)
         Public ReadOnly Property LocalDeclarations As ImmutableArray(Of BoundLocalDeclarationBase)
-            Get
-                Return _LocalDeclarations
-            End Get
-        End Property
 
-        Private ReadOnly _InitializerOpt As BoundExpression
         Public ReadOnly Property InitializerOpt As BoundExpression
-            Get
-                Return _InitializerOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitDimStatement(Me)
@@ -4757,26 +3287,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(localDeclarations As ImmutableArray(Of BoundLocalDeclarationBase), initializerOpt As BoundExpression) As BoundDimStatement
             If localDeclarations <> Me.LocalDeclarations OrElse initializerOpt IsNot Me.InitializerOpt Then
-                Dim result = New BoundDimStatement(Me.Syntax, localDeclarations, initializerOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundDimStatement(Me.Syntax, localDeclarations, initializerOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend Partial Class BoundInitializer
-        Inherits BoundStatement
+    Friend Partial Class BoundInitializer : Inherits BoundStatement
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
@@ -4784,7 +3309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.Initializer, syntax, hasErrors)
         End Sub
 
-        Public Sub New(syntax As SyntaxNode)
+        Public  Sub New(syntax As SyntaxNode)
             MyBase.New(BoundKind.Initializer, syntax)
         End Sub
 
@@ -4794,8 +3319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundFieldOrPropertyInitializer
-        Inherits BoundInitializer
+    Friend MustInherit Partial Class BoundFieldOrPropertyInitializer : Inherits BoundInitializer
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, hasErrors)
@@ -4807,40 +3331,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _MemberAccessExpressionOpt As BoundExpression
         Public ReadOnly Property MemberAccessExpressionOpt As BoundExpression
-            Get
-                Return _MemberAccessExpressionOpt
-            End Get
-        End Property
 
-        Private ReadOnly _InitialValue As BoundExpression
         Public ReadOnly Property InitialValue As BoundExpression
-            Get
-                Return _InitialValue
-            End Get
-        End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundFieldInitializer
-        Inherits BoundFieldOrPropertyInitializer
+    Friend NotInheritable Partial Class BoundFieldInitializer : Inherits BoundFieldOrPropertyInitializer
 
         Public Sub New(syntax As SyntaxNode, initializedFields As ImmutableArray(Of FieldSymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.FieldInitializer, syntax, memberAccessExpressionOpt, initialValue, hasErrors OrElse memberAccessExpressionOpt.NonNullAndHasErrors() OrElse initialValue.NonNullAndHasErrors())
 
-            Debug.Assert(Not (initializedFields.IsDefault), "Field 'initializedFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializedFields.IsDefault, "Field 'initializedFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InitializedFields = initializedFields
         End Sub
 
 
-        Private ReadOnly _InitializedFields As ImmutableArray(Of FieldSymbol)
         Public ReadOnly Property InitializedFields As ImmutableArray(Of FieldSymbol)
-            Get
-                Return _InitializedFields
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitFieldInitializer(Me)
@@ -4848,37 +3356,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(initializedFields As ImmutableArray(Of FieldSymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression) As BoundFieldInitializer
             If initializedFields <> Me.InitializedFields OrElse memberAccessExpressionOpt IsNot Me.MemberAccessExpressionOpt OrElse initialValue IsNot Me.InitialValue Then
-                Dim result = New BoundFieldInitializer(Me.Syntax, initializedFields, memberAccessExpressionOpt, initialValue, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundFieldInitializer(Me.Syntax, initializedFields, memberAccessExpressionOpt, initialValue, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundPropertyInitializer
-        Inherits BoundFieldOrPropertyInitializer
+    Friend NotInheritable Partial Class BoundPropertyInitializer : Inherits BoundFieldOrPropertyInitializer
 
         Public Sub New(syntax As SyntaxNode, initializedProperties As ImmutableArray(Of PropertySymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.PropertyInitializer, syntax, memberAccessExpressionOpt, initialValue, hasErrors OrElse memberAccessExpressionOpt.NonNullAndHasErrors() OrElse initialValue.NonNullAndHasErrors())
 
-            Debug.Assert(Not (initializedProperties.IsDefault), "Field 'initializedProperties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializedProperties.IsDefault, "Field 'initializedProperties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InitializedProperties = initializedProperties
         End Sub
 
 
-        Private ReadOnly _InitializedProperties As ImmutableArray(Of PropertySymbol)
         Public ReadOnly Property InitializedProperties As ImmutableArray(Of PropertySymbol)
-            Get
-                Return _InitializedProperties
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPropertyInitializer(Me)
@@ -4886,20 +3384,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(initializedProperties As ImmutableArray(Of PropertySymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression) As BoundPropertyInitializer
             If initializedProperties <> Me.InitializedProperties OrElse memberAccessExpressionOpt IsNot Me.MemberAccessExpressionOpt OrElse initialValue IsNot Me.InitialValue Then
-                Dim result = New BoundPropertyInitializer(Me.Syntax, initializedProperties, memberAccessExpressionOpt, initialValue, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundPropertyInitializer(Me.Syntax, initializedProperties, memberAccessExpressionOpt, initialValue, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundParameterEqualsValue
-        Inherits BoundNode
+    Friend NotInheritable Partial Class BoundParameterEqualsValue : Inherits BoundNode
 
         Public Sub New(syntax As SyntaxNode, parameter As ParameterSymbol, value As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ParameterEqualsValue, syntax, hasErrors OrElse value.NonNullAndHasErrors())
@@ -4912,19 +3405,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Parameter As ParameterSymbol
         Public ReadOnly Property Parameter As ParameterSymbol
-            Get
-                Return _Parameter
-            End Get
-        End Property
 
-        Private ReadOnly _Value As BoundExpression
         Public ReadOnly Property Value As BoundExpression
-            Get
-                Return _Value
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitParameterEqualsValue(Me)
@@ -4932,20 +3415,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(parameter As ParameterSymbol, value As BoundExpression) As BoundParameterEqualsValue
             If parameter IsNot Me.Parameter OrElse value IsNot Me.Value Then
-                Dim result = New BoundParameterEqualsValue(Me.Syntax, parameter, value, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundParameterEqualsValue(Me.Syntax, parameter, value, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundGlobalStatementInitializer
-        Inherits BoundInitializer
+    Friend NotInheritable Partial Class BoundGlobalStatementInitializer : Inherits BoundInitializer
 
         Public Sub New(syntax As SyntaxNode, statement As BoundStatement, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GlobalStatementInitializer, syntax, hasErrors OrElse statement.NonNullAndHasErrors())
@@ -4956,12 +3434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Statement As BoundStatement
         Public ReadOnly Property Statement As BoundStatement
-            Get
-                Return _Statement
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGlobalStatementInitializer(Me)
@@ -4969,32 +3442,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(statement As BoundStatement) As BoundGlobalStatementInitializer
             If statement IsNot Me.Statement Then
-                Dim result = New BoundGlobalStatementInitializer(Me.Syntax, statement, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundGlobalStatementInitializer(Me.Syntax, statement, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSequence
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundSequence : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, locals As ImmutableArray(Of LocalSymbol), sideEffects As ImmutableArray(Of BoundExpression), valueOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Sequence, syntax, type, hasErrors OrElse sideEffects.NonNullAndHasErrors() OrElse valueOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (sideEffects.IsDefault), "Field 'sideEffects' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not locals.IsDefault, "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not sideEffects.IsDefault, "Field 'sideEffects' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Locals = locals
             Me._SideEffects = sideEffects
             Me._ValueOpt = valueOpt
-
             Validate()
         End Sub
 
@@ -5002,26 +3469,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Locals As ImmutableArray(Of LocalSymbol)
         Public ReadOnly Property Locals As ImmutableArray(Of LocalSymbol)
-            Get
-                Return _Locals
-            End Get
-        End Property
 
-        Private ReadOnly _SideEffects As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property SideEffects As ImmutableArray(Of BoundExpression)
-            Get
-                Return _SideEffects
-            End Get
-        End Property
 
-        Private ReadOnly _ValueOpt As BoundExpression
         Public ReadOnly Property ValueOpt As BoundExpression
-            Get
-                Return _ValueOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequence(Me)
@@ -5029,20 +3481,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(locals As ImmutableArray(Of LocalSymbol), sideEffects As ImmutableArray(Of BoundExpression), valueOpt As BoundExpression, type As TypeSymbol) As BoundSequence
             If locals <> Me.Locals OrElse sideEffects <> Me.SideEffects OrElse valueOpt IsNot Me.ValueOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundSequence(Me.Syntax, locals, sideEffects, valueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundSequence(Me.Syntax, locals, sideEffects, valueOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundExpressionStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundExpressionStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ExpressionStatement, syntax, hasErrors OrElse expression.NonNullAndHasErrors())
@@ -5053,12 +3500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitExpressionStatement(Me)
@@ -5066,20 +3508,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundExpression) As BoundExpressionStatement
             If expression IsNot Me.Expression Then
-                Dim result = New BoundExpressionStatement(Me.Syntax, expression, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundExpressionStatement(Me.Syntax, expression, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundIfStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundIfStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, consequence As BoundStatement, alternativeOpt As BoundStatement, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.IfStatement, syntax, hasErrors OrElse condition.NonNullAndHasErrors() OrElse consequence.NonNullAndHasErrors() OrElse alternativeOpt.NonNullAndHasErrors())
@@ -5093,26 +3530,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Condition As BoundExpression
         Public ReadOnly Property Condition As BoundExpression
-            Get
-                Return _Condition
-            End Get
-        End Property
 
-        Private ReadOnly _Consequence As BoundStatement
         Public ReadOnly Property Consequence As BoundStatement
-            Get
-                Return _Consequence
-            End Get
-        End Property
 
-        Private ReadOnly _AlternativeOpt As BoundStatement
         Public ReadOnly Property AlternativeOpt As BoundStatement
-            Get
-                Return _AlternativeOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitIfStatement(Me)
@@ -5120,26 +3542,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(condition As BoundExpression, consequence As BoundStatement, alternativeOpt As BoundStatement) As BoundIfStatement
             If condition IsNot Me.Condition OrElse consequence IsNot Me.Consequence OrElse alternativeOpt IsNot Me.AlternativeOpt Then
-                Dim result = New BoundIfStatement(Me.Syntax, condition, consequence, alternativeOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundIfStatement(Me.Syntax, condition, consequence, alternativeOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSelectStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundSelectStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, expressionStatement As BoundExpressionStatement, exprPlaceholderOpt As BoundRValuePlaceholder, caseBlocks As ImmutableArray(Of BoundCaseBlock), recommendSwitchTable As Boolean, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SelectStatement, syntax, hasErrors OrElse expressionStatement.NonNullAndHasErrors() OrElse exprPlaceholderOpt.NonNullAndHasErrors() OrElse caseBlocks.NonNullAndHasErrors())
 
             Debug.Assert(expressionStatement IsNot Nothing, "Field 'expressionStatement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (caseBlocks.IsDefault), "Field 'caseBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not caseBlocks.IsDefault, "Field 'caseBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ExpressionStatement = expressionStatement
@@ -5150,40 +3567,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ExpressionStatement As BoundExpressionStatement
         Public ReadOnly Property ExpressionStatement As BoundExpressionStatement
-            Get
-                Return _ExpressionStatement
-            End Get
-        End Property
 
-        Private ReadOnly _ExprPlaceholderOpt As BoundRValuePlaceholder
         Public ReadOnly Property ExprPlaceholderOpt As BoundRValuePlaceholder
-            Get
-                Return _ExprPlaceholderOpt
-            End Get
-        End Property
 
-        Private ReadOnly _CaseBlocks As ImmutableArray(Of BoundCaseBlock)
         Public ReadOnly Property CaseBlocks As ImmutableArray(Of BoundCaseBlock)
-            Get
-                Return _CaseBlocks
-            End Get
-        End Property
 
-        Private ReadOnly _RecommendSwitchTable As Boolean
         Public ReadOnly Property RecommendSwitchTable As Boolean
-            Get
-                Return _RecommendSwitchTable
-            End Get
-        End Property
 
-        Private ReadOnly _ExitLabel As LabelSymbol
         Public ReadOnly Property ExitLabel As LabelSymbol
-            Get
-                Return _ExitLabel
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSelectStatement(Me)
@@ -5191,20 +3583,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expressionStatement As BoundExpressionStatement, exprPlaceholderOpt As BoundRValuePlaceholder, caseBlocks As ImmutableArray(Of BoundCaseBlock), recommendSwitchTable As Boolean, exitLabel As LabelSymbol) As BoundSelectStatement
             If expressionStatement IsNot Me.ExpressionStatement OrElse exprPlaceholderOpt IsNot Me.ExprPlaceholderOpt OrElse caseBlocks <> Me.CaseBlocks OrElse recommendSwitchTable <> Me.RecommendSwitchTable OrElse exitLabel IsNot Me.ExitLabel Then
-                Dim result = New BoundSelectStatement(Me.Syntax, expressionStatement, exprPlaceholderOpt, caseBlocks, recommendSwitchTable, exitLabel, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundSelectStatement(Me.Syntax, expressionStatement, exprPlaceholderOpt, caseBlocks, recommendSwitchTable, exitLabel, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCaseBlock
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundCaseBlock : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, caseStatement As BoundCaseStatement, body As BoundBlock, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.CaseBlock, syntax, hasErrors OrElse caseStatement.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
@@ -5217,19 +3604,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _CaseStatement As BoundCaseStatement
         Public ReadOnly Property CaseStatement As BoundCaseStatement
-            Get
-                Return _CaseStatement
-            End Get
-        End Property
 
-        Private ReadOnly _Body As BoundBlock
         Public ReadOnly Property Body As BoundBlock
-            Get
-                Return _Body
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitCaseBlock(Me)
@@ -5237,44 +3614,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(caseStatement As BoundCaseStatement, body As BoundBlock) As BoundCaseBlock
             If caseStatement IsNot Me.CaseStatement OrElse body IsNot Me.Body Then
-                Dim result = New BoundCaseBlock(Me.Syntax, caseStatement, body, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundCaseBlock(Me.Syntax, caseStatement, body, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCaseStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundCaseStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, caseClauses As ImmutableArray(Of BoundCaseClause), conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.CaseStatement, syntax, hasErrors OrElse caseClauses.NonNullAndHasErrors() OrElse conditionOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (caseClauses.IsDefault), "Field 'caseClauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not caseClauses.IsDefault, "Field 'caseClauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CaseClauses = caseClauses
             Me._ConditionOpt = conditionOpt
         End Sub
 
 
-        Private ReadOnly _CaseClauses As ImmutableArray(Of BoundCaseClause)
         Public ReadOnly Property CaseClauses As ImmutableArray(Of BoundCaseClause)
-            Get
-                Return _CaseClauses
-            End Get
-        End Property
 
-        Private ReadOnly _ConditionOpt As BoundExpression
         Public ReadOnly Property ConditionOpt As BoundExpression
-            Get
-                Return _ConditionOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitCaseStatement(Me)
@@ -5282,33 +3644,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(caseClauses As ImmutableArray(Of BoundCaseClause), conditionOpt As BoundExpression) As BoundCaseStatement
             If caseClauses <> Me.CaseClauses OrElse conditionOpt IsNot Me.ConditionOpt Then
-                Dim result = New BoundCaseStatement(Me.Syntax, caseClauses, conditionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundCaseStatement(Me.Syntax, caseClauses, conditionOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundCaseClause
-        Inherits BoundNode
+    Friend MustInherit Partial Class BoundCaseClause : Inherits BoundNode
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
     End Class
 
-    Friend NotInheritable Partial Class BoundSimpleCaseClause
-        Inherits BoundCaseClause
+    Friend NotInheritable Partial Class BoundSimpleCaseClause : Inherits BoundCaseClause
 
         Public Sub New(syntax As SyntaxNode, valueOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SimpleCaseClause, syntax, hasErrors OrElse valueOpt.NonNullAndHasErrors() OrElse conditionOpt.NonNullAndHasErrors())
@@ -5317,19 +3673,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ValueOpt As BoundExpression
         Public ReadOnly Property ValueOpt As BoundExpression
-            Get
-                Return _ValueOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ConditionOpt As BoundExpression
         Public ReadOnly Property ConditionOpt As BoundExpression
-            Get
-                Return _ConditionOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSimpleCaseClause(Me)
@@ -5337,20 +3683,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(valueOpt As BoundExpression, conditionOpt As BoundExpression) As BoundSimpleCaseClause
             If valueOpt IsNot Me.ValueOpt OrElse conditionOpt IsNot Me.ConditionOpt Then
-                Dim result = New BoundSimpleCaseClause(Me.Syntax, valueOpt, conditionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundSimpleCaseClause(Me.Syntax, valueOpt, conditionOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRangeCaseClause
-        Inherits BoundCaseClause
+    Friend NotInheritable Partial Class BoundRangeCaseClause : Inherits BoundCaseClause
 
         Public Sub New(syntax As SyntaxNode, lowerBoundOpt As BoundExpression, upperBoundOpt As BoundExpression, lowerBoundConditionOpt As BoundExpression, upperBoundConditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RangeCaseClause, syntax, hasErrors OrElse lowerBoundOpt.NonNullAndHasErrors() OrElse upperBoundOpt.NonNullAndHasErrors() OrElse lowerBoundConditionOpt.NonNullAndHasErrors() OrElse upperBoundConditionOpt.NonNullAndHasErrors())
@@ -5361,33 +3702,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LowerBoundOpt As BoundExpression
         Public ReadOnly Property LowerBoundOpt As BoundExpression
-            Get
-                Return _LowerBoundOpt
-            End Get
-        End Property
 
-        Private ReadOnly _UpperBoundOpt As BoundExpression
         Public ReadOnly Property UpperBoundOpt As BoundExpression
-            Get
-                Return _UpperBoundOpt
-            End Get
-        End Property
 
-        Private ReadOnly _LowerBoundConditionOpt As BoundExpression
         Public ReadOnly Property LowerBoundConditionOpt As BoundExpression
-            Get
-                Return _LowerBoundConditionOpt
-            End Get
-        End Property
 
-        Private ReadOnly _UpperBoundConditionOpt As BoundExpression
         Public ReadOnly Property UpperBoundConditionOpt As BoundExpression
-            Get
-                Return _UpperBoundConditionOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRangeCaseClause(Me)
@@ -5395,20 +3716,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(lowerBoundOpt As BoundExpression, upperBoundOpt As BoundExpression, lowerBoundConditionOpt As BoundExpression, upperBoundConditionOpt As BoundExpression) As BoundRangeCaseClause
             If lowerBoundOpt IsNot Me.LowerBoundOpt OrElse upperBoundOpt IsNot Me.UpperBoundOpt OrElse lowerBoundConditionOpt IsNot Me.LowerBoundConditionOpt OrElse upperBoundConditionOpt IsNot Me.UpperBoundConditionOpt Then
-                Dim result = New BoundRangeCaseClause(Me.Syntax, lowerBoundOpt, upperBoundOpt, lowerBoundConditionOpt, upperBoundConditionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundRangeCaseClause(Me.Syntax, lowerBoundOpt, upperBoundOpt, lowerBoundConditionOpt, upperBoundConditionOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRelationalCaseClause
-        Inherits BoundCaseClause
+    Friend NotInheritable Partial Class BoundRelationalCaseClause : Inherits BoundCaseClause
 
         Public Sub New(syntax As SyntaxNode, operatorKind As BinaryOperatorKind, operandOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RelationalCaseClause, syntax, hasErrors OrElse operandOpt.NonNullAndHasErrors() OrElse conditionOpt.NonNullAndHasErrors())
@@ -5418,26 +3734,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _OperatorKind As BinaryOperatorKind
         Public ReadOnly Property OperatorKind As BinaryOperatorKind
-            Get
-                Return _OperatorKind
-            End Get
-        End Property
 
-        Private ReadOnly _OperandOpt As BoundExpression
         Public ReadOnly Property OperandOpt As BoundExpression
-            Get
-                Return _OperandOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ConditionOpt As BoundExpression
         Public ReadOnly Property ConditionOpt As BoundExpression
-            Get
-                Return _ConditionOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRelationalCaseClause(Me)
@@ -5445,20 +3746,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operatorKind As BinaryOperatorKind, operandOpt As BoundExpression, conditionOpt As BoundExpression) As BoundRelationalCaseClause
             If operatorKind <> Me.OperatorKind OrElse operandOpt IsNot Me.OperandOpt OrElse conditionOpt IsNot Me.ConditionOpt Then
-                Dim result = New BoundRelationalCaseClause(Me.Syntax, operatorKind, operandOpt, conditionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundRelationalCaseClause(Me.Syntax, operatorKind, operandOpt, conditionOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundLoopStatement
-        Inherits BoundStatement
+    Friend MustInherit Partial Class BoundLoopStatement : Inherits BoundStatement
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
@@ -5470,7 +3766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ExitLabel = exitLabel
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol)
             MyBase.New(kind, syntax)
 
             Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -5481,23 +3777,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ContinueLabel As LabelSymbol
         Public ReadOnly Property ContinueLabel As LabelSymbol
-            Get
-                Return _ContinueLabel
-            End Get
-        End Property
 
-        Private ReadOnly _ExitLabel As LabelSymbol
         Public ReadOnly Property ExitLabel As LabelSymbol
-            Get
-                Return _ExitLabel
-            End Get
-        End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundDoLoopStatement
-        Inherits BoundLoopStatement
+    Friend NotInheritable Partial Class BoundDoLoopStatement : Inherits BoundLoopStatement
 
         Public Sub New(syntax As SyntaxNode, topConditionOpt As BoundExpression, bottomConditionOpt As BoundExpression, topConditionIsUntil As Boolean, bottomConditionIsUntil As Boolean, body As BoundStatement, continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.DoLoopStatement, syntax, continueLabel, exitLabel, hasErrors OrElse topConditionOpt.NonNullAndHasErrors() OrElse bottomConditionOpt.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
@@ -5514,40 +3799,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _TopConditionOpt As BoundExpression
         Public ReadOnly Property TopConditionOpt As BoundExpression
-            Get
-                Return _TopConditionOpt
-            End Get
-        End Property
 
-        Private ReadOnly _BottomConditionOpt As BoundExpression
         Public ReadOnly Property BottomConditionOpt As BoundExpression
-            Get
-                Return _BottomConditionOpt
-            End Get
-        End Property
 
-        Private ReadOnly _TopConditionIsUntil As Boolean
         Public ReadOnly Property TopConditionIsUntil As Boolean
-            Get
-                Return _TopConditionIsUntil
-            End Get
-        End Property
 
-        Private ReadOnly _BottomConditionIsUntil As Boolean
         Public ReadOnly Property BottomConditionIsUntil As Boolean
-            Get
-                Return _BottomConditionIsUntil
-            End Get
-        End Property
 
-        Private ReadOnly _Body As BoundStatement
         Public ReadOnly Property Body As BoundStatement
-            Get
-                Return _Body
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitDoLoopStatement(Me)
@@ -5555,20 +3815,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(topConditionOpt As BoundExpression, bottomConditionOpt As BoundExpression, topConditionIsUntil As Boolean, bottomConditionIsUntil As Boolean, body As BoundStatement, continueLabel As LabelSymbol, exitLabel As LabelSymbol) As BoundDoLoopStatement
             If topConditionOpt IsNot Me.TopConditionOpt OrElse bottomConditionOpt IsNot Me.BottomConditionOpt OrElse topConditionIsUntil <> Me.TopConditionIsUntil OrElse bottomConditionIsUntil <> Me.BottomConditionIsUntil OrElse body IsNot Me.Body OrElse continueLabel IsNot Me.ContinueLabel OrElse exitLabel IsNot Me.ExitLabel Then
-                Dim result = New BoundDoLoopStatement(Me.Syntax, topConditionOpt, bottomConditionOpt, topConditionIsUntil, bottomConditionIsUntil, body, continueLabel, exitLabel, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundDoLoopStatement(Me.Syntax, topConditionOpt, bottomConditionOpt, topConditionIsUntil, bottomConditionIsUntil, body, continueLabel, exitLabel, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundWhileStatement
-        Inherits BoundLoopStatement
+    Friend NotInheritable Partial Class BoundWhileStatement : Inherits BoundLoopStatement
 
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, body As BoundStatement, continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.WhileStatement, syntax, continueLabel, exitLabel, hasErrors OrElse condition.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
@@ -5583,19 +3838,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Condition As BoundExpression
         Public ReadOnly Property Condition As BoundExpression
-            Get
-                Return _Condition
-            End Get
-        End Property
 
-        Private ReadOnly _Body As BoundStatement
         Public ReadOnly Property Body As BoundStatement
-            Get
-                Return _Body
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitWhileStatement(Me)
@@ -5603,20 +3848,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(condition As BoundExpression, body As BoundStatement, continueLabel As LabelSymbol, exitLabel As LabelSymbol) As BoundWhileStatement
             If condition IsNot Me.Condition OrElse body IsNot Me.Body OrElse continueLabel IsNot Me.ContinueLabel OrElse exitLabel IsNot Me.ExitLabel Then
-                Dim result = New BoundWhileStatement(Me.Syntax, condition, body, continueLabel, exitLabel, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundWhileStatement(Me.Syntax, condition, body, continueLabel, exitLabel, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundForStatement
-        Inherits BoundLoopStatement
+    Friend MustInherit Partial Class BoundForStatement : Inherits BoundLoopStatement
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, continueLabel, exitLabel, hasErrors)
@@ -5633,37 +3873,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _DeclaredOrInferredLocalOpt As LocalSymbol
         Public ReadOnly Property DeclaredOrInferredLocalOpt As LocalSymbol
-            Get
-                Return _DeclaredOrInferredLocalOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ControlVariable As BoundExpression
         Public ReadOnly Property ControlVariable As BoundExpression
-            Get
-                Return _ControlVariable
-            End Get
-        End Property
 
-        Private ReadOnly _Body As BoundStatement
         Public ReadOnly Property Body As BoundStatement
-            Get
-                Return _Body
-            End Get
-        End Property
 
-        Private ReadOnly _NextVariablesOpt As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property NextVariablesOpt As ImmutableArray(Of BoundExpression)
-            Get
-                Return _NextVariablesOpt
-            End Get
-        End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundForToUserDefinedOperators
-        Inherits BoundNode
+    Friend NotInheritable Partial Class BoundForToUserDefinedOperators : Inherits BoundNode
 
         Public Sub New(syntax As SyntaxNode, leftOperandPlaceholder As BoundRValuePlaceholder, rightOperandPlaceholder As BoundRValuePlaceholder, addition As BoundUserDefinedBinaryOperator, subtraction As BoundUserDefinedBinaryOperator, lessThanOrEqual As BoundExpression, greaterThanOrEqual As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ForToUserDefinedOperators, syntax, hasErrors OrElse leftOperandPlaceholder.NonNullAndHasErrors() OrElse rightOperandPlaceholder.NonNullAndHasErrors() OrElse addition.NonNullAndHasErrors() OrElse subtraction.NonNullAndHasErrors() OrElse lessThanOrEqual.NonNullAndHasErrors() OrElse greaterThanOrEqual.NonNullAndHasErrors())
@@ -5681,7 +3900,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Subtraction = subtraction
             Me._LessThanOrEqual = lessThanOrEqual
             Me._GreaterThanOrEqual = greaterThanOrEqual
-
             Validate()
         End Sub
 
@@ -5689,47 +3907,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LeftOperandPlaceholder As BoundRValuePlaceholder
         Public ReadOnly Property LeftOperandPlaceholder As BoundRValuePlaceholder
-            Get
-                Return _LeftOperandPlaceholder
-            End Get
-        End Property
 
-        Private ReadOnly _RightOperandPlaceholder As BoundRValuePlaceholder
         Public ReadOnly Property RightOperandPlaceholder As BoundRValuePlaceholder
-            Get
-                Return _RightOperandPlaceholder
-            End Get
-        End Property
 
-        Private ReadOnly _Addition As BoundUserDefinedBinaryOperator
         Public ReadOnly Property Addition As BoundUserDefinedBinaryOperator
-            Get
-                Return _Addition
-            End Get
-        End Property
 
-        Private ReadOnly _Subtraction As BoundUserDefinedBinaryOperator
         Public ReadOnly Property Subtraction As BoundUserDefinedBinaryOperator
-            Get
-                Return _Subtraction
-            End Get
-        End Property
 
-        Private ReadOnly _LessThanOrEqual As BoundExpression
         Public ReadOnly Property LessThanOrEqual As BoundExpression
-            Get
-                Return _LessThanOrEqual
-            End Get
-        End Property
 
-        Private ReadOnly _GreaterThanOrEqual As BoundExpression
         Public ReadOnly Property GreaterThanOrEqual As BoundExpression
-            Get
-                Return _GreaterThanOrEqual
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitForToUserDefinedOperators(Me)
@@ -5737,20 +3925,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(leftOperandPlaceholder As BoundRValuePlaceholder, rightOperandPlaceholder As BoundRValuePlaceholder, addition As BoundUserDefinedBinaryOperator, subtraction As BoundUserDefinedBinaryOperator, lessThanOrEqual As BoundExpression, greaterThanOrEqual As BoundExpression) As BoundForToUserDefinedOperators
             If leftOperandPlaceholder IsNot Me.LeftOperandPlaceholder OrElse rightOperandPlaceholder IsNot Me.RightOperandPlaceholder OrElse addition IsNot Me.Addition OrElse subtraction IsNot Me.Subtraction OrElse lessThanOrEqual IsNot Me.LessThanOrEqual OrElse greaterThanOrEqual IsNot Me.GreaterThanOrEqual Then
-                Dim result = New BoundForToUserDefinedOperators(Me.Syntax, leftOperandPlaceholder, rightOperandPlaceholder, addition, subtraction, lessThanOrEqual, greaterThanOrEqual, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundForToUserDefinedOperators(Me.Syntax, leftOperandPlaceholder, rightOperandPlaceholder, addition, subtraction, lessThanOrEqual, greaterThanOrEqual, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundForToStatement
-        Inherits BoundForStatement
+    Friend NotInheritable Partial Class BoundForToStatement : Inherits BoundForStatement
 
         Public Sub New(syntax As SyntaxNode, initialValue As BoundExpression, limitValue As BoundExpression, stepValue As BoundExpression, checked As Boolean, operatorsOpt As BoundForToUserDefinedOperators, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ForToStatement, syntax, declaredOrInferredLocalOpt, controlVariable, body, nextVariablesOpt, continueLabel, exitLabel, hasErrors OrElse initialValue.NonNullAndHasErrors() OrElse limitValue.NonNullAndHasErrors() OrElse stepValue.NonNullAndHasErrors() OrElse operatorsOpt.NonNullAndHasErrors() OrElse controlVariable.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors() OrElse nextVariablesOpt.NonNullAndHasErrors())
@@ -5771,40 +3954,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _InitialValue As BoundExpression
         Public ReadOnly Property InitialValue As BoundExpression
-            Get
-                Return _InitialValue
-            End Get
-        End Property
 
-        Private ReadOnly _LimitValue As BoundExpression
         Public ReadOnly Property LimitValue As BoundExpression
-            Get
-                Return _LimitValue
-            End Get
-        End Property
 
-        Private ReadOnly _StepValue As BoundExpression
         Public ReadOnly Property StepValue As BoundExpression
-            Get
-                Return _StepValue
-            End Get
-        End Property
 
-        Private ReadOnly _Checked As Boolean
         Public ReadOnly Property Checked As Boolean
-            Get
-                Return _Checked
-            End Get
-        End Property
 
-        Private ReadOnly _OperatorsOpt As BoundForToUserDefinedOperators
         Public ReadOnly Property OperatorsOpt As BoundForToUserDefinedOperators
-            Get
-                Return _OperatorsOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitForToStatement(Me)
@@ -5812,20 +3970,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(initialValue As BoundExpression, limitValue As BoundExpression, stepValue As BoundExpression, checked As Boolean, operatorsOpt As BoundForToUserDefinedOperators, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol) As BoundForToStatement
             If initialValue IsNot Me.InitialValue OrElse limitValue IsNot Me.LimitValue OrElse stepValue IsNot Me.StepValue OrElse checked <> Me.Checked OrElse operatorsOpt IsNot Me.OperatorsOpt OrElse declaredOrInferredLocalOpt IsNot Me.DeclaredOrInferredLocalOpt OrElse controlVariable IsNot Me.ControlVariable OrElse body IsNot Me.Body OrElse nextVariablesOpt <> Me.NextVariablesOpt OrElse continueLabel IsNot Me.ContinueLabel OrElse exitLabel IsNot Me.ExitLabel Then
-                Dim result = New BoundForToStatement(Me.Syntax, initialValue, limitValue, stepValue, checked, operatorsOpt, declaredOrInferredLocalOpt, controlVariable, body, nextVariablesOpt, continueLabel, exitLabel, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundForToStatement(Me.Syntax, initialValue, limitValue, stepValue, checked, operatorsOpt, declaredOrInferredLocalOpt, controlVariable, body, nextVariablesOpt, continueLabel, exitLabel, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundForEachStatement
-        Inherits BoundForStatement
+    Friend NotInheritable Partial Class BoundForEachStatement : Inherits BoundForStatement
 
         Public Sub New(syntax As SyntaxNode, collection As BoundExpression, enumeratorInfo As ForEachEnumeratorInfo, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ForEachStatement, syntax, declaredOrInferredLocalOpt, controlVariable, body, nextVariablesOpt, continueLabel, exitLabel, hasErrors OrElse collection.NonNullAndHasErrors() OrElse controlVariable.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors() OrElse nextVariablesOpt.NonNullAndHasErrors())
@@ -5842,19 +3995,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Collection As BoundExpression
         Public ReadOnly Property Collection As BoundExpression
-            Get
-                Return _Collection
-            End Get
-        End Property
 
-        Private ReadOnly _EnumeratorInfo As ForEachEnumeratorInfo
         Public ReadOnly Property EnumeratorInfo As ForEachEnumeratorInfo
-            Get
-                Return _EnumeratorInfo
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitForEachStatement(Me)
@@ -5862,20 +4005,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(collection As BoundExpression, enumeratorInfo As ForEachEnumeratorInfo, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol) As BoundForEachStatement
             If collection IsNot Me.Collection OrElse enumeratorInfo IsNot Me.EnumeratorInfo OrElse declaredOrInferredLocalOpt IsNot Me.DeclaredOrInferredLocalOpt OrElse controlVariable IsNot Me.ControlVariable OrElse body IsNot Me.Body OrElse nextVariablesOpt <> Me.NextVariablesOpt OrElse continueLabel IsNot Me.ContinueLabel OrElse exitLabel IsNot Me.ExitLabel Then
-                Dim result = New BoundForEachStatement(Me.Syntax, collection, enumeratorInfo, declaredOrInferredLocalOpt, controlVariable, body, nextVariablesOpt, continueLabel, exitLabel, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundForEachStatement(Me.Syntax, collection, enumeratorInfo, declaredOrInferredLocalOpt, controlVariable, body, nextVariablesOpt, continueLabel, exitLabel, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundExitStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundExitStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ExitStatement, syntax, hasErrors)
@@ -5885,7 +4023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Label = label
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, label As LabelSymbol)
+        Public  Sub New(syntax As SyntaxNode, label As LabelSymbol)
             MyBase.New(BoundKind.ExitStatement, syntax)
 
             Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -5894,12 +4032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Label As LabelSymbol
         Public ReadOnly Property Label As LabelSymbol
-            Get
-                Return _Label
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitExitStatement(Me)
@@ -5907,20 +4040,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(label As LabelSymbol) As BoundExitStatement
             If label IsNot Me.Label Then
-                Dim result = New BoundExitStatement(Me.Syntax, label, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundExitStatement(Me.Syntax, label, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundContinueStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundContinueStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ContinueStatement, syntax, hasErrors)
@@ -5930,7 +4058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Label = label
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, label As LabelSymbol)
+        Public  Sub New(syntax As SyntaxNode, label As LabelSymbol)
             MyBase.New(BoundKind.ContinueStatement, syntax)
 
             Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -5939,12 +4067,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Label As LabelSymbol
         Public ReadOnly Property Label As LabelSymbol
-            Get
-                Return _Label
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitContinueStatement(Me)
@@ -5952,26 +4075,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(label As LabelSymbol) As BoundContinueStatement
             If label IsNot Me.Label Then
-                Dim result = New BoundContinueStatement(Me.Syntax, label, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundContinueStatement(Me.Syntax, label, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTryStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundTryStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, tryBlock As BoundBlock, catchBlocks As ImmutableArray(Of BoundCatchBlock), finallyBlockOpt As BoundBlock, exitLabelOpt As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TryStatement, syntax, hasErrors OrElse tryBlock.NonNullAndHasErrors() OrElse catchBlocks.NonNullAndHasErrors() OrElse finallyBlockOpt.NonNullAndHasErrors())
 
             Debug.Assert(tryBlock IsNot Nothing, "Field 'tryBlock' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (catchBlocks.IsDefault), "Field 'catchBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not catchBlocks.IsDefault, "Field 'catchBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._TryBlock = tryBlock
             Me._CatchBlocks = catchBlocks
@@ -5980,33 +4098,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _TryBlock As BoundBlock
         Public ReadOnly Property TryBlock As BoundBlock
-            Get
-                Return _TryBlock
-            End Get
-        End Property
 
-        Private ReadOnly _CatchBlocks As ImmutableArray(Of BoundCatchBlock)
         Public ReadOnly Property CatchBlocks As ImmutableArray(Of BoundCatchBlock)
-            Get
-                Return _CatchBlocks
-            End Get
-        End Property
 
-        Private ReadOnly _FinallyBlockOpt As BoundBlock
         Public ReadOnly Property FinallyBlockOpt As BoundBlock
-            Get
-                Return _FinallyBlockOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ExitLabelOpt As LabelSymbol
         Public ReadOnly Property ExitLabelOpt As LabelSymbol
-            Get
-                Return _ExitLabelOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTryStatement(Me)
@@ -6014,20 +4112,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(tryBlock As BoundBlock, catchBlocks As ImmutableArray(Of BoundCatchBlock), finallyBlockOpt As BoundBlock, exitLabelOpt As LabelSymbol) As BoundTryStatement
             If tryBlock IsNot Me.TryBlock OrElse catchBlocks <> Me.CatchBlocks OrElse finallyBlockOpt IsNot Me.FinallyBlockOpt OrElse exitLabelOpt IsNot Me.ExitLabelOpt Then
-                Dim result = New BoundTryStatement(Me.Syntax, tryBlock, catchBlocks, finallyBlockOpt, exitLabelOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundTryStatement(Me.Syntax, tryBlock, catchBlocks, finallyBlockOpt, exitLabelOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCatchBlock
-        Inherits BoundNode
+    Friend NotInheritable Partial Class BoundCatchBlock : Inherits BoundNode
 
         Public Sub New(syntax As SyntaxNode, localOpt As LocalSymbol, exceptionSourceOpt As BoundExpression, errorLineNumberOpt As BoundExpression, exceptionFilterOpt As BoundExpression, body As BoundBlock, isSynthesizedAsyncCatchAll As Boolean, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.CatchBlock, syntax, hasErrors OrElse exceptionSourceOpt.NonNullAndHasErrors() OrElse errorLineNumberOpt.NonNullAndHasErrors() OrElse exceptionFilterOpt.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
@@ -6043,47 +4136,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LocalOpt As LocalSymbol
         Public ReadOnly Property LocalOpt As LocalSymbol
-            Get
-                Return _LocalOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ExceptionSourceOpt As BoundExpression
         Public ReadOnly Property ExceptionSourceOpt As BoundExpression
-            Get
-                Return _ExceptionSourceOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ErrorLineNumberOpt As BoundExpression
         Public ReadOnly Property ErrorLineNumberOpt As BoundExpression
-            Get
-                Return _ErrorLineNumberOpt
-            End Get
-        End Property
 
-        Private ReadOnly _ExceptionFilterOpt As BoundExpression
         Public ReadOnly Property ExceptionFilterOpt As BoundExpression
-            Get
-                Return _ExceptionFilterOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Body As BoundBlock
         Public ReadOnly Property Body As BoundBlock
-            Get
-                Return _Body
-            End Get
-        End Property
 
-        Private ReadOnly _IsSynthesizedAsyncCatchAll As Boolean
         Public ReadOnly Property IsSynthesizedAsyncCatchAll As Boolean
-            Get
-                Return _IsSynthesizedAsyncCatchAll
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitCatchBlock(Me)
@@ -6091,20 +4154,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(localOpt As LocalSymbol, exceptionSourceOpt As BoundExpression, errorLineNumberOpt As BoundExpression, exceptionFilterOpt As BoundExpression, body As BoundBlock, isSynthesizedAsyncCatchAll As Boolean) As BoundCatchBlock
             If localOpt IsNot Me.LocalOpt OrElse exceptionSourceOpt IsNot Me.ExceptionSourceOpt OrElse errorLineNumberOpt IsNot Me.ErrorLineNumberOpt OrElse exceptionFilterOpt IsNot Me.ExceptionFilterOpt OrElse body IsNot Me.Body OrElse isSynthesizedAsyncCatchAll <> Me.IsSynthesizedAsyncCatchAll Then
-                Dim result = New BoundCatchBlock(Me.Syntax, localOpt, exceptionSourceOpt, errorLineNumberOpt, exceptionFilterOpt, body, isSynthesizedAsyncCatchAll, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundCatchBlock(Me.Syntax, localOpt, exceptionSourceOpt, errorLineNumberOpt, exceptionFilterOpt, body, isSynthesizedAsyncCatchAll, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLiteral
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundLiteral : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, value As ConstantValue, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.Literal, syntax, type, hasErrors)
@@ -6112,30 +4170,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Value = value
-
             Validate()
         End Sub
 
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, value As ConstantValue, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, value As ConstantValue, type As TypeSymbol)
             MyBase.New(BoundKind.Literal, syntax, type)
 
             Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Value = value
-
             Validate()
         End Sub
 
 
-        Private ReadOnly _Value As ConstantValue
         Public ReadOnly Property Value As ConstantValue
-            Get
-                Return _Value
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLiteral(Me)
@@ -6143,20 +4194,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(value As ConstantValue, type As TypeSymbol) As BoundLiteral
             If value IsNot Me.Value OrElse type IsNot Me.Type Then
-                Dim result = New BoundLiteral(Me.Syntax, value, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLiteral(Me.Syntax, value, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMeReference
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundMeReference : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MeReference, syntax, type, hasErrors)
@@ -6165,7 +4211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MeReference, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6179,26 +4225,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundMeReference
             If type IsNot Me.Type Then
-                Dim result = New BoundMeReference(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundMeReference(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundValueTypeMeReference
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundValueTypeMeReference : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ValueTypeMeReference, syntax, type, hasErrors)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-
 
             Validate()
         End Sub
@@ -6206,11 +4246,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.ValueTypeMeReference, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-
 
             Validate()
         End Sub
@@ -6222,20 +4261,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundValueTypeMeReference
             If type IsNot Me.Type Then
-                Dim result = New BoundValueTypeMeReference(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundValueTypeMeReference(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMyBaseReference
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundMyBaseReference : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MyBaseReference, syntax, type, hasErrors)
@@ -6244,7 +4278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MyBaseReference, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6258,20 +4292,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundMyBaseReference
             If type IsNot Me.Type Then
-                Dim result = New BoundMyBaseReference(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundMyBaseReference(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMyClassReference
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundMyClassReference : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MyClassReference, syntax, type, hasErrors)
@@ -6280,7 +4309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MyClassReference, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6294,20 +4323,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundMyClassReference
             If type IsNot Me.Type Then
-                Dim result = New BoundMyClassReference(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundMyClassReference(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundPreviousSubmissionReference
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundPreviousSubmissionReference : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, sourceType As NamedTypeSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.PreviousSubmissionReference, syntax, type, hasErrors)
@@ -6318,7 +4342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._SourceType = sourceType
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, sourceType As NamedTypeSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, sourceType As NamedTypeSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.PreviousSubmissionReference, syntax, type)
 
             Debug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6328,12 +4352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _SourceType As NamedTypeSymbol
         Public ReadOnly Property SourceType As NamedTypeSymbol
-            Get
-                Return _SourceType
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPreviousSubmissionReference(Me)
@@ -6341,20 +4360,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(sourceType As NamedTypeSymbol, type As TypeSymbol) As BoundPreviousSubmissionReference
             If sourceType IsNot Me.SourceType OrElse type IsNot Me.Type Then
-                Dim result = New BoundPreviousSubmissionReference(Me.Syntax, sourceType, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundPreviousSubmissionReference(Me.Syntax, sourceType, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundHostObjectMemberReference
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundHostObjectMemberReference : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.HostObjectMemberReference, syntax, type, hasErrors)
@@ -6363,7 +4377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.HostObjectMemberReference, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6377,20 +4391,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(type As TypeSymbol) As BoundHostObjectMemberReference
             If type IsNot Me.Type Then
-                Dim result = New BoundHostObjectMemberReference(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundHostObjectMemberReference(Me.Syntax, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLocal
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundLocal : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.Local, syntax, type, hasErrors)
@@ -6400,14 +4409,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._LocalSymbol = localSymbol
             Me._IsLValue = isLValue
-
             Validate()
         End Sub
 
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.Local, syntax, type)
 
             Debug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6415,24 +4423,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._LocalSymbol = localSymbol
             Me._IsLValue = isLValue
-
             Validate()
         End Sub
 
 
-        Private ReadOnly _LocalSymbol As LocalSymbol
         Public ReadOnly Property LocalSymbol As LocalSymbol
-            Get
-                Return _LocalSymbol
-            End Get
-        End Property
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLocal(Me)
@@ -6440,20 +4437,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol) As BoundLocal
             If localSymbol IsNot Me.LocalSymbol OrElse isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
-                Dim result = New BoundLocal(Me.Syntax, localSymbol, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLocal(Me.Syntax, localSymbol, isLValue, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundPseudoVariable
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundPseudoVariable : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.PseudoVariable, syntax, type, hasErrors)
@@ -6467,7 +4459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._EmitExpressions = emitExpressions
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol)
             MyBase.New(BoundKind.PseudoVariable, syntax, type)
 
             Debug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6480,26 +4472,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LocalSymbol As LocalSymbol
         Public ReadOnly Property LocalSymbol As LocalSymbol
-            Get
-                Return _LocalSymbol
-            End Get
-        End Property
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
-        Private ReadOnly _EmitExpressions As PseudoVariableExpressions
         Public ReadOnly Property EmitExpressions As PseudoVariableExpressions
-            Get
-                Return _EmitExpressions
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPseudoVariable(Me)
@@ -6507,20 +4484,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol) As BoundPseudoVariable
             If localSymbol IsNot Me.LocalSymbol OrElse isLValue <> Me.IsLValue OrElse emitExpressions IsNot Me.EmitExpressions OrElse type IsNot Me.Type Then
-                Dim result = New BoundPseudoVariable(Me.Syntax, localSymbol, isLValue, emitExpressions, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundPseudoVariable(Me.Syntax, localSymbol, isLValue, emitExpressions, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundParameter
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundParameter : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.Parameter, syntax, type, hasErrors)
@@ -6533,7 +4505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._SuppressVirtualCalls = suppressVirtualCalls
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.Parameter, syntax, type)
 
             Debug.Assert(parameterSymbol IsNot Nothing, "Field 'parameterSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6545,26 +4517,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ParameterSymbol As ParameterSymbol
         Public ReadOnly Property ParameterSymbol As ParameterSymbol
-            Get
-                Return _ParameterSymbol
-            End Get
-        End Property
 
-        Private ReadOnly _IsLValue As Boolean
         Public Overrides ReadOnly Property IsLValue As Boolean
-            Get
-                Return _IsLValue
-            End Get
-        End Property
 
-        Private ReadOnly _SuppressVirtualCalls As Boolean
         Public Overrides ReadOnly Property SuppressVirtualCalls As Boolean
-            Get
-                Return _SuppressVirtualCalls
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitParameter(Me)
@@ -6572,20 +4529,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(parameterSymbol As ParameterSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, type As TypeSymbol) As BoundParameter
             If parameterSymbol IsNot Me.ParameterSymbol OrElse isLValue <> Me.IsLValue OrElse suppressVirtualCalls <> Me.SuppressVirtualCalls OrElse type IsNot Me.Type Then
-                Dim result = New BoundParameter(Me.Syntax, parameterSymbol, isLValue, suppressVirtualCalls, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundParameter(Me.Syntax, parameterSymbol, isLValue, suppressVirtualCalls, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundByRefArgumentPlaceholder
-        Inherits BoundValuePlaceholderBase
+    Friend NotInheritable Partial Class BoundByRefArgumentPlaceholder : Inherits BoundValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, isOut As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ByRefArgumentPlaceholder, syntax, type, hasErrors)
@@ -6595,7 +4547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsOut = isOut
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, isOut As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, isOut As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.ByRefArgumentPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6604,12 +4556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _IsOut As Boolean
         Public ReadOnly Property IsOut As Boolean
-            Get
-                Return _IsOut
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitByRefArgumentPlaceholder(Me)
@@ -6617,20 +4564,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(isOut As Boolean, type As TypeSymbol) As BoundByRefArgumentPlaceholder
             If isOut <> Me.IsOut OrElse type IsNot Me.Type Then
-                Dim result = New BoundByRefArgumentPlaceholder(Me.Syntax, isOut, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundByRefArgumentPlaceholder(Me.Syntax, isOut, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundByRefArgumentWithCopyBack
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundByRefArgumentWithCopyBack : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, originalArgument As BoundExpression, inConversion As BoundExpression, inPlaceholder As BoundByRefArgumentPlaceholder, outConversion As BoundExpression, outPlaceholder As BoundRValuePlaceholder, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ByRefArgumentWithCopyBack, syntax, type, hasErrors OrElse originalArgument.NonNullAndHasErrors() OrElse inConversion.NonNullAndHasErrors() OrElse inPlaceholder.NonNullAndHasErrors() OrElse outConversion.NonNullAndHasErrors() OrElse outPlaceholder.NonNullAndHasErrors())
@@ -6646,7 +4588,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._InPlaceholder = inPlaceholder
             Me._OutConversion = outConversion
             Me._OutPlaceholder = outPlaceholder
-
             Validate()
         End Sub
 
@@ -6654,40 +4595,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _OriginalArgument As BoundExpression
         Public ReadOnly Property OriginalArgument As BoundExpression
-            Get
-                Return _OriginalArgument
-            End Get
-        End Property
 
-        Private ReadOnly _InConversion As BoundExpression
         Public ReadOnly Property InConversion As BoundExpression
-            Get
-                Return _InConversion
-            End Get
-        End Property
 
-        Private ReadOnly _InPlaceholder As BoundByRefArgumentPlaceholder
         Public ReadOnly Property InPlaceholder As BoundByRefArgumentPlaceholder
-            Get
-                Return _InPlaceholder
-            End Get
-        End Property
 
-        Private ReadOnly _OutConversion As BoundExpression
         Public ReadOnly Property OutConversion As BoundExpression
-            Get
-                Return _OutConversion
-            End Get
-        End Property
 
-        Private ReadOnly _OutPlaceholder As BoundRValuePlaceholder
         Public ReadOnly Property OutPlaceholder As BoundRValuePlaceholder
-            Get
-                Return _OutPlaceholder
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitByRefArgumentWithCopyBack(Me)
@@ -6695,20 +4611,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(originalArgument As BoundExpression, inConversion As BoundExpression, inPlaceholder As BoundByRefArgumentPlaceholder, outConversion As BoundExpression, outPlaceholder As BoundRValuePlaceholder, type As TypeSymbol) As BoundByRefArgumentWithCopyBack
             If originalArgument IsNot Me.OriginalArgument OrElse inConversion IsNot Me.InConversion OrElse inPlaceholder IsNot Me.InPlaceholder OrElse outConversion IsNot Me.OutConversion OrElse outPlaceholder IsNot Me.OutPlaceholder OrElse type IsNot Me.Type Then
-                Dim result = New BoundByRefArgumentWithCopyBack(Me.Syntax, originalArgument, inConversion, inPlaceholder, outConversion, outPlaceholder, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundByRefArgumentWithCopyBack(Me.Syntax, originalArgument, inConversion, inPlaceholder, outConversion, outPlaceholder, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLateBoundArgumentSupportingAssignmentWithCapture
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundLateBoundArgumentSupportingAssignmentWithCapture : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, originalArgument As BoundExpression, localSymbol As SynthesizedLocal, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LateBoundArgumentSupportingAssignmentWithCapture, syntax, type, hasErrors OrElse originalArgument.NonNullAndHasErrors())
@@ -6718,7 +4629,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._OriginalArgument = originalArgument
             Me._LocalSymbol = localSymbol
-
             Validate()
         End Sub
 
@@ -6726,19 +4636,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _OriginalArgument As BoundExpression
         Public ReadOnly Property OriginalArgument As BoundExpression
-            Get
-                Return _OriginalArgument
-            End Get
-        End Property
 
-        Private ReadOnly _LocalSymbol As SynthesizedLocal
         Public ReadOnly Property LocalSymbol As SynthesizedLocal
-            Get
-                Return _LocalSymbol
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateBoundArgumentSupportingAssignmentWithCapture(Me)
@@ -6746,20 +4646,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(originalArgument As BoundExpression, localSymbol As SynthesizedLocal, type As TypeSymbol) As BoundLateBoundArgumentSupportingAssignmentWithCapture
             If originalArgument IsNot Me.OriginalArgument OrElse localSymbol IsNot Me.LocalSymbol OrElse type IsNot Me.Type Then
-                Dim result = New BoundLateBoundArgumentSupportingAssignmentWithCapture(Me.Syntax, originalArgument, localSymbol, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLateBoundArgumentSupportingAssignmentWithCapture(Me.Syntax, originalArgument, localSymbol, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLabelStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundLabelStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.LabelStatement, syntax, hasErrors)
@@ -6769,7 +4664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Label = label
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, label As LabelSymbol)
+        Public  Sub New(syntax As SyntaxNode, label As LabelSymbol)
             MyBase.New(BoundKind.LabelStatement, syntax)
 
             Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6778,12 +4673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Label As LabelSymbol
         Public ReadOnly Property Label As LabelSymbol
-            Get
-                Return _Label
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLabelStatement(Me)
@@ -6791,20 +4681,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(label As LabelSymbol) As BoundLabelStatement
             If label IsNot Me.Label Then
-                Dim result = New BoundLabelStatement(Me.Syntax, label, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLabelStatement(Me.Syntax, label, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLabel
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundLabel : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.Label, syntax, type, hasErrors)
@@ -6814,7 +4699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Label = label
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, label As LabelSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, label As LabelSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.Label, syntax, type)
 
             Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6823,12 +4708,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Label As LabelSymbol
         Public ReadOnly Property Label As LabelSymbol
-            Get
-                Return _Label
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLabel(Me)
@@ -6836,20 +4716,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(label As LabelSymbol, type As TypeSymbol) As BoundLabel
             If label IsNot Me.Label OrElse type IsNot Me.Type Then
-                Dim result = New BoundLabel(Me.Syntax, label, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLabel(Me.Syntax, label, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundGotoStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundGotoStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, labelExpressionOpt As BoundLabel, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GotoStatement, syntax, hasErrors OrElse labelExpressionOpt.NonNullAndHasErrors())
@@ -6861,19 +4736,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Label As LabelSymbol
         Public ReadOnly Property Label As LabelSymbol
-            Get
-                Return _Label
-            End Get
-        End Property
 
-        Private ReadOnly _LabelExpressionOpt As BoundLabel
         Public ReadOnly Property LabelExpressionOpt As BoundLabel
-            Get
-                Return _LabelExpressionOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGotoStatement(Me)
@@ -6881,36 +4746,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(label As LabelSymbol, labelExpressionOpt As BoundLabel) As BoundGotoStatement
             If label IsNot Me.Label OrElse labelExpressionOpt IsNot Me.LabelExpressionOpt Then
-                Dim result = New BoundGotoStatement(Me.Syntax, label, labelExpressionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundGotoStatement(Me.Syntax, label, labelExpressionOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundStatementList
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundStatementList : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, statements As ImmutableArray(Of BoundStatement), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.StatementList, syntax, hasErrors OrElse statements.NonNullAndHasErrors())
 
-            Debug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not statements.IsDefault, "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Statements = statements
         End Sub
 
 
-        Private ReadOnly _Statements As ImmutableArray(Of BoundStatement)
         Public ReadOnly Property Statements As ImmutableArray(Of BoundStatement)
-            Get
-                Return _Statements
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitStatementList(Me)
@@ -6918,20 +4773,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(statements As ImmutableArray(Of BoundStatement)) As BoundStatementList
             If statements <> Me.Statements Then
-                Dim result = New BoundStatementList(Me.Syntax, statements, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundStatementList(Me.Syntax, statements, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundConditionalGoto
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundConditionalGoto : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, jumpIfTrue As Boolean, label As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ConditionalGoto, syntax, hasErrors OrElse condition.NonNullAndHasErrors())
@@ -6945,26 +4795,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Condition As BoundExpression
         Public ReadOnly Property Condition As BoundExpression
-            Get
-                Return _Condition
-            End Get
-        End Property
 
-        Private ReadOnly _JumpIfTrue As Boolean
         Public ReadOnly Property JumpIfTrue As Boolean
-            Get
-                Return _JumpIfTrue
-            End Get
-        End Property
 
-        Private ReadOnly _Label As LabelSymbol
         Public ReadOnly Property Label As LabelSymbol
-            Get
-                Return _Label
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConditionalGoto(Me)
@@ -6972,20 +4807,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(condition As BoundExpression, jumpIfTrue As Boolean, label As LabelSymbol) As BoundConditionalGoto
             If condition IsNot Me.Condition OrElse jumpIfTrue <> Me.JumpIfTrue OrElse label IsNot Me.Label Then
-                Dim result = New BoundConditionalGoto(Me.Syntax, condition, jumpIfTrue, label, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundConditionalGoto(Me.Syntax, condition, jumpIfTrue, label, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundWithStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundWithStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, originalExpression As BoundExpression, body As BoundBlock, binder As WithBlockBinder, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.WithStatement, syntax, hasErrors OrElse originalExpression.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
@@ -7000,26 +4830,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _OriginalExpression As BoundExpression
         Public ReadOnly Property OriginalExpression As BoundExpression
-            Get
-                Return _OriginalExpression
-            End Get
-        End Property
 
-        Private ReadOnly _Body As BoundBlock
         Public ReadOnly Property Body As BoundBlock
-            Get
-                Return _Body
-            End Get
-        End Property
 
-        Private ReadOnly _Binder As WithBlockBinder
         Public ReadOnly Property Binder As WithBlockBinder
-            Get
-                Return _Binder
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitWithStatement(Me)
@@ -7027,26 +4842,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(originalExpression As BoundExpression, body As BoundBlock, binder As WithBlockBinder) As BoundWithStatement
             If originalExpression IsNot Me.OriginalExpression OrElse body IsNot Me.Body OrElse binder IsNot Me.Binder Then
-                Dim result = New BoundWithStatement(Me.Syntax, originalExpression, body, binder, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundWithStatement(Me.Syntax, originalExpression, body, binder, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class UnboundLambda
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class UnboundLambda : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache, hasErrors As Boolean)
             MyBase.New(BoundKind.UnboundLambda, syntax, Nothing, hasErrors)
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not parameters.IsDefault, "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(bindingCache IsNot Nothing, "Field 'bindingCache' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
@@ -7054,18 +4864,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Parameters = parameters
             Me._ReturnType = returnType
             Me._BindingCache = bindingCache
-
             Validate()
         End Sub
 
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache)
+        Public  Sub New(syntax As SyntaxNode, binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache)
             MyBase.New(BoundKind.UnboundLambda, syntax, Nothing)
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not parameters.IsDefault, "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(bindingCache IsNot Nothing, "Field 'bindingCache' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
@@ -7073,45 +4882,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Parameters = parameters
             Me._ReturnType = returnType
             Me._BindingCache = bindingCache
-
             Validate()
         End Sub
 
 
-        Private ReadOnly _Binder As Binder
         Public ReadOnly Property Binder As Binder
-            Get
-                Return _Binder
-            End Get
-        End Property
 
-        Private ReadOnly _Flags As SourceMemberFlags
         Public ReadOnly Property Flags As SourceMemberFlags
-            Get
-                Return _Flags
-            End Get
-        End Property
 
-        Private ReadOnly _Parameters As ImmutableArray(Of ParameterSymbol)
         Public ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
-            Get
-                Return _Parameters
-            End Get
-        End Property
 
-        Private ReadOnly _ReturnType As TypeSymbol
         Public ReadOnly Property ReturnType As TypeSymbol
-            Get
-                Return _ReturnType
-            End Get
-        End Property
 
-        Private ReadOnly _BindingCache As UnboundLambda.UnboundLambdaBindingCache
         Public ReadOnly Property BindingCache As UnboundLambda.UnboundLambdaBindingCache
-            Get
-                Return _BindingCache
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnboundLambda(Me)
@@ -7119,27 +4902,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache) As UnboundLambda
             If binder IsNot Me.Binder OrElse flags <> Me.Flags OrElse parameters <> Me.Parameters OrElse returnType IsNot Me.ReturnType OrElse bindingCache IsNot Me.BindingCache Then
-                Dim result = New UnboundLambda(Me.Syntax, binder, flags, parameters, returnType, bindingCache, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New UnboundLambda(Me.Syntax, binder, flags, parameters, returnType, bindingCache, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLambda
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundLambda : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Lambda, syntax, Nothing, hasErrors OrElse body.NonNullAndHasErrors())
 
             Debug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (diagnostics.IsDefault), "Field 'diagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not diagnostics.IsDefault, "Field 'diagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LambdaSymbol = lambdaSymbol
             Me._Body = body
@@ -7147,7 +4925,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._LambdaBinderOpt = lambdaBinderOpt
             Me._DelegateRelaxation = delegateRelaxation
             Me._MethodConversionKind = methodConversionKind
-
             Validate()
         End Sub
 
@@ -7155,47 +4932,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LambdaSymbol As LambdaSymbol
         Public ReadOnly Property LambdaSymbol As LambdaSymbol
-            Get
-                Return _LambdaSymbol
-            End Get
-        End Property
 
-        Private ReadOnly _Body As BoundBlock
         Public ReadOnly Property Body As BoundBlock
-            Get
-                Return _Body
-            End Get
-        End Property
 
-        Private ReadOnly _Diagnostics As ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic)
         Public ReadOnly Property Diagnostics As ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic)
-            Get
-                Return _Diagnostics
-            End Get
-        End Property
 
-        Private ReadOnly _LambdaBinderOpt As LambdaBodyBinder
         Public ReadOnly Property LambdaBinderOpt As LambdaBodyBinder
-            Get
-                Return _LambdaBinderOpt
-            End Get
-        End Property
 
-        Private ReadOnly _DelegateRelaxation As ConversionKind
         Public ReadOnly Property DelegateRelaxation As ConversionKind
-            Get
-                Return _DelegateRelaxation
-            End Get
-        End Property
 
-        Private ReadOnly _MethodConversionKind As MethodConversionKind
         Public ReadOnly Property MethodConversionKind As MethodConversionKind
-            Get
-                Return _MethodConversionKind
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLambda(Me)
@@ -7203,20 +4950,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind) As BoundLambda
             If lambdaSymbol IsNot Me.LambdaSymbol OrElse body IsNot Me.Body OrElse diagnostics <> Me.Diagnostics OrElse lambdaBinderOpt IsNot Me.LambdaBinderOpt OrElse delegateRelaxation <> Me.DelegateRelaxation OrElse methodConversionKind <> Me.MethodConversionKind Then
-                Dim result = New BoundLambda(Me.Syntax, lambdaSymbol, body, diagnostics, lambdaBinderOpt, delegateRelaxation, methodConversionKind, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLambda(Me.Syntax, lambdaSymbol, body, diagnostics, lambdaBinderOpt, delegateRelaxation, methodConversionKind, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundQueryExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundQueryExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, lastOperator As BoundQueryClauseBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.QueryExpression, syntax, type, hasErrors OrElse lastOperator.NonNullAndHasErrors())
@@ -7228,12 +4970,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LastOperator As BoundQueryClauseBase
         Public ReadOnly Property LastOperator As BoundQueryClauseBase
-            Get
-                Return _LastOperator
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitQueryExpression(Me)
@@ -7241,20 +4978,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(lastOperator As BoundQueryClauseBase, type As TypeSymbol) As BoundQueryExpression
             If lastOperator IsNot Me.LastOperator OrElse type IsNot Me.Type Then
-                Dim result = New BoundQueryExpression(Me.Syntax, lastOperator, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundQueryExpression(Me.Syntax, lastOperator, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundQueryPart
-        Inherits BoundExpression
+    Friend MustInherit Partial Class BoundQueryPart : Inherits BoundExpression
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
@@ -7263,7 +4995,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -7272,8 +5004,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Friend NotInheritable Partial Class BoundQuerySource
-        Inherits BoundQueryPart
+    Friend NotInheritable Partial Class BoundQuerySource : Inherits BoundQueryPart
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.QuerySource, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
@@ -7285,12 +5016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitQuerySource(Me)
@@ -7298,20 +5024,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundExpression, type As TypeSymbol) As BoundQuerySource
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
-                Dim result = New BoundQuerySource(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundQuerySource(Me.Syntax, expression, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundToQueryableCollectionConversion
-        Inherits BoundQueryPart
+    Friend NotInheritable Partial Class BoundToQueryableCollectionConversion : Inherits BoundQueryPart
 
         Public Sub New(syntax As SyntaxNode, conversionCall As BoundCall, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ToQueryableCollectionConversion, syntax, type, hasErrors OrElse conversionCall.NonNullAndHasErrors())
@@ -7323,12 +5044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ConversionCall As BoundCall
         Public ReadOnly Property ConversionCall As BoundCall
-            Get
-                Return _ConversionCall
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitToQueryableCollectionConversion(Me)
@@ -7336,27 +5052,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(conversionCall As BoundCall, type As TypeSymbol) As BoundToQueryableCollectionConversion
             If conversionCall IsNot Me.ConversionCall OrElse type IsNot Me.Type Then
-                Dim result = New BoundToQueryableCollectionConversion(Me.Syntax, conversionCall, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundToQueryableCollectionConversion(Me.Syntax, conversionCall, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundQueryClauseBase
-        Inherits BoundQueryPart
+    Friend MustInherit Partial Class BoundQueryClauseBase : Inherits BoundQueryPart
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not binders.IsDefault, "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._RangeVariables = rangeVariables
@@ -7364,12 +5075,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Binders = binders
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not binders.IsDefault, "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._RangeVariables = rangeVariables
@@ -7378,43 +5089,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _RangeVariables As ImmutableArray(Of RangeVariableSymbol)
         Public ReadOnly Property RangeVariables As ImmutableArray(Of RangeVariableSymbol)
-            Get
-                Return _RangeVariables
-            End Get
-        End Property
 
-        Private ReadOnly _CompoundVariableType As TypeSymbol
         Public ReadOnly Property CompoundVariableType As TypeSymbol
-            Get
-                Return _CompoundVariableType
-            End Get
-        End Property
 
-        Private ReadOnly _Binders As ImmutableArray(Of Binder)
         Public ReadOnly Property Binders As ImmutableArray(Of Binder)
-            Get
-                Return _Binders
-            End Get
-        End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundQueryableSource
-        Inherits BoundQueryClauseBase
+    Friend NotInheritable Partial Class BoundQueryableSource : Inherits BoundQueryClauseBase
 
         Public Sub New(syntax As SyntaxNode, source As BoundQueryPart, rangeVariableOpt As RangeVariableSymbol, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.QueryableSource, syntax, rangeVariables, compoundVariableType, binders, type, hasErrors OrElse source.NonNullAndHasErrors())
 
             Debug.Assert(source IsNot Nothing, "Field 'source' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not binders.IsDefault, "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Source = source
             Me._RangeVariableOpt = rangeVariableOpt
-
             Validate()
         End Sub
 
@@ -7422,19 +5116,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Source As BoundQueryPart
         Public ReadOnly Property Source As BoundQueryPart
-            Get
-                Return _Source
-            End Get
-        End Property
 
-        Private ReadOnly _RangeVariableOpt As RangeVariableSymbol
         Public ReadOnly Property RangeVariableOpt As RangeVariableSymbol
-            Get
-                Return _RangeVariableOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitQueryableSource(Me)
@@ -7442,40 +5126,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(source As BoundQueryPart, rangeVariableOpt As RangeVariableSymbol, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol) As BoundQueryableSource
             If source IsNot Me.Source OrElse rangeVariableOpt IsNot Me.RangeVariableOpt OrElse rangeVariables <> Me.RangeVariables OrElse compoundVariableType IsNot Me.CompoundVariableType OrElse binders <> Me.Binders OrElse type IsNot Me.Type Then
-                Dim result = New BoundQueryableSource(Me.Syntax, source, rangeVariableOpt, rangeVariables, compoundVariableType, binders, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundQueryableSource(Me.Syntax, source, rangeVariableOpt, rangeVariables, compoundVariableType, binders, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundQueryClause
-        Inherits BoundQueryClauseBase
+    Friend NotInheritable Partial Class BoundQueryClause : Inherits BoundQueryClauseBase
 
         Public Sub New(syntax As SyntaxNode, underlyingExpression As BoundExpression, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.QueryClause, syntax, rangeVariables, compoundVariableType, binders, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
 
             Debug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not binders.IsDefault, "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._UnderlyingExpression = underlyingExpression
         End Sub
 
 
-        Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
-            Get
-                Return _UnderlyingExpression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitQueryClause(Me)
@@ -7483,20 +5157,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(underlyingExpression As BoundExpression, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol) As BoundQueryClause
             If underlyingExpression IsNot Me.UnderlyingExpression OrElse rangeVariables <> Me.RangeVariables OrElse compoundVariableType IsNot Me.CompoundVariableType OrElse binders <> Me.Binders OrElse type IsNot Me.Type Then
-                Dim result = New BoundQueryClause(Me.Syntax, underlyingExpression, rangeVariables, compoundVariableType, binders, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundQueryClause(Me.Syntax, underlyingExpression, rangeVariables, compoundVariableType, binders, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundOrdering
-        Inherits BoundQueryPart
+    Friend NotInheritable Partial Class BoundOrdering : Inherits BoundQueryPart
 
         Public Sub New(syntax As SyntaxNode, underlyingExpression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Ordering, syntax, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
@@ -7508,12 +5177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
-            Get
-                Return _UnderlyingExpression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitOrdering(Me)
@@ -7521,26 +5185,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(underlyingExpression As BoundExpression, type As TypeSymbol) As BoundOrdering
             If underlyingExpression IsNot Me.UnderlyingExpression OrElse type IsNot Me.Type Then
-                Dim result = New BoundOrdering(Me.Syntax, underlyingExpression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundOrdering(Me.Syntax, underlyingExpression, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundQueryLambda
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundQueryLambda : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, lambdaSymbol As SynthesizedLambdaSymbol, rangeVariables As ImmutableArray(Of RangeVariableSymbol), expression As BoundExpression, exprIsOperandOfConditionalBranch As Boolean, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.QueryLambda, syntax, Nothing, hasErrors OrElse expression.NonNullAndHasErrors())
 
             Debug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LambdaSymbol = lambdaSymbol
@@ -7550,33 +5209,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LambdaSymbol As SynthesizedLambdaSymbol
         Public ReadOnly Property LambdaSymbol As SynthesizedLambdaSymbol
-            Get
-                Return _LambdaSymbol
-            End Get
-        End Property
 
-        Private ReadOnly _RangeVariables As ImmutableArray(Of RangeVariableSymbol)
         Public ReadOnly Property RangeVariables As ImmutableArray(Of RangeVariableSymbol)
-            Get
-                Return _RangeVariables
-            End Get
-        End Property
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
-        Private ReadOnly _ExprIsOperandOfConditionalBranch As Boolean
         Public ReadOnly Property ExprIsOperandOfConditionalBranch As Boolean
-            Get
-                Return _ExprIsOperandOfConditionalBranch
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitQueryLambda(Me)
@@ -7584,20 +5223,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(lambdaSymbol As SynthesizedLambdaSymbol, rangeVariables As ImmutableArray(Of RangeVariableSymbol), expression As BoundExpression, exprIsOperandOfConditionalBranch As Boolean) As BoundQueryLambda
             If lambdaSymbol IsNot Me.LambdaSymbol OrElse rangeVariables <> Me.RangeVariables OrElse expression IsNot Me.Expression OrElse exprIsOperandOfConditionalBranch <> Me.ExprIsOperandOfConditionalBranch Then
-                Dim result = New BoundQueryLambda(Me.Syntax, lambdaSymbol, rangeVariables, expression, exprIsOperandOfConditionalBranch, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundQueryLambda(Me.Syntax, lambdaSymbol, rangeVariables, expression, exprIsOperandOfConditionalBranch, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRangeVariableAssignment
-        Inherits BoundQueryPart
+    Friend NotInheritable Partial Class BoundRangeVariableAssignment : Inherits BoundQueryPart
 
         Public Sub New(syntax As SyntaxNode, rangeVariable As RangeVariableSymbol, value As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RangeVariableAssignment, syntax, type, hasErrors OrElse value.NonNullAndHasErrors())
@@ -7611,19 +5245,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _RangeVariable As RangeVariableSymbol
         Public ReadOnly Property RangeVariable As RangeVariableSymbol
-            Get
-                Return _RangeVariable
-            End Get
-        End Property
 
-        Private ReadOnly _Value As BoundExpression
         Public ReadOnly Property Value As BoundExpression
-            Get
-                Return _Value
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRangeVariableAssignment(Me)
@@ -7631,26 +5255,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(rangeVariable As RangeVariableSymbol, value As BoundExpression, type As TypeSymbol) As BoundRangeVariableAssignment
             If rangeVariable IsNot Me.RangeVariable OrElse value IsNot Me.Value OrElse type IsNot Me.Type Then
-                Dim result = New BoundRangeVariableAssignment(Me.Syntax, rangeVariable, value, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundRangeVariableAssignment(Me.Syntax, rangeVariable, value, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class GroupTypeInferenceLambda
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class GroupTypeInferenceLambda : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder, parameters As ImmutableArray(Of ParameterSymbol), compilation As VisualBasicCompilation, hasErrors As Boolean)
             MyBase.New(BoundKind.GroupTypeInferenceLambda, syntax, Nothing, hasErrors)
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not parameters.IsDefault, "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compilation IsNot Nothing, "Field 'compilation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
@@ -7658,11 +5277,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Compilation = compilation
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, binder As Binder, parameters As ImmutableArray(Of ParameterSymbol), compilation As VisualBasicCompilation)
+        Public  Sub New(syntax As SyntaxNode, binder As Binder, parameters As ImmutableArray(Of ParameterSymbol), compilation As VisualBasicCompilation)
             MyBase.New(BoundKind.GroupTypeInferenceLambda, syntax, Nothing)
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not parameters.IsDefault, "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compilation IsNot Nothing, "Field 'compilation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
@@ -7671,26 +5290,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Binder As Binder
         Public ReadOnly Property Binder As Binder
-            Get
-                Return _Binder
-            End Get
-        End Property
 
-        Private ReadOnly _Parameters As ImmutableArray(Of ParameterSymbol)
         Public ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
-            Get
-                Return _Parameters
-            End Get
-        End Property
 
-        Private ReadOnly _Compilation As VisualBasicCompilation
         Public ReadOnly Property Compilation As VisualBasicCompilation
-            Get
-                Return _Compilation
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGroupTypeInferenceLambda(Me)
@@ -7698,28 +5302,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(binder As Binder, parameters As ImmutableArray(Of ParameterSymbol), compilation As VisualBasicCompilation) As GroupTypeInferenceLambda
             If binder IsNot Me.Binder OrElse parameters <> Me.Parameters OrElse compilation IsNot Me.Compilation Then
-                Dim result = New GroupTypeInferenceLambda(Me.Syntax, binder, parameters, compilation, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New GroupTypeInferenceLambda(Me.Syntax, binder, parameters, compilation, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAggregateClause
-        Inherits BoundQueryClauseBase
+    Friend NotInheritable Partial Class BoundAggregateClause : Inherits BoundQueryClauseBase
 
         Public Sub New(syntax As SyntaxNode, capturedGroupOpt As BoundQueryClauseBase, groupPlaceholderOpt As BoundRValuePlaceholder, underlyingExpression As BoundExpression, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AggregateClause, syntax, rangeVariables, compoundVariableType, binders, type, hasErrors OrElse capturedGroupOpt.NonNullAndHasErrors() OrElse groupPlaceholderOpt.NonNullAndHasErrors() OrElse underlyingExpression.NonNullAndHasErrors())
 
             Debug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not binders.IsDefault, "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CapturedGroupOpt = capturedGroupOpt
@@ -7728,26 +5327,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _CapturedGroupOpt As BoundQueryClauseBase
         Public ReadOnly Property CapturedGroupOpt As BoundQueryClauseBase
-            Get
-                Return _CapturedGroupOpt
-            End Get
-        End Property
 
-        Private ReadOnly _GroupPlaceholderOpt As BoundRValuePlaceholder
         Public ReadOnly Property GroupPlaceholderOpt As BoundRValuePlaceholder
-            Get
-                Return _GroupPlaceholderOpt
-            End Get
-        End Property
 
-        Private ReadOnly _UnderlyingExpression As BoundExpression
         Public ReadOnly Property UnderlyingExpression As BoundExpression
-            Get
-                Return _UnderlyingExpression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAggregateClause(Me)
@@ -7755,20 +5339,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(capturedGroupOpt As BoundQueryClauseBase, groupPlaceholderOpt As BoundRValuePlaceholder, underlyingExpression As BoundExpression, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol) As BoundAggregateClause
             If capturedGroupOpt IsNot Me.CapturedGroupOpt OrElse groupPlaceholderOpt IsNot Me.GroupPlaceholderOpt OrElse underlyingExpression IsNot Me.UnderlyingExpression OrElse rangeVariables <> Me.RangeVariables OrElse compoundVariableType IsNot Me.CompoundVariableType OrElse binders <> Me.Binders OrElse type IsNot Me.Type Then
-                Dim result = New BoundAggregateClause(Me.Syntax, capturedGroupOpt, groupPlaceholderOpt, underlyingExpression, rangeVariables, compoundVariableType, binders, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundAggregateClause(Me.Syntax, capturedGroupOpt, groupPlaceholderOpt, underlyingExpression, rangeVariables, compoundVariableType, binders, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundGroupAggregation
-        Inherits BoundQueryPart
+    Friend NotInheritable Partial Class BoundGroupAggregation : Inherits BoundQueryPart
 
         Public Sub New(syntax As SyntaxNode, group As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GroupAggregation, syntax, type, hasErrors OrElse group.NonNullAndHasErrors())
@@ -7780,12 +5359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Group As BoundExpression
         Public ReadOnly Property Group As BoundExpression
-            Get
-                Return _Group
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGroupAggregation(Me)
@@ -7793,20 +5367,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(group As BoundExpression, type As TypeSymbol) As BoundGroupAggregation
             If group IsNot Me.Group OrElse type IsNot Me.Type Then
-                Dim result = New BoundGroupAggregation(Me.Syntax, group, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundGroupAggregation(Me.Syntax, group, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRangeVariable
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundRangeVariable : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, rangeVariable As RangeVariableSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.RangeVariable, syntax, type, hasErrors)
@@ -7817,7 +5386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._RangeVariable = rangeVariable
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, rangeVariable As RangeVariableSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, rangeVariable As RangeVariableSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.RangeVariable, syntax, type)
 
             Debug.Assert(rangeVariable IsNot Nothing, "Field 'rangeVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -7827,12 +5396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _RangeVariable As RangeVariableSymbol
         Public ReadOnly Property RangeVariable As RangeVariableSymbol
-            Get
-                Return _RangeVariable
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRangeVariable(Me)
@@ -7840,20 +5404,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(rangeVariable As RangeVariableSymbol, type As TypeSymbol) As BoundRangeVariable
             If rangeVariable IsNot Me.RangeVariable OrElse type IsNot Me.Type Then
-                Dim result = New BoundRangeVariable(Me.Syntax, rangeVariable, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundRangeVariable(Me.Syntax, rangeVariable, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundAddRemoveHandlerStatement
-        Inherits BoundStatement
+    Friend MustInherit Partial Class BoundAddRemoveHandlerStatement : Inherits BoundStatement
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, eventAccess As BoundExpression, handler As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, hasErrors)
@@ -7866,23 +5425,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _EventAccess As BoundExpression
         Public ReadOnly Property EventAccess As BoundExpression
-            Get
-                Return _EventAccess
-            End Get
-        End Property
 
-        Private ReadOnly _Handler As BoundExpression
         Public ReadOnly Property Handler As BoundExpression
-            Get
-                Return _Handler
-            End Get
-        End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundAddHandlerStatement
-        Inherits BoundAddRemoveHandlerStatement
+    Friend NotInheritable Partial Class BoundAddHandlerStatement : Inherits BoundAddRemoveHandlerStatement
 
         Public Sub New(syntax As SyntaxNode, eventAccess As BoundExpression, handler As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AddHandlerStatement, syntax, eventAccess, handler, hasErrors OrElse eventAccess.NonNullAndHasErrors() OrElse handler.NonNullAndHasErrors())
@@ -7899,20 +5447,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(eventAccess As BoundExpression, handler As BoundExpression) As BoundAddHandlerStatement
             If eventAccess IsNot Me.EventAccess OrElse handler IsNot Me.Handler Then
-                Dim result = New BoundAddHandlerStatement(Me.Syntax, eventAccess, handler, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundAddHandlerStatement(Me.Syntax, eventAccess, handler, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRemoveHandlerStatement
-        Inherits BoundAddRemoveHandlerStatement
+    Friend NotInheritable Partial Class BoundRemoveHandlerStatement : Inherits BoundAddRemoveHandlerStatement
 
         Public Sub New(syntax As SyntaxNode, eventAccess As BoundExpression, handler As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RemoveHandlerStatement, syntax, eventAccess, handler, hasErrors OrElse eventAccess.NonNullAndHasErrors() OrElse handler.NonNullAndHasErrors())
@@ -7929,20 +5472,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(eventAccess As BoundExpression, handler As BoundExpression) As BoundRemoveHandlerStatement
             If eventAccess IsNot Me.EventAccess OrElse handler IsNot Me.Handler Then
-                Dim result = New BoundRemoveHandlerStatement(Me.Syntax, eventAccess, handler, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundRemoveHandlerStatement(Me.Syntax, eventAccess, handler, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRaiseEventStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundRaiseEventStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, eventSymbol As EventSymbol, eventInvocation As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RaiseEventStatement, syntax, hasErrors OrElse eventInvocation.NonNullAndHasErrors())
@@ -7955,19 +5493,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _EventSymbol As EventSymbol
         Public ReadOnly Property EventSymbol As EventSymbol
-            Get
-                Return _EventSymbol
-            End Get
-        End Property
 
-        Private ReadOnly _EventInvocation As BoundExpression
         Public ReadOnly Property EventInvocation As BoundExpression
-            Get
-                Return _EventInvocation
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRaiseEventStatement(Me)
@@ -7975,20 +5503,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(eventSymbol As EventSymbol, eventInvocation As BoundExpression) As BoundRaiseEventStatement
             If eventSymbol IsNot Me.EventSymbol OrElse eventInvocation IsNot Me.EventInvocation Then
-                Dim result = New BoundRaiseEventStatement(Me.Syntax, eventSymbol, eventInvocation, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundRaiseEventStatement(Me.Syntax, eventSymbol, eventInvocation, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUsingStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundUsingStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, resourceList As ImmutableArray(Of BoundLocalDeclarationBase), resourceExpressionOpt As BoundExpression, body As BoundBlock, usingInfo As UsingInfo, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UsingStatement, syntax, hasErrors OrElse resourceList.NonNullAndHasErrors() OrElse resourceExpressionOpt.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
@@ -8003,33 +5526,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ResourceList As ImmutableArray(Of BoundLocalDeclarationBase)
         Public ReadOnly Property ResourceList As ImmutableArray(Of BoundLocalDeclarationBase)
-            Get
-                Return _ResourceList
-            End Get
-        End Property
 
-        Private ReadOnly _ResourceExpressionOpt As BoundExpression
         Public ReadOnly Property ResourceExpressionOpt As BoundExpression
-            Get
-                Return _ResourceExpressionOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Body As BoundBlock
         Public ReadOnly Property Body As BoundBlock
-            Get
-                Return _Body
-            End Get
-        End Property
 
-        Private ReadOnly _UsingInfo As UsingInfo
         Public ReadOnly Property UsingInfo As UsingInfo
-            Get
-                Return _UsingInfo
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUsingStatement(Me)
@@ -8037,20 +5540,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), resourceExpressionOpt As BoundExpression, body As BoundBlock, usingInfo As UsingInfo) As BoundUsingStatement
             If resourceList <> Me.ResourceList OrElse resourceExpressionOpt IsNot Me.ResourceExpressionOpt OrElse body IsNot Me.Body OrElse usingInfo IsNot Me.UsingInfo Then
-                Dim result = New BoundUsingStatement(Me.Syntax, resourceList, resourceExpressionOpt, body, usingInfo, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundUsingStatement(Me.Syntax, resourceList, resourceExpressionOpt, body, usingInfo, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSyncLockStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundSyncLockStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, lockExpression As BoundExpression, body As BoundBlock, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SyncLockStatement, syntax, hasErrors OrElse lockExpression.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
@@ -8063,19 +5561,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _LockExpression As BoundExpression
         Public ReadOnly Property LockExpression As BoundExpression
-            Get
-                Return _LockExpression
-            End Get
-        End Property
 
-        Private ReadOnly _Body As BoundBlock
         Public ReadOnly Property Body As BoundBlock
-            Get
-                Return _Body
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSyncLockStatement(Me)
@@ -8083,20 +5571,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(lockExpression As BoundExpression, body As BoundBlock) As BoundSyncLockStatement
             If lockExpression IsNot Me.LockExpression OrElse body IsNot Me.Body Then
-                Dim result = New BoundSyncLockStatement(Me.Syntax, lockExpression, body, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundSyncLockStatement(Me.Syntax, lockExpression, body, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlName
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlName : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, xmlNamespace As BoundExpression, localName As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlName, syntax, type, hasErrors OrElse xmlNamespace.NonNullAndHasErrors() OrElse localName.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
@@ -8112,26 +5595,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _XmlNamespace As BoundExpression
         Public ReadOnly Property XmlNamespace As BoundExpression
-            Get
-                Return _XmlNamespace
-            End Get
-        End Property
 
-        Private ReadOnly _LocalName As BoundExpression
         Public ReadOnly Property LocalName As BoundExpression
-            Get
-                Return _LocalName
-            End Get
-        End Property
 
-        Private ReadOnly _ObjectCreation As BoundExpression
         Public ReadOnly Property ObjectCreation As BoundExpression
-            Get
-                Return _ObjectCreation
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlName(Me)
@@ -8139,20 +5607,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(xmlNamespace As BoundExpression, localName As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlName
             If xmlNamespace IsNot Me.XmlNamespace OrElse localName IsNot Me.LocalName OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlName(Me.Syntax, xmlNamespace, localName, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlName(Me.Syntax, xmlNamespace, localName, objectCreation, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlNamespace
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlNamespace : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, xmlNamespace As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlNamespace, syntax, type, hasErrors OrElse xmlNamespace.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
@@ -8166,19 +5629,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _XmlNamespace As BoundExpression
         Public ReadOnly Property XmlNamespace As BoundExpression
-            Get
-                Return _XmlNamespace
-            End Get
-        End Property
 
-        Private ReadOnly _ObjectCreation As BoundExpression
         Public ReadOnly Property ObjectCreation As BoundExpression
-            Get
-                Return _ObjectCreation
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlNamespace(Me)
@@ -8186,26 +5639,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(xmlNamespace As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlNamespace
             If xmlNamespace IsNot Me.XmlNamespace OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlNamespace(Me.Syntax, xmlNamespace, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlNamespace(Me.Syntax, xmlNamespace, objectCreation, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlDocument
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlDocument : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, declaration As BoundExpression, childNodes As ImmutableArray(Of BoundExpression), rewriterInfo As BoundXmlContainerRewriterInfo, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlDocument, syntax, type, hasErrors OrElse declaration.NonNullAndHasErrors() OrElse childNodes.NonNullAndHasErrors())
 
             Debug.Assert(declaration IsNot Nothing, "Field 'declaration' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (childNodes.IsDefault), "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not childNodes.IsDefault, "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(rewriterInfo IsNot Nothing, "Field 'rewriterInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
@@ -8215,26 +5663,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Declaration As BoundExpression
         Public ReadOnly Property Declaration As BoundExpression
-            Get
-                Return _Declaration
-            End Get
-        End Property
 
-        Private ReadOnly _ChildNodes As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property ChildNodes As ImmutableArray(Of BoundExpression)
-            Get
-                Return _ChildNodes
-            End Get
-        End Property
 
-        Private ReadOnly _RewriterInfo As BoundXmlContainerRewriterInfo
         Public ReadOnly Property RewriterInfo As BoundXmlContainerRewriterInfo
-            Get
-                Return _RewriterInfo
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlDocument(Me)
@@ -8242,20 +5675,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(declaration As BoundExpression, childNodes As ImmutableArray(Of BoundExpression), rewriterInfo As BoundXmlContainerRewriterInfo, type As TypeSymbol) As BoundXmlDocument
             If declaration IsNot Me.Declaration OrElse childNodes <> Me.ChildNodes OrElse rewriterInfo IsNot Me.RewriterInfo OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlDocument(Me.Syntax, declaration, childNodes, rewriterInfo, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlDocument(Me.Syntax, declaration, childNodes, rewriterInfo, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlDeclaration
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlDeclaration : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, version As BoundExpression, encoding As BoundExpression, standalone As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlDeclaration, syntax, type, hasErrors OrElse version.NonNullAndHasErrors() OrElse encoding.NonNullAndHasErrors() OrElse standalone.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
@@ -8270,33 +5698,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Version As BoundExpression
         Public ReadOnly Property Version As BoundExpression
-            Get
-                Return _Version
-            End Get
-        End Property
 
-        Private ReadOnly _Encoding As BoundExpression
         Public ReadOnly Property Encoding As BoundExpression
-            Get
-                Return _Encoding
-            End Get
-        End Property
 
-        Private ReadOnly _Standalone As BoundExpression
         Public ReadOnly Property Standalone As BoundExpression
-            Get
-                Return _Standalone
-            End Get
-        End Property
 
-        Private ReadOnly _ObjectCreation As BoundExpression
         Public ReadOnly Property ObjectCreation As BoundExpression
-            Get
-                Return _ObjectCreation
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlDeclaration(Me)
@@ -8304,20 +5712,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(version As BoundExpression, encoding As BoundExpression, standalone As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlDeclaration
             If version IsNot Me.Version OrElse encoding IsNot Me.Encoding OrElse standalone IsNot Me.Standalone OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlDeclaration(Me.Syntax, version, encoding, standalone, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlDeclaration(Me.Syntax, version, encoding, standalone, objectCreation, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlProcessingInstruction
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlProcessingInstruction : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, target As BoundExpression, data As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlProcessingInstruction, syntax, type, hasErrors OrElse target.NonNullAndHasErrors() OrElse data.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
@@ -8333,26 +5736,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Target As BoundExpression
         Public ReadOnly Property Target As BoundExpression
-            Get
-                Return _Target
-            End Get
-        End Property
 
-        Private ReadOnly _Data As BoundExpression
         Public ReadOnly Property Data As BoundExpression
-            Get
-                Return _Data
-            End Get
-        End Property
 
-        Private ReadOnly _ObjectCreation As BoundExpression
         Public ReadOnly Property ObjectCreation As BoundExpression
-            Get
-                Return _ObjectCreation
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlProcessingInstruction(Me)
@@ -8360,20 +5748,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(target As BoundExpression, data As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlProcessingInstruction
             If target IsNot Me.Target OrElse data IsNot Me.Data OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlProcessingInstruction(Me.Syntax, target, data, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlProcessingInstruction(Me.Syntax, target, data, objectCreation, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlComment
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlComment : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, value As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlComment, syntax, type, hasErrors OrElse value.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
@@ -8387,19 +5770,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Value As BoundExpression
         Public ReadOnly Property Value As BoundExpression
-            Get
-                Return _Value
-            End Get
-        End Property
 
-        Private ReadOnly _ObjectCreation As BoundExpression
         Public ReadOnly Property ObjectCreation As BoundExpression
-            Get
-                Return _ObjectCreation
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlComment(Me)
@@ -8407,20 +5780,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(value As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlComment
             If value IsNot Me.Value OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlComment(Me.Syntax, value, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlComment(Me.Syntax, value, objectCreation, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlAttribute
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlAttribute : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, name As BoundExpression, value As BoundExpression, matchesImport As Boolean, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlAttribute, syntax, type, hasErrors OrElse name.NonNullAndHasErrors() OrElse value.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
@@ -8434,7 +5802,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Value = value
             Me._MatchesImport = matchesImport
             Me._ObjectCreation = objectCreation
-
             Validate()
         End Sub
 
@@ -8442,33 +5809,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Name As BoundExpression
         Public ReadOnly Property Name As BoundExpression
-            Get
-                Return _Name
-            End Get
-        End Property
 
-        Private ReadOnly _Value As BoundExpression
         Public ReadOnly Property Value As BoundExpression
-            Get
-                Return _Value
-            End Get
-        End Property
 
-        Private ReadOnly _MatchesImport As Boolean
         Public ReadOnly Property MatchesImport As Boolean
-            Get
-                Return _MatchesImport
-            End Get
-        End Property
 
-        Private ReadOnly _ObjectCreation As BoundExpression
         Public ReadOnly Property ObjectCreation As BoundExpression
-            Get
-                Return _ObjectCreation
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlAttribute(Me)
@@ -8476,26 +5823,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(name As BoundExpression, value As BoundExpression, matchesImport As Boolean, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlAttribute
             If name IsNot Me.Name OrElse value IsNot Me.Value OrElse matchesImport <> Me.MatchesImport OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlAttribute(Me.Syntax, name, value, matchesImport, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlAttribute(Me.Syntax, name, value, matchesImport, objectCreation, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlElement
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlElement : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, argument As BoundExpression, childNodes As ImmutableArray(Of BoundExpression), rewriterInfo As BoundXmlContainerRewriterInfo, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlElement, syntax, type, hasErrors OrElse argument.NonNullAndHasErrors() OrElse childNodes.NonNullAndHasErrors())
 
             Debug.Assert(argument IsNot Nothing, "Field 'argument' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (childNodes.IsDefault), "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not childNodes.IsDefault, "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(rewriterInfo IsNot Nothing, "Field 'rewriterInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
@@ -8505,26 +5847,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Argument As BoundExpression
         Public ReadOnly Property Argument As BoundExpression
-            Get
-                Return _Argument
-            End Get
-        End Property
 
-        Private ReadOnly _ChildNodes As ImmutableArray(Of BoundExpression)
         Public ReadOnly Property ChildNodes As ImmutableArray(Of BoundExpression)
-            Get
-                Return _ChildNodes
-            End Get
-        End Property
 
-        Private ReadOnly _RewriterInfo As BoundXmlContainerRewriterInfo
         Public ReadOnly Property RewriterInfo As BoundXmlContainerRewriterInfo
-            Get
-                Return _RewriterInfo
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlElement(Me)
@@ -8532,20 +5859,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(argument As BoundExpression, childNodes As ImmutableArray(Of BoundExpression), rewriterInfo As BoundXmlContainerRewriterInfo, type As TypeSymbol) As BoundXmlElement
             If argument IsNot Me.Argument OrElse childNodes <> Me.ChildNodes OrElse rewriterInfo IsNot Me.RewriterInfo OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlElement(Me.Syntax, argument, childNodes, rewriterInfo, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlElement(Me.Syntax, argument, childNodes, rewriterInfo, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlMemberAccess
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlMemberAccess : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, memberAccess As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlMemberAccess, syntax, type, hasErrors OrElse memberAccess.NonNullAndHasErrors())
@@ -8557,12 +5879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _MemberAccess As BoundExpression
         Public ReadOnly Property MemberAccess As BoundExpression
-            Get
-                Return _MemberAccess
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlMemberAccess(Me)
@@ -8570,20 +5887,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(memberAccess As BoundExpression, type As TypeSymbol) As BoundXmlMemberAccess
             If memberAccess IsNot Me.MemberAccess OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlMemberAccess(Me.Syntax, memberAccess, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlMemberAccess(Me.Syntax, memberAccess, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlEmbeddedExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlEmbeddedExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlEmbeddedExpression, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
@@ -8595,12 +5907,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlEmbeddedExpression(Me)
@@ -8608,20 +5915,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundExpression, type As TypeSymbol) As BoundXmlEmbeddedExpression
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlEmbeddedExpression(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlEmbeddedExpression(Me.Syntax, expression, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundXmlCData
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundXmlCData : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, value As BoundLiteral, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlCData, syntax, type, hasErrors OrElse value.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
@@ -8635,19 +5937,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Value As BoundLiteral
         Public ReadOnly Property Value As BoundLiteral
-            Get
-                Return _Value
-            End Get
-        End Property
 
-        Private ReadOnly _ObjectCreation As BoundExpression
         Public ReadOnly Property ObjectCreation As BoundExpression
-            Get
-                Return _ObjectCreation
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitXmlCData(Me)
@@ -8655,27 +5947,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(value As BoundLiteral, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlCData
             If value IsNot Me.Value OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
-                Dim result = New BoundXmlCData(Me.Syntax, value, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundXmlCData(Me.Syntax, value, objectCreation, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundResumeStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundResumeStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, resumeKind As ResumeStatementKind, labelOpt As LabelSymbol, labelExpressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ResumeStatement, syntax, hasErrors OrElse labelExpressionOpt.NonNullAndHasErrors())
             Me._ResumeKind = resumeKind
             Me._LabelOpt = labelOpt
             Me._LabelExpressionOpt = labelExpressionOpt
-
             Validate()
         End Sub
 
@@ -8683,26 +5969,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ResumeKind As ResumeStatementKind
         Public ReadOnly Property ResumeKind As ResumeStatementKind
-            Get
-                Return _ResumeKind
-            End Get
-        End Property
 
-        Private ReadOnly _LabelOpt As LabelSymbol
         Public ReadOnly Property LabelOpt As LabelSymbol
-            Get
-                Return _LabelOpt
-            End Get
-        End Property
 
-        Private ReadOnly _LabelExpressionOpt As BoundExpression
         Public ReadOnly Property LabelExpressionOpt As BoundExpression
-            Get
-                Return _LabelExpressionOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitResumeStatement(Me)
@@ -8710,27 +5981,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(resumeKind As ResumeStatementKind, labelOpt As LabelSymbol, labelExpressionOpt As BoundExpression) As BoundResumeStatement
             If resumeKind <> Me.ResumeKind OrElse labelOpt IsNot Me.LabelOpt OrElse labelExpressionOpt IsNot Me.LabelExpressionOpt Then
-                Dim result = New BoundResumeStatement(Me.Syntax, resumeKind, labelOpt, labelExpressionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundResumeStatement(Me.Syntax, resumeKind, labelOpt, labelExpressionOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundOnErrorStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundOnErrorStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, onErrorKind As OnErrorStatementKind, labelOpt As LabelSymbol, labelExpressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.OnErrorStatement, syntax, hasErrors OrElse labelExpressionOpt.NonNullAndHasErrors())
             Me._OnErrorKind = onErrorKind
             Me._LabelOpt = labelOpt
             Me._LabelExpressionOpt = labelExpressionOpt
-
             Validate()
         End Sub
 
@@ -8738,26 +6003,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _OnErrorKind As OnErrorStatementKind
         Public ReadOnly Property OnErrorKind As OnErrorStatementKind
-            Get
-                Return _OnErrorKind
-            End Get
-        End Property
 
-        Private ReadOnly _LabelOpt As LabelSymbol
         Public ReadOnly Property LabelOpt As LabelSymbol
-            Get
-                Return _LabelOpt
-            End Get
-        End Property
 
-        Private ReadOnly _LabelExpressionOpt As BoundExpression
         Public ReadOnly Property LabelExpressionOpt As BoundExpression
-            Get
-                Return _LabelExpressionOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitOnErrorStatement(Me)
@@ -8765,20 +6015,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(onErrorKind As OnErrorStatementKind, labelOpt As LabelSymbol, labelExpressionOpt As BoundExpression) As BoundOnErrorStatement
             If onErrorKind <> Me.OnErrorKind OrElse labelOpt IsNot Me.LabelOpt OrElse labelExpressionOpt IsNot Me.LabelExpressionOpt Then
-                Dim result = New BoundOnErrorStatement(Me.Syntax, onErrorKind, labelOpt, labelExpressionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundOnErrorStatement(Me.Syntax, onErrorKind, labelOpt, labelExpressionOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUnstructuredExceptionHandlingStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundUnstructuredExceptionHandlingStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, containsOnError As Boolean, containsResume As Boolean, resumeWithoutLabelOpt As StatementSyntax, trackLineNumber As Boolean, body As BoundBlock, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UnstructuredExceptionHandlingStatement, syntax, hasErrors OrElse body.NonNullAndHasErrors())
@@ -8790,7 +6035,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ResumeWithoutLabelOpt = resumeWithoutLabelOpt
             Me._TrackLineNumber = trackLineNumber
             Me._Body = body
-
             Validate()
         End Sub
 
@@ -8798,40 +6042,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ContainsOnError As Boolean
         Public ReadOnly Property ContainsOnError As Boolean
-            Get
-                Return _ContainsOnError
-            End Get
-        End Property
 
-        Private ReadOnly _ContainsResume As Boolean
         Public ReadOnly Property ContainsResume As Boolean
-            Get
-                Return _ContainsResume
-            End Get
-        End Property
 
-        Private ReadOnly _ResumeWithoutLabelOpt As StatementSyntax
         Public ReadOnly Property ResumeWithoutLabelOpt As StatementSyntax
-            Get
-                Return _ResumeWithoutLabelOpt
-            End Get
-        End Property
 
-        Private ReadOnly _TrackLineNumber As Boolean
         Public ReadOnly Property TrackLineNumber As Boolean
-            Get
-                Return _TrackLineNumber
-            End Get
-        End Property
 
-        Private ReadOnly _Body As BoundBlock
         Public ReadOnly Property Body As BoundBlock
-            Get
-                Return _Body
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnstructuredExceptionHandlingStatement(Me)
@@ -8839,20 +6058,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(containsOnError As Boolean, containsResume As Boolean, resumeWithoutLabelOpt As StatementSyntax, trackLineNumber As Boolean, body As BoundBlock) As BoundUnstructuredExceptionHandlingStatement
             If containsOnError <> Me.ContainsOnError OrElse containsResume <> Me.ContainsResume OrElse resumeWithoutLabelOpt IsNot Me.ResumeWithoutLabelOpt OrElse trackLineNumber <> Me.TrackLineNumber OrElse body IsNot Me.Body Then
-                Dim result = New BoundUnstructuredExceptionHandlingStatement(Me.Syntax, containsOnError, containsResume, resumeWithoutLabelOpt, trackLineNumber, body, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundUnstructuredExceptionHandlingStatement(Me.Syntax, containsOnError, containsResume, resumeWithoutLabelOpt, trackLineNumber, body, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUnstructuredExceptionHandlingCatchFilter
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundUnstructuredExceptionHandlingCatchFilter : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, activeHandlerLocal As BoundLocal, resumeTargetLocal As BoundLocal, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UnstructuredExceptionHandlingCatchFilter, syntax, type, hasErrors OrElse activeHandlerLocal.NonNullAndHasErrors() OrElse resumeTargetLocal.NonNullAndHasErrors())
@@ -8863,7 +6077,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._ActiveHandlerLocal = activeHandlerLocal
             Me._ResumeTargetLocal = resumeTargetLocal
-
             Validate()
         End Sub
 
@@ -8871,19 +6084,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ActiveHandlerLocal As BoundLocal
         Public ReadOnly Property ActiveHandlerLocal As BoundLocal
-            Get
-                Return _ActiveHandlerLocal
-            End Get
-        End Property
 
-        Private ReadOnly _ResumeTargetLocal As BoundLocal
         Public ReadOnly Property ResumeTargetLocal As BoundLocal
-            Get
-                Return _ResumeTargetLocal
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnstructuredExceptionHandlingCatchFilter(Me)
@@ -8891,30 +6094,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(activeHandlerLocal As BoundLocal, resumeTargetLocal As BoundLocal, type As TypeSymbol) As BoundUnstructuredExceptionHandlingCatchFilter
             If activeHandlerLocal IsNot Me.ActiveHandlerLocal OrElse resumeTargetLocal IsNot Me.ResumeTargetLocal OrElse type IsNot Me.Type Then
-                Dim result = New BoundUnstructuredExceptionHandlingCatchFilter(Me.Syntax, activeHandlerLocal, resumeTargetLocal, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundUnstructuredExceptionHandlingCatchFilter(Me.Syntax, activeHandlerLocal, resumeTargetLocal, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUnstructuredExceptionOnErrorSwitch
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundUnstructuredExceptionOnErrorSwitch : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, value As BoundExpression, jumps As ImmutableArray(Of BoundGotoStatement), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UnstructuredExceptionOnErrorSwitch, syntax, hasErrors OrElse value.NonNullAndHasErrors() OrElse jumps.NonNullAndHasErrors())
 
             Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (jumps.IsDefault), "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not jumps.IsDefault, "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Value = value
             Me._Jumps = jumps
-
             Validate()
         End Sub
 
@@ -8922,19 +6119,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Value As BoundExpression
         Public ReadOnly Property Value As BoundExpression
-            Get
-                Return _Value
-            End Get
-        End Property
 
-        Private ReadOnly _Jumps As ImmutableArray(Of BoundGotoStatement)
         Public ReadOnly Property Jumps As ImmutableArray(Of BoundGotoStatement)
-            Get
-                Return _Jumps
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnstructuredExceptionOnErrorSwitch(Me)
@@ -8942,20 +6129,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(value As BoundExpression, jumps As ImmutableArray(Of BoundGotoStatement)) As BoundUnstructuredExceptionOnErrorSwitch
             If value IsNot Me.Value OrElse jumps <> Me.Jumps Then
-                Dim result = New BoundUnstructuredExceptionOnErrorSwitch(Me.Syntax, value, jumps, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundUnstructuredExceptionOnErrorSwitch(Me.Syntax, value, jumps, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUnstructuredExceptionResumeSwitch
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundUnstructuredExceptionResumeSwitch : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, resumeTargetTemporary As BoundLocal, resumeLabel As BoundLabelStatement, resumeNextLabel As BoundLabelStatement, jumps As ImmutableArray(Of BoundGotoStatement), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UnstructuredExceptionResumeSwitch, syntax, hasErrors OrElse resumeTargetTemporary.NonNullAndHasErrors() OrElse resumeLabel.NonNullAndHasErrors() OrElse resumeNextLabel.NonNullAndHasErrors() OrElse jumps.NonNullAndHasErrors())
@@ -8963,13 +6145,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(resumeTargetTemporary IsNot Nothing, "Field 'resumeTargetTemporary' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(resumeLabel IsNot Nothing, "Field 'resumeLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(resumeNextLabel IsNot Nothing, "Field 'resumeNextLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (jumps.IsDefault), "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not jumps.IsDefault, "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ResumeTargetTemporary = resumeTargetTemporary
             Me._ResumeLabel = resumeLabel
             Me._ResumeNextLabel = resumeNextLabel
             Me._Jumps = jumps
-
             Validate()
         End Sub
 
@@ -8977,33 +6158,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ResumeTargetTemporary As BoundLocal
         Public ReadOnly Property ResumeTargetTemporary As BoundLocal
-            Get
-                Return _ResumeTargetTemporary
-            End Get
-        End Property
 
-        Private ReadOnly _ResumeLabel As BoundLabelStatement
         Public ReadOnly Property ResumeLabel As BoundLabelStatement
-            Get
-                Return _ResumeLabel
-            End Get
-        End Property
 
-        Private ReadOnly _ResumeNextLabel As BoundLabelStatement
         Public ReadOnly Property ResumeNextLabel As BoundLabelStatement
-            Get
-                Return _ResumeNextLabel
-            End Get
-        End Property
 
-        Private ReadOnly _Jumps As ImmutableArray(Of BoundGotoStatement)
         Public ReadOnly Property Jumps As ImmutableArray(Of BoundGotoStatement)
-            Get
-                Return _Jumps
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnstructuredExceptionResumeSwitch(Me)
@@ -9011,20 +6172,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(resumeTargetTemporary As BoundLocal, resumeLabel As BoundLabelStatement, resumeNextLabel As BoundLabelStatement, jumps As ImmutableArray(Of BoundGotoStatement)) As BoundUnstructuredExceptionResumeSwitch
             If resumeTargetTemporary IsNot Me.ResumeTargetTemporary OrElse resumeLabel IsNot Me.ResumeLabel OrElse resumeNextLabel IsNot Me.ResumeNextLabel OrElse jumps <> Me.Jumps Then
-                Dim result = New BoundUnstructuredExceptionResumeSwitch(Me.Syntax, resumeTargetTemporary, resumeLabel, resumeNextLabel, jumps, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundUnstructuredExceptionResumeSwitch(Me.Syntax, resumeTargetTemporary, resumeLabel, resumeNextLabel, jumps, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAwaitOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundAwaitOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, awaitableInstancePlaceholder As BoundRValuePlaceholder, getAwaiter As BoundExpression, awaiterInstancePlaceholder As BoundLValuePlaceholder, isCompleted As BoundExpression, getResult As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AwaitOperator, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse awaitableInstancePlaceholder.NonNullAndHasErrors() OrElse getAwaiter.NonNullAndHasErrors() OrElse awaiterInstancePlaceholder.NonNullAndHasErrors() OrElse isCompleted.NonNullAndHasErrors() OrElse getResult.NonNullAndHasErrors())
@@ -9043,7 +6199,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._AwaiterInstancePlaceholder = awaiterInstancePlaceholder
             Me._IsCompleted = isCompleted
             Me._GetResult = getResult
-
             Validate()
         End Sub
 
@@ -9051,47 +6206,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Operand As BoundExpression
         Public ReadOnly Property Operand As BoundExpression
-            Get
-                Return _Operand
-            End Get
-        End Property
 
-        Private ReadOnly _AwaitableInstancePlaceholder As BoundRValuePlaceholder
         Public ReadOnly Property AwaitableInstancePlaceholder As BoundRValuePlaceholder
-            Get
-                Return _AwaitableInstancePlaceholder
-            End Get
-        End Property
 
-        Private ReadOnly _GetAwaiter As BoundExpression
         Public ReadOnly Property GetAwaiter As BoundExpression
-            Get
-                Return _GetAwaiter
-            End Get
-        End Property
 
-        Private ReadOnly _AwaiterInstancePlaceholder As BoundLValuePlaceholder
         Public ReadOnly Property AwaiterInstancePlaceholder As BoundLValuePlaceholder
-            Get
-                Return _AwaiterInstancePlaceholder
-            End Get
-        End Property
 
-        Private ReadOnly _IsCompleted As BoundExpression
         Public ReadOnly Property IsCompleted As BoundExpression
-            Get
-                Return _IsCompleted
-            End Get
-        End Property
 
-        Private ReadOnly _GetResult As BoundExpression
         Public ReadOnly Property GetResult As BoundExpression
-            Get
-                Return _GetResult
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAwaitOperator(Me)
@@ -9099,33 +6224,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(operand As BoundExpression, awaitableInstancePlaceholder As BoundRValuePlaceholder, getAwaiter As BoundExpression, awaiterInstancePlaceholder As BoundLValuePlaceholder, isCompleted As BoundExpression, getResult As BoundExpression, type As TypeSymbol) As BoundAwaitOperator
             If operand IsNot Me.Operand OrElse awaitableInstancePlaceholder IsNot Me.AwaitableInstancePlaceholder OrElse getAwaiter IsNot Me.GetAwaiter OrElse awaiterInstancePlaceholder IsNot Me.AwaiterInstancePlaceholder OrElse isCompleted IsNot Me.IsCompleted OrElse getResult IsNot Me.GetResult OrElse type IsNot Me.Type Then
-                Dim result = New BoundAwaitOperator(Me.Syntax, operand, awaitableInstancePlaceholder, getAwaiter, awaiterInstancePlaceholder, isCompleted, getResult, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundAwaitOperator(Me.Syntax, operand, awaitableInstancePlaceholder, getAwaiter, awaiterInstancePlaceholder, isCompleted, getResult, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSpillSequence
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundSpillSequence : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, locals As ImmutableArray(Of LocalSymbol), spillFields As ImmutableArray(Of FieldSymbol), statements As ImmutableArray(Of BoundStatement), valueOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SpillSequence, syntax, type, hasErrors OrElse statements.NonNullAndHasErrors() OrElse valueOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (spillFields.IsDefault), "Field 'spillFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not locals.IsDefault, "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not spillFields.IsDefault, "Field 'spillFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not statements.IsDefault, "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Locals = locals
             Me._SpillFields = spillFields
             Me._Statements = statements
             Me._ValueOpt = valueOpt
-
             Validate()
         End Sub
 
@@ -9133,33 +6252,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Locals As ImmutableArray(Of LocalSymbol)
         Public ReadOnly Property Locals As ImmutableArray(Of LocalSymbol)
-            Get
-                Return _Locals
-            End Get
-        End Property
 
-        Private ReadOnly _SpillFields As ImmutableArray(Of FieldSymbol)
         Public ReadOnly Property SpillFields As ImmutableArray(Of FieldSymbol)
-            Get
-                Return _SpillFields
-            End Get
-        End Property
 
-        Private ReadOnly _Statements As ImmutableArray(Of BoundStatement)
         Public ReadOnly Property Statements As ImmutableArray(Of BoundStatement)
-            Get
-                Return _Statements
-            End Get
-        End Property
 
-        Private ReadOnly _ValueOpt As BoundExpression
         Public ReadOnly Property ValueOpt As BoundExpression
-            Get
-                Return _ValueOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSpillSequence(Me)
@@ -9167,26 +6266,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(locals As ImmutableArray(Of LocalSymbol), spillFields As ImmutableArray(Of FieldSymbol), statements As ImmutableArray(Of BoundStatement), valueOpt As BoundExpression, type As TypeSymbol) As BoundSpillSequence
             If locals <> Me.Locals OrElse spillFields <> Me.SpillFields OrElse statements <> Me.Statements OrElse valueOpt IsNot Me.ValueOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundSpillSequence(Me.Syntax, locals, spillFields, statements, valueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundSpillSequence(Me.Syntax, locals, spillFields, statements, valueOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundStopStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundStopStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, hasErrors As Boolean)
             MyBase.New(BoundKind.StopStatement, syntax, hasErrors)
         End Sub
 
-        Public Sub New(syntax As SyntaxNode)
+        Public  Sub New(syntax As SyntaxNode)
             MyBase.New(BoundKind.StopStatement, syntax)
         End Sub
 
@@ -9196,14 +6290,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundEndStatement
-        Inherits BoundStatement
+    Friend NotInheritable Partial Class BoundEndStatement : Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, hasErrors As Boolean)
             MyBase.New(BoundKind.EndStatement, syntax, hasErrors)
         End Sub
 
-        Public Sub New(syntax As SyntaxNode)
+        Public  Sub New(syntax As SyntaxNode)
             MyBase.New(BoundKind.EndStatement, syntax)
         End Sub
 
@@ -9213,8 +6306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMidResult
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundMidResult : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, original As BoundExpression, start As BoundExpression, lengthOpt As BoundExpression, source As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.MidResult, syntax, type, hasErrors OrElse original.NonNullAndHasErrors() OrElse start.NonNullAndHasErrors() OrElse lengthOpt.NonNullAndHasErrors() OrElse source.NonNullAndHasErrors())
@@ -9228,7 +6320,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Start = start
             Me._LengthOpt = lengthOpt
             Me._Source = source
-
             Validate()
         End Sub
 
@@ -9236,33 +6327,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Original As BoundExpression
         Public ReadOnly Property Original As BoundExpression
-            Get
-                Return _Original
-            End Get
-        End Property
 
-        Private ReadOnly _Start As BoundExpression
         Public ReadOnly Property Start As BoundExpression
-            Get
-                Return _Start
-            End Get
-        End Property
 
-        Private ReadOnly _LengthOpt As BoundExpression
         Public ReadOnly Property LengthOpt As BoundExpression
-            Get
-                Return _LengthOpt
-            End Get
-        End Property
 
-        Private ReadOnly _Source As BoundExpression
         Public ReadOnly Property Source As BoundExpression
-            Get
-                Return _Source
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMidResult(Me)
@@ -9270,20 +6341,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(original As BoundExpression, start As BoundExpression, lengthOpt As BoundExpression, source As BoundExpression, type As TypeSymbol) As BoundMidResult
             If original IsNot Me.Original OrElse start IsNot Me.Start OrElse lengthOpt IsNot Me.LengthOpt OrElse source IsNot Me.Source OrElse type IsNot Me.Type Then
-                Dim result = New BoundMidResult(Me.Syntax, original, start, lengthOpt, source, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundMidResult(Me.Syntax, original, start, lengthOpt, source, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundConditionalAccess
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundConditionalAccess : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, receiver As BoundExpression, placeholder As BoundRValuePlaceholder, accessExpression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ConditionalAccess, syntax, type, hasErrors OrElse receiver.NonNullAndHasErrors() OrElse placeholder.NonNullAndHasErrors() OrElse accessExpression.NonNullAndHasErrors())
@@ -9298,26 +6364,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Receiver As BoundExpression
         Public ReadOnly Property Receiver As BoundExpression
-            Get
-                Return _Receiver
-            End Get
-        End Property
 
-        Private ReadOnly _Placeholder As BoundRValuePlaceholder
         Public ReadOnly Property Placeholder As BoundRValuePlaceholder
-            Get
-                Return _Placeholder
-            End Get
-        End Property
 
-        Private ReadOnly _AccessExpression As BoundExpression
         Public ReadOnly Property AccessExpression As BoundExpression
-            Get
-                Return _AccessExpression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConditionalAccess(Me)
@@ -9325,20 +6376,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(receiver As BoundExpression, placeholder As BoundRValuePlaceholder, accessExpression As BoundExpression, type As TypeSymbol) As BoundConditionalAccess
             If receiver IsNot Me.Receiver OrElse placeholder IsNot Me.Placeholder OrElse accessExpression IsNot Me.AccessExpression OrElse type IsNot Me.Type Then
-                Dim result = New BoundConditionalAccess(Me.Syntax, receiver, placeholder, accessExpression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundConditionalAccess(Me.Syntax, receiver, placeholder, accessExpression, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundConditionalAccessReceiverPlaceholder
-        Inherits BoundRValuePlaceholderBase
+    Friend NotInheritable Partial Class BoundConditionalAccessReceiverPlaceholder : Inherits BoundRValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, placeholderId As Integer, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ConditionalAccessReceiverPlaceholder, syntax, type, hasErrors)
@@ -9346,30 +6392,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PlaceholderId = placeholderId
-
             Validate()
         End Sub
 
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, placeholderId As Integer, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, placeholderId As Integer, type As TypeSymbol)
             MyBase.New(BoundKind.ConditionalAccessReceiverPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PlaceholderId = placeholderId
-
             Validate()
         End Sub
 
 
-        Private ReadOnly _PlaceholderId As Integer
         Public ReadOnly Property PlaceholderId As Integer
-            Get
-                Return _PlaceholderId
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConditionalAccessReceiverPlaceholder(Me)
@@ -9377,20 +6416,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(placeholderId As Integer, type As TypeSymbol) As BoundConditionalAccessReceiverPlaceholder
             If placeholderId <> Me.PlaceholderId OrElse type IsNot Me.Type Then
-                Dim result = New BoundConditionalAccessReceiverPlaceholder(Me.Syntax, placeholderId, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundConditionalAccessReceiverPlaceholder(Me.Syntax, placeholderId, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLoweredConditionalAccess
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundLoweredConditionalAccess : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, receiverOrCondition As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LoweredConditionalAccess, syntax, type, hasErrors OrElse receiverOrCondition.NonNullAndHasErrors() OrElse whenNotNull.NonNullAndHasErrors() OrElse whenNullOpt.NonNullAndHasErrors())
@@ -9404,7 +6438,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._PlaceholderId = placeholderId
             Me._WhenNotNull = whenNotNull
             Me._WhenNullOpt = whenNullOpt
-
             Validate()
         End Sub
 
@@ -9412,40 +6445,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ReceiverOrCondition As BoundExpression
         Public ReadOnly Property ReceiverOrCondition As BoundExpression
-            Get
-                Return _ReceiverOrCondition
-            End Get
-        End Property
 
-        Private ReadOnly _CaptureReceiver As Boolean
         Public ReadOnly Property CaptureReceiver As Boolean
-            Get
-                Return _CaptureReceiver
-            End Get
-        End Property
 
-        Private ReadOnly _PlaceholderId As Integer
         Public ReadOnly Property PlaceholderId As Integer
-            Get
-                Return _PlaceholderId
-            End Get
-        End Property
 
-        Private ReadOnly _WhenNotNull As BoundExpression
         Public ReadOnly Property WhenNotNull As BoundExpression
-            Get
-                Return _WhenNotNull
-            End Get
-        End Property
 
-        Private ReadOnly _WhenNullOpt As BoundExpression
         Public ReadOnly Property WhenNullOpt As BoundExpression
-            Get
-                Return _WhenNullOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitLoweredConditionalAccess(Me)
@@ -9453,20 +6461,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(receiverOrCondition As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol) As BoundLoweredConditionalAccess
             If receiverOrCondition IsNot Me.ReceiverOrCondition OrElse captureReceiver <> Me.CaptureReceiver OrElse placeholderId <> Me.PlaceholderId OrElse whenNotNull IsNot Me.WhenNotNull OrElse whenNullOpt IsNot Me.WhenNullOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundLoweredConditionalAccess(Me.Syntax, receiverOrCondition, captureReceiver, placeholderId, whenNotNull, whenNullOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundLoweredConditionalAccess(Me.Syntax, receiverOrCondition, captureReceiver, placeholderId, whenNotNull, whenNullOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundComplexConditionalAccessReceiver
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundComplexConditionalAccessReceiver : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, valueTypeReceiver As BoundExpression, referenceTypeReceiver As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ComplexConditionalAccessReceiver, syntax, type, hasErrors OrElse valueTypeReceiver.NonNullAndHasErrors() OrElse referenceTypeReceiver.NonNullAndHasErrors())
@@ -9477,7 +6480,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._ValueTypeReceiver = valueTypeReceiver
             Me._ReferenceTypeReceiver = referenceTypeReceiver
-
             Validate()
         End Sub
 
@@ -9485,19 +6487,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ValueTypeReceiver As BoundExpression
         Public ReadOnly Property ValueTypeReceiver As BoundExpression
-            Get
-                Return _ValueTypeReceiver
-            End Get
-        End Property
 
-        Private ReadOnly _ReferenceTypeReceiver As BoundExpression
         Public ReadOnly Property ReferenceTypeReceiver As BoundExpression
-            Get
-                Return _ReferenceTypeReceiver
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitComplexConditionalAccessReceiver(Me)
@@ -9505,20 +6497,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(valueTypeReceiver As BoundExpression, referenceTypeReceiver As BoundExpression, type As TypeSymbol) As BoundComplexConditionalAccessReceiver
             If valueTypeReceiver IsNot Me.ValueTypeReceiver OrElse referenceTypeReceiver IsNot Me.ReferenceTypeReceiver OrElse type IsNot Me.Type Then
-                Dim result = New BoundComplexConditionalAccessReceiver(Me.Syntax, valueTypeReceiver, referenceTypeReceiver, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundComplexConditionalAccessReceiver(Me.Syntax, valueTypeReceiver, referenceTypeReceiver, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNameOfOperator
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundNameOfOperator : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, argument As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NameOfOperator, syntax, type, hasErrors OrElse argument.NonNullAndHasErrors())
@@ -9528,7 +6515,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._Argument = argument
             Me._ConstantValueOpt = constantValueOpt
-
             Validate()
         End Sub
 
@@ -9536,19 +6522,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Argument As BoundExpression
         Public ReadOnly Property Argument As BoundExpression
-            Get
-                Return _Argument
-            End Get
-        End Property
 
-        Private ReadOnly _ConstantValueOpt As ConstantValue
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
-            Get
-                Return _ConstantValueOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitNameOfOperator(Me)
@@ -9556,20 +6532,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(argument As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol) As BoundNameOfOperator
             If argument IsNot Me.Argument OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundNameOfOperator(Me.Syntax, argument, constantValueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundNameOfOperator(Me.Syntax, argument, constantValueOpt, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTypeAsValueExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundTypeAsValueExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundTypeExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TypeAsValueExpression, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
@@ -9578,7 +6549,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
-
             Validate()
         End Sub
 
@@ -9586,12 +6556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundTypeExpression
         Public ReadOnly Property Expression As BoundTypeExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeAsValueExpression(Me)
@@ -9599,31 +6564,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundTypeExpression, type As TypeSymbol) As BoundTypeAsValueExpression
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
-                Dim result = New BoundTypeAsValueExpression(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundTypeAsValueExpression(Me.Syntax, expression, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundInterpolatedStringExpression
-        Inherits BoundExpression
+    Friend NotInheritable Partial Class BoundInterpolatedStringExpression : Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.InterpolatedStringExpression, syntax, type, hasErrors OrElse contents.NonNullAndHasErrors())
 
-            Debug.Assert(Not (contents.IsDefault), "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not contents.IsDefault, "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Contents = contents
             Me._Binder = binder
-
             Validate()
         End Sub
 
@@ -9631,19 +6590,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Contents As ImmutableArray(Of BoundNode)
         Public ReadOnly Property Contents As ImmutableArray(Of BoundNode)
-            Get
-                Return _Contents
-            End Get
-        End Property
 
-        Private ReadOnly _Binder As Binder
         Public ReadOnly Property Binder As Binder
-            Get
-                Return _Binder
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitInterpolatedStringExpression(Me)
@@ -9651,20 +6600,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol) As BoundInterpolatedStringExpression
             If contents <> Me.Contents OrElse binder IsNot Me.Binder OrElse type IsNot Me.Type Then
-                Dim result = New BoundInterpolatedStringExpression(Me.Syntax, contents, binder, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundInterpolatedStringExpression(Me.Syntax, contents, binder, type, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundInterpolation
-        Inherits BoundNode
+    Friend NotInheritable Partial Class BoundInterpolation : Inherits BoundNode
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, alignmentOpt As BoundExpression, formatStringOpt As BoundLiteral, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Interpolation, syntax, hasErrors OrElse expression.NonNullAndHasErrors() OrElse alignmentOpt.NonNullAndHasErrors() OrElse formatStringOpt.NonNullAndHasErrors())
@@ -9677,26 +6621,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Expression As BoundExpression
         Public ReadOnly Property Expression As BoundExpression
-            Get
-                Return _Expression
-            End Get
-        End Property
 
-        Private ReadOnly _AlignmentOpt As BoundExpression
         Public ReadOnly Property AlignmentOpt As BoundExpression
-            Get
-                Return _AlignmentOpt
-            End Get
-        End Property
 
-        Private ReadOnly _FormatStringOpt As BoundLiteral
         Public ReadOnly Property FormatStringOpt As BoundLiteral
-            Get
-                Return _FormatStringOpt
-            End Get
-        End Property
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitInterpolation(Me)
@@ -9704,12 +6633,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Update(expression As BoundExpression, alignmentOpt As BoundExpression, formatStringOpt As BoundLiteral) As BoundInterpolation
             If expression IsNot Me.Expression OrElse alignmentOpt IsNot Me.AlignmentOpt OrElse formatStringOpt IsNot Me.FormatStringOpt Then
-                Dim result = New BoundInterpolation(Me.Syntax, expression, alignmentOpt, formatStringOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                Dim result As New BoundInterpolation(Me.Syntax, expression, alignmentOpt, formatStringOpt, Me.HasErrors)
+                If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()
                 Return result
             End If
             Return Me
