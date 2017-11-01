@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -43,6 +43,75 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) 
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IPropertyReference_StaticPropertyWithInstanceReceiver()
+        {
+            string source = @"
+class C
+{
+    static int I { get; }
+
+    public static void M()
+    {
+        var c = new C();
+        var i1 = /*<bind>*/c.I/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceOperation: System.Int32 C.I { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'c.I')
+  Instance Receiver: 
+    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0176: Member 'C.I' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         var i1 = /*<bind>*/c.I/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.I").WithArguments("C.I").WithLocation(9, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IPropertyReference_StaticPropertyWithInstanceReceiver_Indexer()
+        {
+            string source = @"
+using System.Collections.Generic;
+
+class C
+{
+    static List<int> list = new List<int>();
+
+    public static void M()
+    {
+        var c = new C();
+        var i1 = /*<bind>*/c.list[1]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System.Int32>.this[System.Int32 index] { get; set; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'c.list[1]')
+  Instance Receiver: 
+    IFieldReferenceOperation: System.Collections.Generic.List<System.Int32> C.list (Static) (OperationKind.FieldReference, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'c.list')
+      Instance Receiver: 
+        ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0176: Member 'C.list' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         var i1 = /*<bind>*/c.list[1]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.list").WithArguments("C.list").WithLocation(11, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
     }

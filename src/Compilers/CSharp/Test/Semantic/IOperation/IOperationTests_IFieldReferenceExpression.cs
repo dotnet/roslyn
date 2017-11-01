@@ -241,5 +241,38 @@ IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: 
 
             VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReference_StaticCallWithInstanceReceiver()
+        {
+            string source = @"
+class C
+{
+    static int i;
+
+    public static void M()
+    {
+        var c = new C();
+        var i1 = /*<bind>*/c.i/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IFieldReferenceOperation: System.Int32 C.i (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'c.i')
+  Instance Receiver: 
+    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0176: Member 'C.i' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         var i1 = /*<bind>*/c.i/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.i").WithArguments("C.i").WithLocation(9, 28),
+                // CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
+                //     static int i;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

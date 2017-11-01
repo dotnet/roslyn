@@ -86,14 +86,18 @@ namespace Microsoft.CodeAnalysis.Operations
             return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
         }
 
-        private IOperation CreateBoundCallInstanceOperation(BoundCall boundCall)
+        private IOperation CreateReceiverOperation(BoundNode instance)
+
         {
-            if (boundCall.Method == null || boundCall.Method.IsStatic)
+            // If the instance is a BoundTypeExpression, it's a scenario like string.Equals(). We don't
+            // have IOperation representation of type expressions like string, so don't include that in the
+            // tree.
+            if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
                 return null;
             }
 
-            return Create(boundCall.ReceiverOpt);
+            return Create(instance);
         }
 
         private IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
@@ -105,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Operations
             //  2. the constant value of BoundEventAccess is always null.
             //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
             IEventSymbol @event = boundEventAssignmentOperator.Event;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundEventAssignmentOperator.ReceiverOpt));
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 
@@ -153,10 +157,10 @@ namespace Microsoft.CodeAnalysis.Operations
                       {
                           ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance();
 
-                          if (receiverOpt != null 
-                             && (!receiverOpt.WasCompilerGenerated 
-                                 || (receiverOpt.Kind != BoundKind.ThisReference 
-                                    && receiverOpt.Kind != BoundKind.BaseReference 
+                          if (receiverOpt != null
+                             && (!receiverOpt.WasCompilerGenerated
+                                 || (receiverOpt.Kind != BoundKind.ThisReference
+                                    && receiverOpt.Kind != BoundKind.BaseReference
                                     && receiverOpt.Kind != BoundKind.ImplicitReceiver)))
                           {
                               builder.Add(Create(receiverOpt));
