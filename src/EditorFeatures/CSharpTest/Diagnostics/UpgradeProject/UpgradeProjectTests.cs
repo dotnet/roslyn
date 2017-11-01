@@ -229,6 +229,21 @@ public class Program
                 index: 1);
         }
 
+#region C# 7.3
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_3ToLatest()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+#error version:[|7.3|]
+}",
+                LanguageVersion.Latest,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+#endregion C# 7.3
+
         [Fact]
         public async Task UpgradeAllProjectsToDefault()
         {
