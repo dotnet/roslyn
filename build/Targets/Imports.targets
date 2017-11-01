@@ -534,9 +534,7 @@
     In official build the content of ArtifactsSymStoreDirectory is uploaded to a symbol server.
   -->
   <PropertyGroup>
-    <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <PublishOutputToSymStore Condition="'$(Nonshipping)' == 'true'">false</PublishOutputToSymStore>
-    <ArtifactsSymStoreDirectory Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\SymStore\</ArtifactsSymStoreDirectory>
   </PropertyGroup>
 
   <Import Project="RepoToolset\SymStore.targets" />
