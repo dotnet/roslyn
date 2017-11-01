@@ -811,6 +811,7 @@ Public Class BuildDevDivInsertionFiles
                   End Sub
 
         Dim configPath = Path.Combine(_binDirectory, "..\..\build\config\SignToolData.json")
+        Dim comparison = StringComparison.OrdinalIgnoreCase
         Dim obj = JObject.Parse(File.ReadAllText(configPath))
         Dim array = CType(obj.Property("sign").Value, JArray)
         For Each element As JObject In array
@@ -819,19 +820,24 @@ Public Class BuildDevDivInsertionFiles
                 Dim parent = Path.GetDirectoryName(item)
 
                 ' Don't add in the csc.exe or vbc.exe from the CoreCLR projects.
-                If parent.EndsWith("Core", StringComparison.OrdinalIgnoreCase) Then
+                If parent.EndsWith("Core", comparison) Then
                     Continue For
                 End If
 
-                If parent.EndsWith("NetFX20", StringComparison.OrdinalIgnoreCase) Then
+                If parent.EndsWith("NetFX20", comparison) Then
                     Continue For
                 End If
 
-                If parent.EndsWith("DevDivPackages\Roslyn", StringComparison.OrdinalIgnoreCase) Then
+                ' There are items in SignToolData which are built after this tool is run and hence
+                ' can't be a part of the map.
+                If parent.EndsWith("DevDivPackages\Roslyn", comparison) OrElse
+                    parent.StartsWith("Vsix\CodeAnalysisCompilers", comparison) Then
                     Continue For
                 End If
 
-                ' Wild cards aren't supported
+                ' Ignore wild cards. The map contains full file paths and supporting wildcards would
+                ' require expansion. That is doable but given none of the files identified by wild cards
+                ' are used by other downstream tools this isn't necessary.
                 If item.Contains("*") Then
                     Continue For
                 End If
