@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 Dim node = root.FindNode(diagnostic.Location.SourceSpan)
                 Select Case node.Kind
                     Case SyntaxKind.NameColonEquals
-                        editor.RemoveNode(node, SyntaxRemoveOptions.KeepExteriorTrivia)
+                        editor.RemoveNode(node, SyntaxRemoveOptions.KeepExteriorTrivia Or SyntaxRemoveOptions.AddElasticMarker)
                         Exit Select
 
                     Case SyntaxKind.NamedFieldInitializer

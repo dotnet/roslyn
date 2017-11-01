@@ -251,7 +251,7 @@ Lambda(
         End Sub
 
         <Fact>
-        Public Sub TestBinaryOperator_Unhecked_ShortCircuit()
+        Public Sub TestBinaryOperator_Unchecked_ShortCircuit()
             TestBinaryOperator_AllTypes_ShortCircuit(False, result:=ExpTreeTestResources.UncheckedShortCircuit)
         End Sub
 
@@ -291,7 +291,7 @@ Lambda(
         End Sub
 
         <Fact>
-        Public Sub TestBinaryOperator_Unhecked_Concatenate()
+        Public Sub TestBinaryOperator_Unchecked_Concatenate()
             TestBinaryOperator_ConcatenatePlus(False, result:=ExpTreeTestResources.UncheckedConcatenate)
         End Sub
 
@@ -301,7 +301,7 @@ Lambda(
         End Sub
 
         <Fact>
-        Public Sub TestBinaryOperator_Unhecked_Like()
+        Public Sub TestBinaryOperator_Unchecked_Like()
             TestBinaryOperator_Like(False, result:=ExpTreeTestResources.UncheckedLike)
         End Sub
 
@@ -6002,7 +6002,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub ExprTreeWithCollectionIntializer()
+        Public Sub ExprTreeWithCollectionInitializer()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System

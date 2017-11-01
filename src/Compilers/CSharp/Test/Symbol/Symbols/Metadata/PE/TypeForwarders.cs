@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             const string funcTypeMetadataName = "System.Func`1";
 
             // mscorlib contains this type, so we should be able to find it without looking in referenced assemblies.
-            var funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: false, isWellKnownType: false);
+            var funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: false, isWellKnownType: false, conflicts: out var _);
             Assert.NotNull(funcType);
             Assert.NotEqual(TypeKind.Error, funcType.TypeKind);
             Assert.Equal(corlibAssembly, funcType.ContainingAssembly);
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             // The compilation assembly references both mscorlib and System.Core, but finding
             // System.Func`1 in both isn't ambiguous because one forwards to the other.
-            Assert.Equal(funcType, compilation.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: true, isWellKnownType: false));
+            Assert.Equal(funcType, compilation.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _));
         }
 
         /// <summary>

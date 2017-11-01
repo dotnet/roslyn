@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private readonly Func<Task<BuildResponse>> _runServerCompilationFunc;
 
             public TestableDesktopBuildClient(
-                RequestLanguage langauge,
+                RequestLanguage language,
                 CompileFunc compileFunc,
                 string pipeName,
                 Func<string, bool> createServerFunc,
-                Func<Task<BuildResponse>> runServerCompilationFunc) : base(langauge, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
+                Func<Task<BuildResponse>> runServerCompilationFunc) : base(language, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
             {
                 _pipeName = pipeName;
                 _createServerFunc = createServerFunc;
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return true;
             }
 
-            [Fact]
+            [ConditionalFact(typeof(WindowsOnly))]
             public void ConnectToServerFails()
             {
                 // Create and grab the mutex for the server. This should make
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 
-            [Fact]
+            [ConditionalFact(typeof(WindowsOnly))]
             public async Task ConnectToPipeWithSpinWait()
             {
                 // No server should be started with the current pipe name
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.False(ranLocal);
             }
 
-            [Fact]
+            [ConditionalFact(typeof(WindowsOnly))]
             public void FallbackToCsc()
             {
                 _allowServer = false;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(0, _serverDataList.Count);
             }
 
-            [Fact]
+            [ConditionalFact(typeof(WindowsOnly))]
             [WorkItem(7866, "https://github.com/dotnet/roslyn/issues/7866")]
             public void RunServerCompilationThrows()
             {

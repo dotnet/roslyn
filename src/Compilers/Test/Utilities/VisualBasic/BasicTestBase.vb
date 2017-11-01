@@ -185,7 +185,7 @@ Public MustInherit Class BasicTestBase
         End If
 
         Dim assemblyName As String = Nothing
-        Dim sourceTrees = ParseSouceXml(source, parseOptions, assemblyName)
+        Dim sourceTrees = ParseSourceXml(source, parseOptions, assemblyName)
         Dim compilation = CreateCompilation(sourceTrees, allReferences, options, assemblyName)
 
         Return MyBase.CompileAndVerify(
@@ -885,12 +885,12 @@ Public MustInherit Class BasicTestBaseBase
         Return DumpAllDiagnostics(allDiagnostics, suppressInfos)
     End Function
 
-    Friend Shared Function GetOperationAndSyntaxForTest(Of TSyntaxNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As integer  = 0) As (operation as IOperation, synxtaxNode As SyntaxNode)
+    Friend Shared Function GetOperationAndSyntaxForTest(Of TSyntaxNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0) As (operation As IOperation, syntaxNode As SyntaxNode)
         Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which, prefixMatch:=True)
         If node Is Nothing Then
             Return (Nothing, Nothing)
         End If
-        
+
         Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
         Dim operation = semanticModel.GetOperationInternal(node)
         Return (operation, node)

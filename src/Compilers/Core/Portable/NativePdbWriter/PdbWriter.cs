@@ -1308,7 +1308,7 @@ namespace Microsoft.Cci
         /// </summary>
         /// <remarks>
         /// This is done after serializing method debug info to ensure that we embed all requested
-        /// text even if there are no correspodning sequence points.
+        /// text even if there are no corresponding sequence points.
         /// </remarks>
         public void WriteRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> embeddedDocuments)
         {
