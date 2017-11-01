@@ -1555,7 +1555,7 @@ public class C
   IL_0044:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, int>> C.<>o__0.<>p__0""
   IL_0049:  ldloc.1
   IL_004a:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
-  IL_004f:  call       ""void C.<Main>g__L10_0(int)""
+  IL_004f:  call       ""void C.<Main>g__L1|0_0(int)""
   IL_0054:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, int>> C.<>o__0.<>p__1""
   IL_0059:  brtrue.s   IL_007f
   IL_005b:  ldc.i4.0
@@ -1572,7 +1572,7 @@ public class C
   IL_008e:  ldloc.1
   IL_008f:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_0094:  ldloca.s   V_0
-  IL_0096:  call       ""System.Action<int> C.<Main>g__L20_1(int, ref C.<>c__DisplayClass0_0)""
+  IL_0096:  call       ""System.Action<int> C.<Main>g__L2|0_1(int, ref C.<>c__DisplayClass0_0)""
   IL_009b:  stloc.2
   IL_009c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__0.<>p__2""
   IL_00a1:  brtrue.s   IL_00db

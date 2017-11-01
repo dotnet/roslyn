@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
-                returnsByRef: false,
+                refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: EqualsName,
                 typeParameters: default,

@@ -9,7 +9,12 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class ShadowCopyAnalyzerAssemblyLoader : DesktopAnalyzerAssemblyLoader
+    internal sealed class ShadowCopyAnalyzerAssemblyLoader :
+#if NET46
+        DesktopAnalyzerAssemblyLoader
+#else
+        CoreClrAnalyzerAssemblyLoader
+#endif
     {
         /// <summary>
         /// The base directory for shadow copies. Each instance of

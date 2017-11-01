@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        internal override uint LocalScopeDepth => Binder.TopLevelScope;
+
         internal override Symbol ContainingMemberOrLambda
         {
             get
@@ -224,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var parameter in _methodSymbol.Parameters)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {
                         result.AddSymbol(parameter, parameter.Name, 0);
                     }

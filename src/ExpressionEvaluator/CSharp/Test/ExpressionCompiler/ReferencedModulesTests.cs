@@ -490,14 +490,14 @@ class C
             string errorMessage;
             CompilationTestData testData;
             int attempts = 0;
-            ExpressionCompiler.CreateContextDelegate contextFactory = (b, u) =>
+            EvaluationContextBase contextFactory(ImmutableArray<MetadataBlock> b, bool u)
             {
                 attempts++;
                 return EvaluationContext.CreateTypeContext(
                     ToCompilation(b, u, moduleVersionId),
                     moduleVersionId,
                     typeToken);
-            };
+            }
 
             // Compile: [DebuggerDisplay("{new B()}")]
             const string expr = "new B()";
@@ -660,7 +660,7 @@ public class B
                 ObjectIdAlias(1, typeof(object)));
 
             int attempts = 0;
-            ExpressionCompiler.CreateContextDelegate contextFactory = (b, u) =>
+            EvaluationContextBase contextFactory(ImmutableArray<MetadataBlock> b, bool u)
             {
                 attempts++;
                 return EvaluationContext.CreateMethodContext(
@@ -671,7 +671,7 @@ public class B
                     methodVersion: 1,
                     ilOffset: 0,
                     localSignatureToken: localSignatureToken);
-            };
+            }
 
             string errorMessage;
             CompilationTestData testData;

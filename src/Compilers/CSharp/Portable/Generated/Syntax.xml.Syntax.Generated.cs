@@ -1115,11 +1115,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RefTypeSyntax)this.Green).refKeyword, this.Position, 0); }
     }
 
+    /// <summary>Gets the optional "readonly" keyword.</summary>
+    public SyntaxToken ReadOnlyKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RefTypeSyntax)this.Green).readOnlyKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(1), this.GetChildIndex(1));
+
+            return default(SyntaxToken);
+        }
+    }
+
     public TypeSyntax Type 
     {
         get
         {
-            return this.GetRed(ref this.type, 1);
+            return this.GetRed(ref this.type, 2);
         }
     }
 
@@ -1127,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.type, 1);
+            case 2: return this.GetRed(ref this.type, 2);
             default: return null;
         }
     }
@@ -1135,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.type;
+            case 2: return this.type;
             default: return null;
         }
     }
@@ -1150,11 +1163,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitRefType(this);
     }
 
-    public RefTypeSyntax Update(SyntaxToken refKeyword, TypeSyntax type)
+    public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
     {
-        if (refKeyword != this.RefKeyword || type != this.Type)
+        if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || type != this.Type)
         {
-            var newNode = SyntaxFactory.RefType(refKeyword, type);
+            var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, type);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -1166,12 +1179,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public RefTypeSyntax WithRefKeyword(SyntaxToken refKeyword)
     {
-        return this.Update(refKeyword, this.Type);
+        return this.Update(refKeyword, this.ReadOnlyKeyword, this.Type);
+    }
+
+    public RefTypeSyntax WithReadOnlyKeyword(SyntaxToken readOnlyKeyword)
+    {
+        return this.Update(this.RefKeyword, readOnlyKeyword, this.Type);
     }
 
     public RefTypeSyntax WithType(TypeSyntax type)
     {
-        return this.Update(this.RefKeyword, type);
+        return this.Update(this.RefKeyword, this.ReadOnlyKeyword, type);
     }
   }
 
@@ -3627,11 +3645,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>SyntaxToken representing the optional ref or out keyword.</summary>
-    public SyntaxToken RefOrOutKeyword 
+    public SyntaxToken RefKindKeyword 
     {
         get
         {
-            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ArgumentSyntax)this.Green).refOrOutKeyword;
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ArgumentSyntax)this.Green).refKindKeyword;
             if (slot != null)
                 return new SyntaxToken(this, slot, this.GetChildPosition(1), this.GetChildIndex(1));
 
@@ -3677,11 +3695,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitArgument(this);
     }
 
-    public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
+    public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
     {
-        if (nameColon != this.NameColon || refOrOutKeyword != this.RefOrOutKeyword || expression != this.Expression)
+        if (nameColon != this.NameColon || refKindKeyword != this.RefKindKeyword || expression != this.Expression)
         {
-            var newNode = SyntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
+            var newNode = SyntaxFactory.Argument(nameColon, refKindKeyword, expression);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -3693,17 +3711,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public ArgumentSyntax WithNameColon(NameColonSyntax nameColon)
     {
-        return this.Update(nameColon, this.RefOrOutKeyword, this.Expression);
+        return this.Update(nameColon, this.RefKindKeyword, this.Expression);
     }
 
-    public ArgumentSyntax WithRefOrOutKeyword(SyntaxToken refOrOutKeyword)
+    public ArgumentSyntax WithRefKindKeyword(SyntaxToken refKindKeyword)
     {
-        return this.Update(this.NameColon, refOrOutKeyword, this.Expression);
+        return this.Update(this.NameColon, refKindKeyword, this.Expression);
     }
 
     public ArgumentSyntax WithExpression(ExpressionSyntax expression)
     {
-        return this.Update(this.NameColon, this.RefOrOutKeyword, expression);
+        return this.Update(this.NameColon, this.RefKindKeyword, expression);
     }
   }
 
@@ -6444,7 +6462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
   }
 
-  /// <summary>Class which represents a simple pattern-maching expresion using the "is" keyword.</summary>
+  /// <summary>Class which represents a simple pattern-matching expression using the "is" keyword.</summary>
   public sealed partial class IsPatternExpressionSyntax : ExpressionSyntax
   {
     private ExpressionSyntax expression;

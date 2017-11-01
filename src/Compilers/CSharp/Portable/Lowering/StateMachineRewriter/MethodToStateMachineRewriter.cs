@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Cached "this" local, used to store the captured "this", which is safe to cache locally since "this" 
-        /// is sematically immutable.
+        /// is semantically immutable.
         /// It would be hard for such caching to happen at JIT level (since JIT does not know that it never changes).
         /// NOTE: this field is null when we are not caching "this" which happens when
         ///       - not optimizing
@@ -552,6 +552,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.BaseReference:
                 case BoundKind.DefaultExpression:
                     return expr;
+
+                case BoundKind.Call:
+                    var call = (BoundCall)expr;
+                    if (isRef)
+                    {
+                        Debug.Assert(call.Method.RefKind != RefKind.None);
+                        F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
+                        isRef = false; // Switch to ByVal to avoid asserting later in the pipeline
+                    }
+                    goto default;
+
+                case BoundKind.ConditionalOperator:
+                    var conditional = (BoundConditionalOperator)expr;
+                    if (isRef)
+                    {
+                        Debug.Assert(conditional.IsByRef);
+                        F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
+                        isRef = false; // Switch to ByVal to avoid asserting later in the pipeline
+                    }
+                    goto default;
 
                 default:
                     if (expr.ConstantValue != null)

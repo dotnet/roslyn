@@ -475,10 +475,9 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,58): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                // (4,58): error CS8328:  The parameter modifier 'params' cannot be used with 'out' 
                 //     public void Deconstruct(out int a, out string b, out params int[] c)
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "params").WithLocation(4, 58)
-                );
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "out").WithLocation(4, 58));
         }
 
         [Fact]
@@ -1249,10 +1248,37 @@ class C
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (7,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)
+                // (7,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 2)").WithArguments("System.ValueTuple`2").WithLocation(7, 18)
                 );
+        }
+
+        [Fact]
+        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        public void ValueTupleRequiredWhenRightHandSideIsTupleButNoReferenceEmitted()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        (x, y) = (1, 2);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+
+            Action<PEAssembly> assemblyValidator = assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var names = reader.GetAssemblyRefNames().Select(name => reader.GetString(name));
+                Assert.Empty(names.Where(name => name.Contains("ValueTuple")));
+            };
+
+            CompileAndVerify(comp, assemblyValidator: assemblyValidator);
         }
 
         [Fact]
@@ -3844,6 +3870,35 @@ static class Extension
         }
 
         [Fact]
+        [WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")]
+        public void ForEachCollectionSymbol()
+        {
+            string source = @"
+using System.Collections.Generic;
+class Deconstructable
+{
+    void M(IEnumerable<Deconstructable> x)
+    {
+        foreach (var (y1, y2) in x)
+        {
+        }
+    }
+    void Deconstruct(out int i, out int j) { i = 0; j = 0; }
+}
+";
+            var compilation = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single().Expression;
+            Assert.Equal("x", collection.ToString());
+            var symbol = model.GetSymbolInfo(collection).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("x", symbol.Name);
+            Assert.Equal("System.Collections.Generic.IEnumerable<Deconstructable> x", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
         public void ForEachIEnumerableDeclarationWithNesting()
         {
             string source = @"
@@ -4392,9 +4447,6 @@ class C
 ";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (3,2): error CS1520: Method must have a return type
-                // {
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "").WithLocation(3, 2),
                 // (4,11): error CS1001: Identifier expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(4, 11),
@@ -4419,15 +4471,18 @@ class C
                 // (4,19): error CS1519: Invalid token '1' in class, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(4, 19),
+                // (4,5): error CS1520: Method must have a return type
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "var").WithLocation(4, 5),
+                // (4,5): error CS0501: 'C.C(x, y)' must declare a body because it is not marked abstract, extern, or partial
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "var").WithArguments("C.C(x, y)").WithLocation(4, 5),
                 // (4,10): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(4, 10),
                 // (4,13): error CS0246: The type or namespace name 'y' could not be found (are you missing a using directive or an assembly reference?)
                 //     var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y").WithArguments("y").WithLocation(4, 13),
-                // (4,5): error CS0501: 'C.var(x, y)' must declare a body because it is not marked abstract, extern, or partial
-                //     var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "var").WithArguments("C.var(x, y)").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y").WithArguments("y").WithLocation(4, 13)
                 );
 
             var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
@@ -7701,6 +7756,34 @@ class C
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "once");
+        }
+
+        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [Fact]
+        public void InferredName()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        int x = 0, y = 1;
+        var t = (x, y);
+        var (a, b) = t;
+    }
+}";
+            // C# 7.0
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+            // C# 7.1
+            comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
         }
 
         [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]

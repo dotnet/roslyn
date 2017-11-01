@@ -31,6 +31,609 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
+        public void Repro481125()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+using System.Linq;
+
+public class C
+{
+    static void Main()
+    {
+        var c = new C();
+        Console.WriteLine(c.M(0).Count());
+        Console.WriteLine(c.M(1).Count());
+    }
+
+    public IQueryable<E> M(int salesOrderId)
+    {
+        using (var uow = new D())
+        {
+            return Local();
+
+            IQueryable<E> Local() => uow.ES.Where(so => so.Id == salesOrderId);
+        }
+    }
+}
+
+internal class D : IDisposable
+{
+    public IQueryable<E> ES => new[] { new E() }.AsQueryable();
+
+    public void Dispose() { }
+}
+
+public class E
+{
+    public int Id;
+}", references: new[] { LinqAssemblyRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"1
+0");
+        }
+
+        [Fact]
+        [WorkItem(22027, "https://github.com/dotnet/roslyn/issues/22027")]
+        public void Repro22027()
+        {
+            CompileAndVerify(@"
+class Program
+{
+static void Main(string[] args)
+{
+
+ }
+ public object TestLocalFn(object inp)
+ {
+     try
+     {
+         var sr = new object();
+         return sr;
+         void Local1()
+         {
+             var copy = inp;
+             Local2();
+         }
+         void Local2()
+         {
+
+         }
+     }
+     catch { throw; }
+ }
+}");
+        }
+
+        [Fact]
+        [WorkItem(21768, "https://github.com/dotnet/roslyn/issues/21768")]
+        public void Repro21768()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+using System.Linq;
+class C
+{
+    void Function(int someField) //necessary to have a parameter
+    {
+        using (IInterface db = null) //necessary to have this using statement
+        {
+            void LocalFunction() //necessary
+            {
+                var results =
+                    db.Query<Class1>() //need to call this method. using a constant array does not reproduce the bug.
+                    .Where(cje => cje.SomeField >= someField) //need expression tree here referencing parameter
+                    ;
+            }
+        }
+    }
+    interface IInterface : IDisposable
+    {
+        IQueryable<T> Query<T>();
+    }
+    class Class1
+    {
+        public int SomeField { get; set; }
+    }
+}", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
+        [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
+        public void Repro21811()
+        {
+            var comp = CreateStandardCompilation(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var history = new List<long>();
+        Enumerable.Range(0, 5)
+            .Select(i =>
+            {
+                history.Insert(0, i);
+                return Test(i);
+
+                bool Test(int v)
+                {
+                    history.Remove(0);
+                    return Square(v) > 5;
+                }
+
+                int Square(int w)
+                {
+                    return w * w;
+                }
+            });
+    }
+}", references: new[] { LinqAssemblyRef });
+        }
+
+        [Fact]
+        [WorkItem(21645, "https://github.com/dotnet/roslyn/issues/21645")]
+        public void Repro21645()
+        {
+            CompileAndVerify(@"
+public class Class1
+{
+    private void Test()
+    {
+        bool outside = true;
+
+        void Inner() //This can also be a lambda (ie. Action action = () => { ... };)
+        {
+            void Bar()
+            {
+            }
+
+            void Foo()
+            {
+                Bar();
+
+                bool captured = outside;
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(21543, "https://github.com/dotnet/roslyn/issues/21543")]
+        public void Repro21543()
+        {
+            CompileAndVerify(@"
+using System;
+
+class Program
+{
+    static void Method(Action action) { }
+
+    static void Main()
+    {
+        int value = 0;
+        Method(() =>
+        {
+            local();
+            void local()
+            {
+                Console.WriteLine(value);
+                Method(() =>
+                {
+                    local();
+                });
+            }
+        });
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(472056, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=472056")]
+        public void Repro472056()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace ConsoleApp2
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var task = WhyYouBreaky(new List<string>());
+
+            Console.WriteLine(task.Result);
+        }
+
+        static async Task<string> WhyYouBreaky(List<string> words)
+        {
+            await Task.Delay(1);
+            var word = """"; // moving me before the 'await' will make it work
+
+            words.Add(""Oh No!""); // I will crash here :(
+
+            return ""Great success!""; // Not so much.
+
+            void IDontEvenGetCalled()
+            {
+                // commenting out either of these lines will make it work
+                var a = word;
+                var b = words[0];
+            }
+        }
+    }
+}", options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "Great success!");
+        }
+
+        [Fact]
+        public void AsyncStructClosure()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => M().Wait();
+
+    static async Task M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        Console.WriteLine(L());
+        await Task.FromResult(false);
+    }
+}", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "5");
+            // No field captures
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "System.Runtime.CompilerServices.AsyncTaskMethodBuilder <>t__builder",
+                "System.Runtime.CompilerServices.TaskAwaiter<bool> <>u__1");
+
+            comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => M().Wait();
+
+    static async Task M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        Console.WriteLine(L());
+        await Task.FromResult(false);
+        x++;
+        Console.WriteLine(x);
+    }
+}", options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"5
+3");
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "System.Runtime.CompilerServices.AsyncTaskMethodBuilder <>t__builder",
+                // Display class capture
+                "C.<>c__DisplayClass1_0 <>8__1",
+                "System.Runtime.CompilerServices.TaskAwaiter<bool> <>u__1");
+
+            verifier.VerifySynthesizedFields("C.<>c__DisplayClass1_0",
+                "int x",
+                "int y");
+
+            comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => M().Wait();
+
+    static async Task M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        Console.WriteLine(L());
+        await Task.FromResult(false);
+        x = 5;
+        y = 7;
+        Console.WriteLine(L());
+    }
+}", options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"5
+12");
+            // Nothing captured across await
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "System.Runtime.CompilerServices.AsyncTaskMethodBuilder <>t__builder",
+                "System.Runtime.CompilerServices.TaskAwaiter<bool> <>u__1");
+        }
+
+        [Fact]
+        public void IteratorStructClosure()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var m in M())
+        {
+            Console.WriteLine(m);
+        }
+    }
+
+    static IEnumerable<int> M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        yield return L();
+    }
+}", expectedOutput: "5");
+            // No field captures
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "int <>2__current",
+                "int <>l__initialThreadId");
+
+            verifier = CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var m in M())
+        {
+            Console.WriteLine(m);
+        }
+    }
+
+    static IEnumerable<int> M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        yield return L();
+        x++;
+        yield return x;
+    }
+}", expectedOutput: @"5
+3");
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "int <>2__current",
+                "int <>l__initialThreadId",
+                // Display class capture
+                "C.<>c__DisplayClass1_0 <>8__1");
+
+            verifier.VerifySynthesizedFields("C.<>c__DisplayClass1_0",
+                "int x",
+                "int y");
+
+            verifier = CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var m in M())
+        {
+            Console.WriteLine(m);
+        }
+    }
+
+    static IEnumerable<int> M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        yield return L();
+        x = 5;
+        y = 7;
+        yield return L();
+    }
+}", expectedOutput: @"5
+12");
+            // No captures
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "int <>2__current",
+                "int <>l__initialThreadId");
+        }
+
+        [Fact]
+        [WorkItem(21409, "https://github.com/dotnet/roslyn/issues/21409")]
+        public void Repro21409()
+        {
+            CompileAndVerify(
+@"
+using System;
+using System.Collections.Generic;
+
+namespace Buggles
+{
+    class Program
+    {
+        private static IEnumerable<int> Problem(IEnumerable<int> chunks)
+        {
+            var startOfChunk = 0;
+            var pendingChunks = new List<int>();
+
+            int GenerateChunk()
+            {
+                if (pendingChunks == null)
+                {
+                    Console.WriteLine(""impossible in local function"");
+                    return -1;
+                }
+                while (pendingChunks.Count > 0)
+                {
+                    pendingChunks.RemoveAt(0);
+                }
+                return startOfChunk;
+            }
+
+            foreach (var chunk in chunks)
+            {
+                if (chunk - startOfChunk <= 0)
+                {
+                    pendingChunks.Insert(0, chunk);
+                }
+                else
+                {
+                    yield return GenerateChunk();
+                }
+                startOfChunk = chunk;
+                if (pendingChunks == null)
+                {
+                    Console.WriteLine(""impossible in outer function"");
+                }
+                else
+                {
+                    pendingChunks.Insert(0, chunk);
+                }
+            }
+        }
+
+        private static void Main()
+        {
+            var xs = Problem(new[] { 0, 1, 2, 3 });
+            foreach (var x in xs)
+            {
+                Console.WriteLine(x);
+            }
+        }
+    }
+}
+", expectedOutput: @"
+0
+1
+2");
+        }
+
+        [Fact]
+        [WorkItem(294554, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294554")]
+        public void ThisOnlyClosureBetweenStructCaptures()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x = 0;
+    void M()
+    {
+        void L1()
+        {
+            int x = 0;
+            _x++;
+            void L2()
+            {
+                Action a2 = L2;
+                int y = 0;
+                L3();
+                void L3()
+                {
+                    _x++;
+                    y++;
+                }
+            }
+            L2();
+
+            void L5() => x++;
+            L5();
+        }
+        L1();
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureThisInDifferentScopes()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x;
+    void M()
+    {
+        {
+            int y = 0;
+            Func<int> f1 = () => _x + y;
+        }
+        {
+            int y = 0;
+            Func<int> f2 = () => _x + y;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureThisInDifferentScopes2()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x;
+    void M()
+    {
+        {
+            int y = 0;
+            int L1() => _x + y;
+        }
+        {
+            int y = 0;
+            int L2() => _x + y;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureFramePointerInDifferentScopes()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        Func<int> f1 = () => x;
+        {
+            int z = 0;
+            Func<int> f2 = () => x + z;
+        }
+        {
+            int z = 0;
+            Func<int> f3 = () => x + z;
+        }
+    }
+}");
+        }
+
+        [Fact]
         public void EnvironmentChainContainsStructEnvironment()
         {
             CompileAndVerify(@"
@@ -184,7 +787,7 @@ class C
   IL_0016:  call       ""void System.Console.WriteLine(int)""
   IL_001b:  ldarg.0
   IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""void C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)""
+  IL_001e:  call       ""void C.<M>g__L1|2_0(ref C.<>c__DisplayClass2_0)""
   IL_0023:  ldarg.0
   IL_0024:  ldfld      ""int C._x""
   IL_0029:  call       ""void System.Console.WriteLine(int)""
@@ -192,39 +795,39 @@ class C
 }");
 
             // L1
-            verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)", @"
+            verifier.VerifyIL("C.<M>g__L1|2_0(ref C.<>c__DisplayClass2_0)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
+  IL_0002:  call       ""void C.<M>g__L2|2_1(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
             // L2
-            verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)", @"
+            verifier.VerifyIL("C.<M>g__L2|2_1(ref C.<>c__DisplayClass2_0)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_0)""
+  IL_0002:  call       ""void C.<M>g__L3|2_3(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
             // Skip some... L5
-            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L5|2_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       10 (0xa)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  ldarg.2
-  IL_0003:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
+  IL_0003:  call       ""int C.<M>g__L6|2_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
   IL_0008:  pop
   IL_0009:  ret
 }");
             // L6
-            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L6|2_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       25 (0x19)
   .maxstack  4
@@ -3559,6 +4162,121 @@ class Program
         }
 
         [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericArg()
+        {
+            var src = @"
+void L1<T>(T x)
+{
+    Console.WriteLine($""{x}: {typeof(T)}"");
+}
+dynamic val = 2;
+L1<object>(val);
+L1<int>(val);
+L1<dynamic>(val);
+L1<dynamic>(4);
+
+void L2<T>(int x, T y) => Console.WriteLine($""{x}, {y}: {typeof(T)}"");
+L2<float>(val, 3.0f);
+
+List<dynamic> listOfDynamic = new List<dynamic> { 1, 2, 3 };
+void L3<T>(List<T> x) => Console.WriteLine($""{string.Join("", "", x)}: {typeof(T)}"");
+L3(listOfDynamic);
+
+void L4<T>(T x, params int[] y) => Console.WriteLine($""{x}, {string.Join("", "", y)}: {typeof(T)}"");
+L4<dynamic>(val, 3, 4);
+L4<int>(val, 3, 4);
+L4<int>(1, 3, val);
+
+void L5<T>(int x, params T[] y) => Console.WriteLine($""{x}, {string.Join("", "", y)}: {typeof(T)}"");
+L5<int>(val, 3, 4);
+L5<int>(1, 3, val);
+L5<dynamic>(1, 3, val);
+";
+            var output = @"
+2: System.Object
+2: System.Int32
+2: System.Object
+4: System.Object
+2, 3: System.Single
+1, 2, 3: System.Object
+2, 3, 4: System.Object
+2, 3, 4: System.Int32
+1, 3, 2: System.Int32
+2, 3, 4: System.Int32
+1, 3, 2: System.Int32
+1, 3, 2: System.Object
+";
+            VerifyOutputInMain(src, output, "System", "System.Collections.Generic");
+        }
+
+        [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericClassMethod()
+        {
+            var src = @"
+using System;
+class C1<T1>
+{
+    public static void M1<T2>()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C1<{typeof(T1)}>.M1<{typeof(T2)}>.F({x})"");
+        }
+        F((dynamic)2);
+    }
+    public static void M2()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C1<{typeof(T1)}>.M2.F({x})"");
+        }
+        F((dynamic)2);
+    }
+}
+class C2
+{
+    public static void M1<T2>()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C2.M1<{typeof(T2)}>.F({x})"");
+        }
+        F((dynamic)2);
+    }
+    public static void M2()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C2.M2.F({x})"");
+        }
+        F((dynamic)2);
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        C1<int>.M1<float>();
+        C1<int>.M2();
+        C2.M1<float>();
+        C2.M2();
+    }
+}
+";
+            var output = @"
+C1<System.Int32>.M1<System.Single>.F(2)
+C1<System.Int32>.M2.F(2)
+C2.M1<System.Single>.F(2)
+C2.M2.F(2)
+";
+            VerifyOutput(src, output);
+        }
+
+        [Fact]
         [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
         public void DynamicArgsAndParams()
         {
@@ -4289,7 +5007,7 @@ class Program
 
         [Fact]
         [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
-        public void StructFrameInitUnnecesary()
+        public void StructFrameInitUnnecessary()
         {
             var c = CompileAndVerify(@"
     class Program
@@ -4348,7 +5066,7 @@ class Program
   IL_0033:  ldloca.s   V_0
   IL_0035:  ldloca.s   V_1
   IL_0037:  ldloca.s   V_2
-  IL_0039:  call       ""void Program.<Main>g__Print0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
+  IL_0039:  call       ""void Program.<Main>g__Print|0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
   IL_003e:  ret
 }
 ");

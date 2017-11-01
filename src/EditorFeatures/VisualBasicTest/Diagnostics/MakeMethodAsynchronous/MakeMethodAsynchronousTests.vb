@@ -386,7 +386,7 @@ Module Module1
     End Function
 End Module
 </File>
-            Await TestAsync(initial, expected, ignoreTrivia:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
@@ -406,7 +406,7 @@ Module Program
     Async Function TestAsync As Task ' Comment
         Await Task.Delay(1)
     End Function
-End Module", ignoreTrivia:=False)
+End Module")
         End Function
     End Class
 End Namespace

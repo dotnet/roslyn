@@ -2,9 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis.Debugging</id>
-    <summary>Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") debug information encoders and decoders</summary>
+    <summary>
+      Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") debug information encoders and decoders.
+    </summary>
     <description>
       Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") debug information encoders and decoders.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>

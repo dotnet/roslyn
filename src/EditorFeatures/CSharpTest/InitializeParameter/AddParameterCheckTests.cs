@@ -857,7 +857,7 @@ class C
         if (s == null)
             throw new ArgumentNullException(nameof(s));
     }
-}", ignoreTrivia: false,
+}",
     parameters: new TestParameters(options:
         Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithNoneEnforcement)));
         }
@@ -886,7 +886,7 @@ class C
             throw new ArgumentNullException(nameof(s));
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]

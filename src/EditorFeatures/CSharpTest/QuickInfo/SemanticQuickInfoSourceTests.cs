@@ -4992,5 +4992,127 @@ class Program
 }",
                 MainDescription($"({FeaturesResources.local_variable}) ref int i"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")]
+        public async Task TestGenericMethodInDocComment()
+        {
+            await TestAsync(
+@"
+class Test
+{
+    T F<T>()
+    {
+        F<T>();
+    }
+
+    /// <summary>
+    /// <see cref=""F$${T}()""/>
+    /// </summary>
+    void S()
+    { }
+}
+",
+            MainDescription("T Test.F<T>()"));
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(403665, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=403665&_a=edit")]
+        public async Task TestExceptionWithCrefToConstructorDoesNotCrash()
+        {
+            await TestAsync(
+@"
+class Test
+{
+    /// <summary>
+    /// </summary>
+    /// <exception cref=""Test.Test""/>
+    public Test$$() {}
+}
+",
+            MainDescription("Test.Test()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefStruct()
+        {
+            var markup = "ref struct X$$ {}";
+            await TestAsync(markup, MainDescription("ref struct X"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefStruct_Nested()
+        {
+            var markup = @"
+namespace Nested
+{
+    ref struct X$$ {}
+}";
+            await TestAsync(markup, MainDescription("ref struct Nested.X"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestReadOnlyStruct()
+        {
+            var markup = "readonly struct X$$ {}";
+            await TestAsync(markup, MainDescription("readonly struct X"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestReadOnlyStruct_Nested()
+        {
+            var markup = @"
+namespace Nested
+{
+    readonly struct X$$ {}
+}";
+            await TestAsync(markup, MainDescription("readonly struct Nested.X"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestReadOnlyRefStruct()
+        {
+            var markup = "readonly ref struct X$$ {}";
+            await TestAsync(markup, MainDescription("readonly ref struct X"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestReadOnlyRefStruct_Nested()
+        {
+            var markup = @"
+namespace Nested
+{
+    readonly ref struct X$$ {}
+}";
+            await TestAsync(markup, MainDescription("readonly ref struct Nested.X"));
+        }
+
+        [WorkItem(22450, "https://github.com/dotnet/roslyn/issues/22450")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefLikeTypesNoDeprecated()
+        {
+            var xmlString = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
+            <Document FilePath=""ReferencedDocument"">
+public ref struct TestRef
+{
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document FilePath=""SourceDocument"">
+ref struct Test
+{
+    private $$TestRef _field;
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            // There should be no [deprecated] attribute displayed.
+            await VerifyWithReferenceWorkerAsync(xmlString, MainDescription($"ref struct TestRef"));
+        }
     }
 }

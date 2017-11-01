@@ -729,8 +729,7 @@ class C
         return 1;
     }}
 }}",
-                index: codeFixIndex,
-                ignoreTrivia: false);
+                index: codeFixIndex);
         }
 
         [Theory]
@@ -773,8 +772,7 @@ class C
         return 1;
     }}
 }}",
-                index: codeFixIndex,
-                ignoreTrivia: false);
+                index: codeFixIndex);
         }
     }
 }

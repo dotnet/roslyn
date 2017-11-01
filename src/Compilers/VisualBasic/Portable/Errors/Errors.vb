@@ -1735,6 +1735,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NoRefOutWhenRefOnly = 37300
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37301
 
+        ERR_BadNonTrailingNamedArgument = 37302
+        ERR_ExpectedNamedArgumentInAttributeList = 37303
+        ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation = 37304
+
+        ERR_ValueTupleResolutionAmbiguous3 = 37305
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001
@@ -2009,5 +2015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_BinaryLiterals
         FEATURE_Tuples
         FEATURE_IOperation
+        FEATURE_LeadingDigitSeparator
+        FEATURE_PrivateProtected
     End Enum
 End Namespace

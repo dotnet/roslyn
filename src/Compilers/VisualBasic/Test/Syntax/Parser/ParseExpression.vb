@@ -445,13 +445,7 @@ ToString]]>.Value)
                     Dim y = New (A As Integer, B$)
                 End Sub
             End Module
-        ]]>,
-<errors>
-    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="87" end="93"/>
-    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="126" End="132"/>
-    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="167" End="185"/>
-</errors>
-        )
+        ]]>)
 
         ParseAndVerify(<![CDATA[
             Module Module1
@@ -466,13 +460,8 @@ ToString]]>.Value)
                     Return (New(Integer, Integer)() {(4, 5)}, 5)
                 End Function
             End Module
-        ]]>,
-                       <errors>
-                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="88" end="94"/>
-                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="128" end="134"/>
-                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="170" end="188"/>
-                       </errors>
-        )
+        ]]>)
+
     End Sub
 
     <Fact>
@@ -1719,13 +1708,16 @@ Skip 2
     <WorkItem(887861, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMoreErrorExpectedExpression30241()
-        ParseAndVerify(<![CDATA[
-                      <myattr2(1, "abc", prop:=42,true)> Class Scen15
-                      End Class
-            ]]>,
-            <errors>
-                <error id="30241"/>
-            </errors>)
+        Dim tree = Parse(<![CDATA[
+<myattr2(1, "abc", prop:=42,true)> Class Scen15
+End Class
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC37303: Named argument expected.
+<myattr2(1, "abc", prop:=42,true)> Class Scen15
+                            ~
+                                    ]]></errors>)
     End Sub
 
     <WorkItem(887741, "DevDiv/Personal")>

@@ -9,7 +9,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 
 // Note: the easiest way to create new unit tests that use GetSemanticInfo
-// is to use the SemanticInfo unit test generate in Editor Test App. 
+// is to use the SemanticInfo unit test generate in Editor Test App.
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1407,7 +1407,7 @@ static class E
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
-<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
 <ComImport()>
 <Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
 Public Class A
@@ -1527,7 +1527,7 @@ End Class";
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
-<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
 <ComImport()>
 <Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
 Public Class A
@@ -6805,7 +6805,7 @@ class TestAttribute : Attribute
 
 class C1
 {
-    [Test(/*<bind>*/F/*</bind>*/=""method"")] 
+    [Test(/*<bind>*/F/*</bind>*/=""method"")]
     int f() { return 0; }
 }
 
@@ -7944,6 +7944,8 @@ class Program
         [Fact]
         public void DelegateSignatureMismatch3()
         {
+            // This test and the DelgateSignatureMismatch4 should have identical results, as they are semantically identical
+
             string sourceCode = @"
 using System;
 using System.Collections.Generic;
@@ -7960,14 +7962,49 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
-            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("System.Int32 Program.f()", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Null(semanticInfo.Type);
+            Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("System.Int32 Program.f()", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Empty(semanticInfo.CandidateSymbols);
+
+            Assert.Equal(1, semanticInfo.MethodGroup.Length);
+            Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void DelegateSignatureMismatch4()
+        {
+            // This test and the DelgateSignatureMismatch3 should have identical results, as they are semantically identical
+
+            string sourceCode = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static int f() { return 1; }
+    static void Main(string[] args)
+    {
+        Action a = /*<bind>*/f/*</bind>*/;
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Null(semanticInfo.Type);
+            Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("System.Int32 Program.f()", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Empty(semanticInfo.CandidateSymbols);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
@@ -12382,7 +12419,7 @@ struct Conv
             // The specification requires that the user-defined conversion chosen be one
             // which converts to an integral or string type, but *not* a nullable integral type,
             // oddly enough. Since the only applicable user-defined conversion here would be the
-            // lifted conversion from Conv? to int?, the resolution of the conversion fails 
+            // lifted conversion from Conv? to int?, the resolution of the conversion fails
             // and this program produces an error.
 
             string sourceCode = @"
@@ -13599,8 +13636,8 @@ public class MemberInitializerTest
 ";
             var semanticInfo = GetSemanticInfoForTest<PostfixUnaryExpressionSyntax>(sourceCode);
 
-            Assert.Equal("System.Object", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);

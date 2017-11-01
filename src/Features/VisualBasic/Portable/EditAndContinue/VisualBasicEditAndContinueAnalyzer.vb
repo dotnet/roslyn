@@ -1043,7 +1043,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return LambdaUtilities.IsLambda(node)
         End Function
 
-        Friend Overrides Function IsLambdaExpression(node As SyntaxNode) As Boolean
+        Friend Overrides Function IsNestedFunction(node As SyntaxNode) As Boolean
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 

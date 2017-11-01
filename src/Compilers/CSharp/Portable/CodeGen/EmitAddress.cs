@@ -17,8 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // reference may be written to
             Writeable,
 
-            // reference itself will not be written to, but may be used to modify fields.
-            ReadOnly
+            // reference itself will not be written to, but may be used for call, callvirt.
+            // for all purposes it is the same as Writeable, except when fetching an address of an array element
+            // where it results in a ".readonly" prefix to deal with array covariance.
+            Constrained,
+
+            // reference itself will not be written to, nor it will be used to modify fields.
+            ReadOnly,
         }
 
         /// <summary>
@@ -35,13 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.Local:
-                    EmitLocalAddress((BoundLocal)expression);
-                    break;
+                    return EmitLocalAddress((BoundLocal)expression, addressKind);
 
                 case BoundKind.Dup:
                     Debug.Assert(((BoundDup)expression).RefKind != RefKind.None, "taking address of a stack value?");
-                    _builder.EmitOpCode(ILOpCode.Dup);
-                    break;
+                    return EmitDupAddress((BoundDup)expression, addressKind);
 
                 case BoundKind.ConditionalReceiver:
                     // do nothing receiver ref must be already pushed
@@ -54,11 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.Parameter:
-                    EmitParameterAddress((BoundParameter)expression);
-                    break;
+                    return EmitParameterAddress((BoundParameter)expression, addressKind);
 
                 case BoundKind.FieldAccess:
-                    return EmitFieldAddress((BoundFieldAccess)expression);
+                    return EmitFieldAddress((BoundFieldAccess)expression, addressKind);
 
                 case BoundKind.ArrayAccess:
                     //arrays are covariant, but elements can be written to.
@@ -68,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.ThisReference:
                     Debug.Assert(expression.Type.IsValueType, "only value types may need a ref to this");
+                    Debug.Assert(HasHome(expression, addressKind == AddressKind.Writeable));
                     _builder.EmitOpCode(ILOpCode.Ldarg_0);
                     break;
 
@@ -95,12 +98,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Call:
                     var call = (BoundCall)expression;
-                    if (call.Method.RefKind == RefKind.None)
+                    var methodRefKind = call.Method.RefKind;
+
+                    if (methodRefKind == RefKind.Ref || 
+                        (addressKind == AddressKind.ReadOnly && methodRefKind == RefKind.RefReadOnly))
+                    {
+                        EmitCallExpression(call, UseKind.UsedAsAddress);
+                        break;
+                    }
+
+                    goto default;
+
+                case BoundKind.DefaultExpression:
+                    var type = expression.Type;
+
+                    var temp = this.AllocateTemp(type, expression.Syntax);
+                    _builder.EmitLocalAddress(temp);                  //  ldloca temp
+                    _builder.EmitOpCode(ILOpCode.Dup);                //  dup
+                    _builder.EmitOpCode(ILOpCode.Initobj);            //  initobj  <type>
+                    EmitSymbolToken(type, expression.Syntax);
+                    return temp;
+
+                case BoundKind.ConditionalOperator:
+                    var conditional = (BoundConditionalOperator)expression;
+                    if (!HasHome(conditional, addressKind != AddressKind.ReadOnly))
                     {
                         goto default;
                     }
 
-                    EmitCallExpression(call, UseKind.UsedAsAddress);
+                    EmitConditionalOperatorAddress(conditional, addressKind);
                     break;
 
                 case BoundKind.AssignmentOperator:
@@ -112,12 +138,51 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     throw ExceptionUtilities.UnexpectedValue(assignment.RefKind);
 
+                case BoundKind.ThrowExpression:
+                    // emit value or address is the same here.
+                    EmitExpression(expression, used: true);
+                    return null;
+
                 default:
-                    Debug.Assert(!HasHome(expression));
+                    Debug.Assert(!HasHome(expression, addressKind != AddressKind.ReadOnly));
                     return EmitAddressOfTempClone(expression);
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Emit code for a conditional (aka ternary) operator.
+        /// </summary>
+        /// <remarks>
+        /// (b ? x : y) becomes
+        ///     push b
+        ///     if pop then goto CONSEQUENCE
+        ///     push y
+        ///     goto DONE
+        ///   CONSEQUENCE:
+        ///     push x
+        ///   DONE:
+        /// </remarks>
+        private void EmitConditionalOperatorAddress(BoundConditionalOperator expr, AddressKind addressKind)
+        {
+            Debug.Assert(expr.ConstantValue == null, "Constant value should have been emitted directly");
+
+            object consequenceLabel = new object();
+            object doneLabel = new object();
+
+            EmitCondBranch(expr.Condition, ref consequenceLabel, sense: true);
+            AddExpressionTemp(EmitAddress(expr.Alternative, addressKind));
+
+            _builder.EmitBranch(ILOpCode.Br, doneLabel);
+
+            // If we get to consequenceLabel, we should not have Alternative on stack, adjust for that.
+            _builder.AdjustStack(-1);
+
+            _builder.MarkLabel(consequenceLabel);
+            AddExpressionTemp(EmitAddress(expr.Consequence, addressKind));
+
+            _builder.MarkLabel(doneLabel);
         }
 
         private void EmitComplexConditionalReceiverAddress(BoundComplexConditionalReceiver expression)
@@ -134,20 +199,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitBox(receiverType, expression.Syntax);
             _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel);
 
-            var receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, addressKind: AddressKind.ReadOnly);
+            var receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, AddressKind.ReadOnly);
             Debug.Assert(receiverTemp == null);
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
             _builder.AdjustStack(-1);
 
             _builder.MarkLabel(whenValueTypeLabel);
-            EmitReceiverRef(expression.ValueTypeReceiver, isAccessConstrained: true);
+            // we will not write through this receiver, but it could be a target of mutating calls
+            EmitReceiverRef(expression.ValueTypeReceiver, AddressKind.Constrained);
 
             _builder.MarkLabel(doneLabel);
         }
 
-        private void EmitLocalAddress(BoundLocal localAccess)
+        /// <summary>
+        /// May introduce a temp which it will return. (otherwise returns null)
+        /// </summary>
+        private LocalDefinition EmitLocalAddress(BoundLocal localAccess, AddressKind addressKind)
         {
             var local = localAccess.LocalSymbol;
+
+            if (!HasHome(localAccess, needWriteable: addressKind != AddressKind.ReadOnly))
+            {
+                return EmitAddressOfTempClone(localAccess);
+            }
 
             if (IsStackLocal(local))
             {
@@ -166,6 +240,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 _builder.EmitLocalAddress(GetLocal(localAccess));
             }
+
+            return null;
+        }
+
+        /// <summary>
+        /// May introduce a temp which it will return. (otherwise returns null)
+        /// </summary>
+        private LocalDefinition EmitDupAddress(BoundDup dup, AddressKind addressKind)
+        {
+            if (!HasHome(dup, needWriteable: addressKind != AddressKind.ReadOnly))
+            {
+                return EmitAddressOfTempClone(dup);
+            }
+
+            _builder.EmitOpCode(ILOpCode.Dup);
+            return null;
         }
 
         private void EmitPseudoVariableAddress(BoundPseudoVariable expression)
@@ -204,42 +294,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private LocalDefinition EmitSequenceAddress(BoundSequence sequence, AddressKind addressKind)
         {
-            var hasLocals = !sequence.Locals.IsEmpty;
-
-            if (hasLocals)
-            {
-                _builder.OpenLocalScope();
-
-                foreach (var local in sequence.Locals)
-                {
-                    DefineLocal(local, sequence.Syntax);
-                }
-            }
-
+            DefineAndRecordLocals(sequence);
             EmitSideEffects(sequence);
-            var tempOpt = EmitAddress(sequence.Value, addressKind);
+            var result =  EmitAddress(sequence.Value, addressKind);
+            CloseScopeAndKeepLocals(sequence);
 
-            // when a sequence is happened to be a byref receiver
-            // we may need to extend the life time of the target until we are done accessing it
-            // {.v ; v = Goo(); v}.Bar()     // v should be released only after Bar() is done.
-            LocalSymbol doNotRelease = null;
-            if (tempOpt == null)
-            {
-                doNotRelease = DigForValueLocal(sequence);
-                if (doNotRelease != null)
-                {
-                    tempOpt = GetLocal(doNotRelease);
-                }
-            }
-
-            FreeLocals(sequence, doNotRelease);
-            return tempOpt;
-        }
-
-        // if sequence value is a local scoped to the sequence, return that local
-        private LocalSymbol DigForValueLocal(BoundSequence topSequence)
-        {
-            return DigForValueLocal(topSequence, topSequence.Value);
+            return result;
         }
 
         private LocalSymbol DigForValueLocal(BoundSequence topSequence, BoundExpression value)
@@ -279,46 +339,83 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// Checks if expression directly or indirectly represents a value with its own home. In
         /// such cases it is possible to get a reference without loading into a temporary.
         /// </summary>
-        private bool HasHome(BoundExpression expression)
+        private bool HasHome(BoundExpression expression, bool needWriteable)
         {
             switch (expression.Kind)
             {
-                case BoundKind.Parameter:
                 case BoundKind.ArrayAccess:
-                case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.RefValueOperator:
                     return true;
 
+                case BoundKind.ThisReference:
+                    Debug.Assert(expression.Type.IsValueType);
+
+                    if (needWriteable && expression.Type.IsReadOnly)
+                    {
+                        return _method.MethodKind == MethodKind.Constructor;
+                    }
+                    return true;
+
+                case BoundKind.ThrowExpression:
+                    // vacuously this is true, we can take address of throw without temps
+                    return true;
+
+                case BoundKind.Parameter:
+                    return !needWriteable || 
+                        ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.In;
+
                 case BoundKind.Local:
-                    // locals have home unless they are byval stack locals
+                    // locals have home unless they are byval stack locals or ref-readonly
+                    // locals in a mutating call
                     var local = ((BoundLocal)expression).LocalSymbol;
-                    return !IsStackLocal(local) || local.RefKind != RefKind.None;
+                    return !((IsStackLocal(local) && local.RefKind == RefKind.None) || 
+                        (needWriteable && local.RefKind == RefKind.RefReadOnly));
 
                 case BoundKind.Call:
-                    var method = ((BoundCall)expression).Method;
-                    return method.RefKind != RefKind.None;
+                    var methodRefKind = ((BoundCall)expression).Method.RefKind;
+                    return methodRefKind == RefKind.Ref ||
+                           (!needWriteable && methodRefKind == RefKind.RefReadOnly);
 
                 case BoundKind.Dup:
-                    return ((BoundDup)expression).RefKind != RefKind.None;
+                    //NB: Dup represents locals that do not need IL slot
+                    var dupRefKind = ((BoundDup)expression).RefKind;
+                    return dupRefKind == RefKind.Ref ||
+                        (!needWriteable && dupRefKind == RefKind.RefReadOnly);
 
                 case BoundKind.FieldAccess:
-                    return HasHome((BoundFieldAccess)expression);
+                    return HasHome((BoundFieldAccess)expression, needWriteable);
 
                 case BoundKind.Sequence:
-                    return HasHome(((BoundSequence)expression).Value);
+                    return HasHome(((BoundSequence)expression).Value, needWriteable);
 
                 case BoundKind.AssignmentOperator:
                     return ((BoundAssignmentOperator)expression).RefKind != RefKind.None;
 
                 case BoundKind.ComplexConditionalReceiver:
-                    Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ValueTypeReceiver));
-                    Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ReferenceTypeReceiver));
+                    Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ValueTypeReceiver, needWriteable));
+                    Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ReferenceTypeReceiver, needWriteable));
                     goto case BoundKind.ConditionalReceiver;
 
                 case BoundKind.ConditionalReceiver:
+                    //ConditionalReceiver is a noop from Emit point of view. - it represents something that has already been pushed. 
+                    //We should never need a temp for it. 
                     return true;
+
+                case BoundKind.ConditionalOperator:
+                    var ternary = (BoundConditionalOperator)expression;
+                    
+                    // only ref ternary may be referenced as a variable
+                    if (!ternary.IsByRef)
+                    {
+                        return false;
+                    }
+ 
+                    // branch that has no home will need a temporary
+                    // if both have no home, just say whole expression has no home 
+                    // so we could just use one temp for the whole thing
+                    return HasHome(ternary.Consequence, needWriteable) && HasHome(ternary.Alternative, needWriteable);
 
                 default:
                     return false;
@@ -326,26 +423,54 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         /// <summary>
-        /// Special HasHome for fields. Fields have homes when they are writable.
+        /// Special HasHome for fields. 
+        /// Fields have readable homes when they are not constants.
+        /// Fields have writeable homes unless they are readonly and used outside of the constructor.
         /// </summary>
-        private bool HasHome(BoundFieldAccess fieldAccess)
+        private bool HasHome(BoundFieldAccess fieldAccess, bool needWriteable)
         {
+            FieldSymbol field = fieldAccess.FieldSymbol;
+
+            // const fields are literal values with no homes. (ex: decimal.Zero)
+            if (field.IsConst)
+            {
+                return false;
+            }
+
+            if (!needWriteable && !EnablePEVerifyCompat())
+            {
+                return true;
+            }
+
             // Some field accesses must be values; values do not have homes.
             if (fieldAccess.IsByValue)
             {
                 return false;
             }
 
-            FieldSymbol field = fieldAccess.FieldSymbol;
-
-            // const fields are literal values with no homes
-            if (field.IsConst)
-            {
-                return false;
-            }
-
             if (!field.IsReadOnly)
             {
+                // in a case if we have a writeable struct field with a receiver that only has a readable home we would need to pass it via a temp.
+                // it would be advantageous to make a temp for the field, not for the the outer struct, since the field is smaller and we can get to is by fetching references.
+                // NOTE: this would not be profitable if we have to satisfy verifier, since for verifiability 
+                //       we would not be able to dig for the inner field using references and the outer struct will have to be copied to a temp anyways.
+                if (!EnablePEVerifyCompat())
+                {
+                    Debug.Assert(needWriteable == true);
+
+                    var receiver = fieldAccess.ReceiverOpt;
+                    if (receiver?.Type.IsValueType == true)
+                    {
+                        // Check receiver:
+                        // has writeable home -> return true - the whole chain has writeable home (also a more common case)
+                        // has readable home -> return false - we need to copy the field
+                        // otherwise         -> return true  - the copy will be made at higher level so the leaf field can have writeable home
+
+                        return HasHome(receiver, needWriteable: true) ||  
+                               !HasHome(receiver, needWriteable: false);
+                    }
+                }
+
                 return true;
             }
 
@@ -381,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitExpression(arrayAccess.Expression, used: true);
             EmitArrayIndices(arrayAccess.Indices);
 
-            if (addressKind == AddressKind.ReadOnly)
+            if (addressKind == AddressKind.Constrained)
             {
                 Debug.Assert(arrayAccess.Type.TypeKind == TypeKind.TypeParameter,
                     ".readonly is only needed when element type is a type param");
@@ -405,11 +530,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <summary>
         /// May introduce a temp which it will return. (otherwise returns null)
         /// </summary>
-        private LocalDefinition EmitFieldAddress(BoundFieldAccess fieldAccess)
+        private LocalDefinition EmitFieldAddress(BoundFieldAccess fieldAccess, AddressKind addressKind)
         {
             FieldSymbol field = fieldAccess.FieldSymbol;
 
-            if (!HasHome(fieldAccess))
+            if (!HasHome(fieldAccess, addressKind != AddressKind.ReadOnly))
             {
                 // accessing a field that is not writable (const or readonly)
                 return EmitAddressOfTempClone(fieldAccess);
@@ -421,7 +546,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                return EmitInstanceFieldAddress(fieldAccess);
+                //NOTE: we are not propagating AddressKind here.
+                //      the reason is that while Constrained permits calls, it does not permit 
+                //      taking field addresses, so we have to turn Constrained into writeable.
+                //      It is less error prone to just pass a bool "isReadonly" 
+                return EmitInstanceFieldAddress(fieldAccess, isReadonly: addressKind == AddressKind.ReadOnly);
             }
         }
 
@@ -431,10 +560,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(field, syntaxNode);
         }
 
-        private void EmitParameterAddress(BoundParameter parameter)
+        private LocalDefinition EmitParameterAddress(BoundParameter parameter, AddressKind addressKind)
         {
+            ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
+
+            if (!HasHome(parameter, needWriteable: addressKind != AddressKind.ReadOnly))
+            {
+                // accessing a parameter that is not writable
+                return EmitAddressOfTempClone(parameter);
+            }
+
             int slot = ParameterSlot(parameter);
-            if (parameter.ParameterSymbol.RefKind == RefKind.None)
+            if (parameterSymbol.RefKind == RefKind.None)
             {
                 _builder.EmitLoadArgumentAddrOpcode(slot);
             }
@@ -442,19 +579,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 _builder.EmitLoadArgumentOpcode(slot);
             }
+
+            return null;
         }
 
         /// <summary>
-        /// Emits receiver in a form that allows member accesses ( O or &amp; ). For verifiably
-        /// reference types it is the actual reference. For generic types it is a address of the
-        /// receiver with readonly intent. For the value types it is an address of the receiver.
+        /// Emits receiver in a form that allows member accesses ( O or &amp; ). 
+        /// For verifier-reference types it is the actual reference. 
+        /// For the value types it is an address of the receiver.
+        /// For generic types it is either a boxed receiver or the address of the receiver with readonly intent. 
         /// 
-        /// isAccessConstrained indicates that receiver is a target of a constrained callvirt
-        /// in such case it is unnecessary to box a receiver that is typed to a type parameter
+        /// addressKind - kind of address that is needed in case if receiver is not a reference type.
         /// 
         /// May introduce a temp which it will return. (otherwise returns null)
         /// </summary>
-        private LocalDefinition EmitReceiverRef(BoundExpression receiver, bool isAccessConstrained = false)
+        private LocalDefinition EmitReceiverRef(BoundExpression receiver, AddressKind addressKind)
         {
             var receiverType = receiver.Type;
             if (receiverType.IsVerifierReference())
@@ -472,9 +611,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 //via the generic parameter unless it is first boxed (see Partition III) or 
                 //the callvirt instruction is prefixed with the constrained. prefix instruction 
                 //(see Partition III). end note]
-                if (isAccessConstrained)
+                if (addressKind == AddressKind.Constrained)
                 {
-                    return EmitAddress(receiver, AddressKind.ReadOnly);
+                    return EmitAddress(receiver, addressKind);
                 }
                 else
                 {
@@ -489,17 +628,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             Debug.Assert(receiverType.IsVerifierValue());
-            return EmitAddress(receiver, AddressKind.Writeable);
+            return EmitAddress(receiver, addressKind);
         }
 
         /// <summary>
         /// May introduce a temp which it will return. (otherwise returns null)
         /// </summary>
-        private LocalDefinition EmitInstanceFieldAddress(BoundFieldAccess fieldAccess)
+        private LocalDefinition EmitInstanceFieldAddress(BoundFieldAccess fieldAccess, bool isReadonly)
         {
             var field = fieldAccess.FieldSymbol;
 
-            var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt);
+            var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt, isReadonly? AddressKind.ReadOnly: AddressKind.Writeable);
 
             _builder.EmitOpCode(ILOpCode.Ldflda);
             EmitSymbolToken(field, fieldAccess.Syntax);

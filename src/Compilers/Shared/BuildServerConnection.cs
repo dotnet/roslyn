@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     internal struct BuildPathsAlt
     {
         /// <summary>
-        /// The path which containts the compiler binaries and response files.
+        /// The path which contains the compiler binaries and response files.
         /// </summary>
         internal string ClientDirectory { get; }
 
@@ -91,13 +91,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
+            string sharedCompilationId,
             List<string> arguments,
             BuildPathsAlt buildPaths,
             string keepAlive,
             string libEnvVariable,
             CancellationToken cancellationToken)
         {
-            var pipeNameOpt = GetPipeNameForPathOpt(buildPaths.ClientDirectory);
+            var pipeNameOpt = sharedCompilationId ?? GetPipeNameForPathOpt(buildPaths.ClientDirectory);
 
             return RunServerCompilationCore(
                 language,
@@ -461,11 +462,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             try
             {
+#if NET46
                 var currentIdentity = WindowsIdentity.GetCurrent();
                 var currentOwner = currentIdentity.Owner;
                 var remotePipeSecurity = GetPipeSecurity(pipeStream);
                 var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
                 return currentOwner.Equals(remoteOwner);
+#else
+                // TODO(portable vbcscompiler, https://github.com/dotnet/roslyn/issues/9696)
+                // We should implement a cross-platform secure IPC mechanism.
+                // NamedPipeServerStream exposes GetImpersonationUserName,
+                // which the underlying linux APIs exist for client streams too,
+                // but it's not exposed.
+                return true;
+#endif
             }
             catch (Exception ex)
             {

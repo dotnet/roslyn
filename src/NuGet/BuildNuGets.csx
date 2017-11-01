@@ -117,7 +117,6 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
     "Microsoft.CodeAnalysis.Workspaces.Common",
     "Microsoft.VisualStudio.LanguageServices",
-    "Microsoft.VisualStudio.LanguageServices.Next",
 };
 
 string[] SourcePackageNames = {
@@ -144,17 +143,32 @@ string[] TestPackageNames = {
 // or they will not be published anywhere at all
 var PreReleaseOnlyPackages = new HashSet<string>
 {
+    // Contains the compiler build task, but Microsoft.NET.Compilers
+    // should be preferred. Used to construct a standalone compiler for
+    // dotnet CLI.
     "Microsoft.CodeAnalysis.Build.Tasks",
+    
+    "Microsoft.CodeAnalysis.CSharp.CodeStyle",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeStyle",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
+    
+    // Only contains exes. Only used for insertion into dotnet CLI
     "Microsoft.Net.Compilers.netcore",
+    
+    // C# Interactive on CoreCLR is pre-release
     "Microsoft.Net.CSharp.Interactive.netcore",
+    
+    // Pre-release package, API and structure not finalized
     "Microsoft.NETCore.Compilers",
+    
     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
+    
+    // Only used in Roslyn testing code
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
+    
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
-    "Microsoft.VisualStudio.LanguageServices.Next",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
     "Microsoft.CodeAnalysis.PooledObjects",
     "Microsoft.CodeAnalysis.Debugging",
@@ -176,7 +190,6 @@ var PackagesNotBuiltOnCore = new HashSet<string>
      "Microsoft.Net.Compilers",
      "Microsoft.VisualStudio.IntegrationTest.Utilities",
      "Microsoft.VisualStudio.LanguageServices",
-     "Microsoft.VisualStudio.LanguageServices.Next",
      "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
      "Roslyn.VisualStudio.Test.Utilities",
 };
@@ -275,7 +288,7 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         {
             string packageArgs = commonArgs.Replace($"-prop version=\"{BuildVersion}\"", $"-prop version=\"{GetPackageVersion(Path.GetFileNameWithoutExtension(file))}\"");
 
-            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
+            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, @"Binaries\Tools\nuget.exe"));
             p.StartInfo.Arguments = $@"pack {file} {packageArgs}";
         }
         else

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -212,6 +213,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CSharpTestBase.CreateCompilation(text,
                                                     WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
                                                     TestOptions.ReleaseExe);
+        }
+
+        internal static PEAssemblyBuilder GetDefaultPEBuilder(CSharpCompilation compilation)
+        {
+            return new PEAssemblyBuilder(
+                (SourceAssemblySymbol)compilation.Assembly,
+                EmitOptions.Default,
+                compilation.Options.OutputKind,
+                GetDefaultModulePropertiesForSerialization(),
+                SpecializedCollections.EmptyEnumerable<ResourceDescription>());
         }
 
         protected override CompilationOptions CompilationOptionsReleaseDll
@@ -652,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         }
 
         public static MetadataReference CreateMetadataReferenceFromIlSource(string ilSource)
-        {                                        
+        {
             using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
             {
                 return MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
@@ -703,6 +714,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             return CompileAndVerify(comp);
+        }
+
+        protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
+        {
+            return GetSyntaxNodeList(syntaxTree.GetRoot(), null);
+        }
+
+        protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
+        {
+            if (synList == null)
+                synList = new List<SyntaxNode>();
+
+            synList.Add(node);
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                    synList = GetSyntaxNodeList(child.AsNode(), synList);
+            }
+
+            return synList;
+        }
+
+        protected static SyntaxNode GetSyntaxNodeForBinding(List<SyntaxNode> synList)
+        {
+            return GetSyntaxNodeOfTypeForBinding<SyntaxNode>(synList);
+        }
+
+        protected const string StartString = "/*<bind>*/";
+        protected const string EndString = "/*</bind>*/";
+
+        protected static TNode GetSyntaxNodeOfTypeForBinding<TNode>(List<SyntaxNode> synList) where TNode : SyntaxNode
+        {
+            foreach (var node in synList.OfType<TNode>())
+            {
+                string exprFullText = node.ToFullString();
+                exprFullText = exprFullText.Trim();
+
+                if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
+                {
+                    if (exprFullText.Contains(EndString))
+                    {
+                        if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
+                        {
+                            return node;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        return node;
+                    }
+                }
+
+                if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
+                {
+                    if (exprFullText.Contains(StartString))
+                    {
+                        if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
+                        {
+                            return node;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        return node;
+                    }
+                }
+            }
+
+            return null;
         }
 
         #endregion
@@ -947,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             StringBuilder sb = new StringBuilder();
             var ilBytes = bodyBlock.GetILContent();
-            
+
             var ehHandlerRegions = ILVisualizer.GetHandlerSpans(bodyBlock.ExceptionRegions);
 
             var methodDecoder = new MetadataDecoder(peModule, peMethod);
@@ -1044,6 +1133,186 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
+        #endregion
+
+        #region IOperation tree validation
+
+        protected static (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
+            where TSyntaxNode : SyntaxNode
+        {
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            if (syntaxNode == null)
+            {
+                return (null, null);
+            }
+
+            return (model.GetOperationInternal(syntaxNode), syntaxNode);
+        }
+
+        protected static string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)
+            where TSyntaxNode : SyntaxNode
+        {
+            var (operation, syntax) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
+            return operation != null ? OperationTreeVerifier.GetOperationTree(compilation, operation) : null;
+        }
+
+        protected static string GetOperationTreeForTest(CSharpCompilation compilation, IOperation operation)
+        {
+            return operation != null ? OperationTreeVerifier.GetOperationTree(compilation, operation) : null;
+        }
+
+        protected static string GetOperationTreeForTest<TSyntaxNode>(
+            string testSrc,
+            CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            bool useLatestFrameworkReferences = false)
+            where TSyntaxNode : SyntaxNode
+        {
+            var defaultRefs = useLatestFrameworkReferences ? s_latestOperationReferences : s_defaultOperationReferences;
+            var compilation = CreateStandardCompilation(testSrc, defaultRefs, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            return GetOperationTreeForTest<TSyntaxNode>(compilation);
+        }
+
+        protected static void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
+            where TSyntaxNode : SyntaxNode
+        {
+            var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
+            var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
+            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
+            additionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
+        }
+
+        protected static void VerifyOperationTreeForTest<TSyntaxNode>(
+            string testSrc,
+            string expectedOperationTree,
+            CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            bool useLatestFrameworkReferences = false)
+            where TSyntaxNode : SyntaxNode
+        {
+            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, compilationOptions, parseOptions, useLatestFrameworkReferences);
+            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
+        }
+
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+            CSharpCompilation compilation,
+            string expectedOperationTree,
+            DiagnosticDescription[] expectedDiagnostics,
+            Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
+            where TSyntaxNode : SyntaxNode
+        {
+            var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
+            actualDiagnostics.Verify(expectedDiagnostics);
+            VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree, additionalOperationTreeVerifier);
+        }
+
+        private static readonly MetadataReference[] s_defaultOperationReferences = new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef };
+        private static readonly MetadataReference[] s_latestOperationReferences = new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46 };
+
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+            string testSrc,
+            string expectedOperationTree,
+            DiagnosticDescription[] expectedDiagnostics,
+            CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            MetadataReference[] additionalReferences = null,
+            Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
+            bool useLatestFrameworkReferences = false)
+            where TSyntaxNode : SyntaxNode
+        {
+            var defaultRefs = useLatestFrameworkReferences ? s_latestOperationReferences : s_defaultOperationReferences;
+            var references = additionalReferences == null ? defaultRefs : additionalReferences.Concat(defaultRefs);
+            var compilation = CreateStandardCompilation(testSrc, references, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
+        }
+
+        protected static MetadataReference VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(string testSrc,
+            string ilSource,
+            string expectedOperationTree,
+            DiagnosticDescription[] expectedDiagnostics,
+            CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            MetadataReference[] additionalReferences = null,
+            Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
+            bool useLatestFrameworkReferences = false)
+            where TSyntaxNode : SyntaxNode
+        {
+            var ilReference = CreateMetadataReferenceFromIlSource(ilSource);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference }, additionalOperationTreeVerifier, useLatestFrameworkReferences);
+            return ilReference;
+        }
+
+        #endregion
+
+        #region Span
+
+        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+
+
+            return comp;
+        }
+
+        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var textWitSpan = new string[] { text, spanSource };
+            var comp = CreateCompilation(
+                textWitSpan,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: options ?? TestOptions.UnsafeReleaseDll,
+                parseOptions: parseOptions);
+
+            return comp;
+        }
+
+        private static string spanSource = @"
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        public ref T this[int i] => throw null;
+        public override int GetHashCode() => 1;
+        public int Length { get; }
+
+        unsafe public Span(void* pointer, int length)
+        {
+            this.Length = length;
+        }
+        public Span(T[] arr)
+        {
+            this.Length = arr.Length;
+        }
+
+        public void CopyTo(Span<T> other){}
+    }
+
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        public ref readonly T this[int i] => throw null;
+        public override int GetHashCode() => 2;
+
+        public void CopyTo(Span<T> other){}
+    }
+
+    public readonly ref struct SpanLike<T>
+    {
+        public readonly Span<T> field;
+    }
+}";
         #endregion
     }
 }

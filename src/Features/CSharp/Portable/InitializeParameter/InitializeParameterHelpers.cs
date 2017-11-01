@@ -5,7 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public static bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => compilation.ClassifyConversion(source: source, destination: destination).IsImplicit;
 
-        public static SyntaxNode TryGetLastStatement(IBlockStatement blockStatementOpt)
+        public static SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
             => blockStatementOpt?.Syntax is BlockSyntax block
                 ? block.Statements.LastOrDefault()
                 : blockStatementOpt?.Syntax;

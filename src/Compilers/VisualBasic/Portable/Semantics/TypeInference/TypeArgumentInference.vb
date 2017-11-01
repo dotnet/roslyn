@@ -997,7 +997,7 @@ HandleAsAGeneralExpression:
                     argIndex = parameterToArgumentMap(paramIndex)
                     Dim argument = If(argIndex = -1, Nothing, arguments(argIndex))
 
-                    If argument Is Nothing OrElse argument.HasErrors OrElse targetType.IsErrorType() Then
+                    If argument Is Nothing OrElse argument.HasErrors OrElse targetType.IsErrorType() OrElse argument.Kind = BoundKind.OmittedArgument Then
                         Continue For
                     End If
 
@@ -1381,10 +1381,6 @@ HandleAsAGeneralExpression:
                     Return False
                 End If
 
-                If Not RefersToGenericParameterToInferArgumentFor(parameterType) Then
-                    Return True
-                End If
-
                 ' If a generic method is parameterized by T, an argument of type A matching a parameter of type
                 ' P can be used to infer a type for T by these patterns:
                 '
@@ -1443,11 +1439,11 @@ HandleAsAGeneralExpression:
                 ElseIf parameterType.Kind = SymbolKind.NamedType Then
                     ' e.g. handle goo(of T)(x as Bar(Of T)) We need to dig into Bar(Of T)
 
-                    Dim parameterTypeAsNamedType = DirectCast(parameterType, NamedTypeSymbol)
+                    Dim parameterTypeAsNamedType = DirectCast(parameterType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
                     If parameterTypeAsNamedType.IsGenericType Then
 
-                        Dim argumentTypeAsNamedType = If(argumentType.Kind = SymbolKind.NamedType, DirectCast(argumentType, NamedTypeSymbol), Nothing)
+                        Dim argumentTypeAsNamedType = If(argumentType.Kind = SymbolKind.NamedType, DirectCast(argumentType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol), Nothing)
 
                         If argumentTypeAsNamedType IsNot Nothing AndAlso argumentTypeAsNamedType.IsGenericType Then
                             If argumentTypeAsNamedType.OriginalDefinition.IsSameTypeIgnoringAll(parameterTypeAsNamedType.OriginalDefinition) Then
@@ -1496,7 +1492,7 @@ HandleAsAGeneralExpression:
                                         ' hints and type-inference works. That's because all our hints inhere to the
                                         ' type parameter T; in an ideal world, the ByRef hint would inhere to the parameter.
                                         ' But I don't think we'll ever do better than this, just because trying to do
-                                        ' type inference inhering to arguments/parameters becomes exponential.
+                                        ' type inference inferring to arguments/parameters becomes exponential.
                                         ' Variance generic parameters will work the same.
 
                                         ' Dev10#595234: each Param'sInferenceRestriction is found as a modification of the surrounding InferenceRestriction:
@@ -1632,6 +1628,10 @@ HandleAsAGeneralExpression:
                 digThroughToBasesAndImplements As MatchGenericArgumentToParameter,
                 inferenceRestrictions As RequiredConversion
             ) As Boolean
+
+                If Not RefersToGenericParameterToInferArgumentFor(parameterType) Then
+                    Return True
+                End If
 
                 ' First try to the things directly. Only if this fails will we bother searching for things like List->IEnumerable.
                 Dim Inferred As Boolean = InferTypeArgumentsFromArgumentDirectly(
@@ -1779,7 +1779,6 @@ HandleAsAGeneralExpression:
                             param,
                             digThroughToBasesAndImplements,
                             inferenceRestrictions)
-
             End Function
 
             Private Function FindMatchingBase(

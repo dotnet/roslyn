@@ -2001,28 +2001,28 @@ public class Class
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0;").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0;").WithArguments("Operation: MixMethod").WithLocation(26, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
 
             analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze, syntaxKinds, operationKinds) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0;").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0;").WithArguments("Operation: MixMethod").WithLocation(26, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var hiddenVar = 0,Node: var mixMethodHiddenVar = 0,Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: HiddenMethod,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
 
             analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics, syntaxKinds, operationKinds) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var hiddenVar = 0").WithArguments("Node: var hiddenVar = 0").WithLocation(10, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var hiddenVar = 0;").WithArguments("Operation: HiddenMethod").WithLocation(10, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "hiddenVar = 0").WithArguments("Operation: HiddenMethod").WithLocation(10, 13),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0;").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodHiddenVar = 0").WithArguments("Node: var mixMethodHiddenVar = 0").WithLocation(24, 9),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodHiddenVar = 0;").WithArguments("Operation: MixMethod").WithLocation(24, 9),
-                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0;").WithArguments("Operation: MixMethod").WithLocation(26, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodHiddenVar = 0").WithArguments("Operation: MixMethod").WithLocation(24, 13),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var hiddenVar = 0,Node: var mixMethodHiddenVar = 0,Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: HiddenMethod,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
         }
 

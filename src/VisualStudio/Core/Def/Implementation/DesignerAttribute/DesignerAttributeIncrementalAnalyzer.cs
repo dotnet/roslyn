@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -16,6 +15,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -28,7 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private readonly IForegroundNotificationService _notificationService;
 
         private readonly IServiceProvider _serviceProvider;
+        private readonly DesignerAttributeState _state;
         private readonly IAsynchronousOperationListener _listener;
+
+        // cache whether a project is cps project or not
+        private readonly ConcurrentDictionary<ProjectId, bool> _cpsProjects;
 
         /// <summary>
         /// cache designer from UI thread
@@ -36,13 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// access this field through <see cref="GetDesignerFromForegroundThread"/>
         /// </summary>
         private IVSMDDesignerService _dotNotAccessDirectlyDesigner;
-
-        /// <summary>
-        /// Keep track of the last results we reported to VS.  We can use this to diff future results
-        /// to report only what actually changed.
-        /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, ImmutableDictionary<string, DesignerAttributeDocumentData>> _lastReportedProjectData =
-            new ConcurrentDictionary<ProjectId, ImmutableDictionary<string, DesignerAttributeDocumentData>>();
 
         public DesignerAttributeIncrementalAnalyzer(
             IServiceProvider serviceProvider,
@@ -53,8 +50,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             Contract.ThrowIfNull(_serviceProvider);
 
             _notificationService = notificationService;
+            _cpsProjects = new ConcurrentDictionary<ProjectId, bool>(concurrencyLevel: 2, capacity: 10);
 
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DesignerAttribute);
+            _state = new DesignerAttributeState();
+        }
+
+        public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+        {
+            _state.Remove(document.Id);
+            return _state.PersistAsync(document, new Data(VersionStamp.Default, VersionStamp.Default, designerAttributeArgument: null), cancellationToken);
         }
 
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -62,189 +67,173 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return false;
         }
 
-        public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(project.IsFromPrimaryBranch());
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var vsWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
-            {
-                return;
-            }
-
-            if (!vsWorkspace.Options.GetOption(InternalFeatureOnOffOptions.DesignerAttributes))
-            {
-                return;
-            }
-
-            // CPS projects do not support designer attributes.  So we just skip these projects entirely.
-            var isCPSProject = await Task.Factory.StartNew(
-                () => vsWorkspace.IsCPSProject(project),
-                cancellationToken,
-                TaskCreationOptions.None,
-                this.ForegroundTaskScheduler).ConfigureAwait(false);
-
-            if (isCPSProject)
-            {
-                return;
-            }
-
-            var service = project.LanguageServices.GetService<IDesignerAttributeService>();
-            if (service == null)
-            {
-                // project doesn't support designer attribute service.
-                return;
-            }
-
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var designerAttribute = compilation.DesignerCategoryAttributeType();
-            if (designerAttribute == null)
-            {
-                // Project doesn't know about the System.ComponentModel.DesignerCategoryAttribute type.
-                // Don't bother running the analysis.
-                return;
-            }
-
-            // Try to compute this data in the remote process.  If that fails, then compute
-            // the results in the local process.
-            var pathToResult = await TryAnalyzeProjectInRemoteProcessAsync(project, cancellationToken).ConfigureAwait(false);
-            if (pathToResult == null)
-            {
-                pathToResult = await AbstractDesignerAttributeService.TryAnalyzeProjectInCurrentProcessAsync(
-                    project, cancellationToken).ConfigureAwait(false);
-            }
+            Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Once we get the current data, diff it and report the results to VS.
-            RegisterDesignerAttributes(project, pathToResult);
-        }
-
-        private async Task<ImmutableDictionary<string, DesignerAttributeDocumentData>> TryAnalyzeProjectInRemoteProcessAsync(Project project, CancellationToken cancellationToken)
-        {
-            using (var session = await TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false))
-            {
-                if (session == null)
-                {
-                    return null;
-                }
-
-                var serializedResults = await session.InvokeAsync<IList<DesignerAttributeDocumentData>>(
-                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync), new object[] { project.Id }, cancellationToken).ConfigureAwait(false);
-
-                var data = serializedResults.ToImmutableDictionary(kvp => kvp.FilePath);
-                return data;
-            }
-        }
-
-        private static async Task<SessionWithSolution> TryGetRemoteSessionAsync(
-            Solution solution, CancellationToken cancellationToken)
-        {
-            var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return null;
-            }
-
-            return await client.TryCreateCodeAnalysisSessionAsync(
-                solution, cancellationToken).ConfigureAwait(false);
-        }
-
-        private void RegisterDesignerAttributes(
-            Project project, ImmutableDictionary<string, DesignerAttributeDocumentData> pathToResult)
-        {
-            // Diff this result against the last result we reported for this project.
-            // If there are any changes report them all at once to VS.
-            var lastPathToResult = _lastReportedProjectData.GetOrAdd(
-                project.Id, ImmutableDictionary<string, DesignerAttributeDocumentData>.Empty);
-
-            _lastReportedProjectData[project.Id] = pathToResult;
-
-            var difference = GetDifference(lastPathToResult, pathToResult);
-            if (difference.Count == 0)
+            if (!document.Project.Solution.Workspace.Options.GetOption(InternalFeatureOnOffOptions.DesignerAttributes))
             {
                 return;
             }
 
-            _notificationService.RegisterNotification(() =>
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (difference.TryGetValue(document.FilePath, out var result))
-                    {
-                        RegisterDesignerAttribute(document, result.DesignerAttributeArgument);
-                    }
-                }
-            }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
-        }
-
-        private ImmutableDictionary<string, DesignerAttributeDocumentData> GetDifference(
-            ImmutableDictionary<string, DesignerAttributeDocumentData> oldFileToResult,
-            ImmutableDictionary<string, DesignerAttributeDocumentData> newFileToResult)
-        {
-            var difference = ImmutableDictionary.CreateBuilder<string, DesignerAttributeDocumentData>();
-
-            foreach (var newKvp in newFileToResult)
-            {
-                // 1) If this result is for a new document.  We always need to report it
-                // 2) If both the old and new data have this result, then report it if it is different.
-                var filePath = newKvp.Key;
-                var newResult = newKvp.Value;
-
-                if (!oldFileToResult.TryGetValue(filePath, out var oldResult) ||
-                    !newResult.Equals(oldResult))
-                {
-                    difference.Add(filePath, newResult);
-                }
-            }
-
-            return difference.ToImmutable();
-        }
-
-        private void RegisterDesignerAttribute(Document document, string designerAttributeArgument)
-        {
-            var workspace = (VisualStudioWorkspaceImpl)document.Project.Solution.Workspace;
-
-            var vsDocument = workspace.GetHostDocument(document.Id);
-            if (vsDocument == null)
+            if (await IsCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
 
-            uint itemId = vsDocument.GetItemId();
-            if (itemId == (uint)VSConstants.VSITEMID.Nil)
-            {
-                // it is no longer part of the solution
-                return;
-            }
+            // use tree version so that things like compiler option changes are considered
+            var textVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+            var projectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            if (ErrorHandler.Succeeded(vsDocument.Project.Hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
+            var existingData = await _state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
+            if (existingData != null)
             {
-                var currentStringValue = string.IsNullOrEmpty(currentValue as string) ? null : (string)currentValue;
-                if (string.Equals(currentStringValue, designerAttributeArgument, StringComparison.OrdinalIgnoreCase))
+                // check whether we can use the data as it is (can happen when re-using persisted data from previous VS session)
+                if (CheckVersions(document, textVersion, projectVersion, existingData))
                 {
-                    // PERF: Avoid sending the message if the project system already has the current value.
+                    RegisterDesignerAttribute(document, existingData.DesignerAttributeArgument);
                     return;
                 }
             }
 
-            try
+            var result = await ScanDesignerAttributesOnRemoteHostIfPossibleAsync(document, cancellationToken).ConfigureAwait(false);
+            if (result.NotApplicable)
             {
-                var designer = GetDesignerFromForegroundThread();
-                if (designer != null)
-                {
-                    designer.RegisterDesignViewAttribute(vsDocument.Project.Hierarchy, (int)itemId, dwClass: 0, pwszAttributeValue: designerAttributeArgument);
-                }
+                _state.Remove(document.Id);
+                return;
             }
-            catch
+
+            // we checked all types in the document, but couldn't find designer attribute, but we can't say this document doesn't have designer attribute
+            // if the document also contains some errors.
+            var designerAttributeArgumentOpt = result.ContainsErrors ? new Optional<string>() : new Optional<string>(result.DesignerAttributeArgument);
+            await RegisterDesignerAttributeAndSaveStateAsync(document, textVersion, projectVersion, designerAttributeArgumentOpt, cancellationToken).ConfigureAwait(false);
+        }
+
+        public void RemoveDocument(DocumentId documentId)
+        {
+            _state.Remove(documentId);
+        }
+
+        public void RemoveProject(ProjectId projectId)
+        {
+            _cpsProjects.TryRemove(projectId, out _);
+        }
+
+        private async Task<DesignerAttributeResult> ScanDesignerAttributesOnRemoteHostIfPossibleAsync(Document document, CancellationToken cancellationToken)
+        {
+            // No remote host support, use inproc service
+            var service = document.GetLanguageService<IDesignerAttributeService>();
+            if (service == null)
             {
-                // DevDiv # 933717
-                // turns out RegisterDesignViewAttribute can throw in certain cases such as a file failed to be checked out by source control
-                // or IVSHierarchy failed to set a property for this project
+                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, notApplicable: true);
+            }
+
+            return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<bool> IsCpsProjectAsync(Project project, CancellationToken cancellationToken)
+        {
+            if (_cpsProjects.TryGetValue(project.Id, out var value))
+            {
+                return value;
+            }
+
+            // CPS projects do not support designer attributes.  So we just skip these projects entirely.
+            var vsWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
+            var cps = await Task.Factory.StartNew(() => vsWorkspace?.IsCPSProject(project) == true, cancellationToken, TaskCreationOptions.None, this.ForegroundTaskScheduler).ConfigureAwait(false);
+            _cpsProjects.TryAdd(project.Id, cps);
+
+            // project is either cps or not. it doesn't change for same project
+            return cps;
+        }
+
+        private bool CheckVersions(Document document, VersionStamp textVersion, VersionStamp semanticVersion, Data existingData)
+        {
+            // first check full version to see whether we can reuse data in same session, if we can't, check timestamp only version to see whether
+            // we can use it cross-session.
+            return document.CanReusePersistedTextVersion(textVersion, existingData.TextVersion) &&
+                   document.Project.CanReusePersistedDependentProjectVersion(semanticVersion, existingData.SemanticVersion);
+        }
+
+        private async Task RegisterDesignerAttributeAndSaveStateAsync(
+            Document document, VersionStamp textVersion, VersionStamp semanticVersion, Optional<string> designerAttributeArgumentOpt, CancellationToken cancellationToken)
+        {
+            if (!designerAttributeArgumentOpt.HasValue)
+            {
+                // no value means it couldn't determine whether this document has designer attribute or not.
+                // one of such case is when base type is error type.
+                return;
+            }
+
+            var data = new Data(textVersion, semanticVersion, designerAttributeArgumentOpt.Value);
+            await _state.PersistAsync(document, data, cancellationToken).ConfigureAwait(false);
+
+            RegisterDesignerAttribute(document, designerAttributeArgumentOpt.Value);
+        }
+
+        private void RegisterDesignerAttribute(Document document, string designerAttributeArgument)
+        {
+            if (!_state.Update(document.Id, designerAttributeArgument))
+            {
+                // value is not updated, meaning we are trying to report same value as before.
+                // we don't need to do anything. 
                 //
-                // just swallow it. don't crash VS.
+                // I kept this since existing code had this, but since we check what platform has before
+                // reporting it, this might be redundant.
+                return;
             }
+
+            var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
+            if (workspace == null)
+            {
+                return;
+            }
+
+            var documentId = document.Id;
+            _notificationService.RegisterNotification(() =>
+            {
+                var vsDocument = workspace.GetHostDocument(documentId);
+                if (vsDocument == null)
+                {
+                    return;
+                }
+
+                uint itemId = vsDocument.GetItemId();
+                if (itemId == (uint)VSConstants.VSITEMID.Nil)
+                {
+                    // it is no longer part of the solution
+                    return;
+                }
+
+                if (ErrorHandler.Succeeded(vsDocument.Project.Hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
+                {
+                    var currentStringValue = string.IsNullOrEmpty(currentValue as string) ? null : (string)currentValue;
+                    if (string.Equals(currentStringValue, designerAttributeArgument, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // PERF: Avoid sending the message if the project system already has the current value.
+                        return;
+                    }
+                }
+
+                try
+                {
+                    var designer = GetDesignerFromForegroundThread();
+                    if (designer != null)
+                    {
+                        designer.RegisterDesignViewAttribute(vsDocument.Project.Hierarchy, (int)itemId, dwClass: 0, pwszAttributeValue: designerAttributeArgument);
+                    }
+                }
+                catch
+                {
+                    // DevDiv # 933717
+                    // turns out RegisterDesignViewAttribute can throw in certain cases such as a file failed to be checked out by source control
+                    // or IVSHierarchy failed to set a property for this project
+                    //
+                    // just swallow it. don't crash VS.
+                }
+            }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
         }
 
         private IVSMDDesignerService GetDesignerFromForegroundThread()
@@ -260,34 +249,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return _dotNotAccessDirectlyDesigner;
         }
 
+        private class Data
+        {
+            public readonly VersionStamp TextVersion;
+            public readonly VersionStamp SemanticVersion;
+            public readonly string DesignerAttributeArgument;
+
+            public Data(VersionStamp textVersion, VersionStamp semanticVersion, string designerAttributeArgument)
+            {
+                this.TextVersion = textVersion;
+                this.SemanticVersion = semanticVersion;
+                this.DesignerAttributeArgument = designerAttributeArgument;
+            }
+        }
+
         #region unused
-
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyTask;
-
-        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyTask;
+        {
+            return SpecializedTasks.EmptyTask;
+        }
 
         public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyTask;
+        {
+            return SpecializedTasks.EmptyTask;
+        }
 
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyTask;
-
-        public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyTask;
+        {
+            return SpecializedTasks.EmptyTask;
+        }
 
         public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyTask;
-
-        public void RemoveDocument(DocumentId documentId)
         {
+            return SpecializedTasks.EmptyTask;
         }
 
-        public void RemoveProject(ProjectId projectId)
+        public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
+            return SpecializedTasks.EmptyTask;
         }
-
         #endregion
     }
 }

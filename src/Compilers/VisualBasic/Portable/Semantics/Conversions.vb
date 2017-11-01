@@ -1,16 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbolExtensions
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -232,6 +227,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Operator <>(left As Conversion, right As Conversion) As Boolean
             Return Not (left = right)
         End Operator
+
+        ''' <summary>
+        ''' Creates a <seealso cref="CommonConversion"/> from this Visual Basic conversion.
+        ''' </summary>
+        ''' <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
+        ''' <remarks>
+        ''' This is a lossy conversion; it is not possible to recover the original <see cref="Conversion"/>
+        ''' from the <see cref="CommonConversion"/> struct.
+        ''' </remarks>
+        Public Function ToCommonConversion() As CommonConversion
+            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, MethodSymbol)
+        End Function
 
         ''' <summary>
         ''' Determines whether the specified object is equal to the current object.
