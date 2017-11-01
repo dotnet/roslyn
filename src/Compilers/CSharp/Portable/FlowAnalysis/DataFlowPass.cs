@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The inferred nullability at the point of declaration of var locals.
         /// </summary>
+        // PROTOTYPE(NullableReferenceTypes): Does this need to
+        // move to LocalState so it participates in merging?
         private readonly PooledDictionary<LocalSymbol, bool?> _variableIsNullable = PooledDictionary<LocalSymbol, bool?>.GetInstance();
 
         /// <summary>
@@ -1477,11 +1479,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var local = assignmentTarget as LocalSymbol;
                     if (inferNullability)
                     {
+                        Debug.Assert((object)local != null);
                         _variableIsNullable[local] = !valueIsNotNull;
                     }
 
                     bool? targetIsNullable;
-                    if (local is null || !_variableIsNullable.TryGetValue(local, out targetIsNullable))
+                    if ((object)local == null || !_variableIsNullable.TryGetValue(local, out targetIsNullable))
                     {
                         targetIsNullable = targetType.IsNullable;
                     }
