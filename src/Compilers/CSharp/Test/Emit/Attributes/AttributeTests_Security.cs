@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -665,39 +664,37 @@ namespace N
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "Test");
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
                 },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Assert,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0050" + // length of UTF-8 string
-                            "MySecurityAttribute, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" + // attr type name
-                            "\u0001" + // number of bytes in the encoding of the named arguments
-                            "\u0000" // number of named arguments
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Assert,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0050" + // length of UTF-8 string
+                        "MySecurityAttribute, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" + // attr type name
+                        "\u0001" + // number of bytes in the encoding of the named arguments
+                        "\u0000" // number of named arguments
                 });
             });
         }
@@ -720,27 +717,25 @@ namespace N
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.Method,
-                        ParentNameOpt = @"Goo",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    });
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"Goo",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                });
             });
         }
 
@@ -762,39 +757,37 @@ namespace N
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0002" + // number of attributes (small enough to fit in 1 byte)
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0002" + // number of attributes (small enough to fit in 1 byte)
 
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1" + // argument value (@"User1")
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1" + // argument value (@"User1")
 
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    });
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                });
             });
         }
 
@@ -817,39 +810,37 @@ namespace N
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.Method,
-                        ParentNameOpt = @"Goo",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0002" + // number of attributes (small enough to fit in 1 byte)
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"Goo",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0002" + // number of attributes (small enough to fit in 1 byte)
 
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1" + // argument value (@"User1")
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1" + // argument value (@"User1")
 
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    });
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                });
             });
         }
 
@@ -871,47 +862,45 @@ namespace N
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Assert,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User2", // argument value (@"User2")
-                    });
-            });
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Assert,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User2", // argument value (@"User2")
+                });
+        });
         }
 
         [Fact]
@@ -933,46 +922,44 @@ namespace N
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.Method,
-                        ParentNameOpt = @"Goo",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Assert,
-                        ParentKind = SymbolKind.Method,
-                        ParentNameOpt = @"Goo",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User2", // argument value (@"User2")
-                    });
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"Goo",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Assert,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"Goo",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User2", // argument value (@"User2")
+                });
             });
         }
 
@@ -1001,46 +988,44 @@ namespace N2
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C2",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    });
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C2",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                });
             });
         }
 
@@ -1065,46 +1050,44 @@ namespace N
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.Method,
-                        ParentNameOpt = @"Goo1",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.Method,
-                        ParentNameOpt = @"Goo2",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    });
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"Goo1",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"Goo2",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                });
             });
         }
 
@@ -1139,80 +1122,78 @@ namespace N
 
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.RequestOptional,
-                        ParentKind = SymbolKind.Assembly,
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u001a" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u0002" + // type bool
-                            "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "RemotingConfiguration" + // property name
-                            "\u0001", // argument value (true)
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.RequestMinimum,
-                        ParentKind = SymbolKind.Assembly,
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u0012" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u0002" + // type bool
-                            "\u000d" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "UnmanagedCode" + // property name
-                            "\u0001", // argument value (true)
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.Method,
-                        ParentNameOpt = @"Goo",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    });
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.RequestOptional,
+                    ParentKind = SymbolKind.Assembly,
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u001a" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u0002" + // type bool
+                        "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "RemotingConfiguration" + // property name
+                        "\u0001", // argument value (true)
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                    ParentKind = SymbolKind.Assembly,
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u0012" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u0002" + // type bool
+                        "\u000d" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "UnmanagedCode" + // property name
+                        "\u0001", // argument value (true)
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"Goo",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                });
             });
         }
 
@@ -1235,63 +1216,61 @@ namespace N
             var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.RequestMinimum,
-                        ParentKind = SymbolKind.Assembly,
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u0015" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u0002" + // type bool
-                            "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "SkipVerification" + // property name
-                            "\u0001", // argument value (true)
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.Method,
-                        ParentNameOpt = @"Goo",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    });
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                    ParentKind = SymbolKind.Assembly,
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u0015" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u0002" + // type bool
+                        "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "SkipVerification" + // property name
+                        "\u0001", // argument value (true)
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"Goo",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                });
             });
         }
 
@@ -1317,92 +1296,90 @@ namespace N
             var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.RequestMinimum,
-                        ParentKind = SymbolKind.Assembly,
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u0015" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u0002" + // type bool
-                            "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "SkipVerification" + // property name
-                            "\u0001", // argument value (true)
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1", // argument value (@"User1")
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Assert,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"C",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User2", // argument value (@"User2")
-                    },
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Demand,
-                        ParentKind = SymbolKind.Method,
-                        ParentNameOpt = @"Goo",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0002" + // number of attributes (small enough to fit in 1 byte)
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User1" + // argument value (@"User1")
-                            "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
-                            "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u000e" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "Role" + // property name
-                            "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
-                            "User2", // argument value (@"User2")
-                    });
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.RequestMinimum,
+                    ParentKind = SymbolKind.Assembly,
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u0015" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u0002" + // type bool
+                        "\u0010" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "SkipVerification" + // property name
+                        "\u0001", // argument value (true)
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Assert,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"C",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User2", // argument value (@"User2")
+                },
+                new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"Goo",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0002" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1" + // argument value (@"User1")
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User2", // argument value (@"User2")
+                });
             });
         }
 
@@ -1449,27 +1426,25 @@ public class MyClass
 
             CompileAndVerify(compilation, symbolValidator: module =>
             {
-                var assembly = (PEAssemblySymbol)module.ContainingAssembly;
-                ValidateDeclSecurity(assembly.GetMetadata().GetAssembly().GetMetadataReader(),
-                    new DeclSecurityEntry
-                    {
-                        ActionFlags = DeclarativeSecurityAction.Deny,
-                        ParentKind = SymbolKind.NamedType,
-                        ParentNameOpt = @"MyClass",
-                        PermissionSet =
-                            "." + // always start with a dot
-                            "\u0001" + // number of attributes (small enough to fit in 1 byte)
-                            "\u007f" + // length of string
-                            "System.Security.Permissions.PermissionSetAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
-                            "\u0082" + "\u008f" + // number of bytes in the encoding of the named arguments
-                            "\u0001" + // number of named arguments
-                            "\u0054" + // property (vs field)
-                            "\u000e" + // type string
-                            "\u0003" + // length of string (small enough to fit in 1 byte)
-                            "Hex" + // property name
-                            "\u0082" + "\u0086" + // length of string
-                            hexFileContent // argument value
-                    });
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Deny,
+                    ParentKind = SymbolKind.NamedType,
+                    ParentNameOpt = @"MyClass",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u007f" + // length of string
+                        "System.Security.Permissions.PermissionSetAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u0082" + "\u008f" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0003" + // length of string (small enough to fit in 1 byte)
+                        "Hex" + // property name
+                        "\u0082" + "\u0086" + // length of string
+                        hexFileContent // argument value
+                });
             });
         }
 

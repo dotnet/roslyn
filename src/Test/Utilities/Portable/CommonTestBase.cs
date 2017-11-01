@@ -196,21 +196,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (assemblyValidator != null)
             {
-                using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
-                {
-                    assemblyValidator(emittedMetadata.GetAssembly());
-                }
+                var emittedMetadata = verifier.GetMetadata();
+                Assert.Equal(MetadataImageKind.Assembly, emittedMetadata.Kind);
+
+                var assembly = ((AssemblyMetadata)emittedMetadata).GetAssembly();
+                assemblyValidator(assembly);
             }
 
             if (symbolValidator != null)
             {
-                using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
-                {
-                    var reference = emittedMetadata.GetReference();
-                    var moduleSymbol = verifier.GetModuleSymbolFromMetadata(reference, verifier.Compilation.Options.MetadataImportOptions);
+                var emittedMetadata = verifier.GetMetadata();
+                var reference = emittedMetadata.Kind == MetadataImageKind.Assembly
+                    ? ((AssemblyMetadata)emittedMetadata).GetReference()
+                    : ((ModuleMetadata)emittedMetadata).GetReference();
 
-                    symbolValidator(moduleSymbol);
-                }
+                var moduleSymbol = verifier.GetSymbolFromMetadata(reference, verifier.Compilation.Options.MetadataImportOptions);
+                symbolValidator(moduleSymbol);
             }
         }
 

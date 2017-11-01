@@ -1206,7 +1206,7 @@ unsafe class C
 
             void validateSecurity(ModuleSymbol module)
             {
-                ValidateDeclSecurity(((PEModuleSymbol)module).Module.MetadataReader, new DeclSecurityEntry
+                ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.RequestMinimum,
                     ParentKind = SymbolKind.Assembly,

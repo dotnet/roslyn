@@ -1235,14 +1235,14 @@ class C : B<string>
 ";
             Action<ModuleSymbol> validator = module =>
             {
-                var classA = module.GlobalNamespace.GetTypeMembers("A").Single();
-                var p = classA.GetMembers("P").OfType<PropertySymbol>().Single();
+                var classA = module.GlobalNamespace.GetTypeMember("A");
+                var p = classA.GetProperty("P");
                 VerifyAutoProperty(p);
-                var q = classA.GetMembers("Q").OfType<PropertySymbol>().Single();
+                var q = classA.GetProperty("Q");
                 VerifyAutoProperty(q);
 
                 var classC = module.GlobalNamespace.GetTypeMembers("C").Single();
-                p = classC.BaseType.GetMembers("P").OfType<PropertySymbol>().Single();
+                p = classC.BaseType.GetProperty("P");
                 VerifyAutoProperty(p);
                 Assert.Equal(p.Type.SpecialType, SpecialType.System_String);
                 Assert.Equal(p.GetMethod.AssociatedSymbol, p);

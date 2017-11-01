@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -93,8 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Validate the contents of the DeclSecurity metadata table.
         /// </summary>
-        internal static void ValidateDeclSecurity(MetadataReader metadataReader, params DeclSecurityEntry[] expectedEntries)
+        internal static void ValidateDeclSecurity(ModuleSymbol module, params DeclSecurityEntry[] expectedEntries)
         {
+            var metadataReader = module.GetMetadata().MetadataReader;
             var actualEntries = new List<DeclSecurityEntry>(expectedEntries.Length);
 
             int i = 0;
@@ -119,7 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 i++;
             }
 
-            AssertEx.SetEqual(expectedEntries, actualEntries, itemInspector: entry => $@"{{
+            AssertEx.SetEqual(expectedEntries, actualEntries, itemInspector: entry => $@"
+{{
     ActionFlags = {entry.ActionFlags},
     ParentNameOpt = {entry.ParentNameOpt},
     PermissionSet = {entry.PermissionSet},

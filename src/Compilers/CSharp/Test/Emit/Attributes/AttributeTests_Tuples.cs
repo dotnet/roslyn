@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -116,7 +115,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                TupleAttributeValidator.ValidateTupleAttributes((PEModuleSymbol)module);
+                TupleAttributeValidator.ValidateTupleAttributes(module);
             });
         }
 
@@ -142,7 +141,7 @@ namespace System.Runtime.CompilerServices
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                TupleAttributeValidator.ValidateTupleAttributes((PEModuleSymbol)module);
+                TupleAttributeValidator.ValidateTupleAttributes(module);
             });
         }
 
@@ -300,7 +299,7 @@ class C
                 _outerClass,
                 _derivedClass;
 
-            private TupleAttributeValidator(PEModuleSymbol module)
+            private TupleAttributeValidator(ModuleSymbol module)
             {
                 _base0Class = module.GlobalNamespace.GetTypeMember("Base0");
                 _base1Class = module.GlobalNamespace.GetTypeMember("Base1");
@@ -309,7 +308,7 @@ class C
                 _derivedClass = module.GlobalNamespace.GetTypeMember("Derived");
             }
 
-            internal static void ValidateTupleAttributes(PEModuleSymbol module)
+            internal static void ValidateTupleAttributes(ModuleSymbol module)
             {
                 var validator = new TupleAttributeValidator(module);
 
