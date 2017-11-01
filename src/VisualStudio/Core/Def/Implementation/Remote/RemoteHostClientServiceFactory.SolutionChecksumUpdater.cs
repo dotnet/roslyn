@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -122,9 +123,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var solution = _service.Workspace.CurrentSolution;
                     var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                    await remoteHostClient.RunOnRemoteHostAsync(
-                        WellKnownRemoteHostServices.RemoteHostService, solution,
-                        nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
+                    await remoteHostClient.IgnoreCancellationAsync(() =>
+                        remoteHostClient.RunOnRemoteHostAsync(
+                            WellKnownRemoteHostServices.RemoteHostService, solution,
+                            nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken)).ConfigureAwait(false);
                 }
             }
 

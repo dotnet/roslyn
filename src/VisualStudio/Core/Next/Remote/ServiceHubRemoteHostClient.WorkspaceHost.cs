@@ -45,29 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 RegisterPrimarySolutionAsync().Wait();
             }
 
-            private async Task RegisterPrimarySolutionAsync()
-            {
-                _currentSolutionId = _workspace.CurrentSolution.Id;
-                var solutionId = _currentSolutionId;
-
-                using (var session = await _client.TryCreateServiceSessionAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, callbackTarget: null, cancellationToken: CancellationToken.None).ConfigureAwait(false))
-                {
-                    if (session == null)
-                    {
-                        // failed to create session. remote host might not responding or gone. 
-                        return;
-                    }
-
-                    await session.InvokeAsync(
-                        nameof(IRemoteHostService.RegisterPrimarySolutionId), solutionId).ConfigureAwait(false);
-
-                    await session.InvokeAsync(
-                        nameof(IRemoteHostService.UpdateSolutionIdStorageLocation), solutionId,
-                        _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
-                }
-            }
-
             public void OnBeforeWorkingFolderChange()
             {
                 this.AssertIsForeground();
@@ -90,13 +67,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 UnregisterPrimarySolutionAsync(solutionId, synchronousShutdown: false).Wait();
             }
 
-            private async Task UnregisterPrimarySolutionAsync(
+            private Task RegisterPrimarySolutionAsync()
+            {
+                return _client.IgnoreCancellationAsync(async () =>
+                {
+                    _currentSolutionId = _workspace.CurrentSolution.Id;
+                    var solutionId = _currentSolutionId;
+
+                    using (var session = await _client.TryCreateServiceSessionAsync(
+                        WellKnownRemoteHostServices.RemoteHostService, callbackTarget: null, cancellationToken: CancellationToken.None).ConfigureAwait(false))
+                    {
+                        if (session == null)
+                        {
+                            // failed to create session. remote host might not responding or gone. 
+                            return;
+                        }
+
+                        await session.InvokeAsync(
+                            nameof(IRemoteHostService.RegisterPrimarySolutionId), solutionId).ConfigureAwait(false);
+
+                        await session.InvokeAsync(
+                            nameof(IRemoteHostService.UpdateSolutionIdStorageLocation), solutionId,
+                            _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
+                    }
+                });
+            }
+
+            private Task UnregisterPrimarySolutionAsync(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                await _client.RunOnRemoteHostAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
-                    nameof(IRemoteHostService.UnregisterPrimarySolutionId), new object[] { solutionId, synchronousShutdown },
-                    CancellationToken.None).ConfigureAwait(false);
+                return _client.IgnoreCancellationAsync(() =>
+                    _client.RunOnRemoteHostAsync(
+                        WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
+                        nameof(IRemoteHostService.UnregisterPrimarySolutionId), new object[] { solutionId, synchronousShutdown },
+                        CancellationToken.None));
             }
 
             public void ClearSolution() { }
