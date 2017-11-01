@@ -504,7 +504,6 @@ function Deploy-VsixViaTool() {
 function Run-SignTool() { 
     Push-Location $repoDir
     try {
-
         $signTool = Join-Path (Get-PackageDir "RoslynTools.Microsoft.SignTool") "tools\SignTool.exe"
         $signToolArgs = "-msbuildPath `"$msbuild`""
         if (-not $official) {

@@ -36,7 +36,6 @@
         "Dlls\\RemoteWorkspaces\\Microsoft.CodeAnalysis.Remote.Workspaces.dll",
         "Dlls\\Scripting\\Microsoft.CodeAnalysis.Scripting.dll",
         "Dlls\\ServiceHub\\Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
-        "Dlls\\ServicesTestUtilities\\Roslyn.Services.Test.Utilities.dll",
         "Dlls\\ServicesVisualStudioImpl\\Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Dlls\\ServicesVisualStudio\\Microsoft.VisualStudio.LanguageServices.dll",
         "Dlls\\SolutionExplorerShim\\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
@@ -46,9 +45,7 @@
         "Dlls\\RazorServiceHub\\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll",
         "Dlls\\RazorVisualStudio\\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll",
         "Dlls\\TextEditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
-        "Dlls\\TestUtilities\\net461\\Roslyn.Test.Utilities.dll",
         "Dlls\\VisualStudioInteractiveServices\\Microsoft.VisualStudio.InteractiveServices.dll",
-        "Dlls\\VisualStudioIntegrationTestUtilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
         "Dlls\\Workspaces.Desktop\\Microsoft.CodeAnalysis.Workspaces.Desktop.dll",
         "Dlls\\Workspaces\\Microsoft.CodeAnalysis.Workspaces.dll",
         "Dlls\\XamlVisualStudio\\Microsoft.VisualStudio.LanguageServices.Xaml.dll",
@@ -66,6 +63,15 @@
         "Vsix\\Templates\\Roslyn.Templates.dll",
         "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.dll",
         "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll"
+      ]
+    },
+    {
+      "certificate": "MicrosoftSHA2",
+      "strongName": null,
+      "values": [
+        "Dlls\\ServicesTestUtilities\\Roslyn.Services.Test.Utilities.dll",
+        "Dlls\\TestUtilities\\net461\\Roslyn.Test.Utilities.dll",
+        "Dlls\\VisualStudioIntegrationTestUtilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll"
       ]
     },
     {
