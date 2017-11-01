@@ -163,6 +163,22 @@ Namespace Microsoft.CodeAnalysis.Operations
                 isImplicit:=isImplicit OrElse argument Is Nothing)
         End Function
 
+        Private Function CreateReceiverOperation(node As BoundNode, symbol As ISymbol) As IOperation
+            If node IsNot Nothing AndAlso node.WasCompilerGenerated AndAlso symbol.IsStatic Then
+                Return Nothing
+            End If
+
+            Return CreateReceiverOperation(node)
+        End Function
+
+        Private Function CreateReceiverOperation(node As BoundNode) As IOperation
+            If node Is Nothing OrElse node.Kind = BoundKind.TypeExpression Then
+                Return Nothing
+            End If
+
+            Return Create(node)
+        End Function
+
         Private Shared Function ParameterIsParamArray(parameter As VisualBasic.Symbols.ParameterSymbol) As Boolean
             Return If(parameter.IsParamArray AndAlso parameter.Type.Kind = SymbolKind.ArrayType, DirectCast(parameter.Type, VisualBasic.Symbols.ArrayTypeSymbol).IsSZArray, False)
         End Function

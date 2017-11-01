@@ -485,7 +485,7 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
             Left: 
               IFieldReferenceOperation: C1.Field1 As System.String (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'Field1')
                 Instance Receiver: 
-                  null
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
