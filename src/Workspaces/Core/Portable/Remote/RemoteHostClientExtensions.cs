@@ -176,5 +176,19 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunOnRemoteHostAsync<T>(client, WellKnownServiceHubServices.CodeAnalysisService, solution, targetName, arguments, cancellationToken);
         }
+
+        public static async Task IgnoreCancellationAsync(
+            this RemoteHostClient client, Func<Task> actionAsync)
+        {
+            try
+            {
+                await actionAsync().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // in error case, we could get operation cancelled exception.
+                // in that case, we already show info bar to users, so don't crash VS
+            }
+        }
     }
 }
