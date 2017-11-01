@@ -176,11 +176,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         protected override SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments = default)
         {
-            var constructorIndex = (member == WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags) ? 1 : 0;
-            return new SynthesizedAttributeData(
-                _lazyNullableAttribute.Constructors[constructorIndex],
-                arguments,
-                ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            if ((object)_lazyNullableAttribute != null)
+            {
+                var constructorIndex = (member == WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags) ? 1 : 0;
+                return new SynthesizedAttributeData(
+                    _lazyNullableAttribute.Constructors[constructorIndex],
+                    arguments,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeNullableAttribute(member, arguments);
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()

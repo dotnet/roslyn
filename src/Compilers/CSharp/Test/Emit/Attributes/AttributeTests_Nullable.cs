@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Allow explicit NullableAttribute definition.
-        [Fact(Skip = "Allow explicit NullableAttribute definition")]
+        [Fact]
         public void ExplicitAttributeFromSource()
         {
             var source =
@@ -46,8 +45,7 @@ class C
             comp.VerifyEmitDiagnostics();
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Allow explicit NullableAttribute definition.
-        [Fact(Skip = "Allow explicit NullableAttribute definition")]
+        [Fact]
         public void ExplicitAttributeFromMetadata()
         {
             var source0 =
@@ -96,8 +94,8 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?[] y").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 30));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Allow explicit NullableAttribute definition.
-        [Fact(Skip = "Allow explicit NullableAttribute definition")]
+        // PROTOTYPE(NullableReferenceTypes): Handle missing constructor.
+        [Fact(Skip = "Handle missing constructor")]
         public void ExplicitAttribute_MissingConstructor()
         {
             var source =
@@ -394,6 +392,7 @@ public class B : I<(object X, object? Y)>
                 var type = module.ContainingAssembly.GetTypeByMetadataName("C");
                 var method = (MethodSymbol)type.GetMembers("op_Addition").Single();
                 AssertNullableAttribute(method.GetReturnTypeAttributes());
+                AssertNoNullableAttribute(method.GetAttributes());
             });
         }
 
@@ -425,6 +424,7 @@ public class B : I<(object X, object? Y)>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
                 AssertNullableAttribute(method.GetReturnTypeAttributes());
+                AssertNoNullableAttribute(method.GetAttributes());
             });
         }
 
@@ -505,6 +505,7 @@ class C
                 {
                     var method = module.ContainingAssembly.GetTypeByMetadataName("C").GetMethod("<M>g__L|0_0");
                     AssertNullableAttribute(method.GetReturnTypeAttributes());
+                    AssertAttributes(method.GetAttributes(), "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
                 });
         }
 
@@ -559,6 +560,7 @@ class B : A, I
                 {
                     var method = module.ContainingAssembly.GetTypeByMetadataName("B").GetMethod("I.F");
                     AssertNullableAttribute(method.GetReturnTypeAttributes());
+                    AssertNoNullableAttribute(method.GetAttributes());
                 });
         }
 
@@ -585,6 +587,9 @@ class C
                     // Since the methods are only called through IEnumerable<T>
                     // or IEnumerator<T>, that is not an issue.
                     AssertNoNullableAttribute(property.GetAttributes());
+                    var method = property.GetMethod;
+                    AssertNoNullableAttribute(method.GetReturnTypeAttributes());
+                    AssertAttributes(method.GetAttributes(), "System.Diagnostics.DebuggerHiddenAttribute");
                 });
         }
 
@@ -884,13 +889,18 @@ class C
 
         private static void AssertNoNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
-            Assert.Equal(0, attributes.Length);
+            AssertAttributes(attributes);
         }
 
         private static void AssertNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
-            var attributeType = attributes.Single().AttributeClass;
-            Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", attributeType.ToTestDisplayString());
+            AssertAttributes(attributes, "System.Runtime.CompilerServices.NullableAttribute");
+        }
+
+        private static void AssertAttributes(ImmutableArray<CSharpAttributeData> attributes, params string[] expectedNames)
+        {
+            var actualNames = attributes.Select(a => a.AttributeClass.ToTestDisplayString()).ToArray();
+            AssertEx.SetEqual(actualNames, expectedNames);
         }
 
         private static void AssertAttribute(CSharpCompilation comp, string attributeName = "NullableAttribute")
