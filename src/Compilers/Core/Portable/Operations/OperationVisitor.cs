@@ -70,11 +70,6 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
-        public virtual void VisitDoLoop(IDoLoopOperation operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitWhileLoop(IWhileLoopOperation operation)
         {
             DefaultVisit(operation);
@@ -566,11 +561,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
-        public virtual TResult VisitDoLoop(IDoLoopOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
