@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -49,19 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 RegisterPrimarySolution();
             }
 
-            private void RegisterPrimarySolution()
-            {
-                this.AssertIsForeground();
-                _currentSolutionId = _workspace.CurrentSolution.Id;
-                var solutionId = _currentSolutionId;
-
-                var storageLocation = _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution);
-
-                _session.TryInvokeAsync(
-                    nameof(IRemoteHostService.RegisterPrimarySolutionId),
-                    new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
-            }
-
             public void OnBeforeWorkingFolderChange()
             {
                 this.AssertIsForeground();
@@ -84,13 +70,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 UnregisterPrimarySolution(solutionId, synchronousShutdown: false);
             }
 
+            private void RegisterPrimarySolution()
+            {
+                this.AssertIsForeground();
+                _currentSolutionId = _workspace.CurrentSolution.Id;
+                var solutionId = _currentSolutionId;
+
+                var storageLocation = _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution);
+
+                try
+                {
+                    _session.TryInvokeAsync(
+                        nameof(IRemoteHostService.RegisterPrimarySolutionId),
+                        new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
+                }
+                catch (OperationCanceledException)
+                {
+                    // in error case, we could get operation cancelled exception.
+                    // in that case, we already show info bar to users, so don't crash VS
+                }
+            }
+
             private void UnregisterPrimarySolution(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                _session.TryInvokeAsync(
-                    nameof(IRemoteHostService.UnregisterPrimarySolutionId),
-                    new object[] { solutionId, synchronousShutdown },
-                    CancellationToken.None).Wait(CancellationToken.None);
+                try
+                {
+                    _session.TryInvokeAsync(
+                        nameof(IRemoteHostService.UnregisterPrimarySolutionId),
+                        new object[] { solutionId, synchronousShutdown },
+                        CancellationToken.None).Wait(CancellationToken.None);
+                }
+                catch (OperationCanceledException)
+                {
+                    // in error case, we could get operation cancelled exception.
+                    // in that case, we already show info bar to users, so don't crash VS
+                }
             }
 
             public void ClearSolution() { }

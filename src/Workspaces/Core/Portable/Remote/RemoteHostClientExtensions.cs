@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
@@ -229,9 +230,10 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                await remoteHostClient.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, solution,
-                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
+                await remoteHostClient.IgnoreCancellationAsync(() =>
+                    remoteHostClient.TryRunRemoteAsync(
+                        WellKnownRemoteHostServices.RemoteHostService, solution,
+                        nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken)).ConfigureAwait(false);
             }
         }
 
@@ -303,6 +305,20 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public static async Task IgnoreCancellationAsync(
+            this RemoteHostClient client, Func<Task> actionAsync)
+        {
+            try
+            {
+                await actionAsync().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // in error case, we could get operation cancelled exception.
+                // in that case, we already show info bar to users, so don't crash VS
             }
         }
     }
