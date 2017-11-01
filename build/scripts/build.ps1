@@ -35,6 +35,7 @@ param (
     [switch]$testVsiNetCore = $false,
     [switch]$testDesktop = $false,
     [switch]$testCoreClr = $false,
+    [switch]$testIOperation = $false,
 
     # Special test options
     [switch]$testDeterminism = $false,
@@ -66,6 +67,7 @@ function Print-Usage() {
     Write-Host "  -testCoreClr              Run CoreClr unit tests"
     Write-Host "  -testVsi                  Run all integration tests"
     Write-Host "  -testVsiNetCore           Run just dotnet core integration tests"
+    Write-Host "  -testIOperation           Run extra checks to validate IOperations"
     Write-Host ""
     Write-Host "Special Test options" 
     Write-Host "  -testBuildCorrectness     Run build correctness tests"
@@ -135,6 +137,11 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
 
     if ($bootstrapDir -ne "") {
         $args += " /p:BootstrapBuildPath=$bootstrapDir"
+    }
+
+    if ($testIOperation)
+    {
+        $args += " /p:TestIOperationInterface=true"
     }
 
     $args += " $buildArgs"

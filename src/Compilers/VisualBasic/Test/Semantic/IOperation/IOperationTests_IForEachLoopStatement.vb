@@ -947,13 +947,11 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "one") (Syntax: '"one"')
         WhenTrue: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If (s = "on ... End If')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Throw New Exception')
-              Expression: 
-                IThrowOperation (OperationKind.Throw, Type: System.Exception, IsImplicit) (Syntax: 'Throw New Exception')
-                  IObjectCreationOperation (Constructor: Sub System.Exception..ctor()) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'New Exception')
-                    Arguments(0)
-                    Initializer: 
-                      null
+            IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'Throw New Exception')
+              IObjectCreationOperation (Constructor: Sub System.Exception..ctor()) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'New Exception')
+                Arguments(0)
+                Initializer: 
+                  null
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(s)')

@@ -516,7 +516,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: System.Int32* p
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
-        IOperation:  (OperationKind.None, Type: null) (Syntax: '&reference.i1')
+        IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
           Children(1):
               IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
                 Reference: 
@@ -560,7 +560,7 @@ IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: System.Int32* p1
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
-        IOperation:  (OperationKind.None, Type: null) (Syntax: '&reference.i1')
+        IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
           Children(1):
               IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
                 Reference: 
@@ -571,7 +571,7 @@ IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: System.Int32* p2
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i2')
-        IOperation:  (OperationKind.None, Type: null) (Syntax: '&reference.i2')
+        IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i2')
           Children(1):
               IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i2')
                 Reference: 
@@ -813,7 +813,7 @@ IVariableDeclarationsOperation (2 declarations) (OperationKind.VariableDeclarati
     Variables: Local_1: System.Int32* p1
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
-        IOperation:  (OperationKind.None, Type: null) (Syntax: '&reference.i1')
+        IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
           Children(1):
               IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
                 Reference: 
