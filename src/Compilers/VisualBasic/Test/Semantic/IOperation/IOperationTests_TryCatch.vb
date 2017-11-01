@@ -53,10 +53,8 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Handler: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Catch ex As ... Throw ex')
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Throw ex')
-              Expression: 
-                IThrowOperation (OperationKind.Throw, Type: System.Exception, IsImplicit) (Syntax: 'Throw ex')
-                  ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
+            IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'Throw ex')
+              ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
   Finally: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally ... i = 1')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1')
@@ -119,10 +117,8 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Priva
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Handler: 
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Catch ex As ... Throw ex')
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Throw ex')
-                Expression: 
-                  IThrowOperation (OperationKind.Throw, Type: System.Exception, IsImplicit) (Syntax: 'Throw ex')
-                    ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
+              IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'Throw ex')
+                ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
     Finally: 
       IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Finally ... i = 1')
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1')
