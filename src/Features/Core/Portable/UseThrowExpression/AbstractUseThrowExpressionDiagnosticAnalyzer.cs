@@ -67,14 +67,28 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var cancellationToken = context.CancellationToken;
 
-            var throwExpressionOperation = (IThrowOperation)context.Operation;
-            var throwStatementOperation = throwExpressionOperation.Parent;
-            if (throwStatementOperation.Kind != OperationKind.ExpressionStatement)
+            var throwOperation = (IThrowOperation)context.Operation;
+            var throwStatementSyntax = throwOperation.Syntax;
+
+            var compilation = context.Compilation;
+            var semanticModel = compilation.GetSemanticModel(throwStatementSyntax.SyntaxTree);
+
+            var ifOperation = GetContainingIfOperation(
+                semanticModel, throwOperation, cancellationToken);
+
+            // This throw statement isn't parented by an if-statement.  Nothing to
+            // do here.
+            if (ifOperation == null)
             {
                 return;
             }
 
-            var throwStatementSyntax = throwExpressionOperation.Syntax;
+            if (ifOperation.WhenFalse != null)
+            {
+                // Can't offer this if the 'if-statement' has an 'else-clause'.
+                return;
+            }
+
             var options = context.Options;
             var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
@@ -88,27 +102,9 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            var compilation = context.Compilation;
-            var semanticModel = compilation.GetSemanticModel(throwStatementSyntax.SyntaxTree);
             var semanticFacts = GetSemanticFactsService();
             if (semanticFacts.IsInExpressionTree(semanticModel, throwStatementSyntax, expressionTypeOpt, cancellationToken))
             {
-                return;
-            }
-
-            var ifOperation = GetContainingIfOperation(
-                semanticModel, (IExpressionStatementOperation)throwStatementOperation, cancellationToken);
-
-            // This throw statement isn't parented by an if-statement.  Nothing to
-            // do here.
-            if (ifOperation == null)
-            {
-                return;
-            }
-
-            if (ifOperation.WhenFalse != null)
-            {
-                // Can't offer this if the 'if-statement' has an 'else-clause'.
                 return;
             }
 
@@ -141,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             // Ok, there were no intervening writes or accesses.  This check+assignment can be simplified.
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
-                throwExpressionOperation.Exception.Syntax.GetLocation(),
+                throwOperation.Exception.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
             var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
@@ -303,7 +299,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         }
 
         private IConditionalOperation GetContainingIfOperation(
-            SemanticModel semanticModel, IExpressionStatementOperation throwOperation,
+            SemanticModel semanticModel, IThrowOperation throwOperation,
             CancellationToken cancellationToken)
         {
             var throwStatement = throwOperation.Syntax;
