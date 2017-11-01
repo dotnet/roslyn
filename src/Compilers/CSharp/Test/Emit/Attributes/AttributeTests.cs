@@ -728,6 +728,37 @@ public class A
         }
 
         [Fact]
+        public void TestFieldAttributeOnPropertyInCSharp7_2()
+        {
+            string source = @"
+public class A : System.Attribute
+{
+}
+public class Test
+{
+    [field: System.Obsolete]
+    [field: A]
+    public int P { get; set; }
+
+    [field: System.Obsolete(""obsolete"", error: true)]
+    public int P2 { get; }
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (7,5): warning CS8360: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
+                //     [field: System.Obsolete]
+                Diagnostic(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable, "[field: System.Obsolete]").WithArguments("7.2", "7.3").WithLocation(7, 5),
+                // (8,5): warning CS8360: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable, "[field: A]").WithArguments("7.2", "7.3").WithLocation(8, 5),
+                // (11,5): warning CS8360: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
+                //     [field: System.Obsolete("obsolete", error: true)]
+                Diagnostic(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable, @"[field: System.Obsolete(""obsolete"", error: true)]").WithArguments("7.2", "7.3").WithLocation(11, 5)
+                );
+        }
+
+        [Fact]
         public void TestFieldAttributesOnAutoProperty()
         {
             string source = @"

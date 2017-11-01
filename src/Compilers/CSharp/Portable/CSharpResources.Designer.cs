@@ -11556,6 +11556,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater..
+        /// </summary>
+        internal static string WRN_AttributesOnBackingFieldsNotAvailable {
+            get {
+                return ResourceManager.GetString("WRN_AttributesOnBackingFieldsNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field-targeted attributes on auto-properties are not supported in this version of the language..
+        /// </summary>
+        internal static string WRN_AttributesOnBackingFieldsNotAvailable_Title {
+            get {
+                return ResourceManager.GetString("WRN_AttributesOnBackingFieldsNotAvailable_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Possible unintended reference comparison; to get a value comparison, cast the left hand side to type &apos;{0}&apos;.
         /// </summary>
         internal static string WRN_BadRefCompareLeft {

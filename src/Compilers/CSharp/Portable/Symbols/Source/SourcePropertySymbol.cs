@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -393,8 +394,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, location, this);
             }
 
+            CheckForFieldTargetedAttribute(_isAutoProperty, syntax, diagnostics);
+
             CheckForBlockAndExpressionBody(
                 syntax.AccessorList, syntax.GetExpressionBodySyntax(), syntax, diagnostics);
+        }
+
+        private void CheckForFieldTargetedAttribute(bool isAutoProperty, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        {
+            var languageVersion = this.DeclaringCompilation.LanguageVersion;
+            if (!isAutoProperty || languageVersion.AllowAttributesOnBackingFields())
+            {
+                return;
+            }
+
+            foreach (var attribute in syntax.AttributeLists)
+            {
+                if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                {
+                    diagnostics.Add(
+                        new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
+                            languageVersion.ToDisplayString(),
+                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
+                        attribute.Location);
+                }
+            }
         }
 
         internal bool IsExpressionBodied
