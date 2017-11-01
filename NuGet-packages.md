@@ -10,7 +10,7 @@ Once installed, this package requires Microsoft Build Tools 2015.
 
 ## Versioning
 
-- Versions `1.x` mean C# 6.0 (Visual Studio 2015 and updates). For instance, `1.3.2` corresponds to the most recent update (update 3) of Visual Studio 2015.
+- Versions `1.x` mean C# 6.0 and VB 14 (Visual Studio 2015 and updates). For instance, `1.3.2` corresponds to the most recent update (update 3) of Visual Studio 2015.
 - Version `2.0` means C# 7.0 and VB 15 (Visual Studio 2017 version 15.0).
 - Version `2.1` is still C# 7.0, but with a couple fixes (Visual Studio 2017 version 15.1).
 - Version `2.2` is still C# 7.0, but with a couple more fixes (Visual Studio 2017 version 15.2).
