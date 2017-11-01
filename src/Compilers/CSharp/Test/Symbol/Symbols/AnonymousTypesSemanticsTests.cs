@@ -1611,7 +1611,7 @@ public class Program
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
+        [Fact, WorkItem(22588, "https://github.com/dotnet/roslyn/issues/22588")]
         public void AnonymousTypeSymbols_ErrorCases()
         {
             string source = @"
