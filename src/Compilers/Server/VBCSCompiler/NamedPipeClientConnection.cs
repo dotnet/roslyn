@@ -156,11 +156,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 var serverIdentity = GetIdentity(impersonating: false);
 
-                Tuple<string, bool> clientIdentity = null;
+                (string name, bool admin) clientIdentity = default;
                 pipeStream.RunAsClient(() => { clientIdentity = GetIdentity(impersonating: true); });
 
-                CompilerServerLogger.Log($"Server identity = '{serverIdentity.Item1}', server elevation='{serverIdentity.Item2}'.");
-                CompilerServerLogger.Log($"Client identity = '{clientIdentity.Item1}', client elevation='{serverIdentity.Item2}'.");
+                CompilerServerLogger.Log($"Server identity = '{serverIdentity.name}', server elevation='{serverIdentity.admin}'.");
+                CompilerServerLogger.Log($"Client identity = '{clientIdentity.name}', client elevation='{serverIdentity.admin}'.");
 
                 return
                     StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.Item1, clientIdentity.Item1) &&
@@ -175,12 +175,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Return the current user name and whether the current user is in the administrator role.
         /// </summary>
-        private static Tuple<string, bool> GetIdentity(bool impersonating)
+        private static (string name, bool admin) GetIdentity(bool impersonating)
         {
             WindowsIdentity currentIdentity = WindowsIdentity.GetCurrent(impersonating);
             WindowsPrincipal currentPrincipal = new WindowsPrincipal(currentIdentity);
             var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
-            return Tuple.Create(currentIdentity.Name, elevatedToAdmin);
+            return (currentIdentity.Name, elevatedToAdmin);
         }
 
         public override void Close()

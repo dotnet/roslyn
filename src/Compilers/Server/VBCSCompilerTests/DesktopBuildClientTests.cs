@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public bool TryConnectToNamedPipeWithSpinWait(int timeoutMs, CancellationToken cancellationToken)
             {
-                using (var pipeStream = new NamedPipeClientStream(".", _pipeName, PipeDirection.InOut, PipeOptions.Asynchronous))
+                using (var pipeStream = BuildServerConnection.TryConnectToServerAsync(_pipeName, timeoutMs, cancellationToken).Result)
                 {
-                    return BuildServerConnection.TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken);
+                    return pipeStream != null;
                 }
             }
         }

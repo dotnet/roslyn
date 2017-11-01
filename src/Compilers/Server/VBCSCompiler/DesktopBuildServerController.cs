@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        protected override Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout)
+        protected override async Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout)
         {
-            return Task.FromResult<Stream>(BuildServerConnection.TryConnectToServer(pipeName, timeout, cancellationToken: default));
+            return await BuildServerConnection.TryConnectToServerAsync(pipeName, timeout, cancellationToken: default).ConfigureAwait(false);
         }
 
         protected override string GetDefaultPipeName()

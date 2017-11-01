@@ -81,19 +81,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <see cref="ManagedCompiler.HasToolBeenOverridden"/>.
         /// </remarks>
         protected sealed override string ToolName
-        {
-            get
-            {
-                if (CoreClrShim.IsRunningOnCoreClr)
-                {
-                    return $"{ToolNameWithoutExtension}.dll";
-                }
-                else
-                {
-                    return $"{ToolNameWithoutExtension}.exe";
-                }
-            }
-        }
+            => $"{ToolNameWithoutExtension}.{(CoreClrShim.IsRunningOnCoreClr ? "dll" : "exe")}";
 
         private static bool IsCliHost(out string pathToDotnet)
         {

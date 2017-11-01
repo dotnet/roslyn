@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken: cancellationToken);
         }
 
-        internal static Task<BuildResponse> RunServerCompilationCore(
+        internal static async Task<BuildResponse> RunServerCompilationCore(
             RequestLanguage language,
             List<string> arguments,
             BuildPathsAlt buildPaths,
@@ -105,22 +105,22 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             if (pipeName == null)
             {
-                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+                return new RejectedBuildResponse();
             }
 
             if (buildPaths.TempDirectory == null)
             {
-                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+                return new RejectedBuildResponse();
             }
 
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
             var clientMutexName = GetClientMutexName(pipeName);
-            bool holdsMutex;
+            Task<NamedPipeClientStream> pipeTask = null;
             using (var clientMutex = new Mutex(initiallyOwned: true,
                                                name: clientMutexName,
-                                               createdNew: out holdsMutex))
+                                               createdNew: out var holdsMutex))
             {
                 try
                 {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                             if (!holdsMutex)
                             {
-                                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+                                return new RejectedBuildResponse();
                             }
                         }
                         catch (AbandonedMutexException)
@@ -146,25 +146,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                     var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
-                    NamedPipeClientStream pipe = null;
-
                     if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
                     {
-                        pipe = TryConnectToServer(pipeName,
-                                                  timeout,
-                                                  cancellationToken);
-                    }
-
-                    if (pipe != null)
-                    {
-                        var request = BuildRequest.Create(language,
-                                                          buildPaths.WorkingDirectory,
-                                                          buildPaths.TempDirectory,
-                                                          arguments,
-                                                          keepAlive,
-                                                          libEnvVariable);
-
-                        return TryCompile(pipe, request, cancellationToken);
+                        pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
                     }
                 }
                 finally
@@ -176,7 +160,23 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
             }
 
-            return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+            if (pipeTask != null)
+            {
+                var pipe = await pipeTask.ConfigureAwait(false);
+                if (pipe != null)
+                {
+                    var request = BuildRequest.Create(language,
+                                                      buildPaths.WorkingDirectory,
+                                                      buildPaths.TempDirectory,
+                                                      arguments,
+                                                      keepAlive,
+                                                      libEnvVariable);
+
+                    return await TryCompile(pipe, request, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return new RejectedBuildResponse();
         }
 
         /// <summary>
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// An open <see cref="NamedPipeClientStream"/> to the server process or null on failure.
         /// </returns>
-        internal static NamedPipeClientStream TryConnectToServer(
+        internal static async Task<NamedPipeClientStream> TryConnectToServerAsync(
             string pipeName,
             int timeoutMs,
             CancellationToken cancellationToken)
@@ -302,8 +302,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Log("Attempt to connect named pipe '{0}'", pipeName);
-                if (!TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken))
+                try
                 {
+                    await pipeStream.ConnectAsync(timeoutMs, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e) when (e is IOException || e is TimeoutException)
+                {
+                    // Note: IOException can also indicate timeout. From docs:
+                    // TimeoutException: Could not connect to the server within the
+                    //                   specified timeout period.
+                    // IOException: The server is connected to another client and the
+                    //              time-out period has expired.
+
                     Log($"Connecting to server timed out after {timeoutMs} ms");
                     return null;
                 }
@@ -325,56 +335,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 LogException(e, "Exception while connecting to process");
                 return null;
             }
-        }
-
-        internal static bool TryConnectToNamedPipeWithSpinWait(NamedPipeClientStream pipeStream,
-                                                               int timeoutMs,
-                                                               CancellationToken cancellationToken)
-        {
-            Debug.Assert(timeoutMs == Timeout.Infinite || timeoutMs > 0);
-
-            // .NET 4.5 implementation of NamedPipeStream.Connect busy waits the entire time.
-            // Work around is to spin wait.
-            const int maxWaitIntervalMs = 50;
-            int elapsedMs = 0;
-            var sw = new SpinWait();
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                int waitTime;
-                if (timeoutMs == Timeout.Infinite)
-                {
-                    waitTime = maxWaitIntervalMs;
-                }
-                else
-                {
-                    waitTime = Math.Min(timeoutMs - elapsedMs, maxWaitIntervalMs);
-                    if (waitTime <= 0)
-                    {
-                        return false;
-                    }
-                }
-
-                try
-                {
-                    pipeStream.Connect(waitTime);
-                    break;
-                }
-                catch (Exception e) when (e is IOException || e is TimeoutException)
-                {
-                    // Ignore timeout
-
-                    // Note: IOException can also indicate timeout. From docs:
-                    // TimeoutException: Could not connect to the server within the
-                    //                   specified timeout period.
-                    // IOException: The server is connected to another client and the
-                    //              time-out period has expired.
-                }
-                unchecked { elapsedMs += waitTime; }
-                sw.SpinOnce();
-            }
-            return true;
         }
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)

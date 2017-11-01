@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal static async Task<BuildResponse> Send(string pipeName, BuildRequest request)
         {
-            using (var client = BuildServerConnection.TryConnectToServer(pipeName, Timeout.Infinite, cancellationToken: default))
+            using (var client = await BuildServerConnection.TryConnectToServerAsync(pipeName, Timeout.Infinite, cancellationToken: default).ConfigureAwait(false))
             {
-                await request.WriteAsync(client);
-                return await BuildResponse.ReadAsync(client);
+                await request.WriteAsync(client).ConfigureAwait(false);
+                return await BuildResponse.ReadAsync(client).ConfigureAwait(false);
             }
         }
 
