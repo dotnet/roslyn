@@ -60,7 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // track context changes
                 _registration = Workspace.GetWorkspaceRegistration(_subjectBuffer.AsTextContainer());
                 _registration.WorkspaceChanged += OnWorkspaceChanged;
-                _registration.Workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+
+                if (_registration.Workspace != null)
+                {
+                    // in unit test, it is possible, we create tagger for buffer which doesn't have associated document
+                    _registration.Workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+                }
 
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
                 _currentDocumentId = document?.Id;
@@ -200,20 +205,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                // special case events from preview workspace, when workspace goes away, we gets a lot of
-                // events. unlike regular workspace, preview workspace can get created and disposed many times
-                // within short amount of times. current design of tagger where we push every manipulation of states
-                // to UI thread can cause big issue for preview workspace. either we move back to old implementation 
-                // where we specialize tagger for preview window that doesn't require any of this complex states, 
-                // or we need to do this to cut down events.
-                if (e.Workspace is Shared.Preview.PreviewWorkspace &&
-                    e.Diagnostics.Length == 0)
-                {
-                    // we never need to clean up diagnostics 
-                    // since preview window is read only and never change
-                    return;
-                }
-
                 lock (_taskGate)
                 {
                     if (e.DocumentId != _currentDocumentId)
@@ -256,15 +247,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
 
                 // if context changed, reset currentDocumentId;
-                _currentDocumentId = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext()?.Id;
+                var documentId = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext()?.Id;
+                ResetCurrentDocumentIdIfNecessary(documentId);
             }
 
             private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
             {
                 this.AssertIsForeground();
 
-                // set right currentDocumentId
-                _currentDocumentId = e.NewActiveContextDocumentId;
+                // reset currentDocumentId if needed
+                ResetCurrentDocumentIdIfNecessary(e.NewActiveContextDocumentId);
             }
 
             /// <summary>
@@ -295,15 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // Do some quick checks to avoid doing any further work for diagnostics  we don't
                 // care about.
                 var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-                var ourDocumentId = ourDocument?.Id;
-                if (ourDocumentId != _currentDocumentId)
-                {
-                    // Our buffer has started tracking some other document entirely.
-                    // We have to clear out all of the diagnostics we have currently stored.
-                    RemoveAllCachedDiagnostics();
-                }
-
-                _currentDocumentId = ourDocumentId;
+                ResetCurrentDocumentIdIfNecessary(ourDocument?.Id);
 
                 // Now see if the document we're tracking corresponds to the diagnostics
                 // we're hearing about.  If not, just ignore them.
@@ -376,6 +360,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
 
                 OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
+            }
+
+            private void ResetCurrentDocumentIdIfNecessary(DocumentId documentId)
+            {
+                AssertIsForeground();
+
+                if (documentId != _currentDocumentId)
+                {
+                    // Our buffer has started tracking some other document entirely.
+                    // We have to clear out all of the diagnostics we have currently stored.
+                    RemoveAllCachedDiagnostics();
+                }
+
+                _currentDocumentId = documentId;
             }
 
             private void ProcessRemovedDiagnostics(DiagnosticsUpdatedArgs e)

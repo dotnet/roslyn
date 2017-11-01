@@ -97,15 +97,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 }
             }
 
-            public async void Unregister(Workspace workspace, bool blockingShutdown = false)
+            public void Unregister(Workspace workspace, bool blockingShutdown = false)
             {
                 Contract.ThrowIfFalse(workspace == _workspace);
                 _source.Cancel();
 
-                // wait for analyzer work to be finished
-                await _analyzeTask.ConfigureAwait(false);
-
-                // ask it to reset its stages for the given workspace
+                // let analyzer service know that we are done with this workspace
                 _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
             }
 

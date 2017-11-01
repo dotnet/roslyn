@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Export(typeof(IDiagnosticService)), Shared]
     internal partial class DiagnosticService : IDiagnosticService
     {
-        private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
-
+        private const string DiagnosticsUpdatedEventName = nameof(DiagnosticsUpdated);
         private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
 
         private readonly IAsynchronousOperationListener _listener;

@@ -10,5 +10,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             // do nothing
         }
+
+        public void Shutdown(IDiagnosticUpdateSource source, Workspace workspace)
+        {
+            // do nothing
+        }
     }
 }

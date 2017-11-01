@@ -16,18 +16,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
 
         // use eventMap and taskQueue to serialize events
+        private readonly IDiagnosticUpdateSourceRegistrationService _registrationService;
         private readonly EventMap _eventMap;
         private readonly SimpleTaskQueue _eventQueue;
 
         private DiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService) : this()
         {
+            _registrationService = registrationService;
             _eventMap = new EventMap();
 
             // use diagnostic event task scheduler so that we never flood async events queue with million of events.
             // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
             _eventQueue = new SimpleTaskQueue(s_eventScheduler);
 
-            registrationService.Register(this);
+            _registrationService.Register(this);
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated

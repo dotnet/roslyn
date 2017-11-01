@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -30,6 +31,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _updateSources = _updateSources.Add(source);
                 source.DiagnosticsUpdated += OnDiagnosticsUpdated;
             }
+        }
+
+        public void Shutdown(IDiagnosticUpdateSource source, Workspace workspace)
+        {
+            var eventToken = _listener.BeginAsyncOperation(nameof(Shutdown));
+            _eventQueue.ScheduleTask(() =>
+            {
+                lock (_gate)
+                {
+                    if (!_map.TryGetValue(source, out var workspaceMap))
+                    {
+                        return;
+                    }
+
+                    // remove all data about the workspace from the given source
+                    workspaceMap.Remove(workspace);
+                }
+            }).CompletesAsyncOperation(eventToken);
         }
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -11,13 +12,16 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
@@ -26,7 +30,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
-    public class ErrorSquiggleProducerTests 
+    public class ErrorSquiggleProducerTests
     {
         private readonly DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>();
 
@@ -170,7 +174,8 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class"))
+            // we need export with workspace waiter since unregister text caused by close document is now async event
+            using (var workspace = TestWorkspace.CreateCSharp("class", exportProvider: s_exportProvider))
             using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -200,7 +205,8 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class"))
+            // we need export with workspace waiter since unregister text caused by close document is now async event
+            using (var workspace = TestWorkspace.CreateCSharp("class", exportProvider: s_exportProvider))
             using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -309,6 +315,28 @@ class Program
             {
                 return (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
             }
+        }
+
+        [Shared]
+        [Export(typeof(IAsynchronousOperationListener))]
+        [Export(typeof(IAsynchronousOperationWaiter))]
+        [Feature(FeatureAttribute.Workspace)]
+        private class WorkspaceWaiter : AsynchronousOperationListener
+        {
+            internal WorkspaceWaiter()
+            {
+            }
+        }
+
+        private static ExportProvider s_exportProvider = CreateExportProvider();
+
+        private static ExportProvider CreateExportProvider()
+        {
+            var catalog = MinimalTestExportProvider.WithPart(
+                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic(),
+                typeof(WorkspaceWaiter));
+
+            return MinimalTestExportProvider.CreateExportProvider(catalog);
         }
     }
 }
