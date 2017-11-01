@@ -3237,6 +3237,26 @@ public void M()
 }");
         }
 
+        [Fact]
+        public void TestLocalFunctionDeclaration()
+        {
+            var text = 
+@"public class C
+{
+    public static void F()
+    {
+        int localF() => 1;      
+    }
+}";
+
+            var ws = new AdhocWorkspace();
+            var generator = SyntaxGenerator.GetGenerator(ws, LanguageNames.CSharp);
+            var root = SyntaxFactory.ParseCompilationUnit(text);
+            var decl = generator.GetDeclaration(root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().First(vd => vd.Identifier.Text == "localF"));
+
+            Assert.Equal(DeclarationKind.LocalFunction, _g.GetDeclarationKind(decl));
+        }
+
         [WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
