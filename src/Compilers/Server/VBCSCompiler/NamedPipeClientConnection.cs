@@ -163,12 +163,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CompilerServerLogger.Log($"Client identity = '{clientIdentity.name}', client elevation='{serverIdentity.admin}'.");
 
                 return
-                    StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.Item1, clientIdentity.Item1) &&
-                    serverIdentity.Item2 == clientIdentity.Item2;
+                    StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.name, clientIdentity.name) &&
+                    serverIdentity.admin == clientIdentity.admin;
             }
             else
             {
-                return pipeStream.GetImpersonationUserName() == Environment.UserName;
+                return BuildServerConnection.CheckIdentityUnix(pipeStream);
             }
         }
 

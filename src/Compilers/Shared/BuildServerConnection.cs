@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -13,6 +14,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
@@ -454,11 +456,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
                 else
                 {
-                    // TODO(ashauck)
-                    // NamedPipeServerStream exposes GetImpersonationUserName,
-                    // which the underlying linux APIs exist for client streams too,
-                    // but it's not exposed.
-                    return true;
+                    return CheckIdentityUnix(pipeStream);
                 }
             }
             catch (Exception ex)
@@ -467,6 +465,38 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
         }
+
+#if NETSTANDARD1_3
+        internal static bool CheckIdentityUnix(PipeStream stream)
+        {
+            // Identity verification is unavailable in the MSBuild task,
+            // but verification is not needed client-side so that's okay.
+            // (unavailable due to lack of internal reflection capabilities in netstandard1.3)
+            return true;
+        }
+#else
+        [DllImport("System.Native", EntryPoint = "SystemNative_GetEUid")]
+        private static extern uint GetEUid();
+
+        [DllImport("System.Native", EntryPoint = "SystemNative_GetPeerID", SetLastError = true)]
+        private static extern int GetPeerID(SafeHandle socket, out uint euid);
+
+        internal static bool CheckIdentityUnix(PipeStream stream)
+        {
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var handle = (SafePipeHandle)typeof(PipeStream).GetField("_handle", flags).GetValue(stream);
+            var handle2 = (SafeHandle)typeof(SafePipeHandle).GetField("_namedPipeSocketHandle", flags).GetValue(handle);
+
+            uint myID = GetEUid();
+
+            if (GetPeerID(handle, out uint peerID) == -1)
+            {
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+
+            return myID == peerID;
+        }
+#endif
 
         private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
         {
