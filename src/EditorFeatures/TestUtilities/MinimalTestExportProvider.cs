@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // EDITOR
 
                 // Microsoft.VisualStudio.Platform.VSEditor.dll:
-                typeof(Microsoft.VisualStudio.Platform.VSEditor.EventArgsHelper).Assembly,
+                Assembly.LoadFrom("Microsoft.VisualStudio.Platform.VSEditor.dll"),
 
                 // Microsoft.VisualStudio.Text.Logic.dll:
                 //   Must include this because several editor options are actually stored as exported information 
