@@ -23,4 +23,7 @@
   </ItemGroup>
 
   <Target Name="ValidateManifest" />
+
+  <!-- Disable automatic signing. This will be signed in the batch phase -->
+  <Target Name="AddTargetPathToFilesToSign" />
 </Project>
