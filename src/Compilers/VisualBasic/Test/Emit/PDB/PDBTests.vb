@@ -4549,7 +4549,7 @@ End Class"
             </asyncInfo>
         </method>
     </methods>
-</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
+</symbols>)
         End Sub
 
         <Fact>
@@ -4602,9 +4602,7 @@ End Class"
             </asyncInfo>
         </method>
     </methods>
-</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
+</symbols>)
         End Sub
-
     End Class
-
 End Namespace

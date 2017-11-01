@@ -105,13 +105,7 @@ source "${ROOT_PATH}"/build/scripts/obtain_dotnet.sh
 
 if [[ "${SKIP_RESTORE}" == false ]]
 then
-    RESTORE_ARGS="-v Minimal --disable-parallel"
-    echo "Restoring BaseToolset.csproj"
-    dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/build/ToolsetPackages/BaseToolset.csproj
-    echo "Restoring CoreToolset.csproj"
-    dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/build/ToolsetPackages/CoreToolset.csproj
-    echo "Restoring CrossPlatform.sln"
-    dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/CrossPlatform.sln
+    "${ROOT_PATH}"/build/scripts/restore.sh
 fi
 
 BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /maxcpucount:1"
@@ -125,8 +119,8 @@ dotnet publish "${ROOT_PATH}"/src/Compilers/Core/MSBuildTask -o "${BOOTSTRAP_PAT
 
 BUILD_ARGS+=" /bl:${BINARIES_PATH}/Build.binlog /p:BootstrapBuildPath=${BOOTSTRAP_PATH}"
 
-echo "Building CrossPlatform.sln"
-dotnet build "${ROOT_PATH}"/CrossPlatform.sln ${BUILD_ARGS}
+echo "Building Compilers.sln"
+dotnet build "${ROOT_PATH}"/Compilers.sln ${BUILD_ARGS}
 
 if [[ "${SKIP_TESTS}" == false ]]
 then
