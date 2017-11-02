@@ -170,8 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
             bool performNullChecks = false,
-            bool includeNonNullableWarnings = false)
-            : base(compilation, member, node, trackUnassignments: trackUnassignments)
+            bool includeNonNullableWarnings = false,
+            bool trackClassFields = false)
+            : base(compilation, member, node, trackUnassignments: trackUnassignments, trackClassFields: trackClassFields)
         {
             this.initiallyAssignedVariables = null;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
@@ -327,11 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;
 
-                            var sourceField = field as SourceMemberFieldSymbol;
-                            if (sourceField?.HasInitializer == true) continue;
-
-                            var backingField = field as SynthesizedBackingFieldSymbol;
-                            if (backingField?.HasInitializer == true) continue;
+                            if (HasInitializer(field)) continue;
 
                             int fieldSlot = VariableSlot(field, thisSlot);
                             if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
@@ -357,6 +354,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Diagnostics.Add(ErrorCode.ERR_ParamUnassigned, location, parameter.Name);
                 }
             }
+        }
+
+        protected static bool HasInitializer(FieldSymbol field)
+        {
+            return (field as SourceMemberFieldSymbol)?.HasInitializer == true ||
+                (field as SynthesizedBackingFieldSymbol)?.HasInitializer == true;
         }
 
         /// <summary>
@@ -849,7 +852,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingSlot;
         }
 
-
         private void NormalizeAssigned(ref LocalState state)
         {
             int oldNext = state.Assigned.Capacity;
@@ -857,7 +859,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = oldNext; i < nextVariableSlot; i++)
             {
                 var id = variableBySlot[i];
-                state.Assigned[i] = (id.ContainingSlot > 0) && state.Assigned[id.ContainingSlot];
+                int slot = id.ContainingSlot;
+                state.Assigned[i] = (slot > 0) &&
+                    state.Assigned[slot] &&
+                    variableBySlot[slot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct;
             }
         }
 
@@ -893,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var eventSymbol = eventAccess.EventSymbol;
                         var receiverOpt = eventAccess.ReceiverOpt;
                         if (eventSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression) return -1; // access of static event
-                        if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct) return -1; // event of non-struct
+                        if (!MayRequireTrackingReceiverType(receiverOpt.Type)) return -1;
                         if (!eventSymbol.HasAssociatedField) return -1;
                         int containingSlot = MakeSlot(receiverOpt);
                         return (containingSlot == -1) ? -1 : GetOrCreateSlot(eventSymbol.AssociatedField, containingSlot);
@@ -910,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 var receiverOpt = propAccess.ReceiverOpt;
                                 if (propSymbol.IsStatic || receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression) return -1; // access of static property
-                                if ((object)receiverOpt.Type == null || receiverOpt.Type.TypeKind != TypeKind.Struct) return -1; // property of non-struct
+                                if (!MayRequireTrackingReceiverType(receiverOpt.Type)) return -1;
                                 int containingSlot = MakeSlot(receiverOpt);
                                 return (containingSlot == -1) ? -1 : GetOrCreateSlot(backingField, containingSlot);
                             }
@@ -1815,15 +1820,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void EnterParameter(ParameterSymbol parameter)
         {
+            int slot = GetOrCreateSlot(parameter);
             if (parameter.RefKind == RefKind.Out && !this.currentMethodOrLambda.IsAsync) // out parameters not allowed in async
             {
-                int slot = GetOrCreateSlot(parameter);
                 if (slot > 0) SetSlotState(slot, initiallyAssignedVariables?.Contains(parameter) == true);
             }
             else
             {
                 // this code has no effect except in region analysis APIs such as DataFlowsOut where we unassign things
-                int slot = GetOrCreateSlot(parameter);
                 if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true);
 
