@@ -10,8 +10,8 @@
     <ScriptArgs Condition="'$(BUILD_SOURCEBRANCH)' != ''">$(ScriptArgs) -branch $(BUILD_SOURCEBRANCH)</ScriptArgs>
     <ScriptArgs Condition="'$(RoslynNuGetApiKey)' != ''">$(ScriptArgs) -myGetApiKey $(RoslynNuGetApiKey)</ScriptArgs>
     <ScriptArgs Condition="'$(RoslynGitHubToken)' != ''">$(ScriptArgs) -gitHubUserName $(RoslynGitHubUserName) -gitHubToken $(RoslynGitHubToken) -gitHubEmail $(RoslynGitHubEmail)</ScriptArgs>
-    <ScriptArgs Condition="'$(SkipTest)' != 'true'">$(ScriptArgs) -testDesktop</ScriptArgs>
-    <ScriptArgs Condition="'$(SkipPublish)' != 'true'">$(ScriptArgs) -publish</ScriptArgs>
+    <ScriptArgs Condition="'$(PB_SkipTests)' != 'true'">$(ScriptArgs) -testDesktop</ScriptArgs>
+    <ScriptArgs Condition="$(PB_PublishType.Contains('vsts'))">$(ScriptArgs) -publish</ScriptArgs>
   </PropertyGroup>
 
   <Target Name="Build">
