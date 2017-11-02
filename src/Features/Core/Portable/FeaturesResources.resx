@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1244,6 +1244,18 @@ This version used in: {2}</value>
   <data name="default_expression_can_be_simplified" xml:space="preserve">
     <value>'default' expression can be simplified</value>
   </data>
+  <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
+    <value>Format string contains invalid placeholder</value>
+  </data>
+  <data name="Invalid_format_string" xml:space="preserve">
+    <value>Invalid format string</value>
+  </data>
+  <data name="Use_inferred_member_name" xml:space="preserve">
+    <value>Use inferred member name</value>
+  </data>
+  <data name="Member_name_can_be_simplified" xml:space="preserve">
+    <value>Member name can be simplified</value>
+  </data>
   <data name="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
@@ -1264,5 +1276,62 @@ This version used in: {2}</value>
   </data>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>
+  </data>
+  <data name="Accessibility_modifiers_required" xml:space="preserve">
+    <value>Accessibility modifiers required</value>
+  </data>
+  <data name="Add_accessibility_modifiers" xml:space="preserve">
+    <value>Add accessibility modifiers</value>
+  </data>
+  <data name="Use_local_function" xml:space="preserve">
+    <value>Use local function</value>
+  </data>
+  <data name="Warning_colon_Declaration_changes_scope_and_may_change_meaning" xml:space="preserve">
+    <value>Warning: Declaration changes scope and may change meaning.</value>
+  </data>
+  <data name="Move_declaration_near_reference" xml:space="preserve">
+    <value>Move declaration near reference</value>
+  </data>
+  <data name="Convert_to_full_property" xml:space="preserve">
+    <value>Convert to full property</value>
+  </data>
+  <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
+    <value>Generate constructor in '{0}' (without fields)</value>
+  </data>
+  <data name="Add_file_banner" xml:space="preserve">
+    <value>Add file banner</value>
+  </data>
+  <data name="Warning_Method_overrides_symbol_from_metadata" xml:space="preserve">
+    <value>Warning: Method overrides symbol from metadata</value>
+  </data>
+  <data name="Use_0" xml:space="preserve">
+    <value>Use {0}</value>
+  </data>
+  <data name="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Switching between a lambda and a local function will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Deconstruct_variable_declaration" xml:space="preserve">
+    <value>Deconstruct variable declaration</value>
+  </data>
+  <data name="Variable_declaration_can_be_deconstructed" xml:space="preserve">
+    <value>Variable declaration can be deconstructed</value>
+  </data>
+  <data name="Add_argument_name_0_including_trailing_arguments" xml:space="preserve">
+    <value>Add argument name '{0}' (including trailing arguments)</value>
+  </data>
+  <data name="Using_readonly_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Using readonly structs will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Using_ref_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Using ref structs will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Using_readonly_references_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Using readonly references will prevent the debug session from continuing.</value>
+  </data>
+  <data name="local_function" xml:space="preserve">
+    <value>local function</value>
+  </data>
+  <data name="indexer_" xml:space="preserve">
+    <value>indexer</value>
   </data>
 </root>

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -456,7 +457,7 @@ namespace NS
 {
   public class Abc {}
 
-  public interface IFoo<T>
+  public interface IGoo<T>
   {
     void M(ref T t);
   }
@@ -480,18 +481,18 @@ using System.Collections.Generic;
 
 namespace NS.NS1
 {
-  public class Impl : I2, IFoo<string>, I1
+  public class Impl : I2, IGoo<string>, I1
   {
-    void IFoo<string>.M(ref string p) { }
+    void IGoo<string>.M(ref string p) { }
     void I1.M(ref string p) { }
     public int M1(short p1, params object[] ary) { return p1; }
     public void M21() {}
     public Abc M22(ref Abc p) { return p; }
   }
 
-  struct S<T>: IFoo<T>
+  struct S<T>: IGoo<T>
   {
-    void IFoo<T>.M(ref T t) {}
+    void IGoo<T>.M(ref T t) {}
   }
 }";
 
@@ -526,7 +527,7 @@ namespace NS.NS1
             var structImpl = ns1.GetTypeMembers("S").Single() as NamedTypeSymbol;
             Assert.Equal(1, structImpl.Interfaces.Length);
             itfc = structImpl.Interfaces.First() as NamedTypeSymbol;
-            Assert.Equal("NS.IFoo<T>", itfc.ToTestDisplayString());
+            Assert.Equal("NS.IGoo<T>", itfc.ToTestDisplayString());
             //var mem2 = structImpl.GetMembers("M").Single() as MethodSymbol;
             // not impl
             // Assert.Equal(1, mem2.ExplicitInterfaceImplementation.Count());
@@ -537,7 +538,7 @@ namespace NS.NS1
         {
             var text = @"
 namespace MT  {
-    public interface IFoo  {
+    public interface IGoo  {
         void M0();
     }
 }
@@ -546,7 +547,7 @@ namespace MT  {
             var text1 = @"
 namespace N1  {
     using MT;
-    public abstract class Abc : IFoo  {
+    public abstract class Abc : IGoo  {
         public abstract void M0();
         public char M1;
         public abstract object M2(ref object p1);
@@ -708,7 +709,7 @@ namespace N1.N2  {
         {
             var text = @"
 namespace MT  {
-    public interface IFoo  {
+    public interface IGoo  {
         void M0();
     }
 }
@@ -717,7 +718,7 @@ namespace MT  {
             var text1 = @"
 namespace N1  {
     using MT;
-    public abstract class Abc : IFoo  {
+    public abstract class Abc : IGoo  {
         public abstract void M0();
         public char M1;
         public abstract object M2(ref object p1);
@@ -1291,7 +1292,7 @@ interface ISubFuncProp
 
 interface Interface3
 {
-   System.Collections.Generic.List<ISubFuncProp> Foo();
+   System.Collections.Generic.List<ISubFuncProp> Goo();
 }
 
 interface Interface3Derived : Interface3
@@ -1300,12 +1301,12 @@ interface Interface3Derived : Interface3
 
 public class DerivedClass : Interface3Derived
 {
-  System.Collections.Generic.List<ISubFuncProp> Interface3.Foo()
+  System.Collections.Generic.List<ISubFuncProp> Interface3.Goo()
   {
     return null;
   }
 
-  System.Collections.Generic.List<ISubFuncProp> Foo()
+  System.Collections.Generic.List<ISubFuncProp> Goo()
   {
     return null;
   }
@@ -2174,6 +2175,24 @@ static class C
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningVoidMethod()
+        {
+            var source = @"
+static class C
+{
+    static ref readonly void M() { }
+}
+";
+
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (4,25): error CS1547: Keyword 'void' cannot be used in this context
+                //     static ref readonly void M() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
         public void RefReturningVoidMethodNested()
         {
             var source = @"
@@ -2186,8 +2205,7 @@ static class C
 }
 ";
 
-            var parseOptions = TestOptions.Regular;
-            CreateCompilationWithMscorlib45(source, parseOptions: parseOptions).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (6,13): error CS1547: Keyword 'void' cannot be used in this context
                 //         ref void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
@@ -2195,6 +2213,34 @@ static class C
                 //         ref void M() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(6, 18)
                 );
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningVoidMethodNested()
+        {
+            var source = @"
+static class C
+{
+    static void Main()
+    {
+        // valid
+        ref readonly int M1() {throw null;}
+
+        // not valid
+        ref readonly void M2() {M1(); throw null;}
+
+        M2();
+    }
+}
+";
+
+            var parseOptions = TestOptions.Regular;
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (10,22): error CS1547: Keyword 'void' cannot be used in this context
+                //         ref readonly void M2() {M1(); throw null;}
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(10, 22)
+            );
         }
 
         [Fact]
@@ -2217,6 +2263,30 @@ static class C
                 // (4,26): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26)
+                );
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningAsyncMethod()
+        {
+            var source = @"
+static class C
+{
+    static async ref readonly int M() { }
+}
+";
+
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (4,18): error CS1073: Unexpected token 'ref'
+                //     static async ref readonly int M() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
+                // (4,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async ref readonly int M() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 35),
+                // (4,35): error CS0161: 'C.M()': not all code paths return a value
+                //     static async ref readonly int M() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
                 );
         }
     }

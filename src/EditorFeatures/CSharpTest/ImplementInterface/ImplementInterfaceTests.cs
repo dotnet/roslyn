@@ -51,29 +51,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool ignoreTrivia = true,
-            ParseOptions parseOptions = null)
+            int index = 0, ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, ignoreTrivia, options: AllOptionsOff);
+                index, options: AllOptionsOff);
         }
 
         internal async Task TestWithAllCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool compareTokens = true,
-            ParseOptions parseOptions = null)
+            int index = 0, ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: AllOptionsOn);
+                index, options: AllOptionsOn);
         }
 
         internal async Task TestWithAccessorCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool compareTokens = true,
-            ParseOptions parseOptions = null)
+            int index = 0, ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
-                index, compareTokens, options: AccessorOptionsOn);
+                index, options: AccessorOptionsOn);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -213,7 +210,8 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}" + s_tupleElementNamesAttribute);
+}
+" + s_tupleElementNamesAttribute);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -241,7 +239,8 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}" + s_tupleElementNamesAttribute,
+}
+" + s_tupleElementNamesAttribute,
 index: 1);
         }
 
@@ -278,7 +277,8 @@ class Class : IInterface
             throw new System.NotImplementedException();
         }
     }
-}" + s_tupleElementNamesAttribute);
+}
+" + s_tupleElementNamesAttribute);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -303,7 +303,8 @@ class Class : [|IInterface|]
 class Class : IInterface
 {
     public event Func<(int a, int b)> Event1;
-}" + s_tupleElementNamesAttribute);
+}
+" + s_tupleElementNamesAttribute);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -355,7 +356,8 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}");
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -374,8 +376,7 @@ interface IInterface2 : IInterface1
 class Class : [|IInterface2|]
 {
 }",
-@"
-interface IInterface1
+@"interface IInterface1
 {
     void Method1();
 }
@@ -736,23 +737,23 @@ index: 1);
         public async Task TestImplementThroughFieldMemberInterfaceWithIndexer()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"interface IFoo
+@"interface IGoo
 {
     int this[int x] { get; set; }
 }
 
-class Foo : [|IFoo|]
+class Goo : [|IGoo|]
 {
-    IFoo f;
+    IGoo f;
 }",
-@"interface IFoo
+@"interface IGoo
 {
     int this[int x] { get; set; }
 }
 
-class Foo : IFoo
+class Goo : IGoo
 {
-    IFoo f;
+    IGoo f;
 
     public int this[int x]
     {
@@ -850,7 +851,7 @@ index: 1);
             await TestWithAllCodeStyleOptionsOffAsync(
 @"class C : [|I|]
 {
-    I foo;
+    I goo;
 }
 
 interface I
@@ -860,16 +861,16 @@ interface I
 }",
 @"class C : I
 {
-    I foo;
+    I goo;
 
     public void Method1(ref int x, out int y, int z)
     {
-        foo.Method1(ref x, out y, z);
+        goo.Method1(ref x, out y, z);
     }
 
     public int Method2()
     {
-        return foo.Method2();
+        return goo.Method2();
     }
 }
 
@@ -1186,8 +1187,7 @@ public class A : DD
             throw new System.NotImplementedException();
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1232,11 +1232,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int Prop
-    {
-        get => throw new System.NotImplementedException();
-        }
-    }");
+    public int Prop { get => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1281,11 +1278,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int this[int i]
-    {
-        get => throw new System.NotImplementedException();
-        }
-    }");
+    public int this[int i] { get => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1330,7 +1324,7 @@ public class A : [|DD|]
 public class A : DD
 {
     public int Prop => throw new System.NotImplementedException();
-}", compareTokens: false);
+}");
         }
 
         [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
@@ -1353,11 +1347,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int Prop
-    {
-        get => throw new System.NotImplementedException();
-        }
-    }");
+    public int Prop { get => throw new System.NotImplementedException(); }
+}");
         }
 
         [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
@@ -1380,12 +1371,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int Prop
-    {
-        get => throw new System.NotImplementedException();
-        set => throw new System.NotImplementedException();
-        }
-    }");
+    public int Prop { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}");
         }
 
         [WorkItem(539522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539522")]
@@ -1460,12 +1447,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int this[int i]
-    {
-        get => throw new System.NotImplementedException();
-        set => throw new System.NotImplementedException();
-        }
-    }");
+    public int this[int i] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1487,11 +1470,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int this[int i]
-    {
-        get => throw new System.NotImplementedException();
-        }
-    }");
+    public int this[int i] { get => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1513,12 +1493,8 @@ public class A : [|DD|]
 
 public class A : DD
 {
-    public int this[int i]
-    {
-        get => throw new System.NotImplementedException();
-        set => throw new System.NotImplementedException();
-        }
-    }");
+    public int this[int i] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -1527,7 +1503,7 @@ public class A : DD
             await TestWithAllCodeStyleOptionsOffAsync(
 @"public interface DD
 {
-    void Foo();
+    void Goo();
 }
 public class A : [|DD|]
 {
@@ -1535,17 +1511,16 @@ public class A : [|DD|]
 }",
 @"public interface DD
 {
-    void Foo();
+    void Goo();
 }
 public class A : DD
 {
     //comments
-    public void Foo()
+    public void Goo()
     {
         throw new System.NotImplementedException();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(539991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539991")]
@@ -1563,8 +1538,7 @@ class C : IServiceProvider
         throw new NotImplementedException();
     }
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(540318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
@@ -2466,45 +2440,47 @@ count: 2);
         public async Task TestImplementEventThroughMember()
         {
             await TestInRegularAndScriptAsync(@"
-interface IFoo
+interface IGoo
 {
     event System.EventHandler E;
 }
 
-class CanFoo : IFoo
+class CanGoo : IGoo
 {
     public event EventHandler E;
 }
 
-class HasCanFoo : [|IFoo|]
+class HasCanGoo : [|IGoo|]
 {
-    CanFoo canFoo;
+    CanGoo canGoo;
 }",
 @"
 using System;
 
-interface IFoo
-{ 
-    event System.EventHandler E; 
+interface IGoo
+{
+    event System.EventHandler E;
 }
 
-class CanFoo : IFoo
-{ 
+class CanGoo : IGoo
+{
     public event EventHandler E;
 }
 
-class HasCanFoo : IFoo
-{ 
-    CanFoo canFoo;
+class HasCanGoo : IGoo
+{
+    CanGoo canGoo;
+
     public event EventHandler E
     {
         add
         {
-            ((IFoo)canFoo).E += value;
+            ((IGoo)canGoo).E += value;
         }
+
         remove
-        { 
-            ((IFoo)canFoo).E -= value;
+        {
+            ((IGoo)canGoo).E -= value;
         }
     }
 }", index: 1);
@@ -2514,8 +2490,24 @@ class HasCanFoo : IFoo
         public async Task TestImplementEventThroughExplicitMember()
         {
             await TestInRegularAndScriptAsync(
-@"interface IFoo { event System . EventHandler E ; } class CanFoo : IFoo { event IFoo.EventHandler E; } class HasCanFoo : [|IFoo|] { CanFoo canFoo; } ",
-@"using System ; interface IFoo { event System . EventHandler E ; } class CanFoo : IFoo { event IFoo.EventHandler E; } class HasCanFoo : IFoo { CanFoo canFoo; public event EventHandler E { add { ((IFoo)canFoo).E += value; } remove { ((IFoo)canFoo).E -= value; } } } ",
+@"interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event IGoo.EventHandler E; } class HasCanGoo : [|IGoo|] { CanGoo canGoo; } ",
+@"using System;
+
+interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event IGoo.EventHandler E; } class HasCanGoo : IGoo { CanGoo canGoo;
+
+    public event EventHandler E
+    {
+        add
+        {
+            ((IGoo)canGoo).E += value;
+        }
+
+        remove
+        {
+            ((IGoo)canGoo).E -= value;
+        }
+    }
+} ",
 index: 1);
         }
 
@@ -2523,21 +2515,22 @@ index: 1);
         public async Task TestImplementEvent()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"interface IFoo
+@"interface IGoo
 {
     event System.EventHandler E;
 }
 
-abstract class Foo : [|IFoo|]
+abstract class Goo : [|IGoo|]
 {
 }",
 @"using System;
-interface IFoo
+
+interface IGoo
 {
     event System.EventHandler E;
 }
 
-abstract class Foo : IFoo
+abstract class Goo : IGoo
 {
     public event EventHandler E;
 }",
@@ -2548,22 +2541,22 @@ index: 0);
         public async Task TestImplementEventAbstractly()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"interface IFoo
+@"interface IGoo
 {
     event System.EventHandler E;
 }
 
-abstract class Foo : [|IFoo|]
+abstract class Goo : [|IGoo|]
 {
 }",
 @"using System;
 
-interface IFoo
+interface IGoo
 {
     event System.EventHandler E;
 }
 
-abstract class Foo : IFoo
+abstract class Goo : IGoo
 {
     public abstract event EventHandler E;
 }",
@@ -2574,24 +2567,24 @@ index: 1);
         public async Task TestImplementEventExplicitly()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"interface IFoo
+@"interface IGoo
 {
     event System.EventHandler E;
 }
 
-abstract class Foo : [|IFoo|]
+abstract class Goo : [|IGoo|]
 {
 }",
 @"using System;
 
-interface IFoo
+interface IGoo
 {
     event System.EventHandler E;
 }
 
-abstract class Foo : IFoo
+abstract class Goo : IGoo
 {
-    event EventHandler IFoo.E
+    event EventHandler IGoo.E
     {
         add
         {
@@ -2611,24 +2604,24 @@ index: 2);
         public async Task TestFaultToleranceInStaticMembers()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"interface IFoo
+@"interface IGoo
 {
     static string Name { set; get; }
 
-    static int Foo(string s);
+    static int Goo(string s);
 }
 
-class Program : [|IFoo|]
+class Program : [|IGoo|]
 {
 }",
-@"interface IFoo
+@"interface IGoo
 {
     static string Name { set; get; }
 
-    static int Foo(string s);
+    static int Goo(string s);
 }
 
-class Program : IFoo
+class Program : IGoo
 {
     public string Name
     {
@@ -2643,7 +2636,7 @@ class Program : IFoo
         }
     }
 
-    public int Foo(string s)
+    public int Goo(string s)
     {
         throw new System.NotImplementedException();
     }
@@ -2755,7 +2748,7 @@ class IndexerClass : ISomeInterface
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo<T>() where T : class;
+    void Goo<T>() where T : class;
 }
 
 class A : [|I|]
@@ -2763,12 +2756,12 @@ class A : [|I|]
 }",
 @"interface I
 {
-    void Foo<T>() where T : class;
+    void Goo<T>() where T : class;
 }
 
 class A : I
 {
-    public void Foo<T>() where T : class
+    public void Goo<T>() where T : class
     {
         throw new System.NotImplementedException();
     }
@@ -2782,7 +2775,7 @@ class A : I
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo<T>() where T : class;
+    void Goo<T>() where T : class;
 }
 
 class A : [|I|]
@@ -2790,12 +2783,12 @@ class A : [|I|]
 }",
 @"interface I
 {
-    void Foo<T>() where T : class;
+    void Goo<T>() where T : class;
 }
 
 class A : I
 {
-    void I.Foo<T>()
+    void I.Goo<T>()
     {
         throw new System.NotImplementedException();
     }
@@ -2810,21 +2803,22 @@ index: 1);
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo<T>() where T : System.Attribute;
+    void Goo<T>() where T : System.Attribute;
 }
 
 class A : [|I|]
 {
 }",
 @"using System;
+
 interface I
 {
-    void Foo<T>() where T : System.Attribute;
+    void Goo<T>() where T : System.Attribute;
 }
 
 class A : I
 {
-    public void Foo<T>() where T : Attribute
+    public void Goo<T>() where T : Attribute
     {
         throw new NotImplementedException();
     }
@@ -2875,7 +2869,7 @@ class C : I
 
 interface I
 {
-    void Foo<T>() where T : IComparable<T>;
+    void Goo<T>() where T : IComparable<T>;
 }
 
 class C : [|I|]
@@ -2885,12 +2879,12 @@ class C : [|I|]
 
 interface I
 {
-    void Foo<T>() where T : IComparable<T>;
+    void Goo<T>() where T : IComparable<T>;
 }
 
 class C : I
 {
-    public void Foo<T>() where T : IComparable<T>
+    public void Goo<T>() where T : IComparable<T>
     {
         throw new NotImplementedException();
     }
@@ -2906,7 +2900,7 @@ class C : I
 
 interface I
 {
-    void Foo<T>() where T : IComparable<T>;
+    void Goo<T>() where T : IComparable<T>;
 }
 
 class C : [|I|]
@@ -2916,12 +2910,12 @@ class C : [|I|]
 
 interface I
 {
-    void Foo<T>() where T : IComparable<T>;
+    void Goo<T>() where T : IComparable<T>;
 }
 
 class C : I
 {
-    void I.Foo<T>()
+    void I.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -2936,7 +2930,7 @@ index: 1);
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : [|I<string>|]
@@ -2944,12 +2938,12 @@ class A : [|I<string>|]
 }",
 @"interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : I<string>
 {
-    void I<string>.Foo<T>()
+    void I<string>.Goo<T>()
     {
         throw new System.NotImplementedException();
     }
@@ -2963,7 +2957,7 @@ class A : I<string>
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : [|I<object>|]
@@ -2971,12 +2965,12 @@ class A : [|I<object>|]
 }",
 @"interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : I<object>
 {
-    public void Foo<T>() where T : class
+    public void Goo<T>() where T : class
     {
         throw new System.NotImplementedException();
     }
@@ -2990,7 +2984,7 @@ class A : I<object>
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : [|I<object>|]
@@ -2998,12 +2992,12 @@ class A : [|I<object>|]
 }",
 @"interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : I<object>
 {
-    void I<object>.Foo<T>()
+    void I<object>.Goo<T>()
     {
         throw new System.NotImplementedException();
     }
@@ -3020,7 +3014,7 @@ index: 1);
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : [|I<Delegate>|]
@@ -3030,12 +3024,12 @@ class A : [|I<Delegate>|]
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : I<Delegate>
 {
-    void I<Delegate>.Foo<T>()
+    void I<Delegate>.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -3051,7 +3045,7 @@ class A : I<Delegate>
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : [|I<MulticastDelegate>|]
@@ -3061,12 +3055,12 @@ class A : [|I<MulticastDelegate>|]
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : I<MulticastDelegate>
 {
-    void I<MulticastDelegate>.Foo<T>()
+    void I<MulticastDelegate>.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -3082,7 +3076,7 @@ class A : I<MulticastDelegate>
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 delegate void Bar();
@@ -3094,14 +3088,14 @@ class A : [|I<Bar>|]
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 delegate void Bar();
 
 class A : I<Bar>
 {
-    void I<Bar>.Foo<T>()
+    void I<Bar>.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -3117,7 +3111,7 @@ class A : I<Bar>
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : [|I<Enum>|]
@@ -3127,12 +3121,12 @@ class A : [|I<Enum>|]
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : I<Enum>
 {
-    void I<Enum>.Foo<T>()
+    void I<Enum>.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -3148,7 +3142,7 @@ class A : I<Enum>
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : [|I<int[]>|]
@@ -3158,12 +3152,12 @@ class A : [|I<int[]>|]
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class A : I<int[]>
 {
-    void I<int[]>.Foo<T>()
+    void I<int[]>.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -3179,7 +3173,7 @@ class A : I<int[]>
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 enum E
@@ -3193,7 +3187,7 @@ class A : [|I<E>|]
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 enum E
@@ -3202,7 +3196,7 @@ enum E
 
 class A : I<E>
 {
-    void I<E>.Foo<T>()
+    void I<E>.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -3218,7 +3212,7 @@ class A : I<E>
 
 interface I<S>
 {
-    void Foo<T>() where T : S;
+    void Goo<T>() where T : S;
 }
 
 class A : [|I<ValueType>|]
@@ -3228,12 +3222,12 @@ class A : [|I<ValueType>|]
 
 interface I<S>
 {
-    void Foo<T>() where T : S;
+    void Goo<T>() where T : S;
 }
 
 class A : I<ValueType>
 {
-    void I<ValueType>.Foo<T>()
+    void I<ValueType>.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -3249,7 +3243,7 @@ class A : I<ValueType>
 
 interface I<S>
 {
-    void Foo<T>() where T : S;
+    void Goo<T>() where T : S;
 }
 
 class C : [|I<Array>|]
@@ -3259,12 +3253,12 @@ class C : [|I<Array>|]
 
 interface I<S>
 {
-    void Foo<T>() where T : S;
+    void Goo<T>() where T : S;
 }
 
 class C : I<Array>
 {
-    void I<Array>.Foo<T>()
+    void I<Array>.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -3280,7 +3274,7 @@ class C : I<Array>
 
 interface I<S>
 {
-    void Foo<T>() where T : Exception, S;
+    void Goo<T>() where T : Exception, S;
 }
 
 class C : [|I<Attribute>|]
@@ -3290,12 +3284,12 @@ class C : [|I<Attribute>|]
 
 interface I<S>
 {
-    void Foo<T>() where T : Exception, S;
+    void Goo<T>() where T : Exception, S;
 }
 
 class C : I<Attribute>
 {
-    void I<Attribute>.Foo<T>()
+    void I<Attribute>.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -3311,7 +3305,7 @@ class C : I<Attribute>
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class C : [|I<Exception>|]
@@ -3321,12 +3315,12 @@ class C : [|I<Exception>|]
 
 interface I<S>
 {
-    void Foo<T>() where T : class, S;
+    void Goo<T>() where T : class, S;
 }
 
 class C : I<Exception>
 {
-    void I<Exception>.Foo<T>()
+    void I<Exception>.Goo<T>()
     {
         throw new NotImplementedException();
     }
@@ -3343,7 +3337,7 @@ using System.Collections.Generic;
 
 interface I<T>
 {
-    void Foo<S>(T x, IList<S> list) where S : T;
+    void Goo<S>(T x, IList<S> list) where S : T;
 }
 
 class A<S> : [|I<S>|]
@@ -3354,12 +3348,12 @@ using System.Collections.Generic;
 
 interface I<T>
 {
-    void Foo<S>(T x, IList<S> list) where S : T;
+    void Goo<S>(T x, IList<S> list) where S : T;
 }
 
 class A<S> : I<S>
 {
-    public void Foo<S1>(S x, IList<S1> list) where S1 : S
+    public void Goo<S1>(S x, IList<S1> list) where S1 : S
     {
         throw new NotImplementedException();
     }
@@ -3376,7 +3370,7 @@ using System.Collections.Generic;
 
 interface I<T>
 {
-    void Foo<S>(T x, IList<S> list) where S : T;
+    void Goo<S>(T x, IList<S> list) where S : T;
 }
 
 class A<S> : [|I<S>|]
@@ -3387,12 +3381,12 @@ using System.Collections.Generic;
 
 interface I<T>
 {
-    void Foo<S>(T x, IList<S> list) where S : T;
+    void Goo<S>(T x, IList<S> list) where S : T;
 }
 
 class A<S> : I<S>
 {
-    void I<S>.Foo<S1>(S x, IList<S1> list)
+    void I<S>.Goo<S1>(S x, IList<S1> list)
     {
         throw new NotImplementedException();
     }
@@ -3410,7 +3404,7 @@ using System.Collections.Generic;
 
 interface I<X, Y>
 {
-    void Foo<A, B>(X x, Y y, IList<A> list1, IList<B> list2)
+    void Goo<A, B>(X x, Y y, IList<A> list1, IList<B> list2)
         where A : IList<B>
         where B : IList<A>;
 }
@@ -3423,14 +3417,14 @@ using System.Collections.Generic;
 
 interface I<X, Y>
 {
-    void Foo<A, B>(X x, Y y, IList<A> list1, IList<B> list2)
+    void Goo<A, B>(X x, Y y, IList<A> list1, IList<B> list2)
         where A : IList<B>
         where B : IList<A>;
 }
 
 class C<A, B> : I<A, B>
 {
-    public void Foo<A1, B1>(A x, B y, IList<A1> list1, IList<B1> list2)
+    public void Goo<A1, B1>(A x, B y, IList<A1> list1, IList<B1> list2)
         where A1 : IList<B1>
         where B1 : IList<A1>
     {
@@ -3449,7 +3443,7 @@ using System.Collections.Generic;
 
 interface I<X, Y>
 {
-    void Foo<A, B>(X x, Y y, IList<A> list1, IList<B> list2)
+    void Goo<A, B>(X x, Y y, IList<A> list1, IList<B> list2)
         where A : IList<B>
         where B : IList<A>;
 }
@@ -3462,14 +3456,14 @@ using System.Collections.Generic;
 
 interface I<X, Y>
 {
-    void Foo<A, B>(X x, Y y, IList<A> list1, IList<B> list2)
+    void Goo<A, B>(X x, Y y, IList<A> list1, IList<B> list2)
         where A : IList<B>
         where B : IList<A>;
 }
 
 class C<A, B> : I<A, B>
 {
-    void I<A, B>.Foo<A1, B1>(A x, B y, IList<A1> list1, IList<B1> list2)
+    void I<A, B>.Goo<A1, B1>(A x, B y, IList<A1> list1, IList<B1> list2)
     {
         throw new NotImplementedException();
     }
@@ -3492,7 +3486,7 @@ class A<T>
 
     interface I
     {
-        void Foo(B x);
+        void Goo(B x);
     }
 
     class C<U> : [|I|]
@@ -3509,12 +3503,12 @@ class A<T>
 
     interface I
     {
-        void Foo(B x);
+        void Goo(B x);
     }
 
     class C<U> : I
     {
-        public void Foo(B x)
+        public void Goo(B x)
         {
             throw new NotImplementedException();
         }
@@ -3535,7 +3529,7 @@ class A<T>
 
     interface I
     {
-        void Foo(B[] x);
+        void Goo(B[] x);
     }
 
     class C<U> : [|I|]
@@ -3550,12 +3544,12 @@ class A<T>
 
     interface I
     {
-        void Foo(B[] x);
+        void Goo(B[] x);
     }
 
     class C<U> : I
     {
-        public void Foo(B[] x)
+        public void Goo(B[] x)
         {
             throw new System.NotImplementedException();
         }
@@ -3576,7 +3570,7 @@ class A<T>
 
     interface I
     {
-        void Foo(B[][,][,,][,,,] x);
+        void Goo(B[][,][,,][,,,] x);
     }
 
     class C<U> : [|I|]
@@ -3591,12 +3585,12 @@ class A<T>
 
     interface I
     {
-        void Foo(B[][,][,,][,,,] x);
+        void Goo(B[][,][,,][,,,] x);
     }
 
     class C<U> : I
     {
-        public void Foo(B[][,][,,][,,,] x)
+        public void Goo(B[][,][,,][,,,] x)
         {
             throw new System.NotImplementedException();
         }
@@ -3609,20 +3603,20 @@ class A<T>
         public async Task TestImplementAbstractProperty()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"interface IFoo
+@"interface IGoo
 {
     int Gibberish { get; set; }
 }
 
-abstract class Foo : [|IFoo|]
+abstract class Goo : [|IGoo|]
 {
 }",
-@"interface IFoo
+@"interface IGoo
 {
     int Gibberish { get; set; }
 }
 
-abstract class Foo : IFoo
+abstract class Goo : IGoo
 {
     public abstract int Gibberish { get; set; }
 }",
@@ -3651,7 +3645,7 @@ class C : [|I1|]
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface IOptional
 {
-    int Foo(int g = 0);
+    int Goo(int g = 0);
 }
 
 class Opt : [|IOptional|]
@@ -3659,12 +3653,12 @@ class Opt : [|IOptional|]
 }",
 @"interface IOptional
 {
-    int Foo(int g = 0);
+    int Goo(int g = 0);
 }
 
 class Opt : IOptional
 {
-    public int Foo(int g = 0)
+    public int Goo(int g = 0)
     {
         throw new System.NotImplementedException();
     }
@@ -3678,7 +3672,7 @@ class Opt : IOptional
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface IOptional
 {
-    int Foo(int g = 0);
+    int Goo(int g = 0);
 }
 
 class Opt : [|IOptional|]
@@ -3686,12 +3680,12 @@ class Opt : [|IOptional|]
 }",
 @"interface IOptional
 {
-    int Foo(int g = 0);
+    int Goo(int g = 0);
 }
 
 class Opt : IOptional
 {
-    int IOptional.Foo(int g)
+    int IOptional.Goo(int g)
     {
         throw new System.NotImplementedException();
     }
@@ -3721,7 +3715,7 @@ using System;
 
 partial class Program : [|IComparable|]
 {
-    void Foo()
+    void Goo()
     {
 #line hidden
     }
@@ -3737,13 +3731,12 @@ partial class Program : IComparable
         throw new NotImplementedException();
     }
 
-    void Foo()
+    void Goo()
     {
 #line hidden
     }
 }
-#line default",
-ignoreTrivia: false);
+#line default");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -3775,8 +3768,7 @@ partial class Program
     {
         throw new NotImplementedException();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545334")]
@@ -3786,7 +3778,7 @@ ignoreTrivia: false);
             await TestMissingInRegularAndScriptAsync(
 @"using System;
 #line 1 ""Bar""
-class Foo : [|IComparable|]
+class Goo : [|IComparable|]
 
 
 #line default
@@ -3803,26 +3795,26 @@ class Foo : [|IComparable|]
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-interface IFoo
+interface IGoo
 {
-    void Foo([Optional][DateTimeConstant(100)] DateTime x);
+    void Goo([Optional][DateTimeConstant(100)] DateTime x);
 }
 
-public class C : [|IFoo|]
+public class C : [|IGoo|]
 {
 }",
 @"using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-interface IFoo
+interface IGoo
 {
-    void Foo([Optional][DateTimeConstant(100)] DateTime x);
+    void Goo([Optional][DateTimeConstant(100)] DateTime x);
 }
 
-public class C : IFoo
+public class C : IGoo
 {
-    public void Foo([DateTimeConstant(100), Optional] DateTime x)
+    public void Goo([DateTimeConstant(100), Optional] DateTime x)
     {
         throw new NotImplementedException();
     }
@@ -3838,26 +3830,26 @@ public class C : IFoo
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-interface IFoo
+interface IGoo
 {
-    void Foo([Optional][DateTimeConstant(100)] DateTime x);
+    void Goo([Optional][DateTimeConstant(100)] DateTime x);
 }
 
-public class C : [|IFoo|]
+public class C : [|IGoo|]
 {
 }",
 @"using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-interface IFoo
+interface IGoo
 {
-    void Foo([Optional][DateTimeConstant(100)] DateTime x);
+    void Goo([Optional][DateTimeConstant(100)] DateTime x);
 }
 
-public class C : IFoo
+public class C : IGoo
 {
-    void IFoo.Foo(DateTime x)
+    void IGoo.Goo(DateTime x)
     {
         throw new NotImplementedException();
     }
@@ -3873,32 +3865,32 @@ index: 1);
 @"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-interface IFoo
+interface IGoo
 {
-    void Foo1([Optional][IUnknownConstant] object x);
-    void Foo2([Optional][IDispatchConstant] object x);
+    void Goo1([Optional][IUnknownConstant] object x);
+    void Goo2([Optional][IDispatchConstant] object x);
 }
 
-public class C : [|IFoo|]
+public class C : [|IGoo|]
 {
 }",
 @"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-interface IFoo
+interface IGoo
 {
-    void Foo1([Optional][IUnknownConstant] object x);
-    void Foo2([Optional][IDispatchConstant] object x);
+    void Goo1([Optional][IUnknownConstant] object x);
+    void Goo2([Optional][IDispatchConstant] object x);
 }
 
-public class C : IFoo
+public class C : IGoo
 {
-    public void Foo1([IUnknownConstant, Optional] object x)
+    public void Goo1([IUnknownConstant, Optional] object x)
     {
         throw new System.NotImplementedException();
     }
 
-    public void Foo2([IDispatchConstant, Optional] object x)
+    public void Goo2([IDispatchConstant, Optional] object x)
     {
         throw new System.NotImplementedException();
     }
@@ -3913,32 +3905,32 @@ public class C : IFoo
 @"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-interface IFoo
+interface IGoo
 {
-    void Foo1([Optional][IUnknownConstant] object x);
-    void Foo2([Optional][IDispatchConstant] object x);
+    void Goo1([Optional][IUnknownConstant] object x);
+    void Goo2([Optional][IDispatchConstant] object x);
 }
 
-public class C : [|IFoo|]
+public class C : [|IGoo|]
 {
 }",
 @"using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-interface IFoo
+interface IGoo
 {
-    void Foo1([Optional][IUnknownConstant] object x);
-    void Foo2([Optional][IDispatchConstant] object x);
+    void Goo1([Optional][IUnknownConstant] object x);
+    void Goo2([Optional][IDispatchConstant] object x);
 }
 
-public class C : IFoo
+public class C : IGoo
 {
-    void IFoo.Foo1(object x)
+    void IGoo.Goo1(object x)
     {
         throw new System.NotImplementedException();
     }
 
-    void IFoo.Foo2(object x)
+    void IGoo.Goo2(object x)
     {
         throw new System.NotImplementedException();
     }
@@ -3951,22 +3943,22 @@ index: 1);
         public async Task TestTypeNameConflict()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"interface IFoo
+@"interface IGoo
 {
-    void Foo();
+    void Goo();
 }
 
-public class Foo : [|IFoo|]
+public class Goo : [|IGoo|]
 {
 }",
-@"interface IFoo
+@"interface IGoo
 {
-    void Foo();
+    void Goo();
 }
 
-public class Foo : IFoo
+public class Goo : IGoo
 {
-    void IFoo.Foo()
+    void IGoo.Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -3977,8 +3969,15 @@ public class Foo : IFoo
         public async Task TestStringLiteral()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"interface IFoo { void Foo ( string s = ""\"""" ) ; } class B : [|IFoo|] { } ",
-@"interface IFoo { void Foo ( string s = ""\"""" ) ; } class B : IFoo { public void Foo ( string s = ""\"""" ) { throw new System.NotImplementedException ( ) ; } } ");
+@"interface IGoo { void Goo ( string s = ""\"""" ) ; } class B : [|IGoo|] { } ",
+@"interface IGoo { void Goo ( string s = ""\"""" ) ; }
+class B : IGoo
+{
+    public void Goo(string s = ""\"""")
+    {
+        throw new System.NotImplementedException();
+    }
+} ");
         }
 
         [WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
@@ -4087,7 +4086,7 @@ class c : d
 
 interface I
 {
-    void Foo([Optional] I o);
+    void Goo([Optional] I o);
 }
 
 class C : [|I|]
@@ -4097,12 +4096,12 @@ class C : [|I|]
 
 interface I
 {
-    void Foo([Optional] I o);
+    void Goo([Optional] I o);
 }
 
 class C : I
 {
-    public void Foo([Optional] I o)
+    public void Goo([Optional] I o)
     {
         throw new System.NotImplementedException();
     }
@@ -4293,8 +4292,7 @@ class C : I
     {
         throw new System.NotImplementedException();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -4357,8 +4355,7 @@ class C : I
     {
         throw new NotImplementedException();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -4458,8 +4455,7 @@ class C : I
     {
         throw new NotImplementedException();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545695")]
@@ -4471,7 +4467,7 @@ ignoreTrivia: false);
 
 interface I
 {
-    void Foo(DayOfWeek x = DayOfWeek.Friday);
+    void Goo(DayOfWeek x = DayOfWeek.Friday);
 }
 
 class C : [|I|]
@@ -4482,14 +4478,14 @@ class C : [|I|]
 
 interface I
 {
-    void Foo(DayOfWeek x = DayOfWeek.Friday);
+    void Goo(DayOfWeek x = DayOfWeek.Friday);
 }
 
 class C : I
 {
     DayOfWeek DayOfWeek { get; set; }
 
-    public void Foo(DayOfWeek x = DayOfWeek.Friday)
+    public void Goo(DayOfWeek x = DayOfWeek.Friday)
     {
         throw new NotImplementedException();
     }
@@ -4503,7 +4499,7 @@ class C : I
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo(decimal x = decimal.MaxValue);
+    void Goo(decimal x = decimal.MaxValue);
 }
 
 class C : [|I|]
@@ -4511,12 +4507,12 @@ class C : [|I|]
 }",
 @"interface I
 {
-    void Foo(decimal x = decimal.MaxValue);
+    void Goo(decimal x = decimal.MaxValue);
 }
 
 class C : I
 {
-    public void Foo(decimal x = decimal.MaxValue)
+    public void Goo(decimal x = decimal.MaxValue)
     {
         throw new System.NotImplementedException();
     }
@@ -4530,7 +4526,7 @@ class C : I
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo(decimal? x = decimal.MaxValue);
+    void Goo(decimal? x = decimal.MaxValue);
 }
 
 class C : [|I|]
@@ -4538,12 +4534,12 @@ class C : [|I|]
 }",
 @"interface I
 {
-    void Foo(decimal? x = decimal.MaxValue);
+    void Goo(decimal? x = decimal.MaxValue);
 }
 
 class C : I
 {
-    public void Foo(decimal? x = decimal.MaxValue)
+    public void Goo(decimal? x = decimal.MaxValue)
     {
         throw new System.NotImplementedException();
     }
@@ -4559,7 +4555,7 @@ class C : I
 
 interface I
 {
-    void Foo(DayOfWeek? x = DayOfWeek.Friday);
+    void Goo(DayOfWeek? x = DayOfWeek.Friday);
 }
 
 class C : [|I|]
@@ -4569,12 +4565,12 @@ class C : [|I|]
 
 interface I
 {
-    void Foo(DayOfWeek? x = DayOfWeek.Friday);
+    void Goo(DayOfWeek? x = DayOfWeek.Friday);
 }
 
 class C : I
 {
-    public void Foo(DayOfWeek? x = DayOfWeek.Friday)
+    public void Goo(DayOfWeek? x = DayOfWeek.Friday)
     {
         throw new NotImplementedException();
     }
@@ -4588,7 +4584,7 @@ class C : I
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo(byte x = 1);
+    void Goo(byte x = 1);
 }
 
 class C : [|I|]
@@ -4596,12 +4592,12 @@ class C : [|I|]
 }",
 @"interface I
 {
-    void Foo(byte x = 1);
+    void Goo(byte x = 1);
 }
 
 class C : I
 {
-    public void Foo(byte x = 1)
+    public void Goo(byte x = 1)
     {
         throw new System.NotImplementedException();
     }
@@ -4616,7 +4612,7 @@ class C : I
 using System;
 interface I
 {
-    void Foo(ConsoleColor x = (ConsoleColor)(-1));
+    void Goo(ConsoleColor x = (ConsoleColor)(-1));
 }
 
 class C : [|I|]
@@ -4627,18 +4623,18 @@ class C : [|I|]
 using System;
 interface I
 {
-    void Foo(ConsoleColor x = (ConsoleColor)(-1));
+    void Goo(ConsoleColor x = (ConsoleColor)(-1));
 }
 
 class C : I
 {
-    public void Foo(ConsoleColor x = (ConsoleColor)(-1))
+    public void Goo(ConsoleColor x = (ConsoleColor)(-1))
     {
         throw new NotImplementedException();
     }
 }";
 
-            await TestWithAllCodeStyleOptionsOffAsync(code, expected, ignoreTrivia: false);
+            await TestWithAllCodeStyleOptionsOffAsync(code, expected);
         }
 
         [WorkItem(545737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545737")]
@@ -4650,7 +4646,7 @@ class C : I
 
 interface I
 {
-    void Foo(ConsoleColor x = (ConsoleColor)int.MaxValue);
+    void Goo(ConsoleColor x = (ConsoleColor)int.MaxValue);
 }
 
 class C : [|I|]
@@ -4660,12 +4656,12 @@ class C : [|I|]
 
 interface I
 {
-    void Foo(ConsoleColor x = (ConsoleColor)int.MaxValue);
+    void Goo(ConsoleColor x = (ConsoleColor)int.MaxValue);
 }
 
 class C : I
 {
-    public void Foo(ConsoleColor x = (ConsoleColor)int.MaxValue)
+    public void Goo(ConsoleColor x = (ConsoleColor)int.MaxValue)
     {
         throw new NotImplementedException();
     }
@@ -4684,7 +4680,7 @@ class C : I
 
 interface I
 {
-    void Foo(E x = 0);
+    void Goo(E x = 0);
 }
 
 class C : [|I|]
@@ -4697,12 +4693,12 @@ class C : [|I|]
 
 interface I
 {
-    void Foo(E x = 0);
+    void Goo(E x = 0);
 }
 
 class C : I
 {
-    public void Foo(E x = 0)
+    public void Goo(E x = 0)
     {
         throw new System.NotImplementedException();
     }
@@ -4718,7 +4714,7 @@ class C : I
 
 interface I
 {
-    void Foo([Optional][DefaultParameterValue(1)] int x, int[,] y);
+    void Goo([Optional][DefaultParameterValue(1)] int x, int[,] y);
 }
 
 class C : [|I|]
@@ -4728,12 +4724,12 @@ class C : [|I|]
 
 interface I
 {
-    void Foo([Optional][DefaultParameterValue(1)] int x, int[,] y);
+    void Goo([Optional][DefaultParameterValue(1)] int x, int[,] y);
 }
 
 class C : I
 {
-    public void Foo([DefaultParameterValue(1), Optional] int x = 1, int[,] y = null)
+    public void Goo([DefaultParameterValue(1), Optional] int x = 1, int[,] y = null)
     {
         throw new System.NotImplementedException();
     }
@@ -4749,7 +4745,7 @@ class C : I
 
 interface I
 {
-    void Foo([Optional, DefaultParameterValue(1)] int x, int[] y, int[] z);
+    void Goo([Optional, DefaultParameterValue(1)] int x, int[] y, int[] z);
 }
 
 class C : [|I|]
@@ -4759,12 +4755,12 @@ class C : [|I|]
 
 interface I
 {
-    void Foo([Optional, DefaultParameterValue(1)] int x, int[] y, int[] z);
+    void Goo([Optional, DefaultParameterValue(1)] int x, int[] y, int[] z);
 }
 
 class C : I
 {
-    public void Foo([DefaultParameterValue(1), Optional] int x = 1, int[] y = null, int[] z = null)
+    public void Goo([DefaultParameterValue(1), Optional] int x = 1, int[] y = null, int[] z = null)
     {
         throw new System.NotImplementedException();
     }
@@ -4782,7 +4778,7 @@ using System.Runtime.InteropServices;
 
 interface I
 {
-    void Foo([Optional][DateTimeConstant(100)] DateTime d1, [Optional][IUnknownConstant] object d2);
+    void Goo([Optional][DateTimeConstant(100)] DateTime d1, [Optional][IUnknownConstant] object d2);
 }
 class C : [|I|]
 {
@@ -4794,17 +4790,16 @@ using System.Runtime.InteropServices;
 
 interface I
 {
-    void Foo([Optional][DateTimeConstant(100)] DateTime d1, [Optional][IUnknownConstant] object d2);
+    void Goo([Optional][DateTimeConstant(100)] DateTime d1, [Optional][IUnknownConstant] object d2);
 }
 class C : I
 {
-    public void Foo([DateTimeConstant(100), Optional] DateTime d1, [IUnknownConstant, Optional] object d2)
+    public void Goo([DateTimeConstant(100), Optional] DateTime d1, [IUnknownConstant, Optional] object d2)
     {
         throw new NotImplementedException();
     }
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(545897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545897")]
@@ -4843,7 +4838,7 @@ class C<T> : I<T>
 
 interface I<S>
 {
-    void Foo<T>(S y, List<T>.Enumerator x);
+    void Goo<T>(S y, List<T>.Enumerator x);
 }
 
 class D<T> : [|I<T>|]
@@ -4853,12 +4848,12 @@ class D<T> : [|I<T>|]
 
 interface I<S>
 {
-    void Foo<T>(S y, List<T>.Enumerator x);
+    void Goo<T>(S y, List<T>.Enumerator x);
 }
 
 class D<T> : I<T>
 {
-    public void Foo<T1>(T y, List<T1>.Enumerator x)
+    public void Goo<T1>(T y, List<T1>.Enumerator x)
     {
         throw new System.NotImplementedException();
     }
@@ -4872,7 +4867,7 @@ class D<T> : I<T>
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo(float x = 1E10F);
+    void Goo(float x = 1E10F);
 }
 
 class C : [|I|]
@@ -4880,12 +4875,12 @@ class C : [|I|]
 }",
 @"interface I
 {
-    void Foo(float x = 1E10F);
+    void Goo(float x = 1E10F);
 }
 
 class C : I
 {
-    public void Foo(float x = 1E+10F)
+    public void Goo(float x = 1E+10F)
     {
         throw new System.NotImplementedException();
     }
@@ -4899,22 +4894,23 @@ class C : I
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo<@class>();
+    void Goo<@class>();
 }
 
 class C : [|I|]",
 @"interface I
 {
-    void Foo<@class>();
+    void Goo<@class>();
 }
 
 class C : I
 {
-    public void Foo<@class>()
+    public void Goo<@class>()
     {
         throw new System.NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545922")]
@@ -4924,8 +4920,8 @@ class C : I
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo1(decimal x = 1E28M);
-    void Foo2(decimal x = -1E28M);
+    void Goo1(decimal x = 1E28M);
+    void Goo2(decimal x = -1E28M);
 }
 
 class C : [|I|]
@@ -4933,18 +4929,18 @@ class C : [|I|]
 }",
 @"interface I
 {
-    void Foo1(decimal x = 1E28M);
-    void Foo2(decimal x = -1E28M);
+    void Goo1(decimal x = 1E28M);
+    void Goo2(decimal x = -1E28M);
 }
 
 class C : I
 {
-    public void Foo1(decimal x = 10000000000000000000000000000M)
+    public void Goo1(decimal x = 10000000000000000000000000000M)
     {
         throw new System.NotImplementedException();
     }
 
-    public void Foo2(decimal x = -10000000000000000000000000000M)
+    public void Goo2(decimal x = -10000000000000000000000000000M)
     {
         throw new System.NotImplementedException();
     }
@@ -4958,7 +4954,7 @@ class C : I
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo(decimal x = 0.1M);
+    void Goo(decimal x = 0.1M);
 }
 
 class C : [|I|]
@@ -4966,12 +4962,12 @@ class C : [|I|]
 }",
 @"interface I
 {
-    void Foo(decimal x = 0.1M);
+    void Goo(decimal x = 0.1M);
 }
 
 class C : I
 {
-    public void Foo(decimal x = 0.1M)
+    public void Goo(decimal x = 0.1M)
     {
         throw new System.NotImplementedException();
     }
@@ -4999,7 +4995,7 @@ class C : IServiceProvider /*
         throw new NotImplementedException();
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(529920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529920")]
@@ -5024,7 +5020,7 @@ class C : IServiceProvider
     }
 }
 #pragma warning disable
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")]
@@ -5045,7 +5041,7 @@ class C : IServiceProvider // Implement interface
         throw new NotImplementedException();
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")]
@@ -5068,7 +5064,7 @@ class C : IServiceProvider
     }
 }
 // Implement interface
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5087,7 +5083,7 @@ class C : IDisposable
         throw new NotImplementedException();
     }
 }
-", index: 0, ignoreTrivia: false);
+", index: 0);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5103,7 +5099,7 @@ class C : IDisposable
 {{
 {DisposePattern("protected virtual ", "C", "public void ")}
 }}
-", index: 1, ignoreTrivia: false);
+", index: 1);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5122,7 +5118,7 @@ class C : IDisposable
         throw new NotImplementedException();
     }
 }
-", index: 2, ignoreTrivia: false);
+", index: 2);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5146,7 +5142,7 @@ class C : System.IDisposable
     }}
 
 {DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
-}}", index: 3, ignoreTrivia: false);
+}}", index: 3);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5162,7 +5158,7 @@ abstract class C : IDisposable
 {
     public abstract void Dispose();
 }
-", index: 2, ignoreTrivia: false);
+", index: 2);
         }
 
         [WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5174,18 +5170,18 @@ abstract class C : IDisposable
 @"using System;
 class C : [|IDisposable|]
 {
-    private IDisposable foo;
+    private IDisposable goo;
 }",
 @"using System;
 class C : IDisposable
 {
-    private IDisposable foo;
+    private IDisposable goo;
 
     public void Dispose()
     {
-        foo.Dispose();
+        goo.Dispose();
     }
-}", index: 2, ignoreTrivia: false);
+}", index: 2);
         }
 
         [WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
@@ -5198,7 +5194,7 @@ $@"class C : System.IDisposable
 {{
 {DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
 }}
-", index: 3, ignoreTrivia: false);
+", index: 3);
         }
 
         [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -5230,7 +5226,7 @@ class C : I
     {
         throw new NotImplementedException();
     }
-}", index: 0, ignoreTrivia: false);
+}", index: 0);
         }
 
         [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -5259,7 +5255,7 @@ class C : I
     }}
 
 {DisposePattern("protected virtual ", "C", "public void ")}
-}}", index: 1, ignoreTrivia: false);
+}}", index: 1);
         }
 
         [WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -5288,7 +5284,7 @@ class C : I
     }}
 
 {DisposePattern("protected virtual ", "C", "void IDisposable.")}
-}}", index: 3, ignoreTrivia: false);
+}}", index: 3);
         }
 
         [WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
@@ -5319,7 +5315,7 @@ class C : I
             throw new NotImplementedException();
         }
     }
-}", index: 1, ignoreTrivia: false);
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -5336,7 +5332,7 @@ struct S : IDisposable
         throw new NotImplementedException();
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -5353,7 +5349,7 @@ struct S : IDisposable
         throw new NotImplementedException();
     }
 }
-", index: 1, ignoreTrivia: false);
+", index: 1);
         }
 
         [WorkItem(545924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545924")]
@@ -5371,7 +5367,7 @@ struct S : IDisposable
 
 interface I
 {
-    void Foo<T>(C<T>.E x = C<T>.E.X);
+    void Goo<T>(C<T>.E x = C<T>.E.X);
 }
 
 class D : [|I|]
@@ -5387,12 +5383,12 @@ class D : [|I|]
 
 interface I
 {
-    void Foo<T>(C<T>.E x = C<T>.E.X);
+    void Goo<T>(C<T>.E x = C<T>.E.X);
 }
 
 class D : I
 {
-    public void Foo<T>(C<T>.E x = C<T>.E.X)
+    public void Goo<T>(C<T>.E x = C<T>.E.X)
     {
         throw new System.NotImplementedException();
     }
@@ -5409,12 +5405,13 @@ class D : I
 class C : [|IServiceProvider|] @""",
 @"using System;
 
-class C : IServiceProvider @"""" {
+class C : IServiceProvider @""""{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -5427,12 +5424,13 @@ class C : IServiceProvider @"""" {
 class C : [|IServiceProvider|] """,
 @"using System;
 
-class C : IServiceProvider """" {
+class C : IServiceProvider """"{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -5445,12 +5443,13 @@ class C : IServiceProvider """" {
 class C : [|IServiceProvider|] @""",
 @"using System;
 
-class C : IServiceProvider @"""" {
+class C : IServiceProvider @""""{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -5463,12 +5462,13 @@ class C : IServiceProvider @"""" {
 class C : [|IServiceProvider|] """,
 @"using System;
 
-class C : IServiceProvider """" {
+class C : IServiceProvider """"{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545940")]
@@ -5478,10 +5478,10 @@ class C : IServiceProvider """" {
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I
 {
-    void Foo1(decimal x = 1E-25M);
-    void Foo2(decimal x = -1E-25M);
-    void Foo3(decimal x = 1E-24M);
-    void Foo4(decimal x = -1E-24M);
+    void Goo1(decimal x = 1E-25M);
+    void Goo2(decimal x = -1E-25M);
+    void Goo3(decimal x = 1E-24M);
+    void Goo4(decimal x = -1E-24M);
 }
 
 class C : [|I|]
@@ -5489,30 +5489,30 @@ class C : [|I|]
 }",
 @"interface I
 {
-    void Foo1(decimal x = 1E-25M);
-    void Foo2(decimal x = -1E-25M);
-    void Foo3(decimal x = 1E-24M);
-    void Foo4(decimal x = -1E-24M);
+    void Goo1(decimal x = 1E-25M);
+    void Goo2(decimal x = -1E-25M);
+    void Goo3(decimal x = 1E-24M);
+    void Goo4(decimal x = -1E-24M);
 }
 
 class C : I
 {
-    public void Foo1(decimal x = 0.0000000000000000000000001M)
+    public void Goo1(decimal x = 0.0000000000000000000000001M)
     {
         throw new System.NotImplementedException();
     }
 
-    public void Foo2(decimal x = -0.0000000000000000000000001M)
+    public void Goo2(decimal x = -0.0000000000000000000000001M)
     {
         throw new System.NotImplementedException();
     }
 
-    public void Foo3(decimal x = 0.000000000000000000000001M)
+    public void Goo3(decimal x = 0.000000000000000000000001M)
     {
         throw new System.NotImplementedException();
     }
 
-    public void Foo4(decimal x = -0.000000000000000000000001M)
+    public void Goo4(decimal x = -0.000000000000000000000001M)
     {
         throw new System.NotImplementedException();
     }
@@ -5534,7 +5534,7 @@ class C : I
 
 interface I<S>
 {
-    void Foo<T>(S y, C<T>.E x = C<T>.E.X);
+    void Goo<T>(S y, C<T>.E x = C<T>.E.X);
 }
 
 class D<T> : [|I<T>|]
@@ -5550,12 +5550,12 @@ class D<T> : [|I<T>|]
 
 interface I<S>
 {
-    void Foo<T>(S y, C<T>.E x = C<T>.E.X);
+    void Goo<T>(S y, C<T>.E x = C<T>.E.X);
 }
 
 class D<T> : I<T>
 {
-    public void Foo<T1>(T y, C<T1>.E x = C<T1>.E.X)
+    public void Goo<T1>(T y, C<T1>.E x = C<T1>.E.X)
     {
         throw new System.NotImplementedException();
     }
@@ -5569,7 +5569,7 @@ class D<T> : I<T>
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface I<S>
 {
-    void Foo<T>(S T1);
+    void Goo<T>(S T1);
 }
 
 class C<T> : [|I<T>|]
@@ -5577,12 +5577,12 @@ class C<T> : [|I<T>|]
 }",
 @"interface I<S>
 {
-    void Foo<T>(S T1);
+    void Goo<T>(S T1);
 }
 
 class C<T> : I<T>
 {
-    public void Foo<T2>(T T1)
+    public void Goo<T2>(T T1)
     {
         throw new System.NotImplementedException();
     }
@@ -5599,7 +5599,7 @@ class C<T> : I<T>
 interface I
 {
     [return: MarshalAs(UnmanagedType.U1)]
-    bool Foo([MarshalAs(UnmanagedType.U1)] bool x);
+    bool Goo([MarshalAs(UnmanagedType.U1)] bool x);
 }
 
 class C : [|I|]
@@ -5610,13 +5610,13 @@ class C : [|I|]
 interface I
 {
     [return: MarshalAs(UnmanagedType.U1)]
-    bool Foo([MarshalAs(UnmanagedType.U1)] bool x);
+    bool Goo([MarshalAs(UnmanagedType.U1)] bool x);
 }
 
 class C : I
 {
     [return: MarshalAs(UnmanagedType.U1)]
-    public bool Foo([MarshalAs(UnmanagedType.U1)] bool x)
+    public bool Goo([MarshalAs(UnmanagedType.U1)] bool x)
     {
         throw new System.NotImplementedException();
     }
@@ -5633,7 +5633,7 @@ class C : I
 interface I
 {
     [return: MarshalAs(UnmanagedType.U1)]
-    bool Foo([MarshalAs(UnmanagedType.U1)] bool x);
+    bool Goo([MarshalAs(UnmanagedType.U1)] bool x);
 }
 
 class C : [|I|]
@@ -5644,12 +5644,12 @@ class C : [|I|]
 interface I
 {
     [return: MarshalAs(UnmanagedType.U1)]
-    bool Foo([MarshalAs(UnmanagedType.U1)] bool x);
+    bool Goo([MarshalAs(UnmanagedType.U1)] bool x);
 }
 
 class C : I
 {
-    bool I.Foo(bool x)
+    bool I.Goo(bool x)
     {
         throw new System.NotImplementedException();
     }
@@ -5664,22 +5664,22 @@ index: 1);
             await TestWithAllCodeStyleOptionsOffAsync(
 @"using System;
 
-interface IFoo
+interface IGoo
 {
     void Bar(DateTime DateTime);
 }
 
-class C : [|IFoo|]
+class C : [|IGoo|]
 {
 }",
 @"using System;
 
-interface IFoo
+interface IGoo
 {
     void Bar(DateTime DateTime);
 }
 
-class C : IFoo
+class C : IGoo
 {
     public void Bar(DateTime DateTime)
     {
@@ -5699,7 +5699,7 @@ using System.Runtime.InteropServices;
 interface I
 {
     [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(List<>))]
-    void Foo();
+    void Goo();
 }
 
 class C : [|I|]
@@ -5711,13 +5711,13 @@ using System.Runtime.InteropServices;
 interface I
 {
     [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(List<>))]
-    void Foo();
+    void Goo();
 }
 
 class C : I
 {
     [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(List<>))]
-    public void Foo()
+    public void Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -5799,7 +5799,7 @@ class C : N.I
             await TestWithAllCodeStyleOptionsOffAsync(
 @"public interface I
 {
-    void Foo();
+    void Goo();
 }
 
 partial class C
@@ -5811,7 +5811,7 @@ partial class C : [|I|]
 }",
 @"public interface I
 {
-    void Foo();
+    void Goo();
 }
 
 partial class C
@@ -5820,7 +5820,7 @@ partial class C
 
 partial class C : I
 {
-    void I.Foo()
+    void I.Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -5834,7 +5834,7 @@ partial class C : I
             await TestWithAllCodeStyleOptionsOffAsync(
 @"public interface I
 {
-    void Foo();
+    void Goo();
 }
 
 partial class C : [|I|]
@@ -5846,12 +5846,12 @@ partial class C
 }",
 @"public interface I
 {
-    void Foo();
+    void Goo();
 }
 
 partial class C : I
 {
-    void I.Foo()
+    void I.Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -5869,12 +5869,12 @@ partial class C
             await TestWithAllCodeStyleOptionsOffAsync(
 @"public interface I
 {
-    void Foo();
+    void Goo();
 }
 
 public interface I2
 {
-    void Foo2();
+    void Goo2();
 }
 
 partial class C : [|I|]
@@ -5886,17 +5886,17 @@ partial class C : I2
 }",
 @"public interface I
 {
-    void Foo();
+    void Goo();
 }
 
 public interface I2
 {
-    void Foo2();
+    void Goo2();
 }
 
 partial class C : I
 {
-    void I.Foo()
+    void I.Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -5915,7 +5915,7 @@ partial class C : I2
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
-Public Interface IFoo
+Public Interface IGoo
     Property IndexProp(ByVal p1 As Integer) As String
 End Interface
         </Document>
@@ -5923,7 +5923,7 @@ End Interface
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document>
-public class Test : [|IFoo|]
+public class Test : [|IGoo|]
 {
 }
         </Document>
@@ -5931,19 +5931,19 @@ public class Test : [|IFoo|]
 </Workspace>";
 
             var expected = @"
-public class Test : IFoo
+public class Test : IGoo
 {
-    string IFoo.get_IndexProp(int p1)
+    string IGoo.get_IndexProp(int p1)
     {
         throw new System.NotImplementedException();
     }
 
-    void IFoo.set_IndexProp(int p1, string Value)
+    void IGoo.set_IndexProp(int p1, string Value)
     {
         throw new System.NotImplementedException();
     }
 }
-";
+        ";
 
             await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 1);
         }
@@ -5982,13 +5982,13 @@ class C : I
     {
         throw new NotImplementedException();
     }
- 
+
     public void set_P(int x, object Value)
     {
         throw new NotImplementedException();
     }
 }
-";
+        ";
 
             await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
         }
@@ -6001,7 +6001,7 @@ class C : I
             await TestMissingAsync(
 @"using System;
 #line 1 ""Bar""
-class Foo : [|IComparable|]
+class Goo : [|IComparable|]
 #line default
 #line hidden");
         }
@@ -6016,14 +6016,13 @@ class Foo : [|IComparable|]
 class Program : [|IDisposable|]
 {
 }",
-$@"
-using System;
+$@"using System;
 
 class Program : IDisposable
 {{
-{DisposePattern("protected virtual ", "C", "public void ")}
-}}
-", index: 1);
+
+{DisposePattern("protected virtual ", "Program", "public void ")}
+}}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6036,15 +6035,14 @@ class Program : [|IDisposable|]
 {
     private bool DisposedValue;
 }",
-$@"
-using System;
+$@"using System;
 
 class Program : IDisposable
 {{
     private bool DisposedValue;
+
 {DisposePattern("protected virtual ", "Program", "void IDisposable.")}
-}}
-", index: 3);
+}}", index: 3);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6106,14 +6104,13 @@ class Program : IDisposable
 sealed class Program : [|IDisposable|]
 {
 }",
-$@"
-using System;
+$@"using System;
 
 sealed class Program : IDisposable
 {{
+
 {DisposePattern("", "Program", "void IDisposable.")}
-}}
-", index: 3);
+}}", index: 3);
         }
 
         [WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")]
@@ -6237,6 +6234,8 @@ class C : I
             throw new System.NotImplementedException();
         }
     }
+
+
     // Comment
 }");
         }
@@ -6291,7 +6290,7 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
     }}
 
 {DisposePattern("protected virtual ", "C", "public void ")}
-}}", index: 1, ignoreTrivia: false);
+}}", index: 1);
         }
 
         [WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
@@ -6343,7 +6342,7 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
 
 partial class C
 {{
-}}", index: 3, ignoreTrivia: false);
+}}", index: 3);
         }
 
         private static string DisposePattern(string disposeVisibility, string className, string implementationVisibility)
@@ -6391,7 +6390,7 @@ partial class C
             await TestWithAllCodeStyleOptionsOffAsync(
 @"using System;
 
-public class Foo : [|Holder.SomeInterface|]
+public class Goo : [|Holder.SomeInterface|]
 {
 }
 
@@ -6408,7 +6407,7 @@ public class Holder
 }",
 @"using System;
 
-public class Foo : Holder.SomeInterface
+public class Goo : Holder.SomeInterface
 {
     public void Something(string helloWorld)
     {
@@ -6675,7 +6674,6 @@ class Class : IInterface
     void M() { }
 
     public int Prop => throw new System.NotImplementedException();
-    
 }", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
         }
 
@@ -6699,7 +6697,8 @@ interface IComInterface
 class Class : [|IComInterface|]
 {
 }",
-@"using System.Runtime.InteropServices;
+@"
+using System.Runtime.InteropServices;
 
 [ComImport]
 interface IComInterface
@@ -6712,9 +6711,21 @@ interface IComInterface
 
 class Class : IComInterface
 {
-    public void MOverload() { throw new System.NotImplementedException(); }
-    public void X() { throw new System.NotImplementedException(); }
-    public void MOverload(int i) { throw new System.NotImplementedException(); }
+    public void MOverload()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void X()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void MOverload(int i)
+    {
+        throw new System.NotImplementedException();
+    }
+
     public int Prop => throw new System.NotImplementedException();
 }");
         }
@@ -6727,8 +6738,8 @@ class Class : IComInterface
 using System;
 
 interface I {
-    ref int IFoo();
-    ref int Foo { get; }
+    ref int IGoo();
+    ref int Goo { get; }
     ref int this[int i] { get; }
 }
 
@@ -6739,8 +6750,8 @@ class C : [|I|]
 using System;
 
 interface I {
-    ref int IFoo();
-    ref int Foo { get; }
+    ref int IGoo();
+    ref int Goo { get; }
     ref int this[int i] { get; }
 }
 
@@ -6748,9 +6759,9 @@ class C : I
 {
     public ref int this[int i] => throw new NotImplementedException();
 
-    public ref int Foo => throw new NotImplementedException();
+    public ref int Goo => throw new NotImplementedException();
 
-    public ref int IFoo()
+    public ref int IGoo()
     {
         throw new NotImplementedException();
     }
@@ -6783,9 +6794,7 @@ class Class : [|IInterface|]
 class Class : IInterface
 {
     public int ReadOnlyProp { get; }
-
     public int ReadWriteProp { get; set; }
-
     public int WriteOnlyProp { set => throw new System.NotImplementedException(); }
 }", parameters: new TestParameters(options: Option(
     ImplementTypeOptions.PropertyGenerationBehavior,
@@ -6822,6 +6831,117 @@ class Class : IInterface
         throw new System.NotImplementedException();
     }
 }", parseOptions: CSharp7_1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestInWithMethod_Parameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    void Method(in int p);
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    void Method(in int p);
+}
+public class Test : ITest
+{
+    public void Method(in int p)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithMethod_ReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    ref readonly int Method();
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    ref readonly int Method();
+}
+public class Test : ITest
+{
+    public ref readonly int Method()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    ref readonly int Property { get; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    ref readonly int Property { get; }
+}
+public class Test : ITest
+{
+    public ref readonly int Property => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestInWithIndexer_Parameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    int this[in int p] { set; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    int this[in int p] { set; }
+}
+public class Test : ITest
+{
+    public int this[in int p] { set => throw new System.NotImplementedException(); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithIndexer_ReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    ref readonly int this[int p] { get; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    ref readonly int this[int p] { get; }
+}
+public class Test : ITest
+{
+    public ref readonly int this[int p] => throw new System.NotImplementedException();
+}");
         }
     }
 }

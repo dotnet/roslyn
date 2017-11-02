@@ -1,15 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RepoUtil</RootNamespace>
-    <AssemblyName>RepoUtil</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <UseVSHostingProcess>false</UseVSHostingProcess>
@@ -28,6 +24,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -41,34 +38,7 @@
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChangeCommand.cs" />
-    <Compile Include="ConflictingPackagesException.cs" />
-    <Compile Include="Constants.cs" />
-    <Compile Include="ConsumesCommand.cs" />
-    <Compile Include="FileName.cs" />
-    <Compile Include="GenerateData.cs" />
-    <Compile Include="GenerateUtil.cs" />
-    <Compile Include="ICommand.cs" />
-    <Compile Include="JsonTypes.cs" />
-    <Compile Include="NuGetConfigUtil.cs" />
-    <Compile Include="NuGetFeed.cs" />
-    <Compile Include="NuGetPackage.cs" />
-    <Compile Include="NuGetPackageChange.cs" />
-    <Compile Include="NuGetPackageSource.cs" />
-    <Compile Include="NuSpecUtil.cs" />
-    <Compile Include="ProducesCommand.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="ProjectJsonUtil.cs" />
-    <Compile Include="RepoConfig.cs" />
-    <Compile Include="RepoData.cs" />
-    <Compile Include="UsageCommand.cs" />
-    <Compile Include="ViewCommand.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6">

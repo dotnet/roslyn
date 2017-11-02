@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var statements = CreateGetHashCodeMethodStatements(factory, compilation, containingType, symbols, cancellationToken);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Int32),
-                returnsByRef: false,
+                 refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: GetHashCodeName,
-                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
-                parameters: default(ImmutableArray<IParameterSymbol>),
+                typeParameters: default,
+                parameters: default,
                 statements: statements);
         }
 

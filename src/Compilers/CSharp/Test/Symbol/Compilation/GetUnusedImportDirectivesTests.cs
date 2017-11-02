@@ -21,7 +21,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }";
@@ -160,7 +160,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Console.WriteLine();
     }
@@ -178,7 +178,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         /*here*/
     }
@@ -229,7 +229,7 @@ namespace NamespaceContainingInternalsOnly
 {
     internal static class Extensions
     {
-        internal static void Foo(this int x) {}
+        internal static void Goo(this int x) {}
     }
 }
 "),
@@ -249,7 +249,7 @@ public class C
 {
     internal static void F(int x)
     {
-        x.Foo();
+        x.Goo();
     }
 }
 "),
@@ -374,6 +374,62 @@ using System;
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
+        }
+
+        [Fact, WorkItem(18348, "https://github.com/dotnet/roslyn/issues/18348")]
+        public void IncorrectUnusedUsingWhenAttributeOnParameter_01()
+        {
+            var source1 =
+@"using System.Runtime.InteropServices;
+
+partial class Program
+{
+    partial void M([Out] [In] ref int x) { }
+}";
+            var source2 =
+@"partial class Program
+{
+    partial void M(ref int x);
+}";
+            var comp = CreateStandardCompilation(new[] { source1, source2 });
+            var tree = comp.SyntaxTrees[0];
+            //comp.VerifyDiagnostics(); // doing this first hides the symptoms of the bug
+            var model = comp.GetSemanticModel(tree);
+
+            // There should be no diagnostics.
+            model.GetDiagnostics().Verify(
+                //// (1,1): hidden CS8019: Unnecessary using directive.
+                //// using System.Runtime.InteropServices;
+                //Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Runtime.InteropServices;").WithLocation(1, 1)
+                );
+        }
+
+        [Fact, WorkItem(18348, "https://github.com/dotnet/roslyn/issues/18348")]
+        public void IncorrectUnusedUsingWhenAttributeOnParameter_02()
+        {
+            var source1 =
+@"using System.Runtime.InteropServices;
+
+partial class Program
+{
+    partial void M([Out] [In] ref int x);
+}";
+            var source2 =
+@"partial class Program
+{
+    partial void M(ref int x) { }
+}";
+            var comp = CreateStandardCompilation(new[] { source1, source2 });
+            var tree = comp.SyntaxTrees[0];
+            //comp.VerifyDiagnostics(); // doing this first hides the symptoms of the bug
+            var model = comp.GetSemanticModel(tree);
+
+            // There should be no diagnostics.
+            model.GetDiagnostics().Verify(
+                //// (1,1): hidden CS8019: Unnecessary using directive.
+                //// using System.Runtime.InteropServices;
+                //Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Runtime.InteropServices;").WithLocation(1, 1)
+                );
         }
     }
 }

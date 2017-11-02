@@ -15,8 +15,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticResultSerializer
     {
-        public static void Serialize(ObjectWriter writer, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
+        public static (int diagnostics, int telemetry, int exceptions) Serialize(
+            ObjectWriter writer, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
         {
+            var diagnosticCount = 0;
             var diagnosticSerializer = new DiagnosticDataSerializer(VersionStamp.Default, VersionStamp.Default);
 
             var analysisResult = result.AnalysisResult;
@@ -26,11 +28,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 writer.WriteString(kv.Key);
 
-                Serialize(writer, diagnosticSerializer, kv.Value.SyntaxLocals, cancellationToken);
-                Serialize(writer, diagnosticSerializer, kv.Value.SemanticLocals, cancellationToken);
-                Serialize(writer, diagnosticSerializer, kv.Value.NonLocals, cancellationToken);
+                diagnosticCount += Serialize(writer, diagnosticSerializer, kv.Value.SyntaxLocals, cancellationToken);
+                diagnosticCount += Serialize(writer, diagnosticSerializer, kv.Value.SemanticLocals, cancellationToken);
+                diagnosticCount += Serialize(writer, diagnosticSerializer, kv.Value.NonLocals, cancellationToken);
 
                 diagnosticSerializer.WriteTo(writer, kv.Value.Others, cancellationToken);
+                diagnosticCount += kv.Value.Others.Length;
             }
 
             var telemetryInfo = result.TelemetryInfo;
@@ -50,6 +53,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 writer.WriteString(kv.Key);
                 diagnosticSerializer.WriteTo(writer, kv.Value, cancellationToken);
             }
+
+            // report how many data has been sent
+            return (diagnosticCount, telemetryInfo.Count, exceptions.Count);
         }
 
         public static DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult> Deserialize(
@@ -103,18 +109,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return DiagnosticAnalysisResultMap.Create(analysisMap.ToImmutable(), telemetryMap.ToImmutable(), exceptionMap.ToImmutable());
         }
 
-        private static void Serialize(
+        private static int Serialize(
             ObjectWriter writer,
             DiagnosticDataSerializer serializer,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> diagnostics,
             CancellationToken cancellationToken)
         {
+            var count = 0;
+
             writer.WriteInt32(diagnostics.Count);
             foreach (var kv in diagnostics)
             {
                 kv.Key.WriteTo(writer);
                 serializer.WriteTo(writer, kv.Value, cancellationToken);
+
+                count += kv.Value.Length;
             }
+
+            return count;
         }
 
         private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Deserialize(
@@ -203,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableArray<T> GetOrDefault<T>(StrongBox<ImmutableArray<T>> items)
         {
-            return items?.Value ?? default(ImmutableArray<T>);
+            return items?.Value ?? default;
         }
     }
 }

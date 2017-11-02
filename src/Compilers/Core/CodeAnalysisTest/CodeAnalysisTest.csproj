@@ -1,17 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
@@ -19,66 +18,17 @@
     <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
-    <Compile Include="Diagnostics\SuppressMessageAttributeCompilerTests.cs" />
-    <Compile Include="EmbeddedTextTests.cs" />
-    <Compile Include="AnalyzerFileReferenceTests.cs" />
-    <Compile Include="AssemblyUtilitiesTests.cs" />
-    <Compile Include="AsyncQueueTests.cs" />
-    <Compile Include="Collections\ArrayBuilderTests.cs" />
-    <Compile Include="Collections\BoxesTest.cs" />
-    <Compile Include="Collections\ByteSequenceComparerTests.cs" />
-    <Compile Include="CryptoBlobParserTests.cs" />
-    <Compile Include="Diagnostics\CompilationWithAnalyzersTests.cs" />
-    <Compile Include="Diagnostics\ErrorLoggerTests.cs" />
-    <Compile Include="Diagnostics\AnalysisContextInfoTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
-    <Compile Include="Emit\EmitOptionsTests.cs" />
-    <Compile Include="Emit\CustomDebugInfoTests.cs" />
-    <Compile Include="FileSystem\PathUtilitiesTests.cs" />
-    <Compile Include="InternalUtilities\SpecializedCollectionsTests.cs" />
-    <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
-    <Compile Include="InternalUtilities\JsonWriterTests.cs" />
-    <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
-    <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
-    <Compile Include="MetadataReferences\AssemblyIdentityMapTests.cs" />
-    <Compile Include="PEWriter\UsedNamespaceOrTypeTests.cs" />
-    <Compile Include="RealParserTests.cs" />
-    <Compile Include="DesktopAnalyzerAssemblyLoaderTests.cs" />
-    <Compile Include="SourceFileResolverTest.cs" />
-    <Compile Include="Text\LargeTextTests.cs" />
-    <Compile Include="Text\SourceTextStreamTests.cs" />
-    <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
-      <Name>PdbUtilities</Name>
       <Aliases>PDB</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\Portable\CodeAnalysis.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -86,80 +36,19 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CachingLookupTests.cs" />
-    <Compile Include="Collections\BitArrayTests.cs" />
-    <Compile Include="Collections\CachingFactoryTests.cs" />
-    <Compile Include="Collections\EnumerableExtensionsTests.cs" />
-    <Compile Include="Collections\IdentifierCollectionTests.cs" />
-    <Compile Include="Collections\ReadOnlyArrayTests.cs" />
-    <Compile Include="Collections\SmallDictionaryTests.cs" />
-    <Compile Include="CommonCommandLineParserTests.cs" />
-    <Compile Include="CommonCompilationOptionsTests.cs" />
-    <Compile Include="CommonParseOptionsTests.cs" />
-    <Compile Include="CommonSqmUtilitiesTests.cs" />
-    <Compile Include="CommonSyntaxTests.cs" />
-    <Compile Include="CommonTypedConstantTests.cs" />
-    <Compile Include="CorLibTypesTests.cs" />
-    <Compile Include="DiagnosticBagTests.cs" />
-    <Compile Include="Diagnostics\SuppressMessageTargetSymbolResolverTests.cs" />
-    <Compile Include="DiffUtilTests.cs" />
-    <Compile Include="Emit\EmitBaselineTests.cs" />
-    <Compile Include="FileLinePositionSpanTests.cs" />
-    <Compile Include="FileSystem\RelativePathResolverTests.cs" />
-    <Compile Include="FileUtilitiesTests.cs" />
-    <Compile Include="InternalUtilities\ConcurrentLruCacheTests.cs" />
-    <Compile Include="InternalUtilities\EnumerableExtensionsTests.cs" />
-    <Compile Include="InternalUtilities\OneOrManyTests.cs" />
-    <Compile Include="InternalUtilities\WeakListTests.cs" />
-    <Compile Include="LinePositionTests.cs" />
-    <Compile Include="MetadataReferences\AssemblyIdentityComparerTests.cs" />
-    <Compile Include="MetadataReferences\AssemblyIdentityDisplayNameTests.cs" />
-    <Compile Include="MetadataReferences\AssemblyIdentityTestBase.cs" />
-    <Compile Include="MetadataReferences\AssemblyIdentityTests.cs" />
-    <Compile Include="MetadataReferences\AssemblyMetadataTests.cs" />
-    <Compile Include="MetadataReferences\AssemblyPortabilityPolicyTests.cs" />
-    <Compile Include="MetadataReferences\FusionAssemblyIdentityComparer.cs" />
-    <Compile Include="MetadataReferences\FusionAssemblyIdentityTests.cs" />
-    <Compile Include="MetadataReferences\FusionAssemblyPortabilityPolicy.cs" />
-    <Compile Include="MetadataReferences\MetadataHelpersTests.cs" />
-    <Compile Include="MetadataReferences\MetadataNameLimitTests.cs" />
-    <Compile Include="MetadataReferences\MetadataReferencePropertiesTests.cs" />
-    <Compile Include="MetadataReferences\MetadataReferenceTests.cs" />
-    <Compile Include="MetadataReferences\ModuleMetadataTests.cs" />
-    <Compile Include="MetadataReferences\ModuleNoPiaTests.cs" />
-    <Compile Include="ObjectSerializationTests.cs" />
-    <Compile Include="PEWriter\InstructionOperandTypesTests.cs" />
-    <Compile Include="ResourceDescriptionTests.cs" />
-    <Compile Include="Resources.Designer.cs">
+    <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="StringTableTests.cs" />
-    <Compile Include="StrongNameProviderTests.cs" />
-    <Compile Include="Text\StringTextDecodingTests.cs" />
-    <Compile Include="Text\SourceTextTests.cs" />
-    <Compile Include="Text\StringText_LineTest.cs" />
-    <Compile Include="Text\StringTextTest.cs" />
-    <Compile Include="Text\StringTextTest_BigEndianUnicode.cs" />
-    <Compile Include="Text\StringTextTest_Unicode.cs" />
-    <Compile Include="Text\StringTextTest_UTF8.cs" />
-    <Compile Include="Text\StringTextTest_UTF8NoBOM.cs" />
-    <Compile Include="Text\StringTextTests_Default.cs" />
-    <Compile Include="Text\TextChangeRangeTest.cs" />
-    <Compile Include="Text\TextChangeTests.cs" />
-    <Compile Include="Text\TextLineCollectionTests.cs" />
-    <Compile Include="Text\TextSpanTest.cs" />
-    <Compile Include="Text\TextUtilitiesTests.cs" />
-    <Compile Include="VersionHelperTests.cs" />
-    <Compile Include="Win32Res.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>

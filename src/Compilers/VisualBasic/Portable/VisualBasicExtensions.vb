@@ -7,6 +7,7 @@ Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <summary>
         ''' Determines if a SyntaxNodeOrToken is a specified kind.
         ''' </summary>
-        ''' <param name="nodeOrToken">The source SyntaxNodeOrToke.</param>
+        ''' <param name="nodeOrToken">The source SyntaxNodeOrToken.</param>
         ''' <param name="kind">The SyntaxKind to test for.</param>
         ''' <returns>A boolean value if nodeOrToken is of specified kind; otherwise false.</returns>
         <Extension>
@@ -1357,6 +1358,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return vbmodel.GetConversion(expression, cancellationToken)
             Else
                 Return Nothing
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from an <see cref="IConversionOperation"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="conversionExpression">The conversion expression to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/>.</returns>
+        ''' <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetConversion(conversionExpression As IConversionOperation) As Conversion
+            Dim basicConversionExpression = TryCast(conversionExpression, BaseVisualBasicConversionExpression)
+            If basicConversionExpression IsNot Nothing Then
+                Return basicConversionExpression.ConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
+                                                          NameOf(IConversionOperation)),
+                                            NameOf(conversionExpression))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information for InConversion of <see cref="IArgumentOperation"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="argument">The argument to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/> of the InConversion.</returns>
+        ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetInConversion(argument As IArgumentOperation) As Conversion
+            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
+            If basicArgument IsNot Nothing Then
+                Return basicArgument.InConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
+                                                          NameOf(IArgumentOperation)),
+                                            NameOf(argument))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information for OutConversion of <see cref="IArgumentOperation"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="argument">The argument to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/> of the OutConversion.</returns>
+        ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetOutConversion(argument As IArgumentOperation) As Conversion
+            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
+            If basicArgument IsNot Nothing Then
+                Return basicArgument.OutConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
+                                                          NameOf(IArgumentOperation)),
+                                            NameOf(argument))
             End If
         End Function
 

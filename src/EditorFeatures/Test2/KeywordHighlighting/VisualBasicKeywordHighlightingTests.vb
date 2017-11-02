@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Class Foo
+                            Class Goo
                                 Sub M()
                                     $$If True Then
                                     Else
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Class Foo
+                            Class Goo
                                 Sub M()
                                     $$[|If|] True [|Then|]
                                     [|Else|]

@@ -352,9 +352,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1)
                         : null;
 
-                    if (symbols.Count() == 1)
+                    if (symbols.Length == 1)
                     {
-                        var symbol = symbols.Single();
+                        var symbol = symbols[0];
 
                         if (symbol.IsConstructor())
                         {
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     break;
                 }
 
-                if (identifierToken != default(SyntaxToken) && !_annotatedIdentifierTokens.Contains(identifierToken))
+                if (identifierToken != default && !_annotatedIdentifierTokens.Contains(identifierToken))
                 {
                     var symbolInfo = _semanticModel.GetSymbolInfo(invocationExpression, _cancellationToken);
                     IEnumerable<ISymbol> symbols = null;

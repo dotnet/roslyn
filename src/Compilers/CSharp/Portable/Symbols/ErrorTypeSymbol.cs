@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// An ErrorSymbol is used when the compiler cannot determine a symbol object to return because
-    /// of an error. For example, if a field is declared "Foo x;", and the type "Foo" cannot be
+    /// of an error. For example, if a field is declared "Goo x;", and the type "Goo" cannot be
     /// found, an ErrorSymbol is returned when asking the field "x" what it's type is.
     /// </summary>
     internal abstract partial class ErrorTypeSymbol : NamedTypeSymbol, IErrorTypeSymbol
@@ -101,6 +101,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsValueType
         {
             get { return false; }
+        }
+
+        internal sealed override bool IsByRefLikeType
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal sealed override bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -420,6 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return null; }
         }
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {

@@ -24,9 +24,9 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (6,17): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,17): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         int x = default;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 17)
                 );
@@ -45,9 +45,9 @@ class C
     async Task M(CancellationToken t = default) { await Task.Delay(0); }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source);
+            var comp = CreateCompilationWithMscorlib46(source,parseOptions: TestOptions.Regular7 );
             comp.VerifyDiagnostics(
-                // (7,40): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
+                // (7,40): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //     async Task M(CancellationToken t = default) { await Task.Delay(0); }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(7, 40)
                 );
@@ -319,7 +319,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return default;
-                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9),
+                // (6,16): error CS8151: The return expression must be of type 'int' because this method returns by reference
+                //         return default;
+                Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "default").WithArguments("int").WithLocation(6, 16)
                 );
         }
 
@@ -921,6 +924,7 @@ class C
         var q = default && 1;
         var r = default || 1;
         var s = default ?? 1;
+        var t = default ?? default(int?);
     }
 }
 ";
@@ -974,6 +978,12 @@ class C
                 // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
                 //         var r = default || 1;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default || 1").WithArguments("||", "default").WithLocation(23, 17),
+                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
+                //         var s = default ?? 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? 1").WithArguments("??", "default").WithLocation(24, 17),
+                // (25,17): error CS8310: Operator '??' cannot be applied to operand 'default'
+                //         var t = default ?? default(int?);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? default(int?)").WithArguments("??", "default").WithLocation(25, 17),
                 // (20,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = default == 1; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
@@ -1009,7 +1019,8 @@ class C
         var p = 1 != default; // ok
         var q = 1 && default;
         var r = 1 || default;
-        var s = 1 ?? default;
+        var s = new object() ?? default; // ok
+        var t = 1 ?? default;
     }
 }
 ";
@@ -1063,9 +1074,9 @@ class C
                 // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
                 //         var r = 1 || default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 || default").WithArguments("||", "default").WithLocation(23, 17),
-                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
-                //         var s = 1 ?? default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 ?? default").WithArguments("??", "default").WithLocation(24, 17),
+                // (25,17): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'default'
+                //         var t = 1 ?? default;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? default").WithArguments("??", "int", "default").WithLocation(25, 17),
                 // (20,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = 1 == default; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
@@ -1073,6 +1084,26 @@ class C
                 //         var p = 1 != default; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
                 );
+        }
+
+        [Fact]
+        public void TestBinaryOperators4()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var a = default(string) ?? """";
+        var b = default(int?) ?? default;
+        var c = null ?? default(int?);
+        System.Console.Write($""{a == """"} {b == 0} {c == null}"");
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True True True");
         }
 
         [Fact]
@@ -2211,9 +2242,9 @@ class Program
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side
+                // (6,47): error CS8310: Operator '??' cannot be applied to operand 'default'
                 //     Expression<Func<object>> testExpr = () => default ?? "hello";
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "default").WithLocation(6, 47)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, @"default ?? ""hello""").WithArguments("??", "default").WithLocation(6, 47)
                 );
         }
 
@@ -2597,6 +2628,213 @@ class C
                 // (6,17): error CS0118: 'System' is a namespace but is used like a type
                 //         default(System).ToString();
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        public void DefaultNullableParameter()
+        {
+            var text = @"
+class C
+{
+    static void Main() { A(); B(); D(); E(); }
+
+    static void A(int? x = default) => System.Console.Write($""{x.HasValue} "");
+    static void B(int? x = default(int?)) => System.Console.Write($""{x.HasValue} "");
+    static void D(int? x = default(byte?)) => System.Console.Write($""{x.HasValue} "");
+    static void E(int? x = default(byte)) => System.Console.Write($""{x.HasValue}:{x.Value}"");
+}";
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "False False False True:0");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var default1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default1).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default1).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(default1).Symbol);
+            Assert.False(model.GetConstantValue(default1).HasValue);
+            Assert.True(model.GetConversion(default1).IsNullLiteral);
+
+            var default2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(0);
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default2).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default2).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(default2).Symbol);
+            Assert.False(model.GetConstantValue(default2).HasValue);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(default2).Kind);
+
+            var default3 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(1);
+            Assert.Equal("System.Byte?", model.GetTypeInfo(default3).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default3).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(default3).Symbol);
+            Assert.False(model.GetConstantValue(default3).HasValue);
+            Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(default3).Kind);
+
+            var default4 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(2);
+            Assert.Equal("System.Byte", model.GetTypeInfo(default4).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(default4).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(default4).Symbol);
+            Assert.True(model.GetConstantValue(default4).HasValue);
+            Conversion conversion = model.GetConversion(default4);
+            Assert.Equal(ConversionKind.ImplicitNullable, conversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, conversion.UnderlyingConversions.Single().Kind);
+        }
+
+        [Fact]
+        public void TestDefaultInConstWithNullable()
+        {
+            string source = @"
+struct S { }
+class C<T> where T : struct
+{
+    const int? x1 = default;
+    const int? x2 = default(int?);
+    const int? x3 = (default);
+    const S? y1 = default;
+    const S? y2 = default(S?);
+    const T? z1 = default;
+    const T? z2 = default(T?);
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0283: The type 'int?' cannot be declared const
+                //     const int? x1 = default;
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("int?").WithLocation(5, 5),
+                // (6,5): error CS0283: The type 'int?' cannot be declared const
+                //     const int? x2 = default(int?);
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("int?").WithLocation(6, 5),
+                // (7,5): error CS0283: The type 'int?' cannot be declared const
+                //     const int? x3 = (default);
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("int?").WithLocation(7, 5),
+                // (8,5): error CS0283: The type 'S?' cannot be declared const
+                //     const S? y1 = default;
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("S?").WithLocation(8, 5),
+                // (9,5): error CS0283: The type 'S?' cannot be declared const
+                //     const S? y2 = default(S?);
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("S?").WithLocation(9, 5),
+                // (10,5): error CS0283: The type 'T?' cannot be declared const
+                //     const T? z1 = default;
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("T?").WithLocation(10, 5),
+                // (11,5): error CS0283: The type 'T?' cannot be declared const
+                //     const T? z2 = default(T?);
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("T?").WithLocation(11, 5),
+                // (6,21): error CS0133: The expression being assigned to 'C<T>.x2' must be constant
+                //     const int? x2 = default(int?);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(int?)").WithArguments("C<T>.x2").WithLocation(6, 21),
+                // (7,21): error CS0133: The expression being assigned to 'C<T>.x3' must be constant
+                //     const int? x3 = (default);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "(default)").WithArguments("C<T>.x3").WithLocation(7, 21),
+                // (8,19): error CS0133: The expression being assigned to 'C<T>.y1' must be constant
+                //     const S? y1 = default;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default").WithArguments("C<T>.y1").WithLocation(8, 19),
+                // (9,19): error CS0133: The expression being assigned to 'C<T>.y2' must be constant
+                //     const S? y2 = default(S?);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(S?)").WithArguments("C<T>.y2").WithLocation(9, 19),
+                // (10,19): error CS0133: The expression being assigned to 'C<T>.z1' must be constant
+                //     const T? z1 = default;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default").WithArguments("C<T>.z1").WithLocation(10, 19),
+                // (11,19): error CS0133: The expression being assigned to 'C<T>.z2' must be constant
+                //     const T? z2 = default(T?);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(T?)").WithArguments("C<T>.z2").WithLocation(11, 19),
+                // (5,21): error CS0133: The expression being assigned to 'C<T>.x1' must be constant
+                //     const int? x1 = default;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default").WithArguments("C<T>.x1").WithLocation(5, 21)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var defaultLiterals = nodes.OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(4, defaultLiterals.Length);
+            foreach (var value in defaultLiterals)
+            {
+                Assert.False(model.GetConstantValue(value).HasValue);
+            }
+        }
+
+        [Fact]
+        public void TestDefaultInOptionalParameterWithNullable()
+        {
+            string source = @"
+struct S { }
+class C
+{
+    public static void Main()
+    {
+        M<long>();
+    }
+    static void M<T>(
+        int? x1 = default,
+        int? x2 = default(int?),
+        int? x3 = (default),
+        S? y1 = default,
+        S? y2 = default(S?),
+        T? z1 = default,
+        T? z2 = default(T?)) where T : struct
+    {
+        System.Console.WriteLine($""{x1.HasValue} {x2.HasValue} {x3.HasValue} {y1.HasValue} {y2.HasValue} {z1.HasValue} {z2.HasValue}"");
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "False False False False False False False");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var parameters = nodes.OfType<ParameterSyntax>().ToArray();
+            Assert.Equal(7, parameters.Length);
+            foreach (var parameter in parameters)
+            {
+                var defaultValue = parameter.Default.Value;
+                Assert.False(model.GetConstantValue(defaultValue).HasValue);
+            }
+        }
+
+        [Fact]
+        public void TestDefaultInAttributeOptionalParameterWithNullable()
+        {
+            string source = @"
+public struct S { }
+public class A : System.Attribute 
+{
+    public A(
+        int? x1 = default,
+        int? x2 = default(int?),
+        int? x3 = (default),
+        S? y1 = default,
+        S? y2 = default(S?))
+    {
+    }
+}
+[A]
+class C
+{
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (14,2): error CS0181: Attribute constructor parameter 'x1' has type 'int?', which is not a valid attribute parameter type
+                // [A]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("x1", "int?").WithLocation(14, 2),
+                // (14,2): error CS0181: Attribute constructor parameter 'x2' has type 'int?', which is not a valid attribute parameter type
+                // [A]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("x2", "int?").WithLocation(14, 2),
+                // (14,2): error CS0181: Attribute constructor parameter 'x3' has type 'int?', which is not a valid attribute parameter type
+                // [A]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("x3", "int?").WithLocation(14, 2),
+                // (14,2): error CS0181: Attribute constructor parameter 'y1' has type 'S?', which is not a valid attribute parameter type
+                // [A]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("y1", "S?").WithLocation(14, 2),
+                // (14,2): error CS0181: Attribute constructor parameter 'y2' has type 'S?', which is not a valid attribute parameter type
+                // [A]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("y2", "S?").WithLocation(14, 2)
                 );
         }
     }

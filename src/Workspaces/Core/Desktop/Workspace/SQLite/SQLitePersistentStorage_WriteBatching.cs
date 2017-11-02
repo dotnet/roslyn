@@ -51,16 +51,15 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         private async Task FlushSpecificWritesAsync<TKey>(
-            SqlConnection connection,
             MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
             Dictionary<TKey, Task> keyToWriteTask,
-            TKey key, CancellationToken cancellationToken)
+            TKey key,
+            CancellationToken cancellationToken)
         {
             var writesToProcess = ArrayBuilder<Action<SqlConnection>>.GetInstance();
             try
             {
-                await FlushSpecificWritesAsync(
-                    connection, keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
+                await FlushSpecificWritesAsync(keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -69,8 +68,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         private async Task FlushSpecificWritesAsync<TKey>(
-            SqlConnection connection, MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
-            Dictionary<TKey, Task> keyToWriteTask, TKey key,
+            MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
+            Dictionary<TKey, Task> keyToWriteTask,
+            TKey key,
             ArrayBuilder<Action<SqlConnection>> writesToProcess,
             CancellationToken cancellationToken)
         {
@@ -97,7 +97,10 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // would be losing data.
                 Debug.Assert(taskCompletionSource != null);
 
-                ProcessWriteQueue(connection, writesToProcess);
+                using (var pooledConnection = GetPooledConnection())
+                {
+                    ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
+                }
             }
             catch (OperationCanceledException ex)
             {

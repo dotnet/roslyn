@@ -228,7 +228,7 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void CS1508_DuplicateMainfestResourceIdentifier()
+        public void CS1508_DuplicateManifestResourceIdentifier()
         {
             var c1 = CreateStandardCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
@@ -236,8 +236,8 @@ class C
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true),
-                    new ResourceDescription("A", "y.foo", dataProvider, true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true),
+                    new ResourceDescription("A", "y.goo", dataProvider, true)
                 });
 
             result.Diagnostics.Verify(
@@ -248,7 +248,7 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void CS1508_DuplicateMainfestResourceIdentifier_EmbeddedResource()
+        public void CS1508_DuplicateManifestResourceIdentifier_EmbeddedResource()
         {
             var c1 = CreateStandardCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
@@ -269,8 +269,8 @@ class C
             result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true, isEmbedded: true, checkArgs: true),
-                    new ResourceDescription("A", "x.foo", dataProvider, true, isEmbedded: false, checkArgs: true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true, isEmbedded: true, checkArgs: true),
+                    new ResourceDescription("A", "x.goo", dataProvider, true, isEmbedded: false, checkArgs: true)
                 });
 
             result.Diagnostics.Verify(
@@ -281,27 +281,27 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void CS7041_DuplicateMainfestResourceFileName()
+        public void CS7041_DuplicateManifestResourceFileName()
         {
-            var c1 = CSharpCompilation.Create("foo", references: new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
+            var c1 = CSharpCompilation.Create("goo", references: new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true),
-                    new ResourceDescription("B", "x.foo", dataProvider, true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true),
+                    new ResourceDescription("B", "x.goo", dataProvider, true)
                 });
 
             result.Diagnostics.Verify(
-                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.foo' is specified more than once in this assembly
-                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.foo")
+                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.goo' is specified more than once in this assembly
+                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.goo")
             );
         }
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")]
         [Fact]
-        public void NoDuplicateMainfestResourceFileNameDiagnosticForEmbeddedResources()
+        public void NoDuplicateManifestResourceFileNameDiagnosticForEmbeddedResources()
         {
             var c1 = CreateStandardCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
@@ -319,8 +319,8 @@ class C
             result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true, isEmbedded: true, checkArgs: true),
-                    new ResourceDescription("B", "x.foo", dataProvider, true, isEmbedded: false, checkArgs: true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true, isEmbedded: true, checkArgs: true),
+                    new ResourceDescription("B", "x.goo", dataProvider, true, isEmbedded: false, checkArgs: true)
                 });
 
             result.Diagnostics.Verify();
@@ -328,7 +328,7 @@ class C
 
         [WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501"), WorkItem(546297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546297")]
         [Fact]
-        public void CS1508_CS7041_DuplicateMainfestResourceDiagnostics()
+        public void CS1508_CS7041_DuplicateManifestResourceDiagnostics()
         {
             var c1 = CreateStandardCompilation("");
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
@@ -336,28 +336,28 @@ class C
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true),
-                    new ResourceDescription("A", "x.foo", dataProvider, true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true),
+                    new ResourceDescription("A", "x.goo", dataProvider, true)
                 });
 
             result.Diagnostics.Verify(
                 // error CS1508: Resource identifier 'A' has already been used in this assembly
                 Diagnostic(ErrorCode.ERR_ResourceNotUnique).WithArguments("A"),
-                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.foo' is specified more than once in this assembly
-                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.foo")
+                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.goo' is specified more than once in this assembly
+                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.goo")
             );
 
             result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "x.foo", dataProvider, true),
-                    new ResourceDescription("B", "x.foo", dataProvider, true),
-                    new ResourceDescription("B", "y.foo", dataProvider, true)
+                    new ResourceDescription("A", "x.goo", dataProvider, true),
+                    new ResourceDescription("B", "x.goo", dataProvider, true),
+                    new ResourceDescription("B", "y.goo", dataProvider, true)
                 });
 
             result.Diagnostics.Verify(
-                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.foo' is specified more than once in this assembly
-                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.foo"),
+                // error CS7041: Each linked resource and module must have a unique filename. Filename 'x.goo' is specified more than once in this assembly
+                Diagnostic(ErrorCode.ERR_ResourceFileNameNotUnique).WithArguments("x.goo"),
                 // error CS1508: Resource identifier 'B' has already been used in this assembly
                 Diagnostic(ErrorCode.ERR_ResourceNotUnique).WithArguments("B")
             );
@@ -365,7 +365,7 @@ class C
             result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
                 {
-                    new ResourceDescription("A", "foo.dll", dataProvider, true),
+                    new ResourceDescription("A", "goo.dll", dataProvider, true),
                 });
 
             //make sure there's no problem when the name of the primary module conflicts with a file name of an added resource.
@@ -396,7 +396,7 @@ class C
             // Do not name the compilation, a unique guid is used as a name by default. It prevents conflicts with other assemblies loaded via Assembly.ReflectionOnlyLoad.
             var c1 = CreateStandardCompilation(source);
 
-            var resourceFileName = "RoslynResourceFile.foo";
+            var resourceFileName = "RoslynResourceFile.goo";
             var output = new MemoryStream();
 
             const string r1Name = "some.dotted.NAME";
@@ -450,7 +450,7 @@ class C
                 new[] { MscorlibRef },
                 TestOptions.ReleaseModule);
 
-            var resourceFileName = "RoslynResourceFile.foo";
+            var resourceFileName = "RoslynResourceFile.goo";
             var output = new MemoryStream();
 
             const string r1Name = "some.dotted.NAME";

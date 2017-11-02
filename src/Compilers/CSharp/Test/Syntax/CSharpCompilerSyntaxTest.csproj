@@ -1,136 +1,44 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{50D26304-0961-4A51-ABF6-6CAD1A56D202}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Syntax.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFramework>netstandard1.3</TargetFramework>
     <NoStdLib>true</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
+    <!-- The RESX resources generator produces invalid comments when the string has a line starting with '/' -->
+    <NoWarn>$(NoWarn);1570;1587</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
-      <Name>CSharpCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" />
+    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Generated\Syntax.Test.xml.Generated.cs" />
-    <Compile Include="Diagnostics\DiagnosticTest.cs" />
-    <Compile Include="Diagnostics\DiagnosticTest.MockSyntaxTree.cs" />
-    <Compile Include="Diagnostics\LocationsTests.cs" />
-    <Compile Include="IncrementalParsing\BinaryExpression.cs" />
-    <Compile Include="IncrementalParsing\ChangingAsync.cs" />
-    <Compile Include="IncrementalParsing\ChangingIdentifiers.cs" />
-    <Compile Include="IncrementalParsing\CompoundAssignment.cs" />
-    <Compile Include="IncrementalParsing\GrammarAmbiguities.cs" />
-    <Compile Include="IncrementalParsing\IncrementalParsingTests.cs" />
-    <Compile Include="IncrementalParsing\NodeValidators.cs" />
-    <Compile Include="IncrementalParsing\SyntaxDifferences.cs" />
-    <Compile Include="IncrementalParsing\TypeChanges.cs" />
-    <Compile Include="IncrementalParsing\UnaryExpression.cs" />
-    <Compile Include="LexicalAndXml\CrefLexerTests.cs" />
-    <Compile Include="LexicalAndXml\DisabledRegionTests.cs" />
-    <Compile Include="LexicalAndXml\DocumentationCommentLexerTestBase.cs" />
-    <Compile Include="LexicalAndXml\LexicalErrorTests.cs" />
-    <Compile Include="LexicalAndXml\LexicalTests.cs" />
-    <Compile Include="LexicalAndXml\NameAttributeValueLexerTests.cs" />
-    <Compile Include="LexicalAndXml\PreprocessorTests.cs" />
-    <Compile Include="LexicalAndXml\XmlDocCommentTests.cs" />
-    <Compile Include="ParentChecker.cs" />
-    <Compile Include="Parsing\AsyncParsingTests.cs" />
-    <Compile Include="Parsing\AwaitParsingTests.cs" />
-    <Compile Include="Parsing\CrefParsingTests.cs" />
-    <Compile Include="Parsing\DeclarationExpressionTests.cs" />
-    <Compile Include="Parsing\DeclarationParsingTests.cs" />
-    <Compile Include="Parsing\DeconstructionTests.cs" />
-    <Compile Include="Parsing\ExpressionParsingTests.cs" />
-    <Compile Include="Parsing\LocalFunctionParsingTests.cs" />
-    <Compile Include="Parsing\ParserRegressionTests.cs" />
-    <Compile Include="Parsing\ScriptParsingTests.cs" />
-    <Compile Include="Parsing\LambdaParameterParsingTests.cs" />
-    <Compile Include="Parsing\NameAttributeValueParsingTests.cs" />
-    <Compile Include="Parsing\NameParsingTests.cs" />
-    <Compile Include="Parsing\CSharpParseOptionsTests.cs" />
-    <Compile Include="Parsing\ParserErrorMessageTests.cs" />
-    <Compile Include="Parsing\ParsingErrorRecoveryTests.cs" />
-    <Compile Include="Parsing\ParsingTests.cs" />
-    <Compile Include="Parsing\PatternParsingTests.cs" />
-    <Compile Include="Parsing\RoundTrippingTests.cs" />
-    <Compile Include="Parsing\SeparatedSyntaxListParsingTests.cs" />
-    <Compile Include="Parsing\StatementParsingTests.cs" />
-    <Compile Include="Parsing\SyntaxExtensions.cs" />
-    <Compile Include="Parsing\ValueTupleTests.cs" />
-    <Compile Include="Parsing\VerbatimCrefParsingTests.cs" />
-    <Compile Include="Resources.Designer.cs">
+    <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Syntax\ChildSyntaxListTests.cs" />
-    <Compile Include="Syntax\LambdaUtilitiesTests.cs" />
-    <Compile Include="Syntax\SyntaxTreeTests.cs" />
-    <Compile Include="Syntax\GreenNodeTests.cs" />
-    <Compile Include="Syntax\RedNodeTests.cs" />
-    <Compile Include="Syntax\SeparatedSyntaxListTests.cs" />
-    <Compile Include="Syntax\SerializationTests.cs" />
-    <Compile Include="Syntax\StructuredTriviaTests.cs" />
-    <Compile Include="Syntax\SyntaxAnnotationTests.cs" />
-    <Compile Include="Syntax\SyntaxDiffingTests.cs" />
-    <Compile Include="Syntax\SyntaxEquivalenceTests.cs" />
-    <Compile Include="Syntax\SyntaxFactoryTests.cs" />
-    <Compile Include="Syntax\SyntaxNormalizerTests.cs" />
-    <Compile Include="Syntax\SyntaxListTests.cs" />
-    <Compile Include="Syntax\SyntaxNodeOrTokenListTests.cs" />
-    <Compile Include="Syntax\SyntaxNodeTests.cs" />
-    <Compile Include="Syntax\SyntaxRewriterTests.cs" />
-    <Compile Include="Syntax\SyntaxTests.cs" />
-    <Compile Include="Syntax\SyntaxTokenListTests.cs" />
-    <Compile Include="Syntax\SyntaxTriviaListTests.cs" />
-    <Compile Include="Syntax\TrackNodeTests.cs" />
-    <Compile Include="TextExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Update="Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>

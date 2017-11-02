@@ -2,7 +2,7 @@
   <Import Project="$(MSBuildThisFileDirectory)..\Targets\Packages.props" />
   <Import Project="$(MSBuildThisFileDirectory)..\Targets\FixedPackages.props" />
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Net.Sdk" Version="$(MicrosoftNetSdkVersion)" />
@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.Net.RoslynDiagnostics" Version="$(MicrosoftNetRoslynDiagnosticsVersion)" />
     <PackageReference Include="FakeSign" Version="$(FakeSignVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
     <PackageReference Include="Roslyn.Build.Util" Version="$(RoslynBuildUtilVersion)" />
     <PackageReference Include="RoslynDependencies.OptimizationData" Version="$(RoslynDependenciesOptimizationDataVersion)" />
@@ -24,8 +25,8 @@
     <PackageReference Include="RoslynTools.Microsoft.SignTool" Version="$(RoslynToolsMicrosoftSignToolVersion)" />
     <PackageReference Include="RoslynTools.Microsoft.VSIXExpInstaller" Version="$(RoslynToolsMicrosoftVSIXExpInstallerVersion)" />
     <PackageReference Include="RoslynTools.ReferenceAssemblies" Version="$(RoslynToolsReferenceAssembliesVersion)" />
-    <PackageReference Include="GitLink" Version="$(GitLinkVersion)" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" />
-    <PackageReference Include="ManagedEsent" Version="$(ManagedEsentVersion)" />
+    <PackageReference Include="xunit.runner.wpf" Version="$(xunitrunnerwpfVersion)" />
+    <PackageReference Include="pdb2pdb" Version="$(Pdb2PdbVersion)" />
   </ItemGroup>
 </Project>

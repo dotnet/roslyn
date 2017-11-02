@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Process = System.Diagnostics.Process;
+using RunTests;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -168,8 +169,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 hostProcess = StartNewVisualStudioProcess(installationPath);
 
-                var procDumpPath = Environment.GetEnvironmentVariable(ProcDumpRunner.ProcDumpPathEnvironmentVariableKey);
-                ProcDumpRunner.StartProcDump(procDumpPath, hostProcess.Id, hostProcess.ProcessName, Path.Combine(GetAssemblyDirectory(), "xUnitResults"), s => Debug.WriteLine(s));
+                var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
+                if (procDumpInfo != null)
+                {
+                    ProcDumpUtil.AttachProcDump(procDumpInfo.Value, hostProcess.Id);
+                }
 
                 // We wait until the DTE instance is up before we're good
                 dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).Result;
@@ -193,29 +197,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
         }
 
-        private static ISetupConfiguration GetSetupConfiguration()
-        {
-            try
-            {
-                return new SetupConfiguration();
-            }
-            catch (COMException comException) when (comException.HResult == NativeMethods.REGDB_E_CLASSNOTREG)
-            {
-                // Fallback to P/Invoke if the COM registration is missing
-                var hresult = NativeMethods.GetSetupConfiguration(out var setupConfiguration, pReserved: IntPtr.Zero);
-
-                if (hresult < 0)
-                {
-                    throw Marshal.GetExceptionForHR(hresult);
-                }
-
-                return setupConfiguration;
-            }
-        }
-
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()
         {
-            var setupConfiguration = GetSetupConfiguration() as ISetupConfiguration2;
+            var setupConfiguration = new SetupConfiguration();
 
             var instanceEnumerator = setupConfiguration.EnumAllInstances();
             var instances = new ISetupInstance[3];
@@ -247,6 +231,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (haveVsInstallDir)
             {
                 vsInstallDir = Path.GetFullPath(vsInstallDir);
+                vsInstallDir = vsInstallDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 Debug.WriteLine($"An environment variable named 'VSInstallDir' was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
             }
 
@@ -258,6 +243,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     if (haveVsInstallDir)
                     {
                         var installationPath = instance.GetInstallationPath();
+                        installationPath = Path.GetFullPath(installationPath);
+                        installationPath = installationPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                         isMatch &= installationPath.Equals(vsInstallDir, StringComparison.OrdinalIgnoreCase);
                     }
                 }

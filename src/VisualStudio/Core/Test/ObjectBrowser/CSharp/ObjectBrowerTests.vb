@@ -5,6 +5,7 @@ Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports System.Threading.Tasks
+Imports System.Globalization
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
     Public Class ObjectBrowserTests
@@ -79,14 +80,14 @@ namespace N
 <Code>
 class A
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class B : A
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -97,7 +98,7 @@ class B : A
 
 class C : B
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -115,7 +116,7 @@ class C : B
                 list = list.GetMemberList(0)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "ToString()",
                     "Equals(object)",
                     "Equals(object, object)",
@@ -133,14 +134,14 @@ class C : B
 <Code>
 class A
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class B : A
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -151,7 +152,7 @@ class B : A
 
 class C : B
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -169,7 +170,7 @@ class C : B
                 list = list.GetMemberList(1)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "Bar()",
                     "ToString()",
                     "Equals(object)",
@@ -188,14 +189,14 @@ class C : B
 <Code>
 class A
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class B : A
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -206,7 +207,7 @@ class B : A
 
 class C : B
 {
-    protected override void Foo()
+    protected override void Goo()
     {
     }
 
@@ -224,7 +225,7 @@ class C : B
                 list = list.GetMemberList(2)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "Bar()",
                     "ToString()",
                     "Equals(object)",
@@ -545,7 +546,7 @@ class C
 </Code>
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code)),
-                    testCulture As New CultureContext("en-US")
+                    testCulture As New CultureContext(New CultureInfo("en-US", useUserOverride:=False))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)

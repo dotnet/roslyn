@@ -178,21 +178,21 @@ class Program
     {
         public int x;
 
-        public void Foo()
+        public void Goo()
         {
             x = 123;
         }
     }
 
-    public static S1 foo()
+    public static S1 goo()
     {
         return new S1();
     }
 
     static void Main()
     {
-        foo().ToString();
-        Console.Write(foo().x);
+        goo().ToString();
+        Console.Write(goo().x);
     }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"0");
@@ -202,13 +202,13 @@ class Program
   // Code size       36 (0x24)
   .maxstack  1
   .locals init (Program.S1 V_0)
-  IL_0000:  call       ""Program.S1 Program.foo()""
+  IL_0000:  call       ""Program.S1 Program.goo()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  constrained. ""Program.S1""
   IL_000e:  callvirt   ""string object.ToString()""
   IL_0013:  pop
-  IL_0014:  call       ""Program.S1 Program.foo()""
+  IL_0014:  call       ""Program.S1 Program.goo()""
   IL_0019:  ldfld      ""int Program.S1.x""
   IL_001e:  call       ""void System.Console.Write(int)""
   IL_0023:  ret
@@ -406,12 +406,12 @@ namespace NS
 
     namespace N2
     {
-        public interface IFoo<T>
+        public interface IGoo<T>
         {
             void M(T t);
         }
 
-        struct S<T, V> : IFoo<T>
+        struct S<T, V> : IGoo<T>
         {
             public S(V v)
             {
@@ -432,9 +432,9 @@ namespace NS
         
         static void Main()
         {
-            IFoo<string> foo = new S<string, byte>(255);
-            foo.M(""Abc"");
-            Console.WriteLine(((S<string, byte>)foo).field);
+            IGoo<string> goo = new S<string, byte>(255);
+            goo.M(""Abc"");
+            Console.WriteLine(((S<string, byte>)goo).field);
 
             ary = new S<N2, char>[3];
             ary[0] = ary[1] = ary[2] = new S<N2, char>('q');
@@ -458,7 +458,7 @@ q");
   IL_000a:  box        ""NS.N2.S<string, byte>""
   IL_000f:  dup
   IL_0010:  ldstr      ""Abc""
-  IL_0015:  callvirt   ""void NS.N2.IFoo<string>.M(string)""
+  IL_0015:  callvirt   ""void NS.N2.IGoo<string>.M(string)""
   IL_001a:  unbox      ""NS.N2.S<string, byte>""
   IL_001f:  ldfld      ""byte NS.N2.S<string, byte>.field""
   IL_0024:  call       ""void System.Console.WriteLine(int)""
@@ -1522,6 +1522,64 @@ public class D
 ");
         }
 
+        [Fact]
+        public void InheritedCallOnReadOnly()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main()
+        {
+            var obj = new C1();
+            System.Console.WriteLine(obj.field.ToString());
+        }
+    }
+
+    class C1
+    {
+        public readonly S1 field;
+    }
+
+    struct S1
+    {
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: false);
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  ldflda     ""S1 C1.field""
+  IL_000a:  constrained. ""S1""
+  IL_0010:  callvirt   ""string object.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
+}
+");
+            compilation = CompileAndVerify(source, expectedOutput: "S1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  ldfld      ""S1 C1.field""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  constrained. ""S1""
+  IL_0013:  callvirt   ""string object.ToString()""
+  IL_0018:  call       ""void System.Console.WriteLine(string)""
+  IL_001d:  ret
+}
+");
+        }
+
         #endregion
         #region "Enum"
 
@@ -1922,8 +1980,9 @@ struct S
   // Code size      116 (0x74)
   .maxstack  4
   .locals init (S V_0,
-  S V_1,
-  bool V_2)
+                S V_1,
+                bool V_2,
+                S V_3)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
@@ -1941,24 +2000,231 @@ struct S
   IL_002e:  callvirt   ""bool object.Equals(object)""
   IL_0033:  stloc.2
   IL_0034:  ldloca.s   V_2
-  IL_0036:  ldloca.s   V_0
+  IL_0036:  ldloca.s   V_1
   IL_0038:  initobj    ""S""
-  IL_003e:  ldloca.s   V_0
+  IL_003e:  ldloca.s   V_1
   IL_0040:  ldc.i4.1
   IL_0041:  stfld      ""int S.x""
-  IL_0046:  ldloca.s   V_0
-  IL_0048:  ldloca.s   V_1
+  IL_0046:  ldloca.s   V_1
+  IL_0048:  ldloca.s   V_3
   IL_004a:  initobj    ""S""
-  IL_0050:  ldloca.s   V_1
+  IL_0050:  ldloca.s   V_3
   IL_0052:  ldc.i4.1
   IL_0053:  stfld      ""int S.x""
-  IL_0058:  ldloc.1
+  IL_0058:  ldloc.3
   IL_0059:  box        ""S""
   IL_005e:  constrained. ""S""
   IL_0064:  callvirt   ""bool object.Equals(object)""
   IL_0069:  call       ""bool bool.Equals(bool)""
   IL_006e:  call       ""void System.Console.WriteLine(bool)""
   IL_0073:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InitTemp003()
+        {
+            string source = @"
+using System;
+
+readonly struct S
+{
+    readonly int x;
+
+    public S(int x)
+    {
+        this.x = x;
+    }
+
+    static void Main()
+    {
+        // named argument reordering introduces a sequence with temps
+        // and we cannot know whether RefMethod returns a ref to a sequence local
+        // so we must assume that it can, and therefore must keep all the sequence the locals in use 
+        // for the duration of the most-encompassing expression.
+        Console.WriteLine(RefMethod(arg2: I(5), arg1: I(3)).GreaterThan(
+                          RefMethod(arg2: I(0), arg1: I(0))));
+    }
+
+    public static ref readonly S RefMethod(in S arg1, in S arg2)
+    {
+        return ref arg2;
+    }
+
+    public bool GreaterThan(in S arg)
+    {
+        return this.x > arg.x;
+    }
+
+    public static S I(int arg)
+    {
+        return new S(arg);
+    }
+}
+
+";
+
+            var compilation = CompileAndVerify(source, verify: false, expectedOutput: "True");
+
+            compilation.VerifyIL("S.Main",
+@"
+{
+  // Code size       63 (0x3f)
+  .maxstack  3
+  .locals init (S& V_0,
+                S V_1,
+                S V_2,
+                S& V_3,
+                S V_4,
+                S V_5)
+  IL_0000:  ldc.i4.5
+  IL_0001:  call       ""S S.I(int)""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  stloc.0
+  IL_000a:  ldc.i4.3
+  IL_000b:  call       ""S S.I(int)""
+  IL_0010:  stloc.2
+  IL_0011:  ldloca.s   V_2
+  IL_0013:  ldloc.0
+  IL_0014:  call       ""ref readonly S S.RefMethod(in S, in S)""
+  IL_0019:  ldc.i4.0
+  IL_001a:  call       ""S S.I(int)""
+  IL_001f:  stloc.s    V_4
+  IL_0021:  ldloca.s   V_4
+  IL_0023:  stloc.3
+  IL_0024:  ldc.i4.0
+  IL_0025:  call       ""S S.I(int)""
+  IL_002a:  stloc.s    V_5
+  IL_002c:  ldloca.s   V_5
+  IL_002e:  ldloc.3
+  IL_002f:  call       ""ref readonly S S.RefMethod(in S, in S)""
+  IL_0034:  call       ""bool S.GreaterThan(in S)""
+  IL_0039:  call       ""void System.Console.WriteLine(bool)""
+  IL_003e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InitTemp004()
+        {
+            string source = @"
+using System;
+
+readonly struct S
+{
+    public readonly int x;
+
+    public S(int x)
+    {
+        this.x = x;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(TestRO().x);
+        System.Console.WriteLine();
+        System.Console.Write(Test().x);
+    }
+
+    static ref readonly S TestRO()
+    {
+        try
+        {
+            // both args are refs
+            return ref RefMethodRO(arg2: I(5), arg1: I(3));
+        }
+        finally
+        {
+            // first arg is a value!!
+            RefMethodRO(arg2: I_Val(5), arg1: I(3));
+        }
+    }
+
+    public static ref readonly S RefMethodRO(in S arg1, in S arg2)
+    {
+        System.Console.Write(arg2.x);
+        return ref arg2;
+    }
+
+    // similar as above, but with regular (not readonly) refs for comparison
+    static ref S Test()
+    {
+        try
+        {
+            return ref RefMethod(arg2: ref I(5), arg1: ref I(3));
+        }
+        finally
+        {
+            var temp = I(5);
+            RefMethod(arg2: ref temp, arg1: ref I(3));
+        }
+    }
+
+    public static ref S RefMethod(ref S arg1, ref S arg2)
+    {
+        System.Console.Write(arg2.x);
+        return ref arg2;
+    }
+
+    private static S[] arr = new S[] { new S() };
+
+    public static ref S I(int arg)
+    {
+        arr[0] = new S(arg);
+        return ref arr[0];
+    }
+
+    public static S I_Val(int arg)
+    {
+        arr[0] = new S(arg);
+        return arr[0];
+    }
+}
+
+";
+
+            var compilation = CompileAndVerify(source, verify: false, expectedOutput: @"353
+353");
+
+            compilation.VerifyIL("S.TestRO",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (S& V_0,
+                S& V_1,
+                S V_2)
+  .try
+  {
+    IL_0000:  ldc.i4.5
+    IL_0001:  call       ""ref S S.I(int)""
+    IL_0006:  stloc.0
+    IL_0007:  ldc.i4.3
+    IL_0008:  call       ""ref S S.I(int)""
+    IL_000d:  ldloc.0
+    IL_000e:  call       ""ref readonly S S.RefMethodRO(in S, in S)""
+    IL_0013:  stloc.1
+    IL_0014:  leave.s    IL_002e
+  }
+  finally
+  {
+    IL_0016:  ldc.i4.5
+    IL_0017:  call       ""S S.I_Val(int)""
+    IL_001c:  stloc.2
+    IL_001d:  ldloca.s   V_2
+    IL_001f:  stloc.0
+    IL_0020:  ldc.i4.3
+    IL_0021:  call       ""ref S S.I(int)""
+    IL_0026:  ldloc.0
+    IL_0027:  call       ""ref readonly S S.RefMethodRO(in S, in S)""
+    IL_002c:  pop
+    IL_002d:  endfinally
+  }
+  IL_002e:  ldloc.1
+  IL_002f:  ret
 }
 ");
         }

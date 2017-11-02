@@ -167,7 +167,7 @@ Public Enum $$E : End Enum
 Imports System
 
 Enum $$E
-    Foo = 1,
+    Goo = 1,
     Bar
 End Enum
 </Code>
@@ -178,7 +178,7 @@ Imports System
 
 &lt;Flags()&gt;
 Enum E
-    Foo = 1,
+    Goo = 1,
     Bar
 End Enum
 </Code>
@@ -193,7 +193,7 @@ Imports System
 
 &lt;Flags&gt;
 Enum $$E
-    Foo = 1,
+    Goo = 1,
     Bar
 End Enum
 </Code>
@@ -205,7 +205,7 @@ Imports System
 &lt;Flags&gt;
 &lt;CLSCompliant(True)&gt;
 Enum E
-    Foo = 1,
+    Goo = 1,
     Bar
 End Enum
 </Code>
@@ -221,7 +221,7 @@ Imports System
 
 ''' &lt;summary&gt;&lt;/summary&gt;
 Enum $$E
-    Foo = 1,
+    Goo = 1,
     Bar
 End Enum
 </Code>
@@ -233,7 +233,7 @@ Imports System
 ''' &lt;summary&gt;&lt;/summary&gt;
 &lt;Flags()&gt;
 Enum E
-    Foo = 1,
+    Goo = 1,
     Bar
 End Enum
 </Code>
@@ -247,7 +247,7 @@ End Enum
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
-Enum $$Foo
+Enum $$Goo
 End Enum
 </Code>
 

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateVariable)]
     internal class GenerateTypeCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
-        private const string CS0103 = nameof(CS0103); // error CS0103: The name 'Foo' does not exist in the current context
+        private const string CS0103 = nameof(CS0103); // error CS0103: The name 'Goo' does not exist in the current context
         private const string CS0117 = nameof(CS0117); // error CS0117: 'x' does not contain a definition for 'y'
         private const string CS0234 = nameof(CS0234); // error CS0234: The type or namespace name 'C' does not exist in the namespace 'N' (are you missing an assembly reference?)
         private const string CS0246 = nameof(CS0246); // error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
@@ -34,22 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
-            var qualified = node as QualifiedNameSyntax;
-            if (qualified != null)
+            switch (node)
             {
-                return true;
-            }
-
-            var simple = node as SimpleNameSyntax;
-            if (simple != null)
-            {
-                return !simple.IsParentKind(SyntaxKind.QualifiedName);
-            }
-
-            var memberAccess = node as MemberAccessExpressionSyntax;
-            if (memberAccess != null)
-            {
-                return true;
+                case QualifiedNameSyntax qualified:
+                    return true;
+                case SimpleNameSyntax simple:
+                    return !simple.IsParentKind(SyntaxKind.QualifiedName);
+                case MemberAccessExpressionSyntax memberAccess:
+                    return true;
             }
 
             return false;

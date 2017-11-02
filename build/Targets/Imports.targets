@@ -3,48 +3,20 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Choose>
-    <When Condition="'$(RoslynProjectType)' == 'UnitTest'">
+    <When Condition="'$(RoslynProjectType)' == 'UnitTest' OR '$(RoslynProjectType)' == 'UnitTestPortable'">
       <PropertyGroup>
         <_IsAnyUnitTest>true</_IsAnyUnitTest>
+        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)UnitTests\$(MSBuildProjectName)\</OutputPath>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'UnitTestPortable' OR '$(RoslynProjectType)' == 'UnitTestDesktop'">
-      <!-- Portable DLLs don't have a supported mechanism for deploying their dependencies
-           as a part of a normal build.  This breaks developer workflows like F5, TDD, and
-           standard unit testing.
-
-           For developer convenience we use an unsupported way of deploying dependencies.  This
-           includes NuGet and standard references.  This is not done on official builds because
-           it's not a supported mechanism hence we don't rely on it for official validation.
-
-           This bug tracks getting an official solution out of MSBuild.
-
-           https://github.com/Microsoft/msbuild/issues/1499 -->
-      <PropertyGroup>
-        <_CopyReferences>$(DeveloperBuild)</_CopyReferences>
-        <_CopyProjectReferences>$(DeveloperBuild)</_CopyProjectReferences>
-        <_IsAnyUnitTest>true</_IsAnyUnitTest>
-        <_IsAnyPortableUnitTest>true</_IsAnyPortableUnitTest>
-        <CopyNuGetImplementations>false</CopyNuGetImplementations>
-        <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Vsix'">
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
+        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Vsix\$(MSBuildProjectName)\</OutputPath>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'DeploymentTest'">
-      <!-- Need to include PDB in deployment directory for debugging, and in some cases correctness when
-           stack traces are involved -->
-      <PropertyGroup>
-        <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.pdb</AllowedReferenceRelatedFileExtensions>
-        <CopyNuGetImplementations>true</CopyNuGetImplementations>
-        <OutputPath>$(OutputPath)$(RoslynUnitTestDir)</OutputPath>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Custom'">
@@ -56,29 +28,39 @@
         <_CopyProjectReferences>false</_CopyProjectReferences>
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'Exe'">
       <PropertyGroup>
+        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'WinExe'">
       <PropertyGroup>
+        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
   </Choose>
 
   <!-- 
     DocumentationFile needs to be set before importing common targets. 
-    C# common targets (unlike VB) prefix DocumentationFile path with IntermediateOutputPath.
+
+    C# common targets (unlike VB) prefix DocumentationFile path with IntermediateOutputPath. However, using that here does not work with multi-targeting as
+    the IntermediateOutputPath will not yet have the TargetFramework appended, which will lead to a race where parallel builds for different TargetFrameworks
+    attempt to write the doc xml to the same xml location. Instead, we can simply set GenerateDocumentationFile=true and let the SDK pick the correct path.
+
+    Ideally, we'd just use the same construct for VB here, but that is currently blocked by https://github.com/dotnet/sdk/issues/1598.
   -->
-  <PropertyGroup Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(Nonshipping)' != 'true' AND '$(AssemblyName)' != ''">
+  <PropertyGroup Condition="'$(GenerateDocumentationFile)' == '' AND '$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(AssemblyName)' != ''">
     <DocumentationFile Condition="'$(ProjectLanguage)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
-    <DocumentationFile Condition="'$(ProjectLanguage)' == 'CSharp'">$(IntermediateOutputPath)\$(AssemblyName).xml</DocumentationFile>
+    <GenerateDocumentationFile Condition="'$(ProjectLanguage)' == 'CSharp'">true</GenerateDocumentationFile>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -100,7 +82,7 @@
     <!-- The netstandard 1.3 package by default includes Microsoft.CodeAnalysis.  That's a bit
          of a non-starter since we build it.  Using manual references for now -->
     <DisableImplicitFrameworkReferences Condition="'$(DisableImplicitFrameworkReferences)' == ''" >true</DisableImplicitFrameworkReferences>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendTargetFrameworkToOutputPath Condition="'$(TargetFrameworks)' == ''">false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
       
     <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
@@ -136,12 +118,6 @@
     </When>
   </Choose>
 
-  <!-- Settings for strong name signing -->
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-      <!-- Strong name signing is not supported on non-Windows platforms -->
-      <PublicSign>true</PublicSign>
-  </PropertyGroup>
-
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
       <Choose>
@@ -163,6 +139,10 @@
             <DelaySign>false</DelaySign>
             <PublicKey>$(RoslynInternalKey)</PublicKey>
             <PublicKeyToken>fc793a00266884fb</PublicKeyToken>
+          </PropertyGroup>
+          <!-- Real-signing is not currently supported cross-platform -->
+          <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+              <PublicSign>true</PublicSign>
           </PropertyGroup>
         </Otherwise>
       </Choose>
@@ -220,7 +200,7 @@
   </ItemGroup>
 
   <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
-  <Import Project="$(RoslynNetSdkRootPath)Sdk.targets" Condition="'$(RoslynSdkProject)' == 'true'" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(RoslynSdkProject)' == 'true'" />
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\'to '/', even when the '\'
@@ -350,7 +330,7 @@
        ==================================================================================== -->
 
   <PropertyGroup>
-    <PrepareForBuildDependsOn>RemoveDuplicateXUnitContent;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
+    <PrepareForBuildDependsOn>RemoveDuplicateXUnitContent;RestoreToolsetCheck;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
     <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData</OptimizationDataFolderPath>
@@ -360,6 +340,8 @@
   <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true'">
       <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
              Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
+      <Error Text="Analyzer packages have not been restored, run Restore.cmd before building. File not found: '$(RoslynDiagnosticsPropsFilePath)'"
+             Condition="!Exists('$(RoslynDiagnosticsPropsFilePath)')" />
   </Target>
 
   <Target Name="CheckBootstrapState"
@@ -490,6 +472,23 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="BeforeBuild" Condition="'$(MSBuildRuntimeType)' != 'Core'">
+    <ValidateBuildEnvironment
+      MSBuildBinPath="$(MSBuildBinPath)"
+      MSBuildMinimumFileVersion="15.3.409"
+      MSBuildMinimumDisplayVersion="MSBuild 15.3"
+      />
+
+    <PropertyGroup>
+      <ShortSdkVersion Condition=" $(dotnetSdkVersion.IndexOf('-')) > 0 ">$(dotnetSdkVersion.Substring(0, $(dotnetSdkVersion.IndexOf('-'))))</ShortSdkVersion>
+      <ShortSdkVersion Condition=" $(dotnetSdkVersion.IndexOf('-')) &lt;= 0 ">$(dotnetSdkVersion)</ShortSdkVersion>
+    </PropertyGroup>
+
+    <Error 
+      Text="The $(ShortSdkVersion) SDK is required to build this repo"
+      Condition="'$(UsingMicrosoftNETSdk)' == '' AND '$(RoslynSdkProject)' == 'true'" />
+  </Target> 
+
   <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
        https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
        isn't fully supported yet in the new project system. Removal of this hack is tracked
@@ -498,4 +497,57 @@
     <AdditionalFiles Include="@(PublicAPI)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Show launchSettings.json in the project if it exists. -->
+    <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
+  </ItemGroup>
+
+  <!-- CPS doesn't show these items by default, but we want to show them. -->
+  <ItemGroup>
+    <!-- XAML pages and resources -->
+    <None Include="@(Page)" />
+    <None Include="@(Resource)" />
+
+    <!-- Special items in VSSDK projects -->
+    <None Include="@(VSCTCompile)" />
+  </ItemGroup>
+  
+  <!-- Work around https://github.com/dotnet/roslyn/issues/20945 -->
+  <Target Name="_CheckForUnsupportedNETCoreVersion" />
+
+  <!-- This is a work around to force the deployment of certain runtime specific DLLs contained 
+       in lib folders. Lacking this DLLs like System.Security.Cryptography.Algorithms won't deploy
+       on net461 projects. 
+       
+       https://github.com/dotnet/sdk/issues/1552 -->
+  <Target Name="WorkaroundConflictResolution" AfterTargets="_ComputeActiveTFMFileDependencies" Condition="'$(PlatformTarget)' == 'AnyCPU' AND '$(TargetFrameworkIdentifier)' == '.NETFramework' AND '$(_NeedRuntimeAssets)' == 'true'" >
+    <ItemGroup>
+      <_ActiveTFMFileDependencies Remove="@(_ActiveTFMFileDependencies->WithMetadataValue('FileGroup', 'RuntimeTarget'))" />
+    </ItemGroup>
+  </Target>
+
+  <!-- 
+    Prepare inputs for Symbol Store publishing.
+     
+    The imported targets populate ArtifactsSymStoreDirectory with links to binaries and Windows PDBs produced either 
+    directly by the build or converted from Portable PDBs produced by the build.
+    In official build the content of ArtifactsSymStoreDirectory is uploaded to a symbol server.
+  -->
+  <PropertyGroup>
+    <PublishOutputToSymStore Condition="'$(Nonshipping)' == 'true'">false</PublishOutputToSymStore>
+  </PropertyGroup>
+
+  <Import Project="RepoToolset\SymStore.targets" />
+
+  <Import Project="RepoToolset\SourceLink.targets" Condition="'$(EnableSourceLink)' == 'true' and '$(GitHeadSha)' != ''"/>
+
+  <PropertyGroup>
+    <PathMap Condition="'$(DeterministicSourceRoot)' != ''">$(RepoRoot)=$(DeterministicSourceRoot)</PathMap>
+  </PropertyGroup>
+
+  <Target Name="_CheckForSpacesInPathMap"
+          BeforeTargets="CoreCompile">
+    <Error Text="PathMap, DeterministicSourceRoot and RepoRoot shall not contain spaces (https://github.com/dotnet/roslyn/issues/22835)" 
+           Condition="$(PathMap.Contains(' '))" />
+  </Target>
 </Project>

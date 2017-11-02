@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 return typeToGenerateIn != null;
             }
 
-            token = default(SyntaxToken);
-            arguments = default(ImmutableArray<ArgumentSyntax>);
+            token = default;
+            arguments = default;
             typeToGenerateIn = null;
             return false;
         }
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 }
             }
 
-            token = default(SyntaxToken);
-            arguments = default(ImmutableArray<ArgumentSyntax>);
+            token = default;
+            arguments = default;
             typeToGenerateIn = null;
             return false;
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                         arguments = attributeArguments.Select(
                             x => SyntaxFactory.Argument(
                                 x.NameColon ?? (x.NameEquals != null ? SyntaxFactory.NameColon(x.NameEquals.Name) : null),
-                                default(SyntaxToken), x.Expression)).ToImmutableArray();
+                                default, x.Expression)).ToImmutableArray();
 
                         typeToGenerateIn = symbolInfo.CandidateSymbols.FirstOrDefault().ContainingSymbol as INamedTypeSymbol;
                         return typeToGenerateIn != null;
@@ -120,9 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 }
             }
 
-            token = default(SyntaxToken);
-            arguments = default(ImmutableArray<ArgumentSyntax>);
-            attributeArguments = default(ImmutableArray<AttributeArgumentSyntax>);
+            token = default;
+            arguments = default;
+            attributeArguments = default;
             typeToGenerateIn = null;
             return false;
         }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken).ToImmutableArray();
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken);
 
         protected override string GenerateNameForArgument(SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
             => semanticModel.GenerateNameForArgument(argument, cancellationToken);
@@ -142,10 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             => semanticModel.GenerateNameForArgument(argument, cancellationToken);
 
         protected override RefKind GetRefKind(ArgumentSyntax argument)
-        {
-            return argument.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword ? RefKind.Ref :
-                   argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None;
-        }
+            => argument.GetRefKind();
 
         protected override bool IsNamedArgument(ArgumentSyntax argument)
         {

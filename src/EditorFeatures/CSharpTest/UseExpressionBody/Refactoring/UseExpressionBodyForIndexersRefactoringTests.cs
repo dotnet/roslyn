@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    Action Foo[int i]
+    Action Goo[int i]
     {
         get 
         {
@@ -96,7 +96,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int this[int i] { get { return Bar(); } }
+    int this[int i]
+    {
+        get
+        {
+            return Bar();
+        }
+    }
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
     }

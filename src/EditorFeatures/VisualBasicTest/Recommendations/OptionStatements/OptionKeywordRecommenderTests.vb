@@ -29,7 +29,7 @@ Option Strict On
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OptionNotAfterImportsTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Imports Foo
+Imports Goo
 |</File>, "Option")
         End Function
 
@@ -37,7 +37,7 @@ Imports Foo
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OptionNotAfterTypeTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Class Foo
+Class Goo
 End Class
 |</File>, "Option")
         End Function

@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -34,11 +36,11 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         public NamingStyle With(
-          Optional<string> name = default(Optional<string>),
-          Optional<string> prefix = default(Optional<string>),
-          Optional<string> suffix = default(Optional<string>),
-          Optional<string> wordSeparator = default(Optional<string>),
-          Optional<Capitalization> capitalizationScheme = default(Optional<Capitalization>))
+          Optional<string> name = default,
+          Optional<string> prefix = default,
+          Optional<string> suffix = default,
+          Optional<string> wordSeparator = default,
+          Optional<Capitalization> capitalizationScheme = default)
         {
             var newName = name.HasValue ? name.Value : this.Name;
             var newPrefix = prefix.HasValue ? prefix.Value : this.Prefix;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 newName, newPrefix, newSuffix, newWordSeparator, newCapitalizationScheme);
         }
 
-        public string CreateName(IEnumerable<string> words)
+        public string CreateName(ImmutableArray<string> words)
         {
             var wordsWithCasing = ApplyCapitalization(words);
             var combinedWordsWithCasing = string.Join(WordSeparator, wordsWithCasing);
@@ -311,6 +313,18 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             if (!string.IsNullOrEmpty(WordSeparator))
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (words.Count() == 1) // Only Split if words have not been split before 
+                {
+                    bool isWord = true;
+                    var parts = StringBreaker.GetParts(name, isWord);
+                    string[] newWords = new string[parts.Count];
+                    for(int i = 0; i < parts.Count; i++)
+                    {
+                        newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
+                    }
+                    words = newWords;
+                }
             }
 
             words = ApplyCapitalization(words);

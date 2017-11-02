@@ -15,18 +15,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
-        Dim f As [|$$Foo|]
+        Dim f As [|$$Goo|]
     End Sub
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Class Program
     Sub Main()
-        Dim f As Foo
+        Dim f As Goo
     End Sub
 End Class
 
-Class Foo
+Class Goo
 End Class
 </Text>.NormalizedValue,
 isNewFile:=False)
@@ -37,22 +37,22 @@ isNewFile:=False)
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
-        Dim f As [|A.Foo$$|]
+        Dim f As [|A.Goo$$|]
     End Sub
 End Class
 
 Namespace A
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Class Program
     Sub Main()
-        Dim f As A.Foo
+        Dim f As A.Goo
     End Sub
 End Class
 
 Namespace A
-    Class Foo
+    Class Goo
     End Class
 End Namespace</Text>.NormalizedValue,
 isNewFile:=False)
@@ -63,22 +63,22 @@ isNewFile:=False)
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
 Namespace A.B
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Class Program
     Sub Main()
-        Dim f As A.B.Foo
+        Dim f As A.B.Goo
     End Sub
 End Class
 
 Namespace A.B
-    Class Foo
+    Class Goo
     End Class
 End Namespace</Text>.NormalizedValue,
 isNewFile:=False)
@@ -89,7 +89,7 @@ isNewFile:=False)
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
-        Dim f As [|A.B.C.Foo$$|]
+        Dim f As [|A.B.C.Goo$$|]
     End Sub
 End Class
 
@@ -98,16 +98,16 @@ Namespace A.B
     End Namespace
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Class Program
     Sub Main()
-        Dim f As A.B.C.Foo
+        Dim f As A.B.C.Goo
     End Sub
 End Class
 
 Namespace A.B
     Namespace C
-        Class Foo
+        Class Goo
         End Class
     End Namespace
 End Namespace</Text>.NormalizedValue,
@@ -119,7 +119,7 @@ isNewFile:=False)
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
-        Dim f As [|A.B.C.Foo$$|]
+        Dim f As [|A.B.C.Goo$$|]
     End Sub
 End Class
 
@@ -128,16 +128,16 @@ Namespace A
     End Namespace
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Class Program
     Sub Main()
-        Dim f As A.B.C.Foo
+        Dim f As A.B.C.Goo
     End Sub
 End Class
 
 Namespace A
     Namespace B.C
-        Class Foo
+        Class Goo
         End Class
     End Namespace
 End Namespace</Text>.NormalizedValue,
@@ -149,18 +149,18 @@ isNewFile:=False)
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
     Sub Main()
-        Dim f = New [|$$Foo|](bar:=1, baz:=2)
+        Dim f = New [|$$Goo|](bar:=1, baz:=2)
     End Sub
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Class Program
     Sub Main()
-        Dim f = New Foo(bar:=1, baz:=2)
+        Dim f = New Goo(bar:=1, baz:=2)
     End Sub
 End Class
 
-Class Foo
+Class Goo
     Private bar As Integer
     Private baz As Integer
 
@@ -179,19 +179,19 @@ isNewFile:=False)
             initial:=<Text>Imports System.Collections.Generic
 Class Program
     Sub Main()
-        Dim f As List(Of Integer) = New [|$$Foo|]()
+        Dim f As List(Of Integer) = New [|$$Goo|]()
     End Sub
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
             expected:=<Text>Imports System.Collections.Generic
 Class Program
     Sub Main()
-        Dim f As List(Of Integer) = New Foo()
+        Dim f As List(Of Integer) = New Goo()
     End Sub
 End Class
 
-Class Foo
+Class Goo
     Inherits List(Of Integer)
 End Class
 </Text>.NormalizedValue,
@@ -203,7 +203,7 @@ isNewFile:=False)
             Await TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
     Sub Main()
-        Dim f As [|A.B.C.Foo$$|]
+        Dim f As [|A.B.C.Goo$$|]
     End Sub
 End Class
 Namespace A
@@ -211,15 +211,15 @@ Namespace A
     End Namespace
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
             expected:=<Text>Class Program
     Sub Main()
-        Dim f As A.B.C.Foo
+        Dim f As A.B.C.Goo
     End Sub
 End Class
 Namespace A
     Namespace B.C
-        Public Interface Foo
+        Public Interface Goo
         End Interface
     End Namespace
 End Namespace</Text>.NormalizedValue,
@@ -233,7 +233,7 @@ isNewFile:=False)
             Await TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
     Sub Main()
-        Dim f As [|A.B.C.Foo$$|]
+        Dim f As [|A.B.C.Goo$$|]
     End Sub
 End Class
 Namespace A
@@ -241,15 +241,15 @@ Namespace A
     End Namespace
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
             expected:=<Text>Class Program
     Sub Main()
-        Dim f As A.B.C.Foo
+        Dim f As A.B.C.Goo
     End Sub
 End Class
 Namespace A
     Namespace B.C
-        Friend Structure Foo
+        Friend Structure Goo
         End Structure
     End Namespace
 End Namespace</Text>.NormalizedValue,
@@ -263,7 +263,7 @@ isNewFile:=False)
             Await TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 Namespace A
@@ -271,15 +271,15 @@ Namespace A
     End Namespace
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
             expected:=<Text>Class Program
     Sub Main()
-        Dim f As A.B.Foo
+        Dim f As A.B.Goo
     End Sub
 End Class
 Namespace A
     Namespace B
-        Enum Foo
+        Enum Goo
         End Enum
     End Namespace
 End Namespace</Text>.NormalizedValue,
@@ -297,7 +297,7 @@ isNewFile:=False)
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -311,9 +311,9 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace A.B
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -331,7 +331,7 @@ existingFilename:="Test2.vb")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|Foo$$|]
+        Dim f As [|Goo$$|]
     End Sub
 End Class</Document>
                                        <Document Folders="outer\inner" FilePath="Test2.vb">
@@ -342,9 +342,9 @@ End Class</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace outer.inner
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -354,7 +354,7 @@ Imports outer.inner
 
 Class Program
     Sub Main()
-        Dim f As Foo
+        Dim f As Goo
     End Sub
 End Class</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
@@ -371,7 +371,7 @@ existingFilename:="Test2.vb")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -385,9 +385,9 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace A.B
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -407,7 +407,7 @@ existingFilename:="Test2.vb")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -418,9 +418,9 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace A.B
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -441,7 +441,7 @@ Namespace outer
     Namespace inner
         Class Program
             Sub Main()
-                Dim f As [|Foo$$|]
+                Dim f As [|Goo$$|]
             End Sub
         End Class
     End Namespace
@@ -451,9 +451,9 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace outer.inner
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -475,7 +475,7 @@ Namespace outer
     Namespace inner
         Class Program
             Sub Main()
-                Dim f As [|Foo$$|]
+                Dim f As [|Goo$$|]
             End Sub
         End Class
     End Namespace
@@ -485,8 +485,8 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
-expected:=<Text>Public Interface Foo
+typeName:="Goo",
+expected:=<Text>Public Interface Goo
 End Interface
 </Text>.NormalizedValue,
 checkIfUsingsNotIncluded:=True,
@@ -508,7 +508,7 @@ newFileName:="Test2.vb")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|$$Foo|]
+        Dim f As [|$$Goo|]
     End Sub
 End Class</Document>
                                    </Project>
@@ -516,9 +516,9 @@ End Class</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace outer.inner
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -528,7 +528,7 @@ Imports BarBaz.outer.inner
 
 Class Program
     Sub Main()
-        Dim f As Foo
+        Dim f As Goo
     End Sub
 End Class</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
@@ -549,7 +549,7 @@ Imports BarBaz.outer
 
 Class Program
     Sub Main()
-        Dim f As [|$$Foo|]
+        Dim f As [|$$Goo|]
     End Sub
 End Class</Document>
                                    </Project>
@@ -557,9 +557,9 @@ End Class</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace outer
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -569,7 +569,7 @@ Imports BarBaz.outer
 
 Class Program
     Sub Main()
-        Dim f As Foo
+        Dim f As Goo
     End Sub
 End Class</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
@@ -587,7 +587,7 @@ newFileName:="Test2.vb")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -598,9 +598,9 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace A.B
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -622,7 +622,7 @@ newFileName:="Test2.vb")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -637,9 +637,9 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace Global.A.B
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -659,7 +659,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -677,10 +677,10 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace Global.BarBaz.A
     Namespace B
-        Public Interface Foo
+        Public Interface Goo
         End Interface
     End Namespace
 End Namespace</Text>.NormalizedValue,
@@ -701,7 +701,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|Foo$$|]
+        Dim f As [|Goo$$|]
     End Sub
 End Class
 
@@ -719,14 +719,14 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace A
     Namespace B
     End Namespace
 End Namespace
 
 Namespace outer.inner
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -736,7 +736,7 @@ Imports Zoozoo.outer.inner
 
 Class Program
     Sub Main()
-        Dim f As Foo
+        Dim f As Goo
     End Sub
 End Class
 
@@ -758,7 +758,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -772,9 +772,9 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace Global.A.B
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -795,7 +795,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|Foo$$|]
+        Dim f As [|Goo$$|]
     End Sub
 End Class</Document>
                                    </Project>
@@ -806,9 +806,9 @@ End Class</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace outer.inner
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -818,7 +818,7 @@ Imports Zoozoo.outer.inner
 
 Class Program
     Sub Main()
-        Dim f As Foo
+        Dim f As Goo
     End Sub
 End Class</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
@@ -838,7 +838,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -852,9 +852,9 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace Global.BarBaz.A.B
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -885,7 +885,7 @@ End Namespace</Document>
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|Zoozoo.A.B.Foo$$|]
+        Dim f As [|Zoozoo.A.B.Goo$$|]
     End Sub
 End Class</Document>
                                    </Project>
@@ -894,9 +894,9 @@ End Class</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Namespace A.B
-    Public Interface Foo
+    Public Interface Goo
     End Interface
 End Namespace
 </Text>.NormalizedValue,
@@ -919,7 +919,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -932,10 +932,10 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>namespace A.B
 {
-    public class Foo
+    public class Goo
     {
     }
 }</Text>.NormalizedValue,
@@ -956,7 +956,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|Foo$$|]
+        Dim f As [|Goo$$|]
     End Sub
 End Class
 
@@ -970,10 +970,10 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>namespace outer.inner
 {
-    public class Foo
+    public class Goo
     {
     }
 }</Text>.NormalizedValue,
@@ -983,7 +983,7 @@ Imports outer.inner
 
 Class Program
     Sub Main()
-        Dim f As Foo
+        Dim f As Goo
     End Sub
 End Class
 
@@ -1005,7 +1005,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -1018,10 +1018,10 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>namespace A.B
 {
-    public class Foo
+    public class Goo
     {
     }
 }</Text>.NormalizedValue,
@@ -1043,7 +1043,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|Foo$$|]
+        Dim f As [|Goo$$|]
     End Sub
 End Class
 
@@ -1056,10 +1056,10 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>namespace ConsoleApplication.outer.inner
 {
-    public class Foo
+    public class Goo
     {
     }
 }</Text>.NormalizedValue,
@@ -1070,7 +1070,7 @@ Imports ConsoleApplication.outer.inner
 
 Class Program
     Sub Main()
-        Dim f As Foo
+        Dim f As Goo
     End Sub
 End Class
 
@@ -1093,7 +1093,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -1106,10 +1106,10 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>namespace BarBaz.A.B
 {
-    public class Foo
+    public class Goo
     {
     }
 }</Text>.NormalizedValue,
@@ -1130,7 +1130,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -1145,10 +1145,10 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>namespace A.B
 {
-    public class Foo
+    public class Goo
     {
     }
 }</Text>.NormalizedValue,
@@ -1168,7 +1168,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|Foo$$|]
+        Dim f As [|Goo$$|]
     End Sub
 End Class</Document>
                                    </Project>
@@ -1180,10 +1180,10 @@ End Class</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>namespace outer.inner
 {
-    public class Foo
+    public class Goo
     {
     }
 }</Text>.NormalizedValue,
@@ -1193,7 +1193,7 @@ Imports outer.inner
 
 Class Program
     Sub Main()
-        Dim f As Foo
+        Dim f As Goo
     End Sub
 End Class</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
@@ -1210,7 +1210,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -1227,7 +1227,7 @@ namespace A
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>
 namespace A
 {
@@ -1235,7 +1235,7 @@ namespace A
 
 namespace A.B
 {
-    public class Foo
+    public class Goo
     {
     }
 }</Text>.NormalizedValue,
@@ -1253,7 +1253,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -1272,12 +1272,12 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>namespace A
 {
     namespace B
     {
-        public class Foo
+        public class Goo
         {
         }
     }
@@ -1297,7 +1297,7 @@ projectName:="Assembly2")
                                        <Document FilePath="Test1.vb">
 Class Program
     Sub Main()
-        Dim f As [|A.B.Foo$$|]
+        Dim f As [|A.B.Goo$$|]
     End Sub
 End Class
 
@@ -1310,10 +1310,10 @@ End Namespace</Document>
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>namespace A.B
 {
-    public class Foo
+    public class Goo
     {
     }
 }</Text>.NormalizedValue,
@@ -1504,14 +1504,14 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim s = new [|$$Foo|]()
+        Dim s = new [|$$Goo|]()
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="B",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim s = new Foo()
+        Dim s = new Goo()
     End Sub
 End Module
 
@@ -1530,24 +1530,24 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim s = [|$$Foo(Of Bar).D|]
+        Dim s = [|$$Goo(Of Bar).D|]
     End Sub
 End Module
 
 Class Bar
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim s = Foo(Of Bar).D
+        Dim s = Goo(Of Bar).D
     End Sub
 End Module
 
 Class Bar
 End Class
 
-Public Class Foo(Of T)
+Public Class Goo(Of T)
 End Class
 </Text>.NormalizedValue,
 isNewFile:=False,
@@ -1562,24 +1562,24 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim s As [|$$Foo(Of Bar)|]
+        Dim s As [|$$Goo(Of Bar)|]
     End Sub
 End Module
 
 Class Bar
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim s As Foo(Of Bar)
+        Dim s As Goo(Of Bar)
     End Sub
 End Module
 
 Class Bar
 End Class
 
-Public Class Foo(Of T)
+Public Class Goo(Of T)
 End Class
 </Text>.NormalizedValue,
 isNewFile:=False,
@@ -1594,21 +1594,21 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim s = [|$$Foo.Bar|].Baz
+        Dim s = [|$$Goo.Bar|].Baz
     End Sub
 End Module
 
-Namespace Foo
+Namespace Goo
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim s = Foo.Bar.Baz
+        Dim s = Goo.Bar.Baz
     End Sub
 End Module
 
-Namespace Foo
+Namespace Goo
     Public Class Bar
     End Class
 End Namespace</Text>.NormalizedValue,
@@ -1667,20 +1667,20 @@ isMissing:=True)
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim s = New [|$$MyD|](AddressOf foo)
+        Dim s = New [|$$MyD|](AddressOf goo)
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim s = New MyD(AddressOf foo)
+        Dim s = New MyD(AddressOf goo)
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
 
@@ -1697,7 +1697,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim foo = New NS.[|$$MyD|](Sub()
+        Dim goo = New NS.[|$$MyD|](Sub()
                              End Sub)
     End Sub
 End Module
@@ -1708,7 +1708,7 @@ languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim foo = New NS.MyD(Sub()
+        Dim goo = New NS.MyD(Sub()
                              End Sub)
     End Sub
 End Module
@@ -1727,14 +1727,14 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim foo = New [|$$NS.MyD|](Function(n) n)
+        Dim goo = New [|$$NS.MyD|](Function(n) n)
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim foo = New NS.MyD(Function(n) n)
+        Dim goo = New NS.MyD(Function(n) n)
     End Sub
 End Module
 
@@ -1753,14 +1753,14 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim foo = New [|$$MyD|](Sub() System.Console.WriteLine(1))
+        Dim goo = New [|$$MyD|](Sub() System.Console.WriteLine(1))
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim foo = New MyD(Sub() System.Console.WriteLine(1))
+        Dim goo = New MyD(Sub() System.Console.WriteLine(1))
     End Sub
 End Module
 
@@ -1777,7 +1777,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim foo = New [|$$MyD|](Function(n As Integer)
+        Dim goo = New [|$$MyD|](Function(n As Integer)
                               Return n + n
                           End Function)
     End Sub
@@ -1786,7 +1786,7 @@ languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim foo = New MyD(Function(n As Integer)
+        Dim goo = New MyD(Function(n As Integer)
                               Return n + n
                           End Function)
     End Sub
@@ -1805,18 +1805,18 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar As [|$$MyD(Of Integer)|] = AddressOf foo(Of Integer)
+        Dim bar As [|$$MyD(Of Integer)|] = AddressOf goo(Of Integer)
     End Sub
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar As MyD(Of Integer) = AddressOf foo(Of Integer)
+        Dim bar As MyD(Of Integer) = AddressOf goo(Of Integer)
     End Sub
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
     End Sub
 End Module
 
@@ -1833,18 +1833,18 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar As [|$$MyD|] = AddressOf foo(Of Integer)
+        Dim bar As [|$$MyD|] = AddressOf goo(Of Integer)
     End Sub
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar As MyD = AddressOf foo(Of Integer)
+        Dim bar As MyD = AddressOf goo(Of Integer)
     End Sub
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
     End Sub
 End Module
 
@@ -1861,18 +1861,18 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar As [|$$MyD|] = AddressOf foo
+        Dim bar As [|$$MyD|] = AddressOf goo
     End Sub
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar As MyD = AddressOf foo
+        Dim bar As MyD = AddressOf goo
     End Sub
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
     End Sub
 End Module
 
@@ -1889,18 +1889,18 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar As [|$$MyD|] = AddressOf foo
+        Dim bar As [|$$MyD|] = AddressOf goo
     End Sub
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar As MyD = AddressOf foo
+        Dim bar As MyD = AddressOf goo
     End Sub
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
     End Sub
 End Module
 
@@ -2043,18 +2043,18 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar = DirectCast(AddressOf foo, [|$$MyD|])
+        Dim bar = DirectCast(AddressOf goo, [|$$MyD|])
     End Sub
-    Public Sub foo()
+    Public Sub goo()
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar = DirectCast(AddressOf foo, MyD)
+        Dim bar = DirectCast(AddressOf goo, MyD)
     End Sub
-    Public Sub foo()
+    Public Sub goo()
     End Sub
 End Module
 
@@ -2071,14 +2071,14 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar = DirectCast(AddressOf foo, [|$$MyD|])
+        Dim bar = DirectCast(AddressOf goo, [|$$MyD|])
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="MyD",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim bar = DirectCast(AddressOf foo, MyD)
+        Dim bar = DirectCast(AddressOf goo, MyD)
     End Sub
 End Module
 
@@ -2097,7 +2097,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
                                        <Document FilePath="Test1.vb">
 Module Program
     Sub Main(args As String())
-        Dim fooFoo = DirectCast(AddressOf Main, [|$$Bar|])
+        Dim gooGoo = DirectCast(AddressOf Main, [|$$Bar|])
     End Sub
 End Module</Document>
                                    </Project>
@@ -2148,22 +2148,22 @@ typeKind:=TypeKind.Delegate)
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim a = [|$$Baz.Foo|].Bar()
+        Dim a = [|$$Baz.Goo|].Bar()
     End Sub
 End Module
 
 Namespace Baz
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim a = Baz.Foo.Bar()
+        Dim a = Baz.Goo.Bar()
     End Sub
 End Module
 
 Namespace Baz
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
@@ -2177,14 +2177,14 @@ assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
     Sub Main(args As String())
-        Dim a = [|$$Foo.Bar|]()
+        Dim a = [|$$Goo.Bar|]()
     End Sub
 End Module</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>Module Program
     Sub Main(args As String())
-        Dim a = Foo.Bar()
+        Dim a = Goo.Bar()
     End Sub
 End Module
 
@@ -2202,7 +2202,7 @@ assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class C
     Custom Event E As Action
-        AddHandler(value As [|$$Foo|])
+        AddHandler(value As [|$$Goo|])
         End AddHandler
         RemoveHandler(value As Action)
         End RemoveHandler
@@ -2211,10 +2211,10 @@ initial:=<Text>Class C
     End Event
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Class C
     Custom Event E As Action
-        AddHandler(value As Foo)
+        AddHandler(value As Goo)
         End AddHandler
         RemoveHandler(value As Action)
         End RemoveHandler
@@ -2223,7 +2223,7 @@ expected:=<Text>Class C
     End Event
 End Class
 
-Public Delegate Sub Foo()
+Public Delegate Sub Goo()
 </Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
@@ -2239,26 +2239,26 @@ initial:=<Text>Class C
     Custom Event E As Action
         AddHandler(value As Action)
         End AddHandler
-        RemoveHandler(value As [|$$Foo|])
+        RemoveHandler(value As [|$$Goo|])
         End RemoveHandler
         RaiseEvent()
         End RaiseEvent
     End Event
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>Class C
     Custom Event E As Action
         AddHandler(value As Action)
         End AddHandler
-        RemoveHandler(value As Foo)
+        RemoveHandler(value As Goo)
         End RemoveHandler
         RaiseEvent()
         End RaiseEvent
     End Event
 End Class
 
-Public Delegate Sub Foo()
+Public Delegate Sub Goo()
 </Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
@@ -2302,12 +2302,12 @@ assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         Public Async Function GenerateType_TypeConstraint_1() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
-Public Class Foo(Of T As [|$$Bar|])
+Public Class Goo(Of T As [|$$Bar|])
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>
-Public Class Foo(Of T As Bar)
+Public Class Goo(Of T As Bar)
 End Class
 
 Public Class Bar
@@ -2324,14 +2324,14 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Outer
-    Public Class Foo(Of T As [|$$Bar|])
+    Public Class Goo(Of T As [|$$Bar|])
     End Class
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>
 Class Outer
-    Public Class Foo(Of T As Bar)
+    Public Class Goo(Of T As Bar)
     End Class
 End Class
 
@@ -2350,7 +2350,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 initial:=<Text>
 Public Class OuterOuter
     Public Class Outer
-        Public Class Foo(Of T As [|$$Bar|])
+        Public Class Goo(Of T As [|$$Bar|])
         End Class
     End Class
 End Class</Text>.NormalizedValue,
@@ -2359,7 +2359,7 @@ typeName:="Bar",
 expected:=<Text>
 Public Class OuterOuter
     Public Class Outer
-        Public Class Foo(Of T As Bar)
+        Public Class Goo(Of T As Bar)
         End Class
     End Class
 End Class
@@ -2378,30 +2378,30 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class C1
-    Custom Event E As [|$$Foo|]
-        AddHandler(value As Foo)
+    Custom Event E As [|$$Goo|]
+        AddHandler(value As Goo)
         End AddHandler
-        RemoveHandler(value As Foo)
+        RemoveHandler(value As Goo)
         End RemoveHandler
         RaiseEvent()
         End RaiseEvent
     End Event
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>
 Class C1
-    Custom Event E As Foo
-        AddHandler(value As Foo)
+    Custom Event E As Goo
+        AddHandler(value As Goo)
         End AddHandler
-        RemoveHandler(value As Foo)
+        RemoveHandler(value As Goo)
         End RemoveHandler
         RaiseEvent()
         End RaiseEvent
     End Event
 End Class
 
-Public Delegate Sub Foo()
+Public Delegate Sub Goo()
 </Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
@@ -2414,23 +2414,23 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class C1
-    Custom Event E As [|$$NS.Foo|]
-        AddHandler(value As Foo)
+    Custom Event E As [|$$NS.Goo|]
+        AddHandler(value As Goo)
         End AddHandler
-        RemoveHandler(value As Foo)
+        RemoveHandler(value As Goo)
         End RemoveHandler
         RaiseEvent()
         End RaiseEvent
     End Event
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>
 Class C1
-    Custom Event E As NS.Foo
-        AddHandler(value As Foo)
+    Custom Event E As NS.Goo
+        AddHandler(value As Goo)
         End AddHandler
-        RemoveHandler(value As Foo)
+        RemoveHandler(value As Goo)
         End RemoveHandler
         RaiseEvent()
         End RaiseEvent
@@ -2438,7 +2438,7 @@ Class C1
 End Class
 
 Namespace NS
-    Public Delegate Sub Foo()
+    Public Delegate Sub Goo()
 End Namespace
 </Text>.NormalizedValue,
 isNewFile:=False,
@@ -2452,10 +2452,10 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class C1
-    Custom Event E As [|$$NS.Foo.MyDel|]
-        AddHandler(value As Foo)
+    Custom Event E As [|$$NS.Goo.MyDel|]
+        AddHandler(value As Goo)
         End AddHandler
-        RemoveHandler(value As Foo)
+        RemoveHandler(value As Goo)
         End RemoveHandler
         RaiseEvent()
         End RaiseEvent
@@ -2465,13 +2465,13 @@ End Class
 Namespace NS
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
+typeName:="Goo",
 expected:=<Text>
 Class C1
-    Custom Event E As NS.Foo.MyDel
-        AddHandler(value As Foo)
+    Custom Event E As NS.Goo.MyDel
+        AddHandler(value As Goo)
         End AddHandler
-        RemoveHandler(value As Foo)
+        RemoveHandler(value As Goo)
         End RemoveHandler
         RaiseEvent()
         End RaiseEvent
@@ -2479,7 +2479,7 @@ Class C1
 End Class
 
 Namespace NS
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
@@ -2492,13 +2492,13 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
         Public Async Function GenerateType_Event_4() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
-Class Foo
+Class Goo
     Public Event F As [|$$Bar|]
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>
-Class Foo
+Class Goo
     Public Event F As Bar
 End Class
 
@@ -2514,13 +2514,13 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
         Public Async Function GenerateType_Event_5() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
-Class Foo
+Class Goo
     Public Event F As [|$$NS.Bar|]
 End Class</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>
-Class Foo
+Class Goo
     Public Event F As NS.Bar
 End Class
 
@@ -2538,7 +2538,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
         Public Async Function GenerateType_Event_6() As Task
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
-Class Foo
+Class Goo
     Public Event F As [|$$NS.Bar.MyDel|]
 End Class
 
@@ -2547,7 +2547,7 @@ End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>
-Class Foo
+Class Goo
     Public Event F As NS.Bar.MyDel
 End Class
 
@@ -2641,7 +2641,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Class Baz
-    Public Class Foo
+    Public Class Goo
         Public Event F As [|$$Bar|]
     End Class
 End Class</Text>.NormalizedValue,
@@ -2649,7 +2649,7 @@ languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>
 Class Baz
-    Public Class Foo
+    Public Class Goo
         Public Event F As Bar
     End Class
 End Class
@@ -2667,7 +2667,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
             Await TestWithMockedGenerateTypeDialog(
 initial:=<Text>
 Public Class Baz
-    Public Class Foo
+    Public Class Goo
         Public Event F As [|$$Bar|]
     End Class
 End Class</Text>.NormalizedValue,
@@ -2675,7 +2675,7 @@ languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>
 Public Class Baz
-    Public Class Foo
+    Public Class Goo
         Public Event F As Bar
     End Class
 End Class

@@ -76,6 +76,16 @@ namespace Microsoft.CodeAnalysis
         bool ReturnsByRef { get; }
 
         /// <summary>
+        /// Returns true if this method returns by ref readonly.
+        /// </summary>
+        bool ReturnsByRefReadonly { get; }
+
+        /// <summary>
+        /// Returns the RefKind of the method.
+        /// </summary>
+        RefKind RefKind { get; }
+
+        /// <summary>
         /// Gets the return type of the method.
         /// </summary>
         ITypeSymbol ReturnType { get; }

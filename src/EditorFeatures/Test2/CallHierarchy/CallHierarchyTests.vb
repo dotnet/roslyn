@@ -80,8 +80,8 @@ public class DSSS
     <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
         <Document>
 Class C
-    Sub Foo()
-        Fo$$o()
+    Sub Goo()
+        Go$$o()
     End Sub
 End Class
             </Document>
@@ -90,7 +90,7 @@ End Class
 
             Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "Foo"), {"C.Foo()"})
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Calls_To_0, "Goo"), {"C.Goo()"})
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
@@ -101,13 +101,13 @@ End Class
         <Document>
 Class C
     Implements I
-    Sub Foo() Implements I.Foo
-        Foo()
+    Sub Goo() Implements I.Goo
+        Goo()
     End Sub
 End Class
 
 Interface I
-    Sub F$$oo()
+    Sub G$$oo()
 End Interface
             </Document>
     </Project>
@@ -115,7 +115,7 @@ End Interface
 
             Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "Foo"), {"C.Foo()"})
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "Goo"), {"C.Goo()"})
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
@@ -128,12 +128,12 @@ namespace C
 {
     public interface I
     {
-        void fo$$o();
+        void go$$o();
     }
 
     public class C : I
     {
-        void foo() { }
+        void goo() { }
     }
 }
         </Document>
@@ -143,7 +143,7 @@ namespace G
 {
     public Class G : I
     {
-        public void foo()
+        public void goo()
         {
         }
     }
@@ -157,7 +157,7 @@ namespace G
 using C;
 public class D : I
 {
-    public void foo()
+    public void goo()
     {
     }
 }
@@ -167,16 +167,16 @@ public class D : I
 
             Dim testState = CallHierarchyTestState.Create(input)
             Dim root = testState.GetRoot()
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "foo"), {"D.foo()", "G.G.foo()", "C.C.foo()"}, CallHierarchySearchScope.EntireSolution)
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "goo"), {"D.goo()", "G.G.goo()", "C.C.goo()"}, CallHierarchySearchScope.EntireSolution)
             Dim documents = testState.GetDocuments({"Test1.cs", "Test2.cs"})
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "foo"), {"G.G.foo()", "C.C.foo()"}, CallHierarchySearchScope.CurrentProject, documents)
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "goo"), {"G.G.goo()", "C.C.goo()"}, CallHierarchySearchScope.CurrentProject, documents)
             documents = testState.GetDocuments({"Test1.cs"})
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "foo"), {"C.C.foo()"}, CallHierarchySearchScope.CurrentDocument, documents)
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.Implements_0, "goo"), {"C.C.goo()"}, CallHierarchySearchScope.CurrentDocument, documents)
         End Sub
 
         <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
-        Public Sub TestCallHierarchyCrossProjectNavigation()
+        Public Sub TestCallHierarchyCrossProjectForImplements()
             Dim input =
 <Workspace>
     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -208,6 +208,44 @@ class CSharpIt : IChangeSignatureOptionsService
             testState.SearchRoot(root,
                                  String.Format(EditorFeaturesResources.Implements_0, "GetChangeSignatureOptions"),
                                  Sub(c)
+                                     Assert.Equal("Assembly2", c.Project.Name)
+                                 End Sub,
+                                 CallHierarchySearchScope.EntireSolution)
+        End Sub
+
+        <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        Public Sub TestCallHierarchyCrossProjectForCallsTo()
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+        <Document>
+public class C
+{
+    public static void $$M() { }
+}
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+using System;
+
+class D
+{
+    public void M2() { C.M(); }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim testState = CallHierarchyTestState.Create(input)
+            Dim root = testState.GetRoot()
+            testState.SearchRoot(root,
+                                 String.Format(EditorFeaturesResources.Calls_To_0, "M"),
+                                 Sub(c)
+                                     ' The child items should be in the second project
                                      Assert.Equal("Assembly2", c.Project.Name)
                                  End Sub,
                                  CallHierarchySearchScope.EntireSolution)
@@ -249,7 +287,7 @@ End Class
             <Document>
 public class C
 {
-    public virtual void fo$$o() { }
+    public virtual void go$$o() { }
 }
         </Document>
         </Project>
@@ -258,7 +296,7 @@ public class C
             <Document>
 class D : C
 {
-    public override void foo() { }
+    public override void goo() { }
 }
         </Document>
         </Project>
@@ -266,7 +304,7 @@ class D : C
 
             Dim testState = CallHierarchyTestState.Create(input, GetType(MockSymbolNavigationServiceProvider))
             Dim root = testState.GetRoot()
-            testState.Navigate(root, EditorFeaturesResources.Overrides_, "D.foo()")
+            testState.Navigate(root, EditorFeaturesResources.Overrides_, "D.goo()")
 
             Dim mockNavigationService = DirectCast(testState.Workspace.Services.GetService(Of ISymbolNavigationService)(), MockSymbolNavigationServiceProvider.MockSymbolNavigationService)
             Assert.NotNull(mockNavigationService.TryNavigateToSymbolProvidedSymbol)
@@ -284,7 +322,7 @@ namespace N
 {
     class C
     {
-        void F$$oo()
+        void G$$oo()
         {
         }
     }
@@ -294,7 +332,7 @@ namespace N
         void Main()
         {
             var c = new C();
-            c.Foo();
+            c.Goo();
         }
     }
 }
@@ -304,8 +342,8 @@ namespace N
 
             Dim testState = CallHierarchyTestState.Create(input, GetType(MockDocumentNavigationServiceProvider))
             Dim root = testState.GetRoot()
-            testState.VerifyRoot(root, "N.C.Foo()", {String.Format(EditorFeaturesResources.Calls_To_0, "Foo")})
-            testState.Navigate(root, String.Format(EditorFeaturesResources.Calls_To_0, "Foo"), "N.G.Main()")
+            testState.VerifyRoot(root, "N.C.Goo()", {String.Format(EditorFeaturesResources.Calls_To_0, "Goo")})
+            testState.Navigate(root, String.Format(EditorFeaturesResources.Calls_To_0, "Goo"), "N.G.Main()")
 
             Dim navigationService = DirectCast(testState.Workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
             Assert.NotEqual(navigationService.ProvidedDocumentId, Nothing)
@@ -321,7 +359,7 @@ namespace N
             <Document>
 cla$$ss C
 {
-    void Foo()
+    void Goo()
     {
     }
 }

@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private static readonly DkmCompilerId s_compilerId = new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.CSharp);
 
+        public CSharpExpressionCompiler(): base(new CSharpFrameDecoder(), new CSharpLanguageInstructionDecoder())
+        {
+        }
+
         internal override DiagnosticFormatter DiagnosticFormatter
         {
             get { return DebuggerDiagnosticFormatter.Instance; }
@@ -107,6 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override void RemoveDataItem(DkmClrAppDomain appDomain)
         {
             appDomain.RemoveMetadataContext<CSharpMetadataContext>();
+        }
+
+        internal override ImmutableArray<MetadataBlock> GetMetadataBlocks(DkmClrAppDomain appDomain, DkmClrRuntimeInstance runtimeInstance)
+        {
+            var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
+            return runtimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
         }
     }
 }

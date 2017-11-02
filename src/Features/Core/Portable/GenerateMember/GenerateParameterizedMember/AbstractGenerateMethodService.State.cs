@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 // Cases that we deal with currently:
                 //
-                // 1) expr.Foo
-                // 2) expr->Foo
-                // 3) Foo
-                // 4) expr.Foo()
-                // 5) expr->Foo()
-                // 6) Foo()
-                // 7) ReturnType Explicit.Interface.Foo()
+                // 1) expr.Goo
+                // 2) expr->Goo
+                // 3) Goo
+                // 4) expr.Goo()
+                // 5) expr->Goo()
+                // 6) Goo()
+                // 7) ReturnType Explicit.Interface.Goo()
                 //
                 // In the first 3 invocationExpressionOpt will be null and we'll have to infer a
                 // delegate type in order to figure out the right method signature to generate. In
@@ -218,10 +218,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: ImmutableArray<AttributeData>.Empty,
-                    accessibility: default(Accessibility),
-                    modifiers: default(DeclarationModifiers),
+                    accessibility: default,
+                    modifiers: default,
                     returnType: expressionType,
-                    returnsByRef: false,
+                    refKind: RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: null,
                     typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,

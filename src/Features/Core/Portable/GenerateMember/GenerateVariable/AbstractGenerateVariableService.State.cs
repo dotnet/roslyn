@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public bool IsContainedInUnsafeType { get; private set; }
             public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
 
-            // Just the name of the method.  i.e. "Foo" in "Foo" or "X.Foo"
+            // Just the name of the method.  i.e. "Goo" in "Goo" or "X.Goo"
             public SyntaxToken IdentifierToken { get; private set; }
             public TSimpleNameSyntax SimpleNameOpt { get; private set; }
 
-            // The entire expression containing the name.  i.e. "X.Foo"
+            // The entire expression containing the name.  i.e. "X.Goo"
             public TExpressionSyntax SimpleNameOrMemberAccessExpressionOpt { get; private set; }
 
             public ITypeSymbol TypeMemberType { get; private set; }
@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             public bool IsInConstructor { get; private set; }
             public bool IsInRefContext { get; private set; }
+            public bool IsInInContext { get; private set; }
             public bool IsInOutContext { get; private set; }
             public bool IsInMemberContext { get; private set; }
 
@@ -78,9 +79,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 {
                     // Cases that we deal with currently:
                     //
-                    // 1) expr.Foo
-                    // 2) expr->Foo
-                    // 3) Foo
+                    // 1) expr.Goo
+                    // 2) expr->Goo
+                    // 3) Goo
                     if (!TryInitializeSimpleName(service, document, (TSimpleNameSyntax)node, cancellationToken))
                     {
                         return false;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
                 else if (service.IsExplicitInterfaceGeneration(node))
                 {
-                    // 4)  bool IFoo.NewProp
+                    // 4)  bool IGoo.NewProp
                     if (!TryInitializeExplicitInterface(service, document, node, cancellationToken))
                     {
                         return false;
@@ -252,6 +253,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
                 this.IsInRefContext = semanticFacts.IsInRefContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
+                this.IsInInContext = semanticFacts.IsInInContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsInOutContext = semanticFacts.IsInOutContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsWrittenTo = semanticFacts.IsWrittenTo(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsOnlyWrittenTo = semanticFacts.IsOnlyWrittenTo(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);

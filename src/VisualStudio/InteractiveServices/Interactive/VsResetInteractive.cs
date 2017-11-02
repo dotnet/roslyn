@@ -66,10 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             try
             {
-                uint itemid;
-                IVsMultiItemSelect multiItemSelectPointer;
                 Marshal.ThrowExceptionForHR(_monitorSelection.GetCurrentSelection(
-                    out hierarchyPointer, out itemid, out multiItemSelectPointer, out selectionContainerPointer));
+                    out hierarchyPointer, out var itemid, out var multiItemSelectPointer, out selectionContainerPointer));
 
                 if (hierarchyPointer != IntPtr.Zero)
                 {
@@ -95,9 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out string projectDirectory)
         {
             var hierarchy = (IVsHierarchy)Marshal.GetObjectForIUnknown(hierarchyPointer);
-            object extensibilityObject;
             Marshal.ThrowExceptionForHR(
-                hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ExtObject, out extensibilityObject));
+                hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ExtObject, out var extensibilityObject));
 
             // TODO: Revert this back to using dynamic for web projects, since they have copies of these interfaces.
             var project = (Project)extensibilityObject;

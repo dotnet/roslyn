@@ -2407,12 +2407,7 @@ End Class
 </compilation>
 
             Dim comp2 = CreateCompilationWithCustomILSource(source2, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
-            comp2.AssertTheseDiagnostics(
-<errors>
-BC30402: 'P' cannot implement property 'P' on interface 'I' because the tuple element names in 'Public Property P As (Object, Object)' do not match those in 'Property P As (a As Object, b As Object)'.
-    Public Property P As (Object, Object) Implements I.P
-                                                     ~~~
-</errors>)
+            comp2.AssertTheseDiagnostics()
 
             Dim classProperty2 = comp2.GlobalNamespace.GetMember(Of PropertySymbol)("C.P")
 
@@ -2582,9 +2577,6 @@ End Class
 <errors>
 BC40001: 'Public Overrides Function M(x As (c As Object, d As Object)) As (Object, Object)' cannot override 'Public Overridable Overloads Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)' because they differ by their tuple element names.
     Public Overrides Function M(x As (c As Object, d As Object)) As (Object, Object)
-                              ~
-BC40001: 'Public Overrides Property P As (Object, Object)' cannot override 'Public Overridable Overloads Property P As (a As Object, b As Object)' because they differ by their tuple element names.
-    Public Overrides Property P As (Object, Object)
                               ~
 </errors>)
 

@@ -185,15 +185,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                var frozenDocument = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
+                var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
                 return await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
         public static bool IsGeneratedCode(this Document document, CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
-            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
+            var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
             return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
         }
     }

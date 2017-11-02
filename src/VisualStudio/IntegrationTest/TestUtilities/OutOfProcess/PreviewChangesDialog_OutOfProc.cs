@@ -29,8 +29,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void VerifyClosed(string expectedTitle)
             => DialogHelpers.FindDialogByName(GetMainWindowHWnd(), expectedTitle, isOpen: false);
 
-        public void ClickApply(string expectedTitle)
-            => DialogHelpers.PressButtonWithNameFromDialogWithName(GetMainWindowHWnd(), expectedTitle, "Apply"); 
+        public void ClickApplyAndWaitForFeature(string expectedTitle, string featureName)
+        {
+            DialogHelpers.PressButtonWithNameFromDialogWithName(GetMainWindowHWnd(), expectedTitle, "Apply");
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(featureName);
+        }
 
         public void ClickCancel(string expectedTitle)
             => DialogHelpers.PressButtonWithNameFromDialogWithName(GetMainWindowHWnd(), expectedTitle, "Cancel");

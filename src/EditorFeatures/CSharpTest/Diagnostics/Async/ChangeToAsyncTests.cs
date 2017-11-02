@@ -39,7 +39,9 @@ class Program
         await gt();
     }
 
-    async Task gt()
+    async 
+    Task
+gt()
     {
     }
 }";

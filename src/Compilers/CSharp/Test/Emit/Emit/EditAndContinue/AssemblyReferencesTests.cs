@@ -491,14 +491,14 @@ class C
                 Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
         }
 
-        public void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
+        private void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
         {
             AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(aref => $"{reader.GetString(aref.Name)}, {aref.Version}"));
         }
 
         [Fact]
         [WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
-        public void CurrentComplationVersionWildcards()
+        public void CurrentCompilationVersionWildcards()
         {
             var source0 = MarkedSource(@"
 using System;

@@ -118,6 +118,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TryCast(node, ExpressionSyntax).IsInRefContext(semanticModel, cancellationToken)
         End Function
 
+        Public Function IsInInContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInInContext
+            Return TryCast(node, ExpressionSyntax).IsInInContext(semanticModel, cancellationToken)
+        End Function
+
         Public Function CanReplaceWithRValue(semanticModel As SemanticModel, expression As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.CanReplaceWithRValue
             Return TryCast(expression, ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken)
         End Function

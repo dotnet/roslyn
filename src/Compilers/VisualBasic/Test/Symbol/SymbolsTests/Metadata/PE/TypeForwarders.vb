@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Const funcTypeMetadataName As String = "System.Func`1"
 
             ' mscorlib contains this type, so we should be able to find it without looking in referenced assemblies.
-            Dim funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=False, isWellKnownType:=True)
+            Dim funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=False, isWellKnownType:=True, conflicts:=Nothing)
             Assert.NotNull(funcType)
             Assert.NotEqual(TypeKind.Error, funcType.TypeKind)
             Assert.Equal(corlibAssembly, funcType.ContainingAssembly)
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             ' The compilation assembly references both mscorlib and System.Core, but finding
             ' System.Func`1 in both isn't ambiguous because one forwards to the other.
-            Assert.Equal(funcType, comp.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=True, isWellKnownType:=True))
+            Assert.Equal(funcType, comp.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences:=True, isWellKnownType:=True, conflicts:=Nothing))
         End Sub
 
         ''' <summary>
@@ -453,7 +453,7 @@ End Class
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance class [pe1]Cycle 
-          Foo() cil managed
+          Goo() cil managed
   {
     ldnull
     ret
@@ -477,7 +477,7 @@ Option Strict On
 Class Derived 
     Shared Sub Main()
         Dim us as New UseSite()
-        us.Foo()
+        us.Goo()
     End Sub
 End Class
         </file>
@@ -502,7 +502,7 @@ End Class
             Assert.Equal("pe3", ilAssembly3.Name)
 
             compilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_TypeFwdCycle2, "us.Foo()").WithArguments("Cycle", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
+                Diagnostic(ERRID.ERR_TypeFwdCycle2, "us.Goo()").WithArguments("Cycle", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
         End Sub
 
         ''' <summary>

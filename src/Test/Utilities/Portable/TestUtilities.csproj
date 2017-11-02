@@ -1,40 +1,31 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Test.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nonshipping>true</Nonshipping>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <_ExtraTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net46</_ExtraTargetFrameworks>
+    <TargetFrameworks>netstandard1.3;$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
     <DefineConstants>$(DefineConstants);DNX</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <PropertyGroup Condition="'$(TestIOperationInterface)' == 'true'">
+    <DefineConstants>$(DefineConstants);TEST_IOPERATION_INTERFACE</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.CoreClr" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
@@ -80,122 +71,14 @@
     <Compile Include="..\..\..\Compilers\Shared\CoreClrShim.cs">
       <Link>Assert\CoreClrShim.cs</Link>
     </Compile>
-    <Compile Include="Assert\AssertEx.cs" />
-    <Compile Include="Assert\AssertXml.cs" />
-    <Compile Include="Assert\ClrOnlyFactAttribute.cs" />
-    <Compile Include="Assert\ConditionalFactAttribute.cs" />
-    <Compile Include="Assert\DiffUtil.cs" />
-    <Compile Include="Assert\EqualityTesting.cs" />
-    <Compile Include="Assert\EqualityUnit.cs" />
-    <Compile Include="Assert\EqualityUnit`1.cs" />
-    <Compile Include="Assert\EqualityUtil.cs" />
-    <Compile Include="Assert\EqualityUtil`1.cs" />
-    <Compile Include="Assert\TestExceptionUtilities.cs" />
-    <Compile Include="Assert\WorkItemAttribute.cs" />
-    <Compile Include="CompilationVerifier.cs" />
-    <Compile Include="CommonTestBase.cs" />
-    <Compile Include="Compilation\CompilationDifference.cs" />
-    <Compile Include="Compilation\CompilationExtensions.cs" />
-    <Compile Include="Compilation\CompilationOutputFiles.cs" />
-    <Compile Include="Compilation\CompilationTestDataExtensions.cs" />
-    <Compile Include="Compilation\DiagnosticBagErrorLogger.cs" />
-    <Compile Include="Compilation\Exceptions.cs" />
-    <Compile Include="Compilation\IRuntimeEnvironment.cs" />
-    <Compile Include="Compilation\OperationTreeVerifier.cs" />
-    <Compile Include="Compilation\TestOperationWalker.cs" />
-    <Compile Include="Compilation\VersionTestHelpers.cs" />
-    <Compile Include="CultureContext.cs" />
-    <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
-    <Compile Include="Diagnostics\CouldHaveMoreSpecificTypeAnalyzer.cs" />
-    <Compile Include="Diagnostics\DescriptorFactory.cs" />
-    <Compile Include="Diagnostics\DiagnosticDescription.cs" />
-    <Compile Include="Diagnostics\DiagnosticExtensions.cs" />
-    <Compile Include="Diagnostics\DiagnosticsHelper.cs" />
-    <Compile Include="Diagnostics\EmptyArrayAnalyzer.cs" />
-    <Compile Include="Diagnostics\FieldCouldBeReadOnlyAnalyzer.cs" />
-    <Compile Include="Diagnostics\LocalCouldBeConstAnalyzer.cs" />
-    <Compile Include="Diagnostics\OperationTestAnalyzer.cs" />
-    <Compile Include="Diagnostics\OptionsDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
-    <Compile Include="Diagnostics\SuppressMessageAttributeTests.DiagnosticAnalyzers.cs" />
-    <Compile Include="Diagnostics\TestDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\ThrowingDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\TrackingDiagnosticAnalyzer.cs" />
-    <Compile Include="ExceptionHelper.cs" />
-    <Compile Include="CompilerTraitAttribute.cs" />
-    <Compile Include="Extensions\SemanticModelExtensions.cs" />
-    <Compile Include="Extensions\SymbolExtensions.cs" />
-    <Compile Include="FX\CappedStringWriter.cs" />
-    <Compile Include="FX\CultureHelpers.cs" />
-    <Compile Include="FX\DirectoryHelper.cs" />
-    <Compile Include="FX\DumpProcRunner.cs" />
-    <Compile Include="FX\EncodingUtilities.cs" />
-    <Compile Include="FX\EnsureEnglishUICulture.cs" />
-    <Compile Include="FX\EnsureInvariantCulture.cs" />
-    <Compile Include="FX\EventWaiter.cs" />
-    <Compile Include="FX\HResult.cs" />
-    <Compile Include="FX\ImmutableArrayTestExtensions.cs" />
-    <Compile Include="FX\MonoHelpers.cs" />
-    <Compile Include="FX\PinnedBlob.cs" />
-    <Compile Include="FX\PinnedMetadata.cs" />
-    <Compile Include="FX\ProcessResult.cs" />
-    <Compile Include="FX\ProcessUtilities.cs" />
-    <Compile Include="FX\RegexExtensions.cs" />
-    <Compile Include="FX\StringExtensions.cs" />
-    <Compile Include="ICompilationVerifier.cs" />
-    <Compile Include="MarkedSource\MarkupTestFile.cs" />
-    <Compile Include="MarkedSource\SourceWithMarkedNodes.cs" />
-    <Compile Include="Metadata\AggregatedMetadataReader.cs" />
-    <Compile Include="Metadata\MetadataSignatureUnitTestHelper.cs" />
-    <Compile Include="Metadata\CustomAttributeRow.cs" />
-    <Compile Include="Metadata\DynamicAnalysisDataReader.cs" />
-    <Compile Include="Metadata\EncValidation.cs" />
-    <Compile Include="Metadata\IlasmUtilities.cs" />
-    <Compile Include="Metadata\ILBuilderVisualizer.cs" />
-    <Compile Include="Metadata\ILValidation.cs" />
-    <Compile Include="Metadata\MetadataReaderUtils.cs" />
-    <Compile Include="Metadata\MetadataValidation.cs" />
-    <Compile Include="Metadata\ModuleData.cs" />
-    <Compile Include="Metadata\PEModuleTestHelpers.cs" />
-    <Compile Include="Metadata\SignatureDescription.cs" />
-    <Compile Include="Metadata\TypeAttributesMissing.cs" />
-    <Compile Include="Mocks\TestDocumentationCommentProvider.cs" />
-    <Compile Include="Mocks\TestMessageProvider.cs" />
-    <Compile Include="Mocks\TestMetadataReference.cs" />
-    <Compile Include="Mocks\TestMetadataReferenceResolver.cs" />
-    <Compile Include="Mocks\TestMissingMetadataReferenceResolver.cs" />
-    <Compile Include="Mocks\TestReferences.cs" />
-    <Compile Include="Mocks\TestSourceReferenceResolver.cs" />
-    <Compile Include="Mocks\TestStream.cs" />
-    <Compile Include="Mocks\VirtualizedRelativePathResolver.cs" />
-    <Compile Include="ObjectReference.cs" />
-    <Compile Include="Pe\BrokenStream.cs" />
-    <Compile Include="ReflectionAssert.cs" />
-    <Compile Include="Syntax\ISyntaxNodeKindProvider.cs" />
-    <Compile Include="Syntax\NodeHelpers.cs" />
-    <Compile Include="Syntax\NodeInfo.cs" />
-    <Compile Include="Syntax\NodeInfo.FieldInfo.cs" />
-    <Compile Include="Syntax\SourceUtilities.cs" />
-    <Compile Include="Syntax\TokenUtilities.cs" />
-    <Compile Include="Syntax\XmlHelpers.cs" />
-    <Compile Include="TempFiles\DisposableDirectory.cs" />
-    <Compile Include="TempFiles\DisposableFile.cs" />
-    <Compile Include="TempFiles\TempDirectory.cs" />
-    <Compile Include="TempFiles\TempFile.cs" />
-    <Compile Include="TempFiles\TempRoot.cs" />
-    <Compile Include="TestBase.cs" />
-    <Compile Include="TestHelpers.cs" />
-    <Compile Include="TestResource.Designer.cs">
+    <Compile Update="TestResource.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>TestResource.resx</DependentUpon>
     </Compile>
-    <Compile Include="ThrowingTraceListener.cs" />
-    <Compile Include="Traits\ComilerTraitDiscoverer.cs" />
-    <Compile Include="Traits\CompilerFeature.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="TestResource.resx">
+    <EmbeddedResource Update="TestResource.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
@@ -220,11 +103,14 @@
     <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
     <PackageReference Include="System.Net.Primitives" Version="$(SystemNetPrimitivesVersion)" />
     <PackageReference Include="System.Reflection.TypeExtensions" Version="$(SystemReflectionTypeExtensionsVersion)" />
+    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SystemSecurityCryptographyAlgorithmsVersion)" />
     <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
     <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
     <PackageReference Include="System.Xml.XDocument" Version="$(SystemXmlXDocumentVersion)" />
     <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
+    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />

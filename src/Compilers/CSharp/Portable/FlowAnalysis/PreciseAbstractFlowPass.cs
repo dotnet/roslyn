@@ -2156,7 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ReceiverOpt != null)
             {
-                // An explicit or implicit receiver, for example in an expression such as (x.Foo is Action, or Foo is Action), is considered to be read.
+                // An explicit or implicit receiver, for example in an expression such as (x.Goo is Action, or Goo is Action), is considered to be read.
                 VisitRvalue(node.ReceiverOpt);
             }
 
@@ -2328,41 +2328,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
+        public sealed override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
+            var isByRef = node.IsByRef;
+
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
             if (IsConstantTrue(node.Condition))
             {
-                SetState(alternativeState);
-                Visit(node.Alternative);
-                SetState(consequenceState);
-                Visit(node.Consequence);
+                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
+                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
                 // it may be a boolean state at this point.
             }
             else if (IsConstantFalse(node.Condition))
             {
-                SetState(consequenceState);
-                Visit(node.Consequence);
-                SetState(alternativeState);
-                Visit(node.Alternative);
+                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
+                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
                 // it may be a boolean state at this point.
             }
             else
             {
-                SetState(consequenceState);
-                Visit(node.Consequence);
+                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
                 Unsplit();
                 consequenceState = this.State;
-                SetState(alternativeState);
-                Visit(node.Alternative);
+                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
                 Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
                 // it may not be a boolean state at this point (5.3.3.28)
             }
 
             return null;
+        }
+
+        private void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
+        {
+            SetState(state);
+            if (isByRef)
+            {
+                VisitLvalue(operand);
+                // exposing ref is a potential write
+                WriteArgument(operand, RefKind.Ref, method: null);
+            }
+            else
+            {
+                Visit(operand);
+            }
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
@@ -2556,6 +2567,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        {
+            VisitRvalue(node.Count);
+            return null;
+        }
+
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
             VisitRvalue(node.Count);
             return null;

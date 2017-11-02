@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
             {
-                return (default(SyntaxToken), null, ImmutableArray<ISymbol>.Empty);
+                return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             _testSpeculativeNodeCallbackOpt?.Invoke(parentNode);
             if (parentNode == null)
             {
-                return (default(SyntaxToken), null, ImmutableArray<ISymbol>.Empty);
+                return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(
@@ -238,8 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var result = ArrayBuilder<ISymbol>.GetInstance();
             result.AddRange(semanticModel.LookupSymbols(token.SpanStart, container));
 
-            var namedTypeContainer = container as INamedTypeSymbol;
-            if (namedTypeContainer != null)
+            if (container is INamedTypeSymbol namedTypeContainer)
             {
                 result.AddRange(namedTypeContainer.InstanceConstructors);
             }
@@ -257,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private IEnumerable<CompletionItem> CreateCompletionItems(
-            Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan itemSpan, int position, ImmutableDictionary<string, string> options)
+            Workspace workspace, SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, TextSpan itemSpan, int position, ImmutableDictionary<string, string> options)
         {
             var builder = SharedPools.Default<StringBuilder>().Allocate();
             try

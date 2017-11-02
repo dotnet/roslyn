@@ -90,26 +90,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
-            var returnType = method.ReturnsByRef
-                ? method.ReturnType.GenerateRefTypeSyntax()
-                : method.ReturnType.GenerateTypeSyntax();
-
             var methodDeclaration = SyntaxFactory.MethodDeclaration(
                 attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
                 modifiers: GenerateModifiers(method, destination, options),
-                returnType: returnType,
+                returnType: method.GenerateReturnTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),
                 typeParameterList: GenerateTypeParameterList(method, options),
                 parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, options),
                 constraintClauses: GenerateConstraintClauses(method),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
-                expressionBody: default(ArrowExpressionClauseSyntax),
+                expressionBody: default,
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
             methodDeclaration = UseExpressionBodyIfDesired(workspace, methodDeclaration, parseOptions);
 
-            return AddCleanupAnnotationsTo(methodDeclaration);
+            return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
         }
 
         private static MethodDeclarationSyntax UseExpressionBodyIfDesired(
@@ -119,7 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
                 if (methodDeclaration.Body.TryConvertToExpressionBody(
-                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
+                        methodDeclaration.Kind(), options, expressionBodyPreference,
+                        out var expressionBody, out var semicolonToken))
                 {
                     return methodDeclaration.WithBody(null)
                                             .WithExpressionBody(expressionBody)
@@ -149,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return !method.ExplicitInterfaceImplementations.Any() && !method.IsOverride
                 ? method.TypeParameters.GenerateConstraintClauses()
-                : default(SyntaxList<TypeParameterConstraintClauseSyntax>);
+                : default;
         }
 
         private static TypeParameterListSyntax GenerateTypeParameterList(

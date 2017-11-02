@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
 
-            Return ApplyConversion(node, targetType, argument, isExplicit:=True, diagnostics:=diagnostics)
+            Return ApplyConversion(node, targetType, argument, isExplicit:=True, diagnostics)
         End Function
 
         Private Function BindDirectCastExpression(
@@ -732,10 +732,10 @@ DoneWithDiagnostics:
             End If
 
             ' Variance scenario 1:                                  | Variance scenario 3:
-            ' Dim x as IEnumerable(Of Tiger) = New List(Of Animal)  | Dim x As IFoo(Of Animal) = New MyFoo
-            ' "List(Of Animal) cannot be converted to               | "MyFoo cannot be converted to IFoo(Of Animal).
+            ' Dim x as IEnumerable(Of Tiger) = New List(Of Animal)  | Dim x As IGoo(Of Animal) = New MyGoo
+            ' "List(Of Animal) cannot be converted to               | "MyGoo cannot be converted to IGoo(Of Animal).
             ' IEnumerable(Of Tiger) because 'Animal' is not derived | Consider changing the 'T' in the definition
-            ' from 'Tiger', as required for the 'Out' generic       | of interface IFoo(Of T) to an Out type
+            ' from 'Tiger', as required for the 'Out' generic       | of interface IGoo(Of T) to an Out type
             ' parameter 'T' in 'IEnumerable(Of Out T)'"             | parameter, Out T."
             '                                                       |
             ' (1) If the user attempts a conversion to              | (1) If the user attempts a conversion to some
@@ -752,7 +752,7 @@ DoneWithDiagnostics:
             '     or Out variance                                   | (5) Then pick the first difference Dj/Sj
             ' (5) Then pick on the one such difference Si/Di/Ti     | (6) and report "SOURCE cannot be converted to
             ' (6) and report "SOURCE cannot be converted to DEST    |     DEST. Consider changing Tj in the definition
-            '     because Si is not derived from Di, as required    |     of interface/delegate IFoo(Of T) to an
+            '     because Si is not derived from Di, as required    |     of interface/delegate IGoo(Of T) to an
             '     for the 'In/Out' generic parameter 'T' in         |     In/Out type parameter, In/Out T".
             '     'IEnumerable(Of Out T)'"                          |
             Dim matchingGenericInstantiation As NamedTypeSymbol

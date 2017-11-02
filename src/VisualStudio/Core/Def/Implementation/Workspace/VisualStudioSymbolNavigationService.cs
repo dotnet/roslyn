@@ -149,21 +149,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        public bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            return TryNotifyForSpecificSymbol(symbol, solution, cancellationToken);
+            return TryNotifyForSpecificSymbol(symbol, project, cancellationToken);
         }
 
         private bool TryNotifyForSpecificSymbol(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
             if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, solution, cancellationToken,
+                    definitionItem, rqName, cancellationToken,
                     out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, solution, cancellationToken,
+                    definitionItem, rqName, cancellationToken,
                     out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
@@ -244,7 +244,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private bool TryGetNavigationAPIRequiredArguments(
             DefinitionItem definitionItem,
             string rqName,
-            Solution solution,
             CancellationToken cancellationToken,
             out IVsHierarchy hierarchy,
             out uint itemID,
@@ -294,8 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             AssertIsForeground();
 
-            var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace != null)
+            if (document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
                 var hostProject = visualStudioWorkspace.GetHostProject(document.Project.Id);
                 hierarchy = hostProject.Hierarchy;

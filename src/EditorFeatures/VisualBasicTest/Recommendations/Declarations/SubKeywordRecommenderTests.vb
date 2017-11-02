@@ -155,10 +155,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Dim code = <ModuleDeclaration>
 Module Program
     Sub Main(args As String())
-        Dim f1 As New Foo2( |
+        Dim f1 As New Goo2( |
     End Sub
  
-    Delegate Sub Foo2()
+    Delegate Sub Goo2()
  
     Function Bar2() As Object
         Return Nothing
@@ -239,6 +239,12 @@ Module Module1
 End Module
 
 </File>, "Sub")
+        End Function
+
+        <WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExtensionAttribute() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>&lt;Extension&gt; |</ClassDeclaration>, "Sub")
         End Function
     End Class
 End Namespace

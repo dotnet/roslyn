@@ -51,7 +51,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         private async Task<CodeAction> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
         {
-            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation, fixAllContext.CancellationToken))
+            using (Logger.LogBlock(
+                FunctionId.CodeFixes_FixAllOccurrencesComputation,
+                KeyValueLogMessage.Create(LogType.UserAction, m =>
+                {
+                    m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId;
+                    m[FixAllLogger.FixAllScope] = fixAllContext.State.Scope.ToString();
+                }),
+                fixAllContext.CancellationToken))
             {
                 CodeAction action = null;
                 try
@@ -60,17 +67,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
                 catch (OperationCanceledException)
                 {
-                    FixAllLogger.LogComputationResult(completed: false);
+                    FixAllLogger.LogComputationResult(fixAllContext.State.CorrelationId, completed: false);
                 }
                 finally
                 {
                     if (action != null)
                     {
-                        FixAllLogger.LogComputationResult(completed: true);
+                        FixAllLogger.LogComputationResult(fixAllContext.State.CorrelationId, completed: true);
                     }
                     else
                     {
-                        FixAllLogger.LogComputationResult(completed: false, timedOut: true);
+                        FixAllLogger.LogComputationResult(fixAllContext.State.CorrelationId, completed: false, timedOut: true);
                     }
                 }
 
@@ -106,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     codeAction.Title,
                     fixAllState.Project.Language,
                     workspace,
+                    fixAllState.CorrelationId,
                     cancellationToken);
                 if (newSolution == null)
                 {
@@ -124,10 +132,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string fixAllTopLevelHeader,
             string languageOpt,
             Workspace workspace,
-            CancellationToken cancellationToken = default(CancellationToken))
+            int? correlationId = null,
+            CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges, cancellationToken))
+            using (Logger.LogBlock(
+                FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges,
+                KeyValueLogMessage.Create(LogType.UserAction, m =>
+                {
+                    // only set when correlation id is given
+                    // we might not have this info for suppression
+                    if (correlationId.HasValue)
+                    {
+                        m[FixAllLogger.CorrelationId] = correlationId;
+                    }
+                }),
+                cancellationToken))
             {
                 var previewService = workspace.Services.GetService<IPreviewDialogService>();
                 var glyph = languageOpt == null
@@ -148,16 +168,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (changedSolution == null)
                 {
                     // User clicked cancel.
-                    FixAllLogger.LogPreviewChangesResult(applied: false);
+                    FixAllLogger.LogPreviewChangesResult(correlationId, applied: false);
                     return null;
                 }
 
-                FixAllLogger.LogPreviewChangesResult(applied: true, allChangesApplied: changedSolution == newSolution);
+                FixAllLogger.LogPreviewChangesResult(correlationId, applied: true, allChangesApplied: changedSolution == newSolution);
                 return changedSolution;
             }
         }
 
-        private ImmutableArray<CodeActionOperation> GetNewFixAllOperations(IEnumerable<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
+        private static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<CodeActionOperation>.GetInstance();
             var foundApplyChanges = false;

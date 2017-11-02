@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
-                    // from IL prospective ImplicitReference and Boxing conversions are the same thing.
+                    // from IL perspective ImplicitReference and Boxing conversions are the same thing.
                     // both force operand to be an object (O) - which may involve boxing 
                     // and then assume that result has the target type - which may involve unboxing.
                     EmitImplicitReferenceConversion(conversion);
                     break;
                 case ConversionKind.ExplicitReference:
                 case ConversionKind.Unboxing:
-                    // from IL prospective ExplicitReference and UnBoxing conversions are the same thing.
+                    // from IL perspective ExplicitReference and UnBoxing conversions are the same thing.
                     // both force operand to be an object (O) - which may involve boxing 
                     // and then reinterpret result as the target type - which may involve unboxing.
                     EmitExplicitReferenceConversion(conversion);

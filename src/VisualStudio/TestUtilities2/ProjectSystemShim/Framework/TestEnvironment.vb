@@ -76,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Get
         End Property
 
-        Public ReadOnly Property Workspace As Workspace
+        Public ReadOnly Property Workspace As Microsoft.CodeAnalysis.Workspace
             Get
                 Return _workspace
             End Get
@@ -87,8 +87,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 project.Disconnect()
             Next
 
+            _projectTracker.OnAfterCloseSolution()
             _workspace.Dispose()
-            _projectTracker.Dispose()
 
             For Each filePath In _projectFilePaths
                 File.Delete(filePath)

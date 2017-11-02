@@ -1,21 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports VB = Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class TypeOfTests
         Inherits BasicTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        Public Sub ProducesNoErrorsOnBoxedValueTypes()
-            Dim source =
-<compilation name="TypeOfBoxedValueTypes">
-    <file name="Program.vb">
+        Public Sub ProducesNoErrorsOnBoxedValueTypes_ObjectExpressionAndPrimitiveType()
+            Dim source = <![CDATA[
 Option Strict On
 
 Imports System
@@ -25,44 +22,126 @@ Module Program
 
         Dim o As Object = 1
 
-        If TypeOf o Is Integer Then
+        If TypeOf o Is Integer Then'BIND:"TypeOf o Is Integer"
             Console.WriteLine("Boxed as System.Object")
         End If
+    End Sub
+End Module]]>.Value
 
-        If TypeOf o Is IComparable Then
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o Is Integer')
+  Operand: 
+    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+  IsType: System.Int32
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub ProducesNoErrorsOnBoxedValueTypes_ObjectExpressionAndIComparableType()
+            Dim source = <![CDATA[
+Option Strict On
+
+Imports System
+
+Module Program
+    Sub Main(args As String())
+
+        Dim o As Object = 1
+
+        If TypeOf o Is IComparable Then'BIND:"TypeOf o Is IComparable"
             Console.WriteLine("Boxed as System.Object to interface type")
         End If
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o Is IComparable')
+  Operand: 
+    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+  IsType: System.IComparable
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub ProducesNoErrorsOnBoxedValueTypes_ValueTypeExpressionAndEnumType()
+            Dim source = <![CDATA[
+Option Strict On
+
+Imports System
+
+Module Program
+    Sub Main(args As String())
 
         Dim v As ValueType = DayOfWeek.Monday
 
-        If TypeOf v Is DayOfWeek Then
+        If TypeOf v Is DayOfWeek Then'BIND:"TypeOf v Is DayOfWeek"
             v = 1
 
             If TypeOf v Is Integer Then
                 Console.WriteLine("Boxed as System.ValueType")
             End If
         End If
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf v Is DayOfWeek')
+  Operand: 
+    ILocalReferenceOperation: v (OperationKind.LocalReference, Type: System.ValueType) (Syntax: 'v')
+  IsType: System.DayOfWeek
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub ProducesNoErrorsOnBoxedValueTypes_EnumTypeExpressionAndEnumType()
+            Dim source = <![CDATA[
+Option Strict On
+
+Imports System
+
+Module Program
+    Sub Main(args As String())
 
         Dim e As [Enum] = DayOfWeek.Tuesday
 
-        If TypeOf e Is DayOfWeek Then
+        If TypeOf e Is DayOfWeek Then'BIND:"TypeOf e Is DayOfWeek"
             Console.WriteLine("Boxed as System.Enum")
         End If
 
     End Sub
-End Module
-    </file>
-</compilation>
+End Module]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            CompilationUtils.AssertNoErrors(compilation)
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf e Is DayOfWeek')
+  Operand: 
+    ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Enum) (Syntax: 'e')
+  IsType: System.DayOfWeek
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub ProducesNoErrorsWithClassTypeUnconstrainedTypeParameterTargetTypes()
-            Dim source =
-<compilation name="ProducesNoErrorsWithClassTypeUnconstrainedTypeParameterTargetTypes">
-    <file name="Program.vb">
+        Public Sub ProducesNoErrorsWithClassTypeUnconstrainedTypeParameterTargetTypes_ClassConstraint()
+            Dim source = <![CDATA[
 Option Strict On
 Imports System
 Module Program
@@ -74,38 +153,143 @@ Module Program
 
         Dim oT As T = Nothing
 
-        If TypeOf oT Is TRef Then
-            
-        End If
-
-        If TypeOf oT Is TVal Then
-
-        End If
-
-        Dim vVal As TVal = Nothing
-
-        If TypeOf vVal Is TRef Then
-
-        End If
-
-        If TypeOf oT Is String Then
+        If TypeOf oT Is TRef Then'BIND:"TypeOf oT Is TRef"
 
         End If
 
     End Sub
-End Module
-    </file>
-</compilation>
+End Module]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            CompilationUtils.AssertNoErrors(compilation)
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf oT Is TRef')
+  Operand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TRef')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILocalReferenceOperation: oT (OperationKind.LocalReference, Type: T) (Syntax: 'oT')
+  IsType: TRef
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ProducesNoErrorsWithClassTypeUnconstrainedTypeParameterTargetTypes_StructureConstraint()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+
+    Sub M(Of T, TRef As Class, TVal As Structure, TBase As Class, TDerived As TBase)()
+
+        Dim oT As T = Nothing
+
+        If TypeOf oT Is TVal Then'BIND:"TypeOf oT Is TVal"
+
+        End If
+
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf oT Is TVal')
+  Operand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TVal')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILocalReferenceOperation: oT (OperationKind.LocalReference, Type: T) (Syntax: 'oT')
+  IsType: TVal
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ProducesNoErrorsWithClassTypeUnconstrainedTypeParameterTargetTypes_StructureAndClassConstraint()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+
+    Sub M(Of T, TRef As Class, TVal As Structure, TBase As Class, TDerived As TBase)()
+
+        Dim vVal As TVal = Nothing
+
+        If TypeOf vVal Is TRef Then'BIND:"TypeOf vVal Is TRef"
+
+        End If
+
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf vVal Is TRef')
+  Operand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf vVal Is TRef')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILocalReferenceOperation: vVal (OperationKind.LocalReference, Type: TVal) (Syntax: 'vVal')
+  IsType: TRef
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ProducesNoErrorsWithClassTypeUnconstrainedTypeParameterTargetTypes_StringType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+
+    Sub M(Of T, TRef As Class, TVal As Structure, TBase As Class, TDerived As TBase)()
+
+        Dim oT As T = Nothing
+
+        If TypeOf oT Is String Then'BIND:"TypeOf oT Is String"
+
+        End If
+
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf oT Is String')
+  Operand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is String')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILocalReferenceOperation: oT (OperationKind.LocalReference, Type: T) (Syntax: 'oT')
+  IsType: System.String
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        Public Sub ProducesErrorsWhenNoReferenceConversionExists()
-            Dim source =
-<compilation name="TypeOfDiagnostics">
-    <file name="Program.vb">
+        Public Sub ProducesErrorsWhenNoReferenceConversionExists_BC30371()
+            Dim source = <![CDATA[
 Option Strict On
 Imports System
 Module Program
@@ -113,50 +297,132 @@ Module Program
 
         Dim obj As Object = ""
 
-        If TypeOf obj Is Program Then
+        If TypeOf obj Is Program Then'BIND:"TypeOf obj Is Program"
 
         End If
+    End Sub
+
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf obj Is Program')
+  Operand: 
+    ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: System.Object) (Syntax: 'obj')
+  IsType: Program
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30371: Module 'Program' cannot be used as a type.
+        If TypeOf obj Is Program Then'BIND:"TypeOf obj Is Program"
+                         ~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub ProducesErrorsWhenNoReferenceConversionExists_BC31430()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module Program
+    Public Sub Main()
 
         Dim s As String = Nothing
 
-        If TypeOf s Is AppDomain Then
-        
+        If TypeOf s Is AppDomain Then'BIND:"TypeOf s Is AppDomain"
+
         ElseIf TypeOf s Is IDisposable Then
-        
-        End If
-
-        If TypeOf s Is Integer Then
 
         End If
+    End Sub
+
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf s Is AppDomain')
+  Operand: 
+    ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String, IsInvalid) (Syntax: 's')
+  IsType: System.AppDomain
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31430: Expression of type 'String' can never be of type 'AppDomain'.
+        If TypeOf s Is AppDomain Then'BIND:"TypeOf s Is AppDomain"
+           ~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub ProducesErrorsWhenNoReferenceConversionExists_BC31430_02()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module Program
+    Public Sub Main()
+
+        Dim s As String = Nothing
+
+        If TypeOf s Is Integer Then'BIND:"TypeOf s Is Integer"
+
+        End If
+    End Sub
+
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf s Is Integer')
+  Operand: 
+    ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String, IsInvalid) (Syntax: 's')
+  IsType: System.Int32
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31430: Expression of type 'String' can never be of type 'Integer'.
+        If TypeOf s Is Integer Then'BIND:"TypeOf s Is Integer"
+           ~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub ProducesErrorsWhenNoReferenceConversionExists_BC30021()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module Program
+    Public Sub Main()
 
         Dim i As Integer = 0
 
-        If TypeOf i Is String Then
+        If TypeOf i Is String Then'BIND:"TypeOf i Is String"
 
         End If
 
     End Sub
 
-End Module
-    </file>
-</compilation>
+End Module]]>.Value
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, , TestOptions.ReleaseExe)
-            CompilationUtils.AssertTheseDiagnostics(compilation,
-<expected>
-BC30371: Module 'Program' cannot be used as a type.
-        If TypeOf obj Is Program Then
-                         ~~~~~~~
-BC31430: Expression of type 'String' can never be of type 'AppDomain'.
-        If TypeOf s Is AppDomain Then
-           ~~~~~~~~~~~~~~~~~~~~~
-BC31430: Expression of type 'String' can never be of type 'Integer'.
-        If TypeOf s Is Integer Then
-           ~~~~~~~~~~~~~~~~~~~
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'TypeOf i Is String')
+  Operand: 
+    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+  IsType: System.String
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
 BC30021: 'TypeOf ... Is' requires its left operand to have a reference type, but this operand has the value type 'Integer'.
-        If TypeOf i Is String Then
+        If TypeOf i Is String Then'BIND:"TypeOf i Is String"
                   ~
-</expected>)
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact()>
@@ -167,49 +433,49 @@ BC30021: 'TypeOf ... Is' requires its left operand to have a reference type, but
 Option Strict On
 Imports System
 Module Program
-
+ 
     Sub Main()
     End Sub
-
+ 
     Class A : End Class
     Class B : End Class
-
+ 
     Sub M(Of T, TA As A, TB As B, TC As Structure, TD As IDisposable)(x As T, a As TA, b As TB, c As TC, d As TD, s As String)
-
+ 
         If TypeOf x Is TA OrElse TypeOf x Is TB OrElse TypeOf x Is TC OrElse TypeOf x Is TD OrElse TypeOf x Is String Then
             Console.WriteLine("Success!")
         End If
-
+ 
         If TypeOf a Is TB OrElse TypeOf a Is TC OrElse TypeOf a Is String Then
             Console.WriteLine("Fail!")
         ElseIf TypeOf a Is T OrElse TypeOf a Is TD Then
             Console.WriteLine("Success!")
         End If
-
+ 
         If TypeOf b Is TA OrElse TypeOf b Is TC OrElse TypeOf b Is String Then
             Console.WriteLine("Fail!")
         ElseIf TypeOf b Is T OrElse TypeOf b Is TD Then
             Console.WriteLine("Success!")
         End If
-
+ 
         If TypeOf c Is TA OrElse TypeOf c Is TB OrElse TypeOf c Is String Then
             Console.WriteLine("Fail!")
         ElseIf TypeOf c Is T OrElse TypeOf c Is TD Then
             Console.WriteLine("Success!")
         End If
-
+ 
         If TypeOf d Is T OrElse TypeOf d Is TA OrElse TypeOf d Is TB OrElse TypeOf d Is TC OrElse TypeOf d Is String Then
             Console.WriteLine("Success!")
         End If
-
+ 
         If TypeOf s Is TA OrElse TypeOf s Is TB OrElse TypeOf s Is TC Then
             Console.WriteLine("Fail!")
         ElseIf TypeOf s Is T OrElse TypeOf s Is T OrElse TypeOf s Is TD Then
             Console.WriteLine("Success!")
         End If
-
+ 
     End Sub
-
+ 
 End Module
     </file>
 </compilation>
@@ -262,28 +528,28 @@ BC31430: Expression of type 'String' can never be of type 'TC'.
 <compilation name="SeesThroughTypeAndNamespaceAliases">
     <file name="Program.vb">
 Option Strict On
-
+ 
 Imports HRESULT = System.Int32
 Imports CharacterSequence = System.String
-
+ 
 Module Program
     Sub Main(args As String())
-
+ 
         Dim o As Object = ""
-
+ 
         Dim isString = TypeOf o Is CharacterSequence
-
+ 
         Dim isInteger = TypeOf o Is HRESULT
-
+ 
         Dim isNotString = TypeOf o IsNot CharacterSequence
-
+ 
         Dim isNotInteger = TypeOf o IsNot HRESULT 
-
+ 
         System.Console.WriteLine(isString)
         System.Console.WriteLine(isInteger)
         System.Console.WriteLine(isNotString)
         System.Console.WriteLine(isNotInteger)
-
+ 
     End Sub
 End Module
     </file>
@@ -300,6 +566,129 @@ False
 True
 ]]>)
 
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub SeesThroughTypeAndNamespaceAliases_IsStringAliasIOperationTest()
+            Dim source = <![CDATA[
+Option Strict On
+
+Imports HRESULT = System.Int32
+Imports CharacterSequence = System.String
+
+Module Program
+    Sub Main(args As String())
+
+        Dim o As Object = ""
+
+        Dim isString = TypeOf o Is CharacterSequence'BIND:"TypeOf o Is CharacterSequence"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o Is ... terSequence')
+  Operand: 
+    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+  IsType: System.String
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub SeesThroughTypeAndNamespaceAliases_IsIntegerAliasIOperationTest()
+            Dim source = <![CDATA[
+Option Strict On
+
+Imports HRESULT = System.Int32
+Imports CharacterSequence = System.String
+
+Module Program
+    Sub Main(args As String())
+
+        Dim o As Object = ""
+
+        Dim isInteger = TypeOf o Is HRESULT'BIND:"TypeOf o Is HRESULT"
+
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o Is HRESULT')
+  Operand: 
+    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+  IsType: System.Int32
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub SeesThroughTypeAndNamespaceAliases_IsNotStringAliasIOperationTest()
+            Dim source = <![CDATA[
+Option Strict On
+
+Imports HRESULT = System.Int32
+Imports CharacterSequence = System.String
+
+Module Program
+    Sub Main(args As String())
+
+        Dim o As Object = ""
+
+        Dim isNotString = TypeOf o IsNot CharacterSequence'BIND:"TypeOf o IsNot CharacterSequence"
+
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (IsNotExpression) (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o Is ... terSequence')
+  Operand: 
+    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+  IsType: System.String
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub SeesThroughTypeAndNamespaceAliases_IsNotIntegerAliasIOperationTest()
+            Dim source = <![CDATA[
+Option Strict On
+
+Imports HRESULT = System.Int32
+Imports CharacterSequence = System.String
+
+Module Program
+    Sub Main(args As String())
+
+        Dim o As Object = ""
+
+        Dim isNotInteger = TypeOf o IsNot HRESULT'BIND:"TypeOf o IsNot HRESULT"
+
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIsTypeOperation (IsNotExpression) (OperationKind.IsType, Type: System.Boolean) (Syntax: 'TypeOf o IsNot HRESULT')
+  Operand: 
+    ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+  IsType: System.Int32
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TypeOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact>
@@ -964,7 +1353,7 @@ End Class
     <compilation name="TypeOfExprAlwaysFalse2">
         <file name="a.vb">
         Module M
-            Sub Foo(Of T As Structure)(ByVal x As T)
+            Sub Goo(Of T As Structure)(ByVal x As T)
                 Dim y = TypeOf x Is String
             End Sub
         End Module

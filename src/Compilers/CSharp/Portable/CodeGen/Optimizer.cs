@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// 1) Do not elide any user defined locals, even if never read from. 
         ///    Example:
         ///      {
-        ///        var dummy = Foo();    // should not become just "Foo"
+        ///        var dummy = Goo();    // should not become just "Goo"
         ///      }
         ///        
         ///    User might want to examine dummy in the debugger.
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// 2) Do not carry values on the stack between statements
         ///    Example:
         ///      {
-        ///        var temp = Foo();
-        ///        temp.ToString();       // should not become   Foo().ToString();
+        ///        var temp = Goo();
+        ///        temp.ToString();       // should not become   Goo().ToString();
         ///      }
         ///       
         ///    User might want to examine temp in the debugger.
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// [1, 3) conflicts with [2, 4)
         /// 
         /// NOTE: with regular spans, it is not possible for two spans to share an edge point 
-        /// unless they belong to the same local. (because we cannot aceess two real locals at the same time)
+        /// unless they belong to the same local. (because we cannot access two real locals at the same time)
         /// 
         /// specifically:
         /// [1, 3) does not conflict with [0, 1)   since such spans would need to belong to the same local
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // it will affect inference of stack behavior
     // it will also affect when locals can be scheduled to the stack
     // Example:
-    //      Foo(x, ref x)     <-- x cannot be a stack local as it is used in different contexts.
+    //      Goo(x, ref x)     <-- x cannot be a stack local as it is used in different contexts.
     internal enum ExprContext
     {
         None,
@@ -971,7 +971,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var lhs = node.Left;
 
-            Debug.Assert(node.RefKind == RefKind.None || (lhs as BoundLocal)?.LocalSymbol.RefKind == RefKind.Ref,
+            Debug.Assert(node.RefKind == RefKind.None || lhs is BoundLocal local &&
+                         (local.LocalSymbol.RefKind == node.RefKind ||
+                          local.LocalSymbol.RefKind == RefKind.RefReadOnly),
                                 "only ref locals can be a target of a ref assignment");
             
             switch (lhs.Kind)
@@ -1002,6 +1004,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     Debug.Assert(((BoundCall)lhs).Method.RefKind == RefKind.Ref, "only ref returning methods are assignable");
                     return true;
 
+                case BoundKind.ConditionalOperator:
+                    Debug.Assert(((BoundConditionalOperator)lhs).IsByRef, "only ref ternaries are assignable");
+                    return true;
+
                 case BoundKind.AssignmentOperator:
                     Debug.Assert(((BoundAssignmentOperator)lhs).RefKind == RefKind.Ref, "only ref assignments are assignable");
                     return true;
@@ -1030,6 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     throw ExceptionUtilities.UnexpectedValue(lhs.Kind);
             }
         }
+
         private static bool IsIndirectOrInstanceFieldAssignment(BoundAssignmentOperator node)
         {
             var lhs = node.Left;
@@ -1240,21 +1247,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
             var origStack = StackDepth();
-            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundExpression condition = this.VisitExpression(node.Condition, ExprContext.Value);
 
             var cookie = GetStackStateCookie();  // implicit goto here
 
+            var context = node.IsByRef ? ExprContext.Address : ExprContext.Value;
+
             SetStackDepth(origStack);  // consequence is evaluated with original stack
-            BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
+            BoundExpression consequence = this.VisitExpression(node.Consequence, context);
 
             EnsureStackState(cookie);   // implicit label here
 
             SetStackDepth(origStack);  // alternative is evaluated with original stack
-            BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
+            BoundExpression alternative = this.VisitExpression(node.Alternative, context);
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(condition, consequence, alternative, node.ConstantValueOpt, node.Type);
+            return node.Update(node.IsByRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type);
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
@@ -1565,11 +1574,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(node.Locals, exceptionSourceOpt, exceptionTypeOpt, boundFilter, boundBlock, node.IsSynthesizedAsyncCatchAll);
         }
 
-        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
             // CLI spec section 3.47 requires that the stack be empty when localloc occurs.
             EnsureOnlyEvalStack();
-            return base.VisitStackAllocArrayCreation(node);
+            return base.VisitConvertedStackAllocExpression(node);
         }
 
         public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
@@ -2147,5 +2156,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             get { return RefKind.None; }
         }
+
+        /// <summary>
+        /// Compiler should always be synthesizing locals with correct escape semantics.
+        /// Checking escape scopes is not valid here.
+        /// </summary>
+        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
+
+        /// <summary>
+        /// Compiler should always be synthesizing locals with correct escape semantics.
+        /// Checking escape scopes is not valid here.
+        /// </summary>
+        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
     }
 }

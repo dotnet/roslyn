@@ -30,11 +30,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
                                     void Blah()
                                     {
-                                        [|Foo|] f = new [|Foo|]();
+                                        [|Goo|] f = new [|Goo|]();
                                     }
                                 }
                             </Document>
@@ -51,7 +51,34 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")>
+        Public Async Function RenameDeconstructionForeachCollection() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+using System.Collections.Generic;
+class Deconstructable
+{
+    void M(IEnumerable<Deconstructable> [|$$x|])
+    {
+        foreach (var (y1, y2) in [|x|])
+        {
+        }
+    }
+    void Deconstruct(out int i, out int j) { i = 0; j = 0; }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "x", "change", renameOverloads:=True)
             End Using
         End Function
 
@@ -63,11 +90,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
                                     void Blah()
                                     {
-                                        [|Foo|] f = new [|Foo|]();
+                                        [|Goo|] f = new [|Goo|]();
                                     }
                                 }
                             </Document>
@@ -84,11 +111,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Await WaitForRename(workspace)
 
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
             End Using
         End Function
 
@@ -130,26 +157,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                             <Document>
 class Program
 {
-    public void [|$$foo|]()
+    public void [|$$goo|]()
     {
-        [|foo|]();
+        [|goo|]();
     }
 
-    public void [|foo|]&lt;T&gt;()
+    public void [|goo|]&lt;T&gt;()
     {
-        [|foo|]&lt;T&gt;();
+        [|goo|]&lt;T&gt;();
     }
 
-    public void [|foo|](int i)
+    public void [|goo|](int i)
     {
-        [|foo|](i);
+        [|goo|](i);
     }
 }
                             </Document>
                         </Project>
                     </Workspace>)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "foo", "bar", renameOverloads:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True)
             End Using
         End Function
 
@@ -170,27 +197,27 @@ Public Class Program
 
     End Sub
 
-    Public Sub [|$$foo|]()
-        [|foo|]()
+    Public Sub [|$$goo|]()
+        [|goo|]()
     End Sub
 
-    Public Sub [|foo|](of T)()
-        [|foo|](of T)()
+    Public Sub [|goo|](of T)()
+        [|goo|](of T)()
     End Sub
 
-    Public Sub [|foo|](s As String)
-        [|foo|](s)
+    Public Sub [|goo|](s As String)
+        [|goo|](s)
     End Sub
 
-    Public Shared Sub [|foo|](d As Double)
-        [|foo|](d)
+    Public Shared Sub [|goo|](d As Double)
+        [|goo|](d)
     End Sub
 End Class
                             </Document>
                         </Project>
                     </Workspace>)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "foo", "bar", renameOverloads:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True)
             End Using
         End Function
 
@@ -347,27 +374,27 @@ public class [|$$C|] { }
                                 <![CDATA[
 class Program
 {
-    /// <[|foo|]> [|foo|]! </[|foo|]>
-    public void [|$$foo|]()
+    /// <[|goo|]> [|goo|]! </[|goo|]>
+    public void [|$$goo|]()
     {
-        // [|foo|]  FOO
-        /* [|foo|] */
-        [|foo|]();
+        // [|goo|]  GOO
+        /* [|goo|] */
+        [|goo|]();
 
-        var a = "foo";
-        var b = $"{1}foo{2}";
+        var a = "goo";
+        var b = $"{1}goo{2}";
     }
 
-    public void foo(int i)
+    public void goo(int i)
     {
-        foo(i);
+        goo(i);
     }
 }]]>
                             </Document>
                         </Project>
                     </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "foo", "bar", renameInComments:=True)
+            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
 
             workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
@@ -376,27 +403,27 @@ class Program
                             <![CDATA[
 class Program
 {
-    /// <[|foo|]> [|foo|]! </[|foo|]>
-    public void [|$$foo|]()
+    /// <[|goo|]> [|goo|]! </[|goo|]>
+    public void [|$$goo|]()
     {
-        // [|foo|]  FOO
-        /* [|foo|] */
-        [|foo|]();
+        // [|goo|]  GOO
+        /* [|goo|] */
+        [|goo|]();
 
-        var a = "foo";
-        var b = $"{1}foo{2}";
+        var a = "goo";
+        var b = $"{1}goo{2}";
     }
 
-    public void [|foo|](int i)
+    public void [|goo|](int i)
     {
-        [|foo|](i);
+        [|goo|](i);
     }
 }]]>
                         </Document>
                     </Project>
                 </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "foo", "bar", renameOverloads:=True, renameInComments:=True)
+            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
 
             workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
@@ -405,27 +432,27 @@ class Program
                             <![CDATA[
 class Program
 {
-    /// <[|foo|]> [|foo|]! </[|foo|]>
-    public void [|$$foo|]()
+    /// <[|goo|]> [|goo|]! </[|goo|]>
+    public void [|$$goo|]()
     {
-        // [|foo|]  FOO
-        /* [|foo|] */
-        [|foo|]();
+        // [|goo|]  GOO
+        /* [|goo|] */
+        [|goo|]();
 
-        var a = "[|foo|]";
-        var b = $"{1}[|foo|]{2}";
+        var a = "[|goo|]";
+        var b = $"{1}[|goo|]{2}";
     }
 
-    public void foo(int i)
+    public void goo(int i)
     {
-        foo(i);
+        goo(i);
     }
 }]]>
                         </Document>
                     </Project>
                 </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "foo", "bar", renameInComments:=True, renameInStrings:=True)
+            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
         End Function
 
         <WpfFact>
@@ -438,18 +465,18 @@ class Program
                             <Document>
                                 <![CDATA[
 Class Program
-	''' <[|foo|]> [|foo|]! </[|foo|]>
-	Public Sub [|$$foo|]()
-		' [|foo|]  FOO
-		' [|foo|]
-		[|foo|]()
+	''' <[|goo|]> [|goo|]! </[|goo|]>
+	Public Sub [|$$goo|]()
+		' [|goo|]  GOO
+		' [|goo|]
+		[|goo|]()
 
-		Dim a = "foo"
-		Dim b = $"{1}foo{2}"
+		Dim a = "goo"
+		Dim b = $"{1}goo{2}"
 	End Sub
 
-	Public Sub foo(i As Integer)
-		foo(i)
+	Public Sub goo(i As Integer)
+		goo(i)
 	End Sub
 End Class
 ]]>
@@ -457,7 +484,7 @@ End Class
                         </Project>
                     </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "foo", "bar", renameInComments:=True)
+            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
 
             workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
@@ -465,18 +492,18 @@ End Class
                         <Document>
                             <![CDATA[
 Class Program
-	''' <[|foo|]> [|foo|]! </[|foo|]>
-	Public Sub [|$$foo|]()
-		' [|foo|]  FOO
-		' [|foo|]
-		[|foo|]()
+	''' <[|goo|]> [|goo|]! </[|goo|]>
+	Public Sub [|$$goo|]()
+		' [|goo|]  GOO
+		' [|goo|]
+		[|goo|]()
 
-		Dim a = "foo"
-		Dim b = $"{1}foo{2}"
+		Dim a = "goo"
+		Dim b = $"{1}goo{2}"
 	End Sub
 
-	Public Sub [|foo|](i As Integer)
-		[|foo|](i)
+	Public Sub [|goo|](i As Integer)
+		[|goo|](i)
 	End Sub
 End Class
 ]]>
@@ -484,7 +511,7 @@ End Class
                     </Project>
                 </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "foo", "bar", renameOverloads:=True, renameInComments:=True)
+            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
 
             workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
@@ -492,18 +519,18 @@ End Class
                         <Document>
                             <![CDATA[
 Class Program
-	''' <[|foo|]> [|foo|]! </[|foo|]>
-	Public Sub [|$$foo|]()
-		' [|foo|]  FOO
-		' [|foo|]
-		[|foo|]()
+	''' <[|goo|]> [|goo|]! </[|goo|]>
+	Public Sub [|$$goo|]()
+		' [|goo|]  GOO
+		' [|goo|]
+		[|goo|]()
 
-		Dim a = "[|foo|]"
-		Dim b = $"{1}[|foo|]{2}"
+		Dim a = "[|goo|]"
+		Dim b = $"{1}[|goo|]{2}"
 	End Sub
 
-	Public Sub foo(i As Integer)
-		foo(i)
+	Public Sub goo(i As Integer)
+		goo(i)
 	End Sub
 End Class
 ]]>
@@ -511,7 +538,7 @@ End Class
                     </Project>
                 </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "foo", "bar", renameInComments:=True, renameInStrings:=True)
+            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
         End Function
 
         <WpfFact>
@@ -521,11 +548,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
                                     void Blah()
                                     {
-                                        [|Foo|] f = new [|Foo|]();
+                                        [|Goo|] f = new [|Goo|]();
                                     }
                                 }
                             </Document>
@@ -571,11 +598,11 @@ End Class
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
                 Dim textBuffer = workspace.Documents.Single().TextBuffer
 
-                textBuffer.Insert(caretPosition, "foo")
+                textBuffer.Insert(caretPosition, "goo")
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "foodynamic")
+                Await VerifyTagsAreCorrect(workspace, "goodynamic")
             End Using
         End Function
 
@@ -646,25 +673,25 @@ End Class
                             <Document>
                                 abstract class AAAA
                                 {
-                                    public abstract void [|Foo|]();
+                                    public abstract void [|Goo|]();
                                 }
 
                                 class BBBB : AAAA
                                 {
-                                    public override void [|Foo|]() { }
+                                    public override void [|Goo|]() { }
                                 }
 
                                 class DDDD : BBBB
                                 {
-                                    public override void [|Foo|]() { }
+                                    public override void [|Goo|]() { }
                                 }
                                 class CCCC : AAAA
                                 {
-                                    public override void [|$$Foo|]() { }
+                                    public override void [|$$Goo|]() { }
                                 }
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="FooBar")
+                    </Workspace>, renameTo:="GooBar")
 
 
             End Using
@@ -678,11 +705,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
                                     void Blah()
                                     {
-                                        [|Foo|] f = new [|Foo|]();
+                                        [|Goo|] f = new [|Goo|]();
                                     }
                                 }
                             </Document>
@@ -699,7 +726,7 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
             End Using
         End Function
@@ -711,7 +738,7 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
                                 }
                             </Document>
@@ -728,7 +755,7 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
             End Using
         End Function
@@ -741,11 +768,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
                                     void Blah()
                                     {
-                                        [|Foo|] f = new [|Foo|]();
+                                        [|Goo|] f = new [|Goo|]();
                                     }
                                 }
                             </Document>
@@ -762,10 +789,10 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
             End Using
         End Function
@@ -778,11 +805,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
                                     void Blah()
                                     {
-                                        [|Foo|] f = new [|Foo|]();
+                                        [|Goo|] f = new [|Goo|]();
                                     }
                                 }
                             </Document>
@@ -799,7 +826,7 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
 
                 session.Cancel()
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
@@ -813,11 +840,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
                                     void Blah()
                                     {
-                                        [|Foo|] f = new [|Foo|]();
+                                        [|Goo|] f = new [|Goo|]();
                                     }
                                 }
                             </Document>
@@ -834,10 +861,10 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
                 textBuffer.Insert(caretPosition, "Baz")
@@ -852,11 +879,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
                                     void Blah()
                                     {
-                                        [|Foo|] f = new [|Foo|]();
+                                        [|Goo|] f = new [|Goo|]();
                                     }
                                 }
                             </Document>
@@ -876,11 +903,11 @@ End Class
 
                 session.Commit(previewChanges:=True)
 
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
                 Assert.True(previewService.Called)
                 Assert.Equal(String.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename), previewService.Title)
-                Assert.Equal(String.Format(EditorFeaturesResources.Rename_0_to_1_colon, "Foo", "BarFoo"), previewService.Description)
-                Assert.Equal("Foo", previewService.TopLevelName)
+                Assert.Equal(String.Format(EditorFeaturesResources.Rename_0_to_1_colon, "Goo", "BarGoo"), previewService.Description)
+                Assert.Equal("Goo", previewService.TopLevelName)
                 Assert.Equal(Glyph.ClassInternal, previewService.TopLevelGlyph)
             End Using
         End Function
@@ -892,11 +919,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
                                     void Blah()
                                     {
-                                        [|Foo|] f = new [|Foo|]();
+                                        [|Goo|] f = new [|Goo|]();
                                     }
                                 }
                             </Document>
@@ -915,7 +942,7 @@ End Class
 
                 session.Commit(previewChanges:=True)
 
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
                 Assert.True(previewService.Called)
 
                 ' Session should still be up; type some more
@@ -925,7 +952,7 @@ End Class
                 previewService.ReturnsNull = False
                 previewService.Called = False
                 session.Commit(previewChanges:=True)
-                Await VerifyTagsAreCorrect(workspace, "CatBarFoo")
+                Await VerifyTagsAreCorrect(workspace, "CatBarGoo")
                 Assert.True(previewService.Called)
             End Using
         End Function
@@ -1265,11 +1292,11 @@ class C
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|$$Foo|]
+                            class [|$$Goo|]
                             {
                                 void Blah()
                                 {
-                                    [|Foo|] f = new [|Foo|]();
+                                    [|Goo|] f = new [|Goo|]();
                                 }
                             }
                         </Document>
@@ -1288,7 +1315,7 @@ class C
                 Dim renameService = workspace.GetService(Of IInlineRenameService)()
                 Assert.NotNull(renameService.ActiveSession)
 
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
 
                 ' Simulate starting a debugging session
                 Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
@@ -1296,7 +1323,7 @@ class C
 
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
             End Using
         End Function
 
@@ -1308,11 +1335,11 @@ class C
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|$$Foo|]
+                            class [|$$Goo|]
                             {
                                 void Blah()
                                 {
-                                    [|Foo|] f = new [|Foo|]();
+                                    [|Goo|] f = new [|Goo|]();
                                 }
                             }
                         </Document>
@@ -1331,7 +1358,7 @@ class C
                 Dim renameService = workspace.GetService(Of IInlineRenameService)()
                 Assert.NotNull(renameService.ActiveSession)
 
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
 
                 ' Simulate ending break mode in the debugger (by stepping or continuing)
                 Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
@@ -1339,7 +1366,7 @@ class C
 
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarFoo")
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
             End Using
         End Function
 

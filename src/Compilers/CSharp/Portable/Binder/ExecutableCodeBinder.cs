@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Symbol containing = binder.ContainingMemberOrLambda;
 
-                        // get the closest inclosing InMethodBinder and make it an iterator
+                        // get the closest enclosing InMethodBinder and make it an iterator
                         InMethodBinder inMethod = null;
                         while (binder != null)
                         {
