@@ -5,17 +5,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities; 
+using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities;
 
 namespace Roslyn.Test.Utilities.Desktop
 {
@@ -237,7 +241,7 @@ namespace Roslyn.Test.Utilities.Desktop
             {
                 var emitData = GetEmitData();
                 emitData.RuntimeData.ExecuteRequested = true;
-                var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutput?.Length, out var output);
+                var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutputLength: expectedOutput?.Length, out var output);
 
                 if (expectedOutput != null && expectedOutput.Trim() != output.Trim())
                 {
@@ -289,6 +293,37 @@ namespace Roslyn.Test.Utilities.Desktop
             return GetEmitData().AllModuleData;
         }
 
+#if NET461
+        private class Resolver : ILVerify.ResolverBase
+        {
+            private Dictionary<string, ImmutableArray<byte>> imagesByName = new Dictionary<string, ImmutableArray<byte>>();
+
+            internal Resolver(EmitData emitData)
+            {
+                foreach (var module in emitData.AllModuleData)
+                {
+                    string name = module.SimpleName;
+
+                    var image = name == "mscorlib"
+                        ? TestResources.NetFX.v4_6_1038_0.mscorlib.AsImmutable()
+                        : module.Image;
+
+                    imagesByName.Add(name, image);
+                }
+            }
+
+            protected override PEReader ResolveCore(AssemblyName name)
+            {
+                if (imagesByName.TryGetValue(name.Name, out var image))
+                {
+                    return new PEReader(image);
+                }
+
+                return null;
+            }
+        }
+#endif
+
         public void Verify(Verification verification)
         {
             if (verification == Verification.Skipped)
@@ -296,24 +331,62 @@ namespace Roslyn.Test.Utilities.Desktop
                 return;
             }
 
-            var shouldSucceed = verification == Verification.Passes;
+            var emitData = GetEmitData();
+
+#if NET461
+            // IL Verify
+            var resolver = new Resolver(emitData);
+            var verifier = new ILVerify.Verifier(resolver);
+            if (emitData.AllModuleData.Any(m => m.SimpleName == "mscorlib"))
+            {
+                verifier.SetSystemModuleName(new AssemblyName("mscorlib"));
+            }
+            else
+            {
+                // auto-detect which module is the "corlib"
+                foreach (var module in emitData.AllModuleData)
+                {
+                    var name = new AssemblyName(module.SimpleName);
+                    var metadataReader = resolver.Resolve(name).GetMetadataReader();
+                    if (metadataReader.AssemblyReferences.Count == 0)
+                    {
+                        verifier.SetSystemModuleName(name);
+                    }
+                }
+            }
+
+            var result = verifier.Verify(resolver.Resolve(new AssemblyName(emitData.MainModule.FullName)));
+            if (result.Count() > 0)
+            {
+                if ((verification & Verification.PassesIlVerify) != 0)
+                {
+                    throw new Exception("IL Verify failed");
+                }
+            }
+            else if ((verification & Verification.FailsIlVerify) != 0)
+            {
+                throw new Exception("IL Verify succeeded unexpectedly");
+            }
+#endif
+
+            // PE Verify
             try
             {
-                var emitData = GetEmitData();
                 emitData.RuntimeData.PeverifyRequested = true;
                 emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName }, throwOnError: true);
-                if (!shouldSucceed)
+                if ((verification & Verification.FailsPeVerify) != 0)
                 {
-                    throw new Exception("Verification succeeded unexpectedly");
+                    throw new Exception("PE Verify succeeded unexpectedly");
                 }
             }
             catch (RuntimePeVerifyException)
             {
-                if (shouldSucceed)
+                if ((verification & Verification.PassesPeVerify) != 0)
                 {
-                    throw new Exception("Verification failed");
+                    throw new Exception("PE Verify failed");
                 }
             }
+
         }
 
         public string[] VerifyModules(string[] modulesToVerify)

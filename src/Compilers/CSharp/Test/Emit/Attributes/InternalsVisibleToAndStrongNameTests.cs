@@ -2395,7 +2395,7 @@ class B
             CompileAndVerify(ca);
 
             var cb = CreateCompilation(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) });
-            CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
+            CompileAndVerify(cb, expectedOutput: "42", verify: Verification.IVT).Diagnostics.Verify();
         }
 
         [Fact, WorkItem(1095618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095618")]

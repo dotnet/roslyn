@@ -7568,7 +7568,7 @@ class X: Attribute
 {
 }
 ";
-            CompileAndVerifyWithMscorlib40(source5, references: new[] { comp1, comp2 });
+            CompileAndVerifyWithMscorlib40(source5, references: new[] { comp1, comp2 }, verify: Verification.ClassLoadGeneral);
 
             // Multiple from PE, multiple from Source
             var source6 = @"

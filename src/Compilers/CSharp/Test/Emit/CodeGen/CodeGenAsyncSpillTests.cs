@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, references: references, options: options);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, references: references, options: options, verify: verify);
         }
 
         [Fact]
@@ -2478,7 +2478,7 @@ class Driver
 2
 0
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expected, verify: Verification.RuntimeArgumentHandle);
         }
 
         [Fact]
