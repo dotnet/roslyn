@@ -62,7 +62,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
 # Create the Insertion folder. This is where the insertion tool pulls all of its 
 # binaries from. 
 function Copy-InsertionItems() {
-    $insertionDir = Join-Path $binariesdir "Insertion"
+    $insertionDir = Join-Path $configDir "Insertion"
     Create-Directory $insertionDir
 
     $items = @(
