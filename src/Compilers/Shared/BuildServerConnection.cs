@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 return pipeStream;
             }
-            catch (Exception e) when (!(e is TaskCanceledException))
+            catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
                 LogException(e, "Exception while connecting to process");
                 return null;
