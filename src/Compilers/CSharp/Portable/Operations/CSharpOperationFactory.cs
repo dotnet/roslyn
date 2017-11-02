@@ -1356,9 +1356,9 @@ namespace Microsoft.CodeAnalysis.Operations
             else if (locals.Length == 1)
             {
                 var local = (LocalSymbol)locals.Single();
-                bool isDeclaration = true;
-                // This node is implicit because there is no good syntax for it other than the entire 'foreach' statement.
-                loopControlVariable = new Lazy<IOperation>(() => new LocalReferenceExpression(local, isDeclaration, _semanticModel, local.GetDeclaratorSyntax(), local.Type, local.ConstantValue, isImplicit: true));
+                // We use iteration variable type syntax as the underlying syntax node as there is no variable declarator syntax in the syntax tree.
+                var declaratorSyntax = boundForEachStatement.IterationVariableType.Syntax;
+                loopControlVariable = new Lazy<IOperation>(() => OperationFactory.CreateVariableDeclaration(local, initializer: null, semanticModel: _semanticModel, syntax: declaratorSyntax));
             }
             else
             {

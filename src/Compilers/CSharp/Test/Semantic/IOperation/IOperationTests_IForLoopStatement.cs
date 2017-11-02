@@ -1898,7 +1898,10 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
       IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
         Locals: Local_1: System.String item
         LoopControlVariable: 
-          ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, Constant: null, IsImplicit) (Syntax: 'foreach (va ... }')
+          IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var')
+            Variables: Local_1: System.String item
+            Initializer: 
+              null
         Collection: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'str')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

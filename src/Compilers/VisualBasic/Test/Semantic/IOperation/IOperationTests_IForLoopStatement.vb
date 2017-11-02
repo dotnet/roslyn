@@ -27,7 +27,10 @@ End Class
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
-    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i As Integer')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Integer')
+      Variables: Local_1: i As System.Int32
+      Initializer: 
+        null
   InitialValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 
@@ -90,7 +93,10 @@ End Class
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
-    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i As Integer')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Integer')
+      Variables: Local_1: i As System.Int32
+      Initializer: 
+        null
   InitialValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 
@@ -146,7 +152,10 @@ End Class
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i As Do ... Next')
   Locals: Local_1: i As System.Double
   LoopControlVariable: 
-    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Double) (Syntax: 'i As Double')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Double')
+      Variables: Local_1: i As System.Double
+      Initializer: 
+        null
   InitialValue: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, Constant: 2, IsImplicit) (Syntax: '2')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -558,7 +567,10 @@ End Enum
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x As e1 ... Next')
   Locals: Local_1: x As e1
   LoopControlVariable: 
-    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: e1) (Syntax: 'x As e1')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x As e1')
+      Variables: Local_1: x As e1
+      Initializer: 
+        null
   InitialValue: 
     IFieldReferenceOperation: e1.a (Static) (OperationKind.FieldReference, Type: e1, Constant: 0) (Syntax: 'e1.a')
       Instance Receiver: 
@@ -607,7 +619,10 @@ End Class
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
-    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i As Integer')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Integer')
+      Variables: Local_1: i As System.Int32
+      Initializer: 
+        null
   InitialValue: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'P1(30 + i)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -663,7 +678,10 @@ End Class
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For global_ ... Next')
   Locals: Local_1: global_x As System.Int32
   LoopControlVariable: 
-    ILocalReferenceOperation: global_x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'global_x As Integer')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'global_x As Integer')
+      Variables: Local_1: global_x As System.Int32
+      Initializer: 
+        null
   InitialValue: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 20, IsImplicit) (Syntax: 'global_y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -703,7 +721,10 @@ End Class
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x As In ... o 10 : Next')
   Locals: Local_1: x As System.Int32
   LoopControlVariable: 
-    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x As Integer')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x As Integer')
+      Variables: Local_1: x As System.Int32
+      Initializer: 
+        null
   InitialValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 
@@ -827,7 +848,10 @@ End Class
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
-    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i As Integer')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Integer')
+      Variables: Local_1: i As System.Int32
+      Initializer: 
+        null
   InitialValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 

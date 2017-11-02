@@ -31,7 +31,10 @@ class Program
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... }')
   Locals: Local_1: System.String value
   LoopControlVariable: 
-    ILocalReferenceOperation: value (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, Constant: null, IsImplicit) (Syntax: 'foreach (st ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'string')
+      Variables: Local_1: System.String value
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'pets')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -82,7 +85,10 @@ class Program
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... }')
   Locals: Local_1: System.String item
   LoopControlVariable: 
-    ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, Constant: null, IsImplicit) (Syntax: 'foreach (st ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'string')
+      Variables: Local_1: System.String item
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.String>, IsImplicit) (Syntax: 'list')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -134,7 +140,10 @@ class Program
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (Ke ... }')
   Locals: Local_1: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32> pair
   LoopControlVariable: 
-    ILocalReferenceOperation: pair (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>, Constant: null, IsImplicit) (Syntax: 'foreach (Ke ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'KeyValuePair<int, int>')
+      Variables: Local_1: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32> pair
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>, IsImplicit) (Syntax: '_h')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -203,7 +212,10 @@ class Program
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 num
   LoopControlVariable: 
-    ILocalReferenceOperation: num (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, Constant: null, IsImplicit) (Syntax: 'foreach (in ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int')
+      Variables: Local_1: System.Int32 num
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'numbers')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -264,7 +276,10 @@ class Program
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 num
   LoopControlVariable: 
-    ILocalReferenceOperation: num (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, Constant: null, IsImplicit) (Syntax: 'foreach (in ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int')
+      Variables: Local_1: System.Int32 num
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'numbers')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -323,7 +338,10 @@ class Program
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (st ... }')
   Locals: Local_1: System.String value
   LoopControlVariable: 
-    ILocalReferenceOperation: value (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, Constant: null, IsInvalid, IsImplicit) (Syntax: 'foreach (st ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'string')
+      Variables: Local_1: System.String value
+      Initializer: 
+        null
   Collection: 
     ILocalReferenceOperation: sorted (OperationKind.LocalReference, Type: ?, IsInvalid) (Syntax: 'sorted')
   Body: 
@@ -384,7 +402,10 @@ namespace DisplayStructContentsTest
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (Fi ... }')
   Locals: Local_1: System.Reflection.FieldInfo fi
   LoopControlVariable: 
-    ILocalReferenceOperation: fi (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Reflection.FieldInfo, Constant: null, IsImplicit) (Syntax: 'foreach (Fi ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'FieldInfo')
+      Variables: Local_1: System.Reflection.FieldInfo fi
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'employee.Ge ... GetFields()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -463,7 +484,10 @@ class Class1
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (ch ... }')
   Locals: Local_1: System.Char c
   LoopControlVariable: 
-    ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Char, Constant: null, IsImplicit) (Syntax: 'foreach (ch ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'char')
+      Variables: Local_1: System.Char c
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 's')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -513,7 +537,10 @@ class Program
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
   Locals: Local_1: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32> pair
   LoopControlVariable: 
-    ILocalReferenceOperation: pair (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>, Constant: null, IsImplicit) (Syntax: 'foreach (va ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var')
+      Variables: Local_1: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32> pair
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>, IsImplicit) (Syntax: '_f')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -577,7 +604,10 @@ class C
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (Mi ... }')
   Locals: Local_1: MissingType x
   LoopControlVariable: 
-    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: MissingType, Constant: null, IsInvalid, IsImplicit) (Syntax: 'foreach (Mi ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'MissingType')
+      Variables: Local_1: MissingType x
+      Initializer: 
+        null
   Collection: 
     ILocalReferenceOperation: sequence (OperationKind.LocalReference, Type: System.Collections.IEnumerable) (Syntax: 'sequence')
   Body: 
@@ -623,7 +653,10 @@ class C
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
-    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, Constant: null, IsInvalid, IsImplicit) (Syntax: 'foreach (in ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int')
+      Variables: Local_1: System.Int32 x
+      Initializer: 
+        null
   Collection: 
     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
   Body: 
@@ -652,7 +685,10 @@ class C
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
-    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, Constant: null, IsInvalid, IsImplicit) (Syntax: 'foreach (in ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int')
+      Variables: Local_1: System.Int32 x
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'args')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -682,7 +718,10 @@ class C
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... a) { x++; }')
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
-    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, Constant: null, IsInvalid, IsImplicit) (Syntax: 'foreach (in ... a) { x++; }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int')
+      Variables: Local_1: System.Int32 x
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -731,7 +770,10 @@ class Enumerator
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (lo ... x in e) { }')
   Locals: Local_1: System.Int64 x
   LoopControlVariable: 
-    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int64, Constant: null, IsImplicit) (Syntax: 'foreach (lo ... x in e) { }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'long')
+      Variables: Local_1: System.Int64 x
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Enumerable, IsImplicit) (Syntax: 'e')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -761,7 +803,10 @@ class C
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (var x in s) { }')
   Locals: Local_1: System.Char x
   LoopControlVariable: 
-    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Char, Constant: null, IsImplicit) (Syntax: 'foreach (var x in s) { }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var')
+      Variables: Local_1: System.Char x
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 's')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -793,7 +838,10 @@ class C
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (var x in a) { }')
   Locals: Local_1: C.var x
   LoopControlVariable: 
-    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: C.var, Constant: null, IsImplicit) (Syntax: 'foreach (var x in a) { }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var')
+      Variables: Local_1: C.var x
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -823,7 +871,10 @@ class C
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (int x in d) { }')
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
-    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, Constant: null, IsImplicit) (Syntax: 'foreach (int x in d) { }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int')
+      Variables: Local_1: System.Int32 x
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'd')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -861,7 +912,10 @@ public class Enumerable<T>
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (ob ... }')
   Locals: Local_1: System.Object x
   LoopControlVariable: 
-    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'foreach (ob ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'object')
+      Variables: Local_1: System.Object x
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Enumerable<T>, IsImplicit) (Syntax: 'new Enumerable<T>()')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -906,7 +960,10 @@ class C
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... e)args) { }')
   Locals: Local_1: System.String x
   LoopControlVariable: 
-    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, Constant: null, IsImplicit) (Syntax: 'foreach (st ... e)args) { }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'string')
+      Variables: Local_1: System.String x
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '(IEnumerable)args')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -949,7 +1006,10 @@ class Program
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 num
   LoopControlVariable: 
-    ILocalReferenceOperation: num (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, Constant: null, IsImplicit) (Syntax: 'foreach (in ... }')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int')
+      Variables: Local_1: System.Int32 num
+      Initializer: 
+        null
   Collection: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'numbers')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
