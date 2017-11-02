@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -33,12 +33,12 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompilationUtils.AssertNoDiagnostics(comp)
 
             Dim tree = comp.SyntaxTrees.Single()
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
-            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingOperation)
+            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperation(node), IUsingOperation)
 
             Assert.NotNull(op.Resources.Syntax)
             Assert.Same(node.UsingStatement, op.Resources.Syntax)
@@ -68,7 +68,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
                                         <expected>
 BC30201: Expression expected.
@@ -78,7 +78,7 @@ BC30201: Expression expected.
 
             Dim tree = comp.SyntaxTrees.Single()
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
-            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingOperation)
+            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperation(node), IUsingOperation)
 
             Assert.Equal(OperationKind.Invalid, op.Resources.Kind)
         End Sub
@@ -833,7 +833,7 @@ End Module]]>
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompilationUtils.AssertNoDiagnostics(comp)
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -870,7 +870,6 @@ End Module]]>.Value
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
-
             VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
@@ -888,7 +887,6 @@ Module Program
             Console.WriteLine()
         End Using
     End Sub
-
     Class C
         Implements IDisposable
 

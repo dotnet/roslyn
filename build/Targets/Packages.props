@@ -140,7 +140,7 @@
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>14.0.983-pre-ge167e81694</RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>
-    <RoslynDependenciesOptimizationDataVersion>2.3.0-beta3-61801-06</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDependenciesOptimizationDataVersion>2.6.0-beta1-62205-01</RoslynDependenciesOptimizationDataVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.3.0-beta</RoslynToolsMicrosoftSignToolVersion>
     <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.4.0-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
