@@ -178,6 +178,7 @@ function Build-Artifacts() {
 
     if ($buildAll) {
         Build-ExtraSignArtifacts
+        Build-InsertionItems
     }
 }
 
@@ -210,6 +211,51 @@ function Build-ExtraSignArtifacts() {
         Run-MSBuild "Templates\Templates.sln /p:VersionType=Release"
         Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln"
         Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Build-InsertionItems() { 
+
+    # Create the PerfTests directory under Binaries\$(Configuration).  There are still a number
+    # of tools (in roslyn and roslyn-internal) that depend on this combined directory.
+    function Create-PerfTests() {
+        $target = Join-Path $configDir "PerfTests"
+        Write-Host "PerfTests: $target"
+        Create-Directory $target
+
+        Push-Location $configDir
+        foreach ($subDir in @("Dlls", "UnitTests")) {
+            Push-Location $subDir
+            foreach ($path in Get-ChildItem -re -in "PerfTests") {
+                Write-Host "`tcopying $path"
+                Copy-Item -force -recurse "$path\*" $target
+            }
+            Pop-Location
+        }
+        Pop-Location
+    }
+
+    $setupDir = Join-Path $repoDir "src\Setup"
+    Push-Location $setupDir
+    try { 
+        Create-PerfTests
+        Exec-Console (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir)"
+        
+        # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
+        # matter, just that it's provided some value.
+        $extraArgs = ""
+        if (-not $official) { 
+            $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
+        }
+
+        Run-MSBuild "DevDivPackages\Roslyn.proj"
+        Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj $extraArgs"
+        Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj $extraArgs"
+        Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj $extraArgs"
+        Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
     }
     finally {
         Pop-Location
@@ -471,7 +517,7 @@ function Run-SignTool() {
             $signToolArgs += " -test"
         }
         $signToolArgs += " `"$configDir`""
-        Exec-Command $signTool $signToolArgs
+        Exec-Console $signTool $signToolArgs
     }
     finally { 
         Pop-Location
@@ -586,18 +632,16 @@ try {
         Build-Artifacts
     }
 
-    if ($sign) {
-        Run-SignTool
-    }
-
-    # Must come after signing so that only the signed binaries are packed. Unlike 
-    # VSIX, NuGet doesn't support re-packing hence we have to order it this way.
     if ($pack) {
         Build-NuGetPackages
 
         if ($cibuild -or $official) { 
             Build-DeployToSymStore
         }
+    }
+
+    if ($sign) {
+        Run-SignTool
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {

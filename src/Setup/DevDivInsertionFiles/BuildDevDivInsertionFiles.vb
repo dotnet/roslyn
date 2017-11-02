@@ -19,7 +19,6 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly _outputPackageDirectory As String
     Private ReadOnly _setupDirectory As String
     Private ReadOnly _nugetPackageRoot As String
-    Private ReadOnly _assemblyVersion As String
     Private ReadOnly _pathMap As Dictionary(Of String, String)
 
     Private Sub New(args As String())
@@ -28,13 +27,12 @@ Public Class BuildDevDivInsertionFiles
         _nugetPackageRoot = Path.GetFullPath(args(2))
         _outputDirectory = Path.Combine(_binDirectory, DevDivInsertionFilesDirName)
         _outputPackageDirectory = Path.Combine(_binDirectory, DevDivPackagesDirName)
-        _assemblyVersion = args(3)
         _pathMap = CreatePathMap()
     End Sub
 
     Public Shared Function Main(args As String()) As Integer
-        If args.Length <> 4 Then
-            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version>")
+        If args.Length <> 3 Then
+            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir>")
             Console.WriteLine($"Actual argument count is {args.Length}")
             Return 1
         End If
@@ -194,9 +192,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Roslyn.Compilers.Test.Resources.dll",
         "Roslyn.Hosting.Diagnostics.dll",
-        "Roslyn.Services.Test.Utilities.dll",
-        "Roslyn.Test.PdbUtilities.dll",
-        "Roslyn.Test.Utilities.dll"
+        "Roslyn.Test.PdbUtilities.dll"
     }
 
     ' Files needed by Mad dog tests that are produced by our internal builds.
@@ -815,6 +811,7 @@ Public Class BuildDevDivInsertionFiles
                   End Sub
 
         Dim configPath = Path.Combine(_binDirectory, "..\..\build\config\SignToolData.json")
+        Dim comparison = StringComparison.OrdinalIgnoreCase
         Dim obj = JObject.Parse(File.ReadAllText(configPath))
         Dim array = CType(obj.Property("sign").Value, JArray)
         For Each element As JObject In array
@@ -823,11 +820,25 @@ Public Class BuildDevDivInsertionFiles
                 Dim parent = Path.GetDirectoryName(item)
 
                 ' Don't add in the csc.exe or vbc.exe from the CoreCLR projects.
-                If parent.EndsWith("Core", StringComparison.OrdinalIgnoreCase) Then
+                If parent.EndsWith("Core", comparison) Then
                     Continue For
                 End If
 
-                If parent.EndsWith("NetFX20", StringComparison.OrdinalIgnoreCase) Then
+                If parent.EndsWith("NetFX20", comparison) Then
+                    Continue For
+                End If
+
+                ' There are items in SignToolData which are built after this tool is run and hence
+                ' can't be a part of the map.
+                If parent.EndsWith("DevDivPackages\Roslyn", comparison) OrElse
+                    parent.StartsWith("Vsix\CodeAnalysisCompilers", comparison) Then
+                    Continue For
+                End If
+
+                ' Ignore wild cards. The map contains full file paths and supporting wildcards would
+                ' require expansion. That is doable but given none of the files identified by wild cards
+                ' are used by other downstream tools this isn't necessary.
+                If item.Contains("*") Then
                     Continue For
                 End If
 
@@ -859,10 +870,8 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\CompilerTestResources\\Roslyn.Compilers.Test.Resources.dll")
         add("Dlls\ExpressionCompilerTestUtilities\Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities.dll")
         add("Dlls\ResultProviderTestUtilities\Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities.dll")
-        add("Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll")
         add("Dlls\PdbUtilities\Roslyn.Test.PdbUtilities.dll")
         add("Dlls\TestUtilities.Desktop\Roslyn.Test.Utilities.Desktop.dll")
-        add("Dlls\TestUtilities\net461\Roslyn.Test.Utilities.dll")
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
