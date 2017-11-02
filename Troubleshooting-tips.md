@@ -38,3 +38,11 @@ Those are scenarios where you need to compile the same code with different versi
 The latest native compiler (pre-Roslyn) is part of the .NET Framework, so you can run it from `c:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe`.
 
 For trying various Roslyn versions, you can create a new project with your code, and add a reference to the `Microsoft.Net.Compilers`. By choosing the source (nuget.org or myget.org) and the package version (see [versioning help](https://github.com/dotnet/roslyn/wiki/NuGet-packages#versioning)), you will be able to control what version of the compiler is used. Note that you need to _Build_ your project to compile the code with the desired compiler version (the IDE may show squiggles and use a different version).
+
+# Running and debugging a test on Core on Windows
+To run all Core tests on Windows, you can use `Build.cmd -testCoreClr`.
+
+To run a specific test, here's an example of command that can be used and adjusted: 
+`"C:\Program Files\dotnet\dotnet.exe" exec --depsfile D:\repos\roslyn\Binaries\Debug\UnitTests\CSharpCompilerSymbolTest\netcoreapp2.0\win7-x64\publish\Roslyn.Compilers.CSharp.Symbol.UnitTests.deps.json --runtimeconfig D:\repos\roslyn\Binaries\Debug\UnitTests\CSharpCompilerSymbolTest\netcoreapp2.0\win7-x64\publish\Roslyn.Compilers.CSharp.Symbol.UnitTests.runtimeconfig.json C:\Users\jcouv\.nuget\packages\dotnet-xunit\2.3.0-beta4-build3742\tools\netcoreapp2.0\xunit.console.dll D:\repos\roslyn\Binaries\Debug\UnitTests\CSharpCompilerSymbolTest\netcoreapp2.0\win7-x64\publish\Roslyn.Compilers.CSharp.Symbol.UnitTests.dll -xml D:\repos\roslyn\Binaries\Debug\UnitTests\xUnitResults\Roslyn.Compilers.CSharp.Symbol.UnitTests.xml -method "*.MyTestMethod"`.
+
+Such test can be debugged by opening `C:\Program Files\dotnet\dotnet.exe` as a project in Visual Studio, then configuring the debug arguments and engine (pick CoreCLR).
