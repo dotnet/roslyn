@@ -197,6 +197,9 @@
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.CopyRefAssembly"
+             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             Condition="'$(BootstrapBuildPath)' != ''" />
   <UsingTask TaskName="Roslyn.MSBuild.Util.FindNuGetAssetsForVsix"
              AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
              Condition="'$(OS)' == 'Windows_NT'" />

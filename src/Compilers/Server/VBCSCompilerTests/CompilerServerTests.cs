@@ -224,7 +224,7 @@ End Module")
         {
 #if NET461
             var result = ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
-            Assert.Equal(expectedOutput, result.Output);
+            Assert.Equal(expectedOutput.Trim(), result.Output.Trim());
 #endif
         }
 
@@ -246,19 +246,20 @@ End Module")
 
         #endregion
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public async Task FallbackToCsc()
         {
             // Verify csc will fall back to command line when server fails to process
             using (var serverData = ServerUtil.CreateServerFailsConnection())
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs, shouldRunOnServer: false);
-                VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
-                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
+                VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
+                // the server still counts failed connections as completing a connection (but with a failed result), hence the "completed: 1"
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public async Task CscFallBackOutputNoUtf8()
         {
             // Verify csc will fall back to command line when server fails to process
@@ -269,11 +270,11 @@ End Module")
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, files, redirectEncoding: Encoding.ASCII, shouldRunOnServer: false);
                 Assert.Equal(result.ExitCode, 1);
                 Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
-                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public async Task CscFallBackOutputUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
@@ -290,11 +291,11 @@ End Module")
                 Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
                     result.Output.Trim().Replace(srcFile, "test.cs"));
                 Assert.Equal(1, result.ExitCode);
-                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public async Task VbcFallbackNoUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
@@ -313,11 +314,11 @@ End Module")
 
 ?
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
-                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public async Task VbcFallbackUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
@@ -336,29 +337,29 @@ End Module")
 ♕
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
                 Assert.Equal(1, result.ExitCode);
-                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public async Task FallbackToVbc()
         {
             using (var serverData = ServerUtil.CreateServerFailsConnection())
             {
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* hello.vb", _tempDirectory, s_helloWorldSrcVb, shouldRunOnServer: false);
-                VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
-                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
+                VerifyResultAndOutput(result, _tempDirectory, "Hello from VB");
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task HelloWorldCS()
         {
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
-                VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
+                VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
@@ -380,7 +381,7 @@ End Module")
         /// The test should pass on x86 or amd64, but can only fail on
         /// amd64.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Platformx86MscorlibCsc()
         {
@@ -396,7 +397,7 @@ End Module")
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Platformx86MscorlibVbc()
         {
@@ -422,12 +423,12 @@ End Module")
                                                     $"/shared:{serverData.PipeName} /nologo /r:mscorlib.dll hello.cs",
                                                     _tempDirectory,
                                                     s_helloWorldSrcCs);
-                VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
+                VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task HelloWorldVB()
         {
@@ -437,7 +438,7 @@ End Module")
                                                     $"/shared:{serverData.PipeName} /nologo /vbruntime* hello.vb",
                                                     _tempDirectory,
                                                     s_helloWorldSrcVb);
-                VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
+                VerifyResultAndOutput(result, _tempDirectory, "Hello from VB");
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
@@ -452,12 +453,12 @@ End Module")
                     $"/shared:{serverData.PipeName} /nologo /r:mscorlib.dll /vbruntime* hello.vb",
                     _tempDirectory,
                     s_helloWorldSrcVb);
-                VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
+                VerifyResultAndOutput(result, _tempDirectory, "Hello from VB");
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task CompileErrorsCS()
         {
@@ -477,14 +478,14 @@ class Hello
 
                 // Should output errors, but not create output file.
                 Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
-                Assert.Contains("hello.cs(5,42): error CS1002: ; expected\r\n", result.Output, StringComparison.Ordinal);
+                Assert.Contains("hello.cs(5,42): error CS1002: ; expected", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task CompileErrorsVB()
         {
@@ -505,15 +506,15 @@ End Class"}};
 
                 // Should output errors, but not create output file.
                 Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
-                Assert.Contains("hellovb.vb(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.\r\n", result.Output, StringComparison.Ordinal);
-                Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.\r\n", result.Output, StringComparison.Ordinal);
+                Assert.Contains("hellovb.vb(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.", result.Output, StringComparison.Ordinal);
+                Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingFileErrorCS()
         {
@@ -530,7 +531,7 @@ End Class"}};
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingReferenceErrorCS()
         {
@@ -548,7 +549,7 @@ End Class"}};
         }
 
         [WorkItem(546067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorCS()
         {
@@ -571,7 +572,7 @@ End Class"}};
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingFileErrorVB()
         {
@@ -588,7 +589,7 @@ End Class"}};
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(761131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761131")]
+        [Fact, WorkItem(761131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761131")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingReferenceErrorVB()
         {
@@ -617,7 +618,7 @@ End Module"}};
         }
 
         [WorkItem(546067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorVB()
         {
@@ -688,7 +689,7 @@ End Module
                     Assert.Equal(0, result.ExitCode);
 
                     // Run hello1.exe.
-                    RunCompilerOutput(hello1_file, "Hello1 from library1\r\n");
+                    RunCompilerOutput(hello1_file, "Hello1 from library1");
 
                     using (var hello2_file = GetResultFile(rootDirectory, "hello2.exe"))
                     {
@@ -707,7 +708,7 @@ End Module
                         Assert.Equal(0, result.ExitCode);
 
                         // Run hello2.exe.
-                        RunCompilerOutput(hello2_file, "Hello2 from library1\r\n");
+                        RunCompilerOutput(hello2_file, "Hello2 from library1");
 
                         // Change DLL "lib.dll" to something new.
                         files =
@@ -745,10 +746,10 @@ End Module
                             Assert.Equal(0, result.ExitCode);
 
                             // Run hello3.exe. Should work.
-                            RunCompilerOutput(hello3_file, "Hello3 from library3\r\n");
+                            RunCompilerOutput(hello3_file, "Hello3 from library3");
 
                             // Run hello2.exe one more time. Should have different output than before from updated library.
-                            RunCompilerOutput(hello2_file, "Hello2 from library2\r\n");
+                            RunCompilerOutput(hello2_file, "Hello2 from library2");
                         }
                     }
                 }
@@ -800,7 +801,7 @@ class Hello
                     Assert.Equal(0, result.ExitCode);
 
                     // Run hello1.exe.
-                    RunCompilerOutput(hello1_file, "Hello1 from library1\r\n");
+                    RunCompilerOutput(hello1_file, "Hello1 from library1");
 
                     using (var hello2_file = GetResultFile(rootDirectory, "hello2.exe"))
                     {
@@ -820,7 +821,7 @@ class Hello
                         Assert.Equal(0, result.ExitCode);
 
                         // Run hello2.exe.
-                        RunCompilerOutput(hello2exe, "Hello2 from library1\r\n");
+                        RunCompilerOutput(hello2exe, "Hello2 from library1");
 
                         // Change DLL "lib.dll" to something new.
                         files =
@@ -856,10 +857,10 @@ class Hello
                             Assert.Equal(0, result.ExitCode);
 
                             // Run hello3.exe. Should work.
-                            RunCompilerOutput(hello3_file, "Hello3 from library3\r\n");
+                            RunCompilerOutput(hello3_file, "Hello3 from library3");
 
                             // Run hello2.exe one more time. Should have different output than before from updated library.
-                            RunCompilerOutput(hello2_file, "Hello2 from library2\r\n");
+                            RunCompilerOutput(hello2_file, "Hello2 from library2");
                         }
                     }
                 }
@@ -921,7 +922,7 @@ End Module";
 
                 // Run the EXE and verify it prints the desired output.
                 var exeFile = GetResultFile(compilationDir, exeFileName);
-                RunCompilerOutput(exeFile, $"{prefix} Hello number {i}\r\n");
+                RunCompilerOutput(exeFile, $"{prefix} Hello number {i}");
                 return exeFile;
             });
         }
@@ -956,7 +957,7 @@ End Module";
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task UseLibVariableCS()
         {
@@ -1004,7 +1005,7 @@ class Hello
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task UseLibVariableVB()
         {
@@ -1056,7 +1057,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Shared()
         {
@@ -1078,7 +1079,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Share()
         {
@@ -1105,7 +1106,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_CS()
         {
@@ -1127,7 +1128,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_VB()
         {
@@ -1209,7 +1210,7 @@ class Program
         }
 
         [WorkItem(979588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public async Task Utf8OutputInRspFileCsc()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1232,7 +1233,7 @@ class Program
         }
 
         [WorkItem(979588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public async Task Utf8OutputInRspFileVbc()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1325,7 +1326,7 @@ class Program
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_02()
         {

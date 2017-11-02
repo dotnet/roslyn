@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return base.RunServerCompilation(arguments, buildPaths, sessionKey, keepAlive, libDirectory, cancellationToken);
             }
 
-            public bool TryConnectToNamedPipeWithSpinWait(int timeoutMs, CancellationToken cancellationToken)
+            public static async Task<bool> TryConnectToNamedPipe(string pipeName, int timeoutMs, CancellationToken cancellationToken)
             {
-                using (var pipeStream = new NamedPipeClientStream(".", _pipeName, PipeDirection.InOut, PipeOptions.Asynchronous))
+                using (var pipeStream = await BuildServerConnection.TryConnectToServerAsync(pipeName, timeoutMs, cancellationToken))
                 {
-                    return BuildServerConnection.TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken);
+                    return pipeStream != null;
                 }
             }
         }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return true;
             }
 
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             public void ConnectToServerFails()
             {
                 // Create and grab the mutex for the server. This should make
@@ -145,33 +145,28 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 
-            [ConditionalFact(typeof(WindowsOnly))]
-            public async Task ConnectToPipeWithSpinWait()
+            [Fact]
+            public async Task ConnectToPipe()
             {
-                // No server should be started with the current pipe name
-                var client = CreateClient();
+                string pipeName = Guid.NewGuid().ToString("N");
+
                 var oneSec = TimeSpan.FromSeconds(1);
 
-                Assert.False(client.TryConnectToNamedPipeWithSpinWait((int)oneSec.TotalMilliseconds,
-                                                                      default(CancellationToken)));
+                Assert.False(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
 
                 // Try again with infinite timeout and cancel
                 var cts = new CancellationTokenSource();
-                var connection = Task.Run(() => client.TryConnectToNamedPipeWithSpinWait(Timeout.Infinite,
-                                                                                         cts.Token),
-                                          cts.Token);
+                var connection = TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, Timeout.Infinite, cts.Token);
                 Assert.False(connection.IsCompleted);
                 cts.Cancel();
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(
                     async () => await connection.ConfigureAwait(false)).ConfigureAwait(false);
 
                 // Create server and try again
-                Assert.True(TryCreateServer(_pipeName));
-                Assert.True(client.TryConnectToNamedPipeWithSpinWait((int)oneSec.TotalMilliseconds,
-                                                                     default(CancellationToken)));
+                Assert.True(TryCreateServer(pipeName));
+                Assert.True(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
                 // With infinite timeout
-                Assert.True(client.TryConnectToNamedPipeWithSpinWait(Timeout.Infinite,
-                                                                     default(CancellationToken)));
+                Assert.True(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, Timeout.Infinite, cancellationToken: default));
             }
 
             [ConditionalFact(typeof(DesktopOnly))]
@@ -194,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.False(ranLocal);
             }
 
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             public void FallbackToCsc()
             {
                 _allowServer = false;
@@ -212,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(0, _serverDataList.Count);
             }
 
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             [WorkItem(7866, "https://github.com/dotnet/roslyn/issues/7866")]
             public void RunServerCompilationThrows()
             {
