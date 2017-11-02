@@ -1003,19 +1003,17 @@ namespace System
                 _objectType = new NamespaceTypeDefinitionNoBase(objectType);
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
-            {
-                var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                GetEmbeddedAttributes(builder);
-                return builder.ToImmutableAndFree();
-            }
-
             internal override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
             {
                 foreach (var type in base.GetTopLevelTypesCore(context))
                 {
                     yield return (type == _objectType.UnderlyingType) ? _objectType : type;
                 }
+            }
+
+            internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+            {
+                throw new NotImplementedException();
             }
 
             public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;

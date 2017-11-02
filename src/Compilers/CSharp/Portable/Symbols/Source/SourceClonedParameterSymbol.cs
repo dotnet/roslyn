@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -151,16 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCallerMemberName
         {
             get { return _originalParam.IsCallerMemberName; }
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (this.RefKind == RefKind.RefReadOnly)
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
-            }
         }
 
         #endregion

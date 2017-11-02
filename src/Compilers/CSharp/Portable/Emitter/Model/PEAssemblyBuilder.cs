@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyNullableAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -66,10 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
         {
-            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            builder.AddRange(_additionalTypes);
-            GetEmbeddedAttributes(builder);
-            return builder.ToImmutableAndFree();
+            return _additionalTypes;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
@@ -90,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyIsByRefLikeAttribute != null)
             {
                 builder.Add(_lazyIsByRefLikeAttribute);
+            }
+
+            if ((object)_lazyNullableAttribute != null)
+            {
+                builder.Add(_lazyNullableAttribute);
             }
 
             return builder.ToImmutableAndFree();
@@ -168,15 +168,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
-            if ((object)_lazyEmbeddedAttribute != null)
+            return new SynthesizedAttributeData(
+                _lazyEmbeddedAttribute.Constructors[0],
+                ImmutableArray<TypedConstant>.Empty,
+                ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+        }
+
+        protected override SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments = default)
+        {
+            if ((object)_lazyNullableAttribute != null)
             {
+                var constructorIndex = (member == WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags) ? 1 : 0;
                 return new SynthesizedAttributeData(
-                    _lazyEmbeddedAttribute.Constructor,
-                    ImmutableArray<TypedConstant>.Empty,
+                    _lazyNullableAttribute.Constructors[constructorIndex],
+                    arguments,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
 
-            return base.SynthesizeEmbeddedAttribute();
+            return base.SynthesizeNullableAttribute(member, arguments);
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
@@ -184,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyIsReadOnlyAttribute != null)
             {
                 return new SynthesizedAttributeData(
-                    _lazyIsReadOnlyAttribute.Constructor,
+                    _lazyIsReadOnlyAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
@@ -197,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyIsByRefLikeAttribute != null)
             {
                 return new SynthesizedAttributeData(
-                    _lazyIsByRefLikeAttribute.Constructor,
+                    _lazyIsByRefLikeAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
@@ -226,6 +235,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics,
                     AttributeDescription.IsByRefLikeAttribute);
             }
+
+            if (this.NeedsGeneratedNullableAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyNullableAttribute,
+                    diagnostics,
+                    AttributeDescription.NullableAttribute,
+                    GetAdditionalNullableAttributeConstructors);
+            }
         }
 
         private void CreateEmbeddedAttributeItselfIfNeeded(DiagnosticBag diagnostics)
@@ -236,7 +256,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 AttributeDescription.CodeAnalysisEmbeddedAttribute);
         }
 
-        private void CreateEmbeddedAttributeIfNeeded(ref SynthesizedEmbeddedAttributeSymbol symbol, DiagnosticBag diagnostics, AttributeDescription description)
+        private void CreateEmbeddedAttributeIfNeeded(
+            ref SynthesizedEmbeddedAttributeSymbol symbol,
+            DiagnosticBag diagnostics,
+            AttributeDescription description,
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getAdditionalConstructors = null)
         {
             if ((object)symbol == null)
             {
@@ -249,8 +273,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
                 }
 
-                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, (c, t, d) => ImmutableArray<MethodSymbol>.Empty, diagnostics);
+                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, getAdditionalConstructors, diagnostics);
             }
+        }
+
+        private static ImmutableArray<MethodSymbol> GetAdditionalNullableAttributeConstructors(
+            CSharpCompilation compilation,
+            NamedTypeSymbol containingType,
+            DiagnosticBag diagnostics)
+        {
+            var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            Binder.ReportUseSiteDiagnostics(boolType, diagnostics, Location.None);
+            var boolArray = TypeSymbolWithAnnotations.Create(
+                ArrayTypeSymbol.CreateSZArray(
+                    boolType.ContainingAssembly,
+                    TypeSymbolWithAnnotations.Create(boolType)));
+            return ImmutableArray.Create<MethodSymbol>(
+                new SynthesizedEmbeddedAttributeConstructorSymbol(
+                    containingType,
+                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, boolArray, 0, RefKind.None))));
         }
     }
 

@@ -165,7 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilationForRefReadOnly: false);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureNullableAttributeExists(parameters, diagnostics, modifyCompilation: false);
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
             if (isVararg)
@@ -224,7 +225,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, _syntax.ReturnType.Location, modifyCompilationForRefReadOnly: false);
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, _syntax.ReturnType.Location, modifyCompilation: false);
+            }
+
+            if (returnType.ContainsNullableReferenceTypes())
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, _syntax.ReturnType.Location, modifyCompilation: false);
             }
 
             Debug.Assert(_refKind == RefKind.None

@@ -301,15 +301,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
             {
+                Location getReturnTypeLocation()
+                {
+                    var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
+                    return syntax.ReturnType.GetLocation();
+                }
+
+                Debug.Assert(getReturnTypeLocation() != null);
+
                 base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
                 if (_refKind == RefKind.RefReadOnly)
                 {
-                    var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
-                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.GetLocation(), modifyCompilationForRefReadOnly: true);
+                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
                 }
 
-                ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+                ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+
+                if (ReturnType.ContainsNullableReferenceTypes())
+                {
+                    this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
+                }
+
+                ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers => _refCustomModifiers;

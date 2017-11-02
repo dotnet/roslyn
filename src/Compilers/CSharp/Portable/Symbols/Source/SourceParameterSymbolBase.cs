@@ -91,9 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
+            if (this.RefKind == RefKind.RefReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
+
             if (type.ContainsNullableReferenceTypes())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
         }
 

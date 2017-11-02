@@ -6390,5 +6390,80 @@ public class Test
             Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
             Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
         }
+
+        // PROTOTYPE(NullableReferenceTypes): EnsureNullableAttributeExists is not called.
+        [Fact(Skip = "TODO")]
+        public void EmitNullableAttribute_ExpressionType()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("new object?[0]", out error, testData);
+                Assert.Null(error);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+ @"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""object""
+  IL_0006:  ret
+}");
+                Assert.NotNull(GetNullableAttributeIfAny(methodData.Method));
+            });
+        }
+
+        [Fact]
+        public void EmitNullableAttribute_LambdaParameters()
+        {
+            var source =
+@"delegate T D<T>(T t);
+class C
+{
+    static T F<T>(D<T> d, T t) => d(t);
+    static void G()
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.G");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("F((object? o) => o, null)", out error, testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+ @"{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  ldsfld     ""D<object?> <>x.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_000e:  ldftn      ""object? <>x.<>c.<<>m0>b__0_0(object?)""
+  IL_0014:  newobj     ""D<object?>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""D<object?> <>x.<>c.<>9__0_0""
+  IL_001f:  ldnull
+  IL_0020:  call       ""object? C.F<object?>(D<object?>, object?)""
+  IL_0025:  ret
+}");
+                var methodsGenerated = testData.GetMethodsByName().Keys;
+                Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
+                Assert.Contains(AttributeDescription.NullableAttribute.FullName + "..ctor()", methodsGenerated);
+            });
+        }
     }
 }
