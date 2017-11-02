@@ -52,6 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
 
         /// <summary>
+        /// The inferred nullability at the point of declaration of var locals.
+        /// </summary>
+        // PROTOTYPE(NullableReferenceTypes): Does this need to
+        // move to LocalState so it participates in merging?
+        private readonly PooledDictionary<LocalSymbol, bool?> _variableIsNullable = PooledDictionary<LocalSymbol, bool?>.GetInstance();
+
+        /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
         /// unused variables.
         /// </summary>
@@ -139,6 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
+            _variableIsNullable.Free();
             _usedVariables.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
@@ -767,8 +775,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Since analysis may proceed in multiple passes, it is possible the slot is already assigned.
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
-                TypeSymbol variableType = VariableType(symbol);
-                if (_emptyStructTypeCache.IsEmptyStructType(variableType))
+                TypeSymbolWithAnnotations variableType = VariableType(symbol);
+                if (_emptyStructTypeCache.IsEmptyStructType(variableType?.TypeSymbol))
                 {
                     return -1;
                 }
@@ -1275,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (written)
                         {
                             NoteWrite(symbol, value, read);
-                            TrackNullableStateForAssignment(node, symbol, slot, value, valueIsNotNull);
+                            TrackNullableStateForAssignment(node, symbol, slot, value, valueIsNotNull, inferNullability: local.DeclaredType.InferredType);
                         }
 
                         break;
@@ -1456,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void TrackNullableStateForAssignment(BoundNode node, Symbol assignmentTarget, int slot, BoundExpression value, bool? valueIsNotNull)
+        private void TrackNullableStateForAssignment(BoundNode node, Symbol assignmentTarget, int slot, BoundExpression value, bool? valueIsNotNull, bool inferNullability = false)
         {
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
@@ -1468,9 +1476,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (targetType.IsReferenceType)
                 {
+                    var local = assignmentTarget as LocalSymbol;
+                    if (inferNullability)
+                    {
+                        Debug.Assert((object)local != null);
+                        _variableIsNullable[local] = !valueIsNotNull;
+                    }
+
+                    bool? targetIsNullable;
+                    if ((object)local == null || !_variableIsNullable.TryGetValue(local, out targetIsNullable))
+                    {
+                        targetIsNullable = targetType.IsNullable;
+                    }
+
                     bool isByRefTarget = IsByRefTarget(slot);
 
-                    if (targetType.IsNullable == false)
+                    if (targetIsNullable == false)
                     {
                         if (valueIsNotNull == false && (value == null || !CheckNullAsNonNullableReference(value)))
                         {
@@ -1484,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.State[slot] = isByRefTarget ?
                             // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                             // regardless of what value is being assigned. 
-                            (targetType.IsNullable == true) ? (bool?)false : null :
+                            (targetIsNullable == true) ? (bool?)false : null :
                             valueIsNotNull;
                     }
 
@@ -1639,7 +1660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingSlot != -1);
             Debug.Assert(!state.IsAssigned(containingSlot));
             VariableIdentifier variable = variableBySlot[containingSlot];
-            NamedTypeSymbol structType = VariableType(variable.Symbol) as NamedTypeSymbol;
+            NamedTypeSymbol structType = (NamedTypeSymbol)VariableType(variable.Symbol)?.TypeSymbol;
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
                 if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;
@@ -1650,22 +1671,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static TypeSymbol VariableType(Symbol s)
+        private static TypeSymbolWithAnnotations VariableType(Symbol s)
         {
             switch (s.Kind)
             {
                 case SymbolKind.Local:
-                    return ((LocalSymbol)s).Type.TypeSymbol;
+                    return ((LocalSymbol)s).Type;
                 case SymbolKind.Field:
-                    return ((FieldSymbol)s).Type.TypeSymbol;
+                    return ((FieldSymbol)s).Type;
                 case SymbolKind.Parameter:
-                    return ((ParameterSymbol)s).Type.TypeSymbol;
+                    return ((ParameterSymbol)s).Type;
                 case SymbolKind.Method:
                     Debug.Assert(((MethodSymbol)s).MethodKind == MethodKind.LocalFunction);
                     return null;
                 case SymbolKind.Property:
                     Debug.Assert(s.ContainingType.IsAnonymousType);
-                    return ((PropertySymbol)s).Type.TypeSymbol;
+                    return ((PropertySymbol)s).Type;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(s.Kind);
             }
@@ -1688,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];
-            TypeSymbol type = VariableType(id.Symbol);
+            TypeSymbol type = VariableType(id.Symbol)?.TypeSymbol;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (slot >= state.Assigned.Capacity) NormalizeAssigned(ref state);
             if (state.IsAssigned(slot)) return; // was already fully assigned.
@@ -1724,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];
-            TypeSymbol type = VariableType(id.Symbol);
+            TypeSymbol type = VariableType(id.Symbol)?.TypeSymbol;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (!state.IsAssigned(slot)) return; // was already unassigned
             state.Unassign(slot);

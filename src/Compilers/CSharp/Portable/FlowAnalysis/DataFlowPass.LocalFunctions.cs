@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields we need to record each field assignment separately,
             // since some fields may be assigned when this read is replayed
             VariableIdentifier id = variableBySlot[slot];
-            var type = VariableType(id.Symbol);
+            var type = VariableType(id.Symbol)?.TypeSymbol;
 
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             

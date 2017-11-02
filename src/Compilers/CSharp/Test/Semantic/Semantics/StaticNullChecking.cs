@@ -5806,14 +5806,14 @@ class C
 
     void Test1()
     {
-        var u1 = new [] { 1, 2 };
+        int[]? u1 = new [] { 1, 2 };
         u1 = null;
         var z1 = u1[0];
     }
 
     void Test2()
     {
-        var u1 = new [] { 1, 2 };
+        int[]? u1 = new [] { 1, 2 };
         u1 = null;
         var z1 = u1?[u1[0]];
     }
@@ -5821,9 +5821,9 @@ class C
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (12,18): warning CS8602: Possible dereference of a null reference.
-                 //         var z1 = u1[0];
-                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1").WithLocation(12, 18)
+                // (12,18): warning CS8602: Possible dereference of a null reference.
+                //         var z1 = u1[0];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1").WithLocation(12, 18)
                 );
         }
 
@@ -5939,13 +5939,13 @@ class C
 
     void Test1()
     {
-        var u1 = new [] { 1, 2 };
+        int[]? u1 = new [] { 1, 2 };
         var z1 = u1.Length;
     }
 
     void Test2()
     {
-        var u2 = new [] { 1, 2 };
+        int[]? u2 = new [] { 1, 2 };
         u2 = null;
         var z2 = u2.Length;
     }
@@ -5953,9 +5953,9 @@ class C
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (18,18): warning CS8602: Possible dereference of a null reference.
-                 //         var z2 = u2.Length;
-                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2").WithLocation(18, 18)
+                // (18,18): warning CS8602: Possible dereference of a null reference.
+                //         var z2 = u2.Length;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2").WithLocation(18, 18)
                 );
         }
 
@@ -16193,6 +16193,9 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (9,17): warning CS8601: Possible null reference assignment.
+                //             x = t;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(9, 17),
                 // (14,15): warning CS8604: Possible null reference argument for parameter 's' in 'void C.G(string s)'.
                 //             G(y); // warning
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("s", "void C.G(string s)").WithLocation(14, 15));
