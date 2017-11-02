@@ -5966,7 +5966,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified version string does not conform to the required format - major[.minor[.build[.revision]]] (without wildcards).
+        ///   Looks up a localized string similar to The specified version string does not conform to the required format - major[.minor[.build[.revision]]] (without wildcards, due to determinism).
         /// </summary>
         internal static string ERR_InvalidVersionFormatDeterministic {
             get {

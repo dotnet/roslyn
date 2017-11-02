@@ -3901,7 +3901,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</value>
   </data>
   <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
-    <value>The specified version string does not conform to the required format - major[.minor[.build[.revision]]] (without wildcards)</value>
+    <value>The specified version string does not conform to the required format - major[.minor[.build[.revision]]] (without wildcards, due to determinism)</value>
   </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
     <value>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</value>
