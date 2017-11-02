@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(symbol);
             }
 
-            return symbol.Kind == SymbolKind.Parameter ? ((ParameterSymbol)symbol).Type : symbol.GetTypeOrReturnType();
+            return symbol.GetTypeOrReturnType();
         }
 
         private bool IsBindingModuleLevelAttribute()

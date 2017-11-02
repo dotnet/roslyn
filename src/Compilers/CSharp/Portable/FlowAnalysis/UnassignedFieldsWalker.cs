@@ -7,12 +7,15 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    // PROTOTYPE(NullableReferenceTypes): Should UnassignedFieldsWalker
+    // inherit from DataFlowPassBase<LocalState> directly since it has simpler
+    // requirements than DataFlowPass?
     internal sealed class UnassignedFieldsWalker : DataFlowPass
     {
         private readonly DiagnosticBag _diagnostics;
 
         private UnassignedFieldsWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
-            : base(compilation, method, node, trackClasses: true)
+            : base(compilation, method, node, trackClassFields: true)
         {
             _diagnostics = diagnostics;
         }
@@ -64,9 +67,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (member.Kind != SymbolKind.Field)
                 {
+                    // PROTOTYPE(NullableReferenceTypes): Handle events.
                     continue;
                 }
                 var field = (FieldSymbol)member;
+                // PROTOTYPE(NullableReferenceTypes): Can the HasInitializer
+                // call be removed, if the body already contains the initializers?
                 if (field.IsStatic || HasInitializer(field))
                 {
                     continue;

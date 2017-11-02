@@ -404,7 +404,7 @@ class C
         [Fact]
         public void Events_ExplicitConstructors()
         {
-            // PROTOTYPE(NullableReferenceTypes):
+            // PROTOTYPE(NullableReferenceTypes): Handle events.
         }
 
         [Fact]
@@ -459,6 +459,25 @@ class C
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Tuple()
+        {
+            var source =
+@"class C
+{
+#pragma warning disable 0649
+    internal readonly (object A, object B) F1;
+    internal readonly (object? A, object) F2;
+    internal readonly (object, object? B) F3;
+    internal readonly (object?, object?) F4;
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 

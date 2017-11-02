@@ -945,6 +945,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (body != null && methodSymbol.MethodKind == MethodKind.Constructor)
                     {
+                        // PROTOTYPE(NullableReferenceTypes): Consider moving analysis down to
+                        // FlowAnalysisPass below, so the initializers are included in the body.
                         UnassignedFieldsWalker.Analyze(_compilation, methodSymbol, body, diagsForCurrentMethod);
                     }
 

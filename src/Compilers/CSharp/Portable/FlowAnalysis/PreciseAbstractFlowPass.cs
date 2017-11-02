@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly bool _trackExceptions;
 
         /// <summary>
-        /// Track classes in addition to structs.
+        /// Track fields of classes in addition to structs.
         /// </summary>
-        protected readonly bool _trackClasses;
+        protected readonly bool _trackClassFields;
 
         /// <summary>
         /// Pending escapes generated in the current scope (or more deeply nested scopes). When jump
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode lastInRegion = null,
             bool trackRegions = false,
             bool trackExceptions = false,
-            bool trackClasses = false)
+            bool trackClassFields = false)
         {
             Debug.Assert(node != null);
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _loopHeadState = new Dictionary<BoundLoopStatement, LocalState>(ReferenceEqualityComparer.Instance);
             _trackRegions = trackRegions;
             _trackExceptions = trackExceptions;
-            _trackClasses = trackClasses;
+            _trackClassFields = trackClassFields;
         }
 
         protected abstract string Dump(LocalState state);
@@ -1914,7 +1914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected bool MayRequireTrackingReceiverType(TypeSymbol type)
         {
             return (object)type != null &&
-                (_trackClasses || type.TypeKind == TypeKind.Struct);
+                (_trackClassFields || type.TypeKind == TypeKind.Struct);
         }
 
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)

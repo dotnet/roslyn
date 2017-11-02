@@ -3097,7 +3097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Nullable annotations on definition should be ignored
-            TypeSymbolWithAnnotations definitionType = definition.Kind == SymbolKind.Parameter ? ((ParameterSymbol)definition).Type : definition.GetTypeOrReturnType();
+            TypeSymbolWithAnnotations definitionType = definition.GetTypeOrReturnType();
             TypeSymbolWithAnnotations adjustedDefinitionType = definitionType.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)definition == symbol)
@@ -3108,7 +3108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)definitionType == adjustedDefinitionType)
             {
                 // Adjustment has no effect
-                return symbol.Kind == SymbolKind.Parameter ? ((ParameterSymbol)symbol).Type : symbol.GetTypeOrReturnType();
+                return symbol.GetTypeOrReturnType();
             }
 
             // The original symbol was substituted, need to re-apply substitution to the adjusted type.   

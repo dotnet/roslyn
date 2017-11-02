@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool requireOutParamsAssigned = true,
             bool performNullChecks = false,
             bool includeNonNullableWarnings = false,
-            bool trackClasses = false)
-            : base(compilation, member, node, trackUnassignments: trackUnassignments, trackClasses: trackClasses)
+            bool trackClassFields = false)
+            : base(compilation, member, node, trackUnassignments: trackUnassignments, trackClassFields: trackClassFields)
         {
             this.initiallyAssignedVariables = null;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
@@ -844,20 +844,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingSlot;
         }
 
-
         private void NormalizeAssigned(ref LocalState state)
         {
             int oldNext = state.Assigned.Capacity;
             state.Assigned.EnsureCapacity(nextVariableSlot);
             for (int i = oldNext; i < nextVariableSlot; i++)
             {
-                var assigned = false;
-                if (!_trackClasses)
-                {
-                    var id = variableBySlot[i];
-                    assigned = (id.ContainingSlot > 0) && state.Assigned[id.ContainingSlot];
-                }
-                state.Assigned[i] = assigned;
+                var id = variableBySlot[i];
+                int slot = id.ContainingSlot;
+                state.Assigned[i] = (slot > 0) &&
+                    state.Assigned[slot] &&
+                    variableBySlot[slot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct;
             }
         }
 
@@ -1810,7 +1807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // this code has no effect except in region analysis APIs such as DataFlowsOut where we unassign things
-                if (slot > 0) SetSlotState(slot, !_trackClasses || parameter != MethodThisParameter);
+                if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true);
 
                 Debug.Assert(!IsConditionalState);
