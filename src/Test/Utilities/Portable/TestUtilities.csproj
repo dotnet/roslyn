@@ -112,6 +112,16 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+
+    <Reference Include="F:\repos\corert\src\ILVerify\src\bin\Debug\net46\ILVerify.dll" Condition="'$(TargetFramework)' == 'net46' OR '$(TargetFramework)' == 'net461' ">
+      <HintPath>F:\repos\corert\src\ILVerify\src\bin\Debug\net46\ILVerify.dll</HintPath>
+      <SpecificVersion>false</SpecificVersion>
+      <Private>true</Private>
+    </Reference>
+
+    <Content Include="F:\repos\corert\src\ILVerify\src\bin\Debug\net46\ILVerify.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
   <ProjectExtensions />

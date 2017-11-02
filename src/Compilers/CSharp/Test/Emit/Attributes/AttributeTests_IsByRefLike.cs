@@ -959,7 +959,7 @@ namespace System
 }";
             var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
 
-            CompileAndVerify(compilation1, verify: Verification.Fails, symbolValidator: module =>
+            CompileAndVerify(compilation1, verify: Verification.FailsPeVerify, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
                 AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name, hasObsolete: false);

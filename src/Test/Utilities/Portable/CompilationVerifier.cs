@@ -73,13 +73,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
                 _allModuleData = testEnvironment.GetAllModuleData();
 
-                if (peVerify == Verification.Passes)
+                if ((peVerify & Verification.PassesPeVerify) != 0)
                 {
                     testEnvironment.PeVerify();
                 }
-                else if (peVerify == Verification.Fails)
+                else if ((peVerify & Verification.FailsPeVerify) != 0)
                 {
                     Assert.Throws<PeVerifyException>(() => testEnvironment.PeVerify());
+                }
+
+                if ((peVerify & Verification.PassesIlVerify) != 0)
+                {
+                    testEnvironment.IlVerify();
+                }
+                else if ((peVerify & Verification.FailsIlVerify) != 0)
+                {
+                    Assert.Throws<IlVerifyException>(() => testEnvironment.IlVerify());
                 }
 
                 if (expectedSignatures != null)

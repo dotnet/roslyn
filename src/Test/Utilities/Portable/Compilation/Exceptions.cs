@@ -25,6 +25,12 @@ namespace Roslyn.Test.Utilities
 
     }
 
+    public class IlVerifyException : Exception
+    {
+        public IlVerifyException(string output, string assemblyName)
+            : base(GetMessageFromResult(output, assemblyName, isIlVerify: true)) { }
+    }
+
     public class ExecutionException : Exception
     {
         public ExecutionException(string expectedOutput, string actualOutput, string exePath) 

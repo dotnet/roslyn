@@ -22,11 +22,37 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+    [Flags]
     public enum Verification
     {
-        Passes = 0,
-        Fails,
-        Skipped
+        Skipped = 0,
+
+        PassesPeVerify = 1 << 0,
+        PassesIlVerify = 1 << 1,
+        FailsPeVerify = 1 << 2,
+        FailsIlVerify = 1 << 3,
+
+        Passes = PassesPeVerify | PassesIlVerify,
+        Fails = FailsPeVerify | FailsIlVerify,
+
+        IVT = PassesPeVerify | FailsIlVerify, // ILVerify is case-sensitive in IVT 
+        FullNames = PassesPeVerify, // ILVerify uses simple names instead of full names
+        TypedReference = PassesPeVerify | FailsIlVerify, // ILVerify doesn't support TypedReference
+        InvalidProgramVararg = PassesPeVerify | FailsIlVerify, // ILVerify complains about InvalidProgramVararg
+        ClassLoadGeneral = PassesPeVerify | FailsIlVerify, // ILVerify complains about ClassLoadGeneral
+        NotImplemented = PassesPeVerify | FailsIlVerify, // ILVerify has some un-implemented cases in EcmaModule.GetType
+        NoPia = PassesPeVerify | FailsIlVerify, // ILVerify doesn't do NoPia unification
+        RuntimeArgumentHandle = PassesPeVerify | FailsIlVerify, // ILVerify reports: RuntimeArgumentHandle not supported in .NET Core
+        LeaveIntoTry = PassesPeVerify | FailsIlVerify, // ILVerify reports: Leave into try block.
+
+        TypeLoadFailed = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain type load failed
+        UnexpectedTypeOnStack = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: Unexpected type on the stack.
+        InvalidLocale = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about invalid locale string
+        UnableToResolveToken = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about "unable to resolve token"
+        TypeDevNotNil = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: TypeDef for Object class extends token=0x01000005 which is not nil.
+        ClassLayout = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: ClassLayout has parent TypeDef token=0x0200000f marked AutoLayout.
+        BadName = FailsPeVerify | PassesIlVerify, // PEVerify complains about: Assembly name contains leading spaces or path or extension.
+        BadFormat = FailsPeVerify | PassesIlVerify, // PEVerify complains about: An attempt was made to load a program with an incorrect format.
     }
 
     /// <summary>

@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
             references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, verify: verify);
         }
 
         [Fact]
@@ -967,7 +967,7 @@ public class C
                 }, module.GetFieldNames("C.<F>d__3"));
             });
 
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: Verification.Passes, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
              {
                  AssertEx.Equal(new[]
                  {
@@ -2490,7 +2490,7 @@ class Driver
 2
 0
 ";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileAndVerify(source, expectedOutput: expected, verify: Verification.RuntimeArgumentHandle);
         }
 
         [Fact]
