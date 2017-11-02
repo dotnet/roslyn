@@ -164,15 +164,14 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateReceiverOperation(node As BoundNode, symbol As ISymbol) As IOperation
-            If node IsNot Nothing AndAlso node.WasCompilerGenerated AndAlso symbol.IsStatic Then
+            If node Is Nothing OrElse node.Kind = BoundKind.TypeExpression Then
                 Return Nothing
             End If
 
-            Return CreateReceiverOperation(node)
-        End Function
-
-        Private Function CreateReceiverOperation(node As BoundNode) As IOperation
-            If node Is Nothing OrElse node.Kind = BoundKind.TypeExpression Then
+            If symbol IsNot Nothing AndAlso
+               node.WasCompilerGenerated AndAlso
+               node.Kind = BoundKind.MeReference AndAlso
+               symbol.IsStatic Then
                 Return Nothing
             End If
 

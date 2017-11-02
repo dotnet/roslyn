@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return CreateInvalidExpressionForHasArgumentsExpression(boundCall.ReceiverOpt, boundCall.Arguments, null, syntax, type, constantValue, isImplicit);
             }
 
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundCall.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundCall.ReceiverOpt, targetMethod));
             bool isVirtual = (object)targetMethod != null &&
                         boundCall.ReceiverOpt != null &&
                         (targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride) &&
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             IFieldSymbol field = boundFieldAccess.FieldSymbol;
             bool isDeclaration = boundFieldAccess.IsDeclaration;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundFieldAccess.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundFieldAccess.ReceiverOpt, field));
             SyntaxNode syntax = boundFieldAccess.Syntax;
             ITypeSymbol type = boundFieldAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundFieldAccess.ConstantValue);
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IPropertyReferenceOperation CreateBoundPropertyAccessOperation(BoundPropertyAccess boundPropertyAccess)
         {
             IPropertySymbol property = boundPropertyAccess.PropertySymbol;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundPropertyAccess.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundPropertyAccess.ReceiverOpt, property));
             Lazy<ImmutableArray<IArgumentOperation>> arguments = new Lazy<ImmutableArray<IArgumentOperation>>(() => ImmutableArray<IArgumentOperation>.Empty);
             SyntaxNode syntax = boundPropertyAccess.Syntax;
             ITypeSymbol type = boundPropertyAccess.Type;
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return CreateInvalidExpressionForHasArgumentsExpression(boundIndexerAccess.ReceiverOpt, boundIndexerAccess.Arguments, null, syntax, type, constantValue, isImplicit);
             }
 
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundIndexerAccess.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundIndexerAccess.ReceiverOpt, property));
             Lazy<ImmutableArray<IArgumentOperation>> arguments = new Lazy<ImmutableArray<IArgumentOperation>>(() =>
                 DeriveArguments(
                     boundIndexerAccess,
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAccess boundEventAccess)
         {
             IEventSymbol @event = boundEventAccess.EventSymbol;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundEventAccess.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundEventAccess.ReceiverOpt, @event));
             SyntaxNode syntax = boundEventAccess.Syntax;
             ITypeSymbol type = boundEventAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundEventAccess.ConstantValue);
@@ -839,15 +839,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IMethodReferenceOperation CreateBoundMethodGroupSingleMethodOperation(BoundMethodGroup boundMethodGroup, IMethodSymbol methodSymbol, bool suppressVirtualCalls)
         {
             bool isVirtual = (methodSymbol.IsAbstract || methodSymbol.IsOverride || methodSymbol.IsVirtual) && !suppressVirtualCalls;
-            BoundExpression receiverOpt = boundMethodGroup.InstanceOpt;
-
-            if (methodSymbol.IsStatic && receiverOpt != null &&
-                receiverOpt.WasCompilerGenerated && receiverOpt.Kind == BoundKind.ThisReference)
-            {
-                receiverOpt = null;
-            }
-
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(receiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundMethodGroup.ReceiverOpt, methodSymbol));
             SyntaxNode bindingSyntax = boundMethodGroup.Syntax;
             ITypeSymbol bindingType = null;
             Optional<object> bindingConstantValue = ConvertToOptional(boundMethodGroup.ConstantValue);

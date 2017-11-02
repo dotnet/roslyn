@@ -86,13 +86,15 @@ namespace Microsoft.CodeAnalysis.Operations
             return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
         }
 
-        private IOperation CreateReceiverOperation(BoundNode instance)
-
+        private IOperation CreateReceiverOperation(BoundNode instance, ISymbol symbol)
         {
-            // If the instance is a BoundTypeExpression, it's a scenario like string.Equals(). We don't
-            // have IOperation representation of type expressions like string, so don't include that in the
-            // tree.
             if (instance == null || instance.Kind == BoundKind.TypeExpression)
+            {
+                return null;
+            }
+
+            // Static methods cannot have an implicit this receiver
+            if (symbol != null && symbol.IsStatic && instance.WasCompilerGenerated && instance.Kind == BoundKind.ThisReference)
             {
                 return null;
             }
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Operations
             //  2. the constant value of BoundEventAccess is always null.
             //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
             IEventSymbol @event = boundEventAssignmentOperator.Event;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundEventAssignmentOperator.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => CreateReceiverOperation(boundEventAssignmentOperator.ReceiverOpt, @event));
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 

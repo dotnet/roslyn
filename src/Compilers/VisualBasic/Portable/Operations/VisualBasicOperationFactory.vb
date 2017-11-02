@@ -616,12 +616,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Dim receiverOpt As BoundExpression = If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt)
 
-            If receiverOpt IsNot Nothing AndAlso method IsNot Nothing AndAlso method.IsShared AndAlso
-               receiverOpt.WasCompilerGenerated AndAlso receiverOpt.Kind = BoundKind.MeReference Then
-                receiverOpt = Nothing
-            End If
-
-            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateReceiverOperation(receiverOpt))
+            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateReceiverOperation(receiverOpt, method))
 
             ' The compiler creates a BoundDelegateCreationExpression node for the AddressOf expression, and that's the node we want to use for the operand
             ' of the IDelegateCreationExpression parent
@@ -812,7 +807,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundFieldAccessOperation(boundFieldAccess As BoundFieldAccess) As IFieldReferenceOperation
             Dim field As IFieldSymbol = boundFieldAccess.FieldSymbol
             Dim isDeclaration As Boolean = False
-            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateReceiverOperation(boundFieldAccess.ReceiverOpt))
+            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateReceiverOperation(boundFieldAccess.ReceiverOpt, field))
 
             Dim syntax As SyntaxNode = boundFieldAccess.Syntax
             Dim type As ITypeSymbol = boundFieldAccess.Type
@@ -1390,7 +1385,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 boundInstance = receiver
             End If
 
-            Dim eventReferenceInstance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateReceiverOperation(boundInstance))
+            Dim eventReferenceInstance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateReceiverOperation(boundInstance, eventSymbol))
 
             Dim eventReference As Lazy(Of IEventReferenceOperation) = New Lazy(Of IEventReferenceOperation)(Function() As IEventReferenceOperation
                                                                                                                 Return New LazyEventReferenceExpression(eventSymbol,
