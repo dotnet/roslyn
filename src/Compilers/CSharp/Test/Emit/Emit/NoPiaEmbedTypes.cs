@@ -1661,12 +1661,12 @@ class UsePia4
 }
 ";
 
-            var verifier = CompileAndVerify(compilation1, symbolValidator: metadataValidator);
+            var verifier = CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.InvalidProgramVararg);
 
             verifier.VerifyIL("UsePia4.M5", expected_M5);
             verifier.VerifyIL("UsePia4.M6", expected_M6);
 
-            verifier = CompileAndVerify(compilation2, symbolValidator: metadataValidator);
+            verifier = CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.InvalidProgramVararg);
 
             verifier.VerifyIL("UsePia4.M5", expected_M5);
             verifier.VerifyIL("UsePia4.M6", expected_M6);
@@ -1775,9 +1775,9 @@ interface UsePia5 : ITest29
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.TypeLoadFailed);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.TypeLoadFailed);
         }
 
         [Fact]
@@ -4704,11 +4704,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.TypeLoadFailed);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.TypeLoadFailed);
         }
 
         [Fact]
@@ -5181,11 +5181,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.TypeLoadFailed);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.TypeLoadFailed);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
@@ -5403,7 +5403,7 @@ class Test
                 {
                     var app_compilation = CreateCompilation(App_cs, new[] { NetImpl_ref, IEvent_ref, CSharpRef }, options: TestOptions.ReleaseExe, assemblyName: "App");
 
-                    CompileAndVerify(app_compilation, symbolValidator: IEvent_ref.Properties.EmbedInteropTypes ? metadataValidator : null,
+                    CompileAndVerify(app_compilation, verify: Verification.NoPia, symbolValidator: IEvent_ref.Properties.EmbedInteropTypes ? metadataValidator : null,
                         expectedOutput: @"E01
 E02");
                 }

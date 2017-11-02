@@ -21,11 +21,12 @@ namespace Roslyn.Test.Utilities
             return sb.ToString();
         }
 
-        internal static string GetMessageFromResult(string output, string exePath)
+        internal static string GetMessageFromResult(string output, string exePath, bool isIlVerify = false)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine();
-            sb.Append("PeVerify failed for assembly '");
+            string tool = isIlVerify ? "IlVerify" : "PeVerify";
+            sb.Append($"{tool} failed for assembly '");
             sb.Append(exePath);
             sb.AppendLine("':");
             sb.AppendLine(output);
