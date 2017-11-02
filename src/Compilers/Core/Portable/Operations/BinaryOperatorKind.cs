@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
     /// Kind of binary operator.
     /// </summary>
     public enum BinaryOperatorKind
     {
+        /// <summary>
+        /// Represents unknown or error operator kind.
+        /// </summary>
         None = 0x0,
 
         /// <summary>
@@ -129,12 +132,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Represents the VB 'Like' operator.
         /// </summary>
-        Like = 0x18,
-
-        /// <summary>
-        /// Represents an invalid binary operator for error cases.
-        /// </summary>
-        Invalid = 0xff
+        Like = 0x18
     }
 }
-
