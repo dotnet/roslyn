@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
     {
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, TMemberDeclarationSyntax memberDeclaration,
-            IBlockStatement blockStatementOpt, CancellationToken cancellationToken)
+            IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             // Only should provide null-checks for reference types and nullable types.
             if (!parameter.Type.IsReferenceType &&
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // people do strange things in their constructors.
             if (blockStatementOpt != null)
             {
-                foreach (var statement in blockStatementOpt.Statements)
+                foreach (var statement in blockStatementOpt.Operations)
                 {
                     if (IsIfNullCheck(statement, parameter))
                     {
@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             foreach (var coalesceNode in syntax.DescendantNodes().OfType<TBinaryExpressionSyntax>())
             {
                 var operation = GetOperation(semanticModel, coalesceNode, cancellationToken);
-                if (operation is ICoalesceExpression coalesceExpression)
+                if (operation is ICoalesceOperation coalesceExpression)
                 {
-                    if (IsParameterReference(coalesceExpression.Expression, parameter) &&
+                    if (IsParameterReference(coalesceExpression.Value, parameter) &&
                         syntaxFacts.IsThrowExpression(coalesceExpression.WhenNull.Syntax))
                     {
                         return true;
@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private bool IsIfNullCheck(IOperation statement, IParameterSymbol parameter)
         {
-            if (statement is IIfStatement ifStatement)
+            if (statement is IConditionalOperation ifStatement)
             {
                 var condition = ifStatement.Condition;
                 condition = UnwrapImplicitConversion(condition);
 
-                if (condition is IBinaryOperatorExpression binaryOperator)
+                if (condition is IBinaryOperation binaryOperator)
                 {
                     // Look for code of the form "if (p == null)" or "if (null == p)"
                     if (IsNullCheck(binaryOperator.LeftOperand, binaryOperator.RightOperand, parameter) ||
@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
         {
-            if (condition is IInvocationExpression invocation &&
-                invocation.ArgumentsInEvaluationOrder.Length == 1 &&
-                IsParameterReference(invocation.ArgumentsInEvaluationOrder[0].Value, parameter))
+            if (condition is IInvocationOperation invocation &&
+                invocation.Arguments.Length == 1 &&
+                IsParameterReference(invocation.Arguments[0].Value, parameter))
             {
                 var targetMethod = invocation.TargetMethod;
                 if (targetMethod?.Name == nameof(string.IsNullOrEmpty) ||
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             => IsNullLiteral(UnwrapImplicitConversion(operand1)) && IsParameterReference(operand2, parameter);
 
         private bool IsNullLiteral(IOperation operand)
-            => operand is ILiteralExpression literal &&
+            => operand is ILiteralOperation literal &&
                literal.ConstantValue.HasValue &&
                literal.ConstantValue.Value == null;
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document,
             IParameterSymbol parameter,
             TMemberDeclarationSyntax memberDeclaration,
-            IBlockStatement blockStatementOpt,
+            IBlockOperation blockStatementOpt,
             CancellationToken cancellationToken)
         {
             // First see if we can convert a statement of the form "this.s = s" into "this.s = s ?? throw ...".
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document,
             IParameterSymbol parameter,
             TMemberDeclarationSyntax memberDeclaration,
-            IBlockStatement blockStatementOpt,
+            IBlockOperation blockStatementOpt,
             string methodName,
             CancellationToken cancellationToken)
         {
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document, 
             IParameterSymbol parameter,
             TMemberDeclarationSyntax memberDeclaration,
-            IBlockStatement blockStatementOpt,
+            IBlockOperation blockStatementOpt,
             Func<Compilation, SyntaxGenerator, TStatementSyntax> generateNullCheck,
             CancellationToken cancellationToken)
         {
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private SyntaxNode GetStatementToAddNullCheckAfter(
             SemanticModel semanticModel,
             IParameterSymbol parameter,
-            IBlockStatement blockStatementOpt,
+            IBlockOperation blockStatementOpt,
             CancellationToken cancellationToken)
         {
             if (blockStatementOpt == null)
@@ -297,8 +297,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     semanticModel, methodSymbol.Parameters[i], blockStatementOpt, cancellationToken);
                 if (checkStatement != null)
                 {
-                    var statementIndex = blockStatementOpt.Statements.IndexOf(checkStatement);
-                    return statementIndex > 0 ? blockStatementOpt.Statements[statementIndex - 1].Syntax : null;
+                    var statementIndex = blockStatementOpt.Operations.IndexOf(checkStatement);
+                    return statementIndex > 0 ? blockStatementOpt.Operations[statementIndex - 1].Syntax : null;
                 }
             }
 
@@ -314,14 +314,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private IOperation TryFindParameterCheckStatement(
             SemanticModel semanticModel,
             IParameterSymbol parameterSymbol,
-            IBlockStatement blockStatementOpt,
+            IBlockOperation blockStatementOpt,
             CancellationToken cancellationToken)
         {
             if (blockStatementOpt != null)
             {
-                foreach (var statement in blockStatementOpt.Statements)
+                foreach (var statement in blockStatementOpt.Operations)
                 {
-                    if (statement is IIfStatement ifStatement)
+                    if (statement is IConditionalOperation ifStatement)
                     {
                         if (ContainsParameterReference(semanticModel, ifStatement.Condition, parameterSymbol, cancellationToken))
                         {
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private async Task<Document> TryAddNullCheckToAssignmentAsync(
             Document document,
             IParameterSymbol parameter,
-            IBlockStatement blockStatementOpt,
+            IBlockOperation blockStatementOpt,
             CancellationToken cancellationToken)
         {
             // tries to convert "this.s = s" into "this.s = s ?? throw ...".  Only supported
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Look through all the top level statements in the block to see if we can
             // find an existing field/property assignment involving this parameter.
             var containingType = parameter.ContainingType;
-            foreach (var statement in blockStatementOpt.Statements)
+            foreach (var statement in blockStatementOpt.Operations)
             {
                 if (IsFieldOrPropertyAssignment(statement, containingType, out var assignmentExpression) &&
                     IsParameterReference(assignmentExpression.Value, parameter))

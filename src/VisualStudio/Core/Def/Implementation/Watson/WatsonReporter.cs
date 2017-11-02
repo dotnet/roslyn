@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             // bail out.
             // I think this should be actually done by PostFault itself and I talked to them about it.
             // but until they do something, we will do very simple throuttle ourselves.
-            var currentExceptionString = $"{exception.GetType().ToString()} {(exception.StackTrace ?? exception.ToString())}";
+            var currentExceptionString = exception.GetParameterString();
             var currentException = currentExceptionString.GetHashCode();
             if (s_lastExceptionReported == currentException)
             {
@@ -102,6 +102,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 {
                     // always add current processes dump
                     arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
+
+                    // add extra bucket parameters to bucket better in NFW
+                    arg.SetExtraParameters(exception);
+
                     return callback(arg);
                 });
 

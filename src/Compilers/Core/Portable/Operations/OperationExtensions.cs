@@ -6,9 +6,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     public static partial class OperationExtensions
     {
@@ -38,11 +37,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
+        /// <summary>
+        /// Returns all the descendant operations of the given <paramref name="operation"/> in evaluation order.
+        /// </summary>
+        /// <param name="operation">Operation whose descendants are to be fetched.</param>
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
         {
             return Descendants(operation, includeSelf: false);
         }
 
+        /// <summary>
+        /// Returns all the descendant operations of the given <paramref name="operation"/> including the given <paramref name="operation"/> in evaluation order.
+        /// </summary>
+        /// <param name="operation">Operation whose descendants are to be fetched.</param>
         public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation operation)
         {
             return Descendants(operation, includeSelf: true);
@@ -88,25 +95,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             stack.Free();
         }
 
-        public static IOperation GetRootOperation(this ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (symbol == null)
-            {
-                throw new ArgumentNullException(nameof(symbol));
-            }
-
-            var symbolWithOperation = symbol as ISymbolWithOperation;
-            if (symbolWithOperation != null)
-            {
-                return symbolWithOperation.GetRootOperation(cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationStatement declarationStatement)
+        /// <summary>
+        /// Gets all the declared local variables in the given <paramref name="declarationStatement"/>.
+        /// </summary>
+        /// <param name="declarationStatement">Variable declaration statement</param>
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationsOperation declarationStatement)
         {
             if (declarationStatement == null)
             {
@@ -114,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
-            foreach (IVariableDeclaration group in declarationStatement.Declarations)
+            foreach (IVariableDeclarationOperation group in declarationStatement.Declarations)
             {
                 foreach (ILocalSymbol symbol in group.Variables)
                 {
@@ -130,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicInvocationExpression dynamicExpression, int index)
+        public static string GetArgumentName(this IDynamicInvocationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -145,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicIndexerAccessExpression dynamicExpression, int index)
+        public static string GetArgumentName(this IDynamicIndexerAccessOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -160,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicObjectCreationExpression dynamicExpression, int index)
+        public static string GetArgumentName(this IDynamicObjectCreationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -198,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static RefKind? GetArgumentRefKind(this IDynamicInvocationExpression dynamicExpression, int index)
+        public static RefKind? GetArgumentRefKind(this IDynamicInvocationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -215,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static RefKind? GetArgumentRefKind(this IDynamicIndexerAccessExpression dynamicExpression, int index)
+        public static RefKind? GetArgumentRefKind(this IDynamicIndexerAccessOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -232,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static RefKind? GetArgumentRefKind(this IDynamicObjectCreationExpression dynamicExpression, int index)
+        public static RefKind? GetArgumentRefKind(this IDynamicObjectCreationOperation dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
@@ -269,10 +262,5 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             return argumentRefKinds[index];
         }
-    }
-
-    internal interface ISymbolWithOperation
-    {
-        IOperation GetRootOperation(CancellationToken cancellationToken);
     }
 }

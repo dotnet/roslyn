@@ -235,7 +235,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
+</symbols>)
         End Sub
 
         <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
@@ -297,7 +297,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
+</symbols>)
         End Sub
 
         <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
@@ -408,7 +408,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>

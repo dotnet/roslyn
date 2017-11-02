@@ -1518,23 +1518,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
                 }
 
-                if (conversion.IsTupleLiteralConversion ||
-                     (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
-                {
-                    // Follow-up issue https://github.com/dotnet/roslyn/issues/19878
-                    // How should we represent the tuple or nullable+tuple conversion in this case?
-                    conversion = Conversion.NoConversion;
-                }
-
-                return new BoundConversion(
-                    expression.Syntax,
-                    expression,
-                    conversion,
-                    @checked: CheckOverflowAtRuntime,
-                    explicitCastInCode: false,
-                    constantValueOpt: ConstantValue.NotAvailable,
-                    type: targetType,
-                    hasErrors: true);
+                // Suppress any additional diagnostics
+                diagnostics = new DiagnosticBag();
             }
 
             return CreateConversion(expression.Syntax, expression, conversion, false, targetType, diagnostics);
