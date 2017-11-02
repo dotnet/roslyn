@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     return true;
                 }
 
-                if (delegatedConstructor == currentConstructor)
+                if (delegatedConstructor.Equals(currentConstructor))
                 {
                     return false;
                 }
