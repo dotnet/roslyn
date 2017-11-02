@@ -23,6 +23,9 @@
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <PropertyGroup Condition="'$(TestIOperationInterface)' == 'true'">
+    <DefineConstants>$(DefineConstants);TEST_IOPERATION_INTERFACE</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.CoreClr" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
