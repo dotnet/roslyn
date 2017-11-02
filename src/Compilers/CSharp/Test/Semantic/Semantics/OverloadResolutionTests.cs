@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9312,6 +9313,728 @@ public class Program
             Assert.Equal("void E.F(A a)", candidates[0].ToTestDisplayString());
             Assert.Equal("void E.F(B b)", candidates[1].ToTestDisplayString());
             Assert.Equal("void E.F(C c)", candidates[2].ToTestDisplayString());
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_None()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(x);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(ref x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Out()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x;
+        Method(out x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Method(out x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_In()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(in x);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "5");
+        }
+
+        [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_None_WrongType()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        System.Exception x = null;
+        Method(x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16)
+            );
+        }
+
+        [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
+        [Fact]
+        public void PassingArgumentsToRefParameters_RefKind_None_WrongType()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        System.Exception x = null;
+        Method(x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(11, 16)
+            );
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIn()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int inP)
+    {
+        System.Console.WriteLine(""in: "" + inP);
+    }
+
+    public static void Method(int valP)
+    {
+        System.Console.WriteLine(""val: "" + valP);
+    }
+
+    public static void Main()
+    {
+        int x = 5;
+        Method(in x);
+        Method(valP: 3);
+        Method(inP: 2);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+in: 5
+val: 3
+in: 2
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInErr()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int inP)
+    {
+        System.Console.WriteLine(""in: "" + inP);
+    }
+
+    public static void Method(int valP)
+    {
+        System.Console.WriteLine(""val: "" + valP);
+    }
+
+    public static void Main()
+    {
+        byte x = 5;
+        Method(in x);
+        Method('Q');
+        Method(3);
+        Method(valP: out 2);
+        Method(valP: in 2);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                    // (17,19): error CS1503: Argument 1: cannot convert from 'in byte' to 'in int'
+                    //         Method(in x);
+                    Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in byte", "in int").WithLocation(17, 19),
+                    // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int)' and 'Program.Method(int)'
+                    //         Method('Q');
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int)", "Program.Method(int)").WithLocation(18, 9),
+                    // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int)' and 'Program.Method(int)'
+                    //         Method(3);
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int)", "Program.Method(int)").WithLocation(19, 9),
+                    // (20,26): error CS1510: A ref or out value must be an assignable variable
+                    //         Method(valP: out 2);
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(20, 26),
+                    // (21,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         Method(valP: in 2);
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(21, 25)
+                );
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInIndexer()
+        {
+            var code = @"
+public class Program
+{
+    public int this[in int inP]
+    {
+        get
+        {
+            System.Console.WriteLine(""in: "" + inP);
+            return 1;
+        }
+    }
+
+    public int this[int valP]
+    {
+        get
+        {
+            System.Console.WriteLine(""val: "" + valP);
+            return 1;
+        }
+    }
+
+    public static void Main()
+    {
+        var p = new Program();
+        int x = 5;
+
+        _ = p[in x];
+        _ = p[valP: 3];
+        _ = p[inP: 2];
+    }
+}
+";
+
+            CompileAndVerify(code, expectedOutput: @"
+in: 5
+val: 3
+in: 2
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInIndexerErr()
+        {
+            var code = @"
+public class Program
+{
+    public int this[in int inP]
+    {
+        get
+        {
+            System.Console.WriteLine(""in: "" + inP);
+            return 1;
+        }
+    }
+
+    public int this[int valP]
+    {
+        get
+        {
+            System.Console.WriteLine(""val: "" + valP);
+            return 1;
+        }
+    }
+
+    public static void Main()
+    {
+        var p = new Program();
+        byte x = 5;
+
+        _ = p[in x];
+        _ = p['Q'];
+        _ = p[3];
+        _ = p[valP: out 2];
+        _ = p[inP: in 2];
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (27,18): error CS1503: Argument 1: cannot convert from 'in byte' to 'in int'
+                //         _ = p[in x];
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in byte", "in int").WithLocation(27, 18),
+                // (28,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.this[in int]' and 'Program.this[int]'
+                //         _ = p['Q'];
+                Diagnostic(ErrorCode.ERR_AmbigCall, "p['Q']").WithArguments("Program.this[in int]", "Program.this[int]").WithLocation(28, 13),
+                // (29,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.this[in int]' and 'Program.this[int]'
+                //         _ = p[3];
+                Diagnostic(ErrorCode.ERR_AmbigCall, "p[3]").WithArguments("Program.this[in int]", "Program.this[int]").WithLocation(29, 13),
+                // (30,25): error CS1510: A ref or out value must be an assignable variable
+                //         _ = p[valP: out 2];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "2").WithLocation(30, 25),
+                // (31,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         _ = p[inP: in 2];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(31, 23));
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnIOperatorErr()
+        {
+            var code = @"
+class C
+{
+    public static int operator+(C a, C b) => 0;
+    public static int operator+(in C a, in C b) => 0;
+}
+public class Program
+{
+    public static void Main()
+    {
+        var a = new C();
+        var b = new C();
+        var result = a + b;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (13,22): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'C'
+                //         var result = a + b;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a + b").WithArguments("+", "C", "C").WithLocation(13, 22));
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInOptionalParameters()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int inP = 0)
+    {
+        System.Console.WriteLine(""in: "" + inP);
+    }
+
+    public static void Method(int valP = 0)
+    {
+        System.Console.WriteLine(""val: "" + valP);
+    }
+
+    public static void Main()
+    {
+        int x = 5;
+        Method(in x);
+        Method(valP: 3);
+        Method(inP: 2);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+in: 5
+val: 3
+in: 2
+");
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInErrOptionalParametersAmbiguous()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(in int inP = 0)
+    {
+        System.Console.WriteLine(""in: "" + inP);
+    }
+
+    public static void Method(int valP = 0)
+    {
+        System.Console.WriteLine(""val: "" + valP);
+    }
+
+    public static void Main()
+    {
+        int x = 0;
+
+        Method();       // Should be an error
+        Method(in x);   // Should be OK
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(in int)' and 'Program.Method(int)'
+                //         Method();       // Should be an error
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(in int)", "Program.Method(int)").WithLocation(18, 9));
+        }
+
+        [Fact]
+        public void PassingInArgumentsOverloadedOnInParams()
+        {
+            var code = @"
+using System;
+class Program
+{
+    void M(in int x) { Console.WriteLine(""in: "" + x); }
+    void M(params int[] p) { Console.WriteLine(""params: "" + p.Length); }
+
+    static void Main()
+    {
+        var p = new Program();
+
+        p.M();
+        p.M(1);
+        p.M(1, 2);
+
+        int x = 3;
+        p.M(in x);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: 
+@"params: 0
+in: 1
+params: 2
+in: 3");
+        }
+
+        [Fact]
+        public void GenericInferenceOnIn()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    public static void M1<T>(in T arg1, in T arg2)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        int x = 1;
+        byte y = 2;
+
+        M1(null, (string)null);
+        M1(default, 1);
+        M1(new Object(), new Exception());
+        M1(new Object(), 1);
+
+        M1(in x, in x);  // valid, same type
+        M1(y, in x);  // valid, byval x sets lower bound, byte converts to int
+    }
+}
+";
+
+            CompileAndVerify(code, expectedOutput: @"
+System.String
+System.Int32
+System.Object
+System.Object
+System.Int32
+System.Int32
+");
+        }
+
+        [Fact]
+        public void GenericInferenceOnInErr()
+        {
+            var code = @"
+class Program
+{
+    public static void M1<T>(in T arg1, in T arg2)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        int x = 1;
+        byte y = 2;
+        var rl = default(RefLike);
+
+        M1(null, null);
+        M1(null, 1);
+        M1(new object(), default(RefLike));
+
+        M1(rl, rl);
+        M1(in rl, in rl);
+
+        M1(in y, in x);
+        M1(in y, x);  
+    }
+
+    ref struct RefLike{}
+}
+";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (15,9): error CS0411: The type arguments for method 'Program.M1<T>(in T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(null, null);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(in T, in T)").WithLocation(15, 9),
+                // (16,12): error CS1503: Argument 1: cannot convert from '<null>' to 'in int'
+                //         M1(null, 1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "in int").WithLocation(16, 12),
+                // (17,9): error CS0411: The type arguments for method 'Program.M1<T>(in T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(new object(), default(RefLike));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(in T, in T)").WithLocation(17, 9),
+                // (19,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         M1(rl, rl);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M1").WithArguments("Program.RefLike").WithLocation(19, 9),
+                // (20,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         M1(in rl, in rl);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M1").WithArguments("Program.RefLike").WithLocation(20, 9),
+                // (22,9): error CS0411: The type arguments for method 'Program.M1<T>(in T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(in y, in x);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(in T, in T)").WithLocation(22, 9),
+                // (23,9): error CS0411: The type arguments for method 'Program.M1<T>(in T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(in y, x);  
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(in T, in T)").WithLocation(23, 9)
+                );
+        }
+
+        [Fact]
+        public void GenericInferenceOnInTuples()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    public static void Method<T>(in (T arg1, T arg2) p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        int x = 1;
+        byte y = 2;
+
+        Method((null, (string)null));
+        Method((default, x));
+        Method((new Object(), new Exception()));
+        Method((new Object(), x));
+
+        Method((x, x));     // valid, same type
+        Method((y, x));     // valid, byval x sets lower bound, byte converts to int
+    }
+}
+";
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: @"
+System.String
+System.Int32
+System.Object
+System.Object
+System.Int32
+System.Int32
+");
+        }
+
+        [Fact]
+        public void GenericInferenceOnInErrTuples()
+        {
+            var code = @"
+class Program
+{
+    public static void Method<T>(in (T arg1, T arg2) p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        int x = 1;
+        byte y = 2;
+        var rl = default(RefLike);
+
+        Method((null, null));
+        Method((null, 1));
+        Method((new object(), default(RefLike)));
+           
+        Method((rl, rl));
+        Method(in (rl, rl));
+           
+        Method(in (y, x));  
+    }
+
+    ref struct RefLike{}
+}
+";
+
+            CreateStandardCompilation(code, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }).VerifyDiagnostics(
+                // (15,9): error CS0411: The type arguments for method 'Program.Method<T>(in (T arg1, T arg2))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((null, null));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(15, 9),
+                // (16,16): error CS1503: Argument 1: cannot convert from '(<null>, int)' to 'in (int arg1, int arg2)'
+                //         Method((null, 1));
+                Diagnostic(ErrorCode.ERR_BadArgType, "(null, 1)").WithArguments("1", "(<null>, int)", "in (int arg1, int arg2)").WithLocation(16, 16),
+                // (17,31): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((new object(), default(RefLike)));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(RefLike)").WithArguments("Program.RefLike").WithLocation(17, 31),
+                // (17,9): error CS0411: The type arguments for method 'Program.Method<T>(in (T arg1, T arg2))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((new object(), default(RefLike)));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(17, 9),
+                // (19,17): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 17),
+                // (19,21): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 21),
+                // (19,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method((rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Method").WithArguments("Program.RefLike").WithLocation(19, 9),
+                // (20,20): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method(in (rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 20),
+                // (20,24): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                //         Method(in (rl, rl));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 24),
+                // (20,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         Method(in (rl, rl));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(rl, rl)").WithLocation(20, 19),
+                // (22,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         Method(in (y, x));  
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(y, x)").WithLocation(22, 19));
+        }
+
+        [Fact]
+        public void GenericInferenceLambdaVariance()
+        {
+            var code = @"
+class Program
+{
+    public delegate void D1<T>(in T arg1, in T arg2);
+
+    public static void M1<T>(T arg1, T arg2)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        M1((in int arg1, in int arg2) => throw null, (in int arg1, in int arg2) => throw null);
+    }
+}
+";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'Program.M1<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1((in int arg1, in int arg2) => throw null, (in int arg1, in int arg2) => throw null);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(T, T)").WithLocation(13, 9)
+                );
+        }
+
+        [Fact]
+        public void DelegateConversions()
+        {
+            var librarySrc = @"
+ public class C
+ {
+     public void RR_input(in int x) => throw null;
+     public ref readonly int RR_output() => throw null;
+     public ref readonly int P => throw null;
+     public ref readonly int this[in int i] => throw null;
+     public delegate ref readonly int Delegate(in int i);
+ }
+
+public static class Extensions
+{
+    public static void RR_extension(in this int x) => throw null;
+    public static void R_extension(ref this int x) => throw null;
+}
+";
+
+            var libComp = CreateStandardCompilation(librarySrc, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+
+
+            var code = @"
+ class D
+ {
+     void M(C c, in int y)
+     {
+         c.RR_input(y);
+         VerifyRR(c.RR_output());
+         VerifyRR(c.P);
+         VerifyRR(c[y]);
+         C.Delegate x = VerifyDelegate;
+         y.RR_extension();
+         1.RR_extension();
+         y.R_extension(); // error 1
+         1.R_extension(); // error 2
+     }
+     void VerifyRR(in int y) => throw null;
+     ref readonly int VerifyDelegate(in int y) => throw null;
+ }
+";
+
+
+            CreateStandardCompilation(code, references: new[] { libComp.EmitToImageReference() }).VerifyDiagnostics(
+                // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                //          y.R_extension(); // error 1
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
+                // (14,10): error CS1510: A ref or out value must be an assignable variable
+                //          1.R_extension(); // error 2
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
+                );
+
+            CreateStandardCompilation(code, references: new[] {libComp.ToMetadataReference() }).VerifyDiagnostics(
+                // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                //          y.R_extension(); // error 1
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
+                // (14,10): error CS1510: A ref or out value must be an assignable variable
+                //          1.R_extension(); // error 2
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
+                );
         }
     }
 }

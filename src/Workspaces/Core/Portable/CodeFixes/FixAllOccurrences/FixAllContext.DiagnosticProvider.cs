@@ -56,7 +56,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 var cancellationToken = fixAllContext.CancellationToken;
 
-                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, cancellationToken))
+                using (Logger.LogBlock(
+                    FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
+                    FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
+                    cancellationToken))
                 {
                     var allDiagnostics = ImmutableArray<Diagnostic>.Empty;
                     var projectsToFix = ImmutableArray<Project>.Empty;
@@ -179,7 +182,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             internal virtual async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
                 FixAllContext fixAllContext)
             {
-                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, fixAllContext.CancellationToken))
+                using (Logger.LogBlock(
+                    FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Diagnostics,
+                    FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
+                    fixAllContext.CancellationToken))
                 {
                     var project = fixAllContext.Project;
                     if (project != null)

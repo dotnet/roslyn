@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public string Connect(string host, string serializedSession, CancellationToken cancellationToken)
         {
-            return RunService(() =>
+            return RunService(token =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                token.ThrowIfCancellationRequested();
 
                 _primaryInstance = InstanceId;
 
@@ -86,23 +86,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async token =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, token))
                 {
                     var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, cancellationToken).ConfigureAwait(false);
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, token).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
 
         public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async token =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, token))
                 {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
+                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, token).ConfigureAwait(false);
 
                     foreach (var asset in assets)
                     {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
         {
-            RunService(() =>
+            RunService(_ =>
             {
                 var persistentStorageService = GetPersistentStorageService();
                 persistentStorageService?.RegisterPrimarySolution(solutionId);
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken)
         {
-            RunService(() =>
+            RunService(_ =>
             {
                 var persistentStorageService = GetPersistentStorageService();
                 persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void OnGlobalOperationStarted(string unused)
         {
-            RunService(() =>
+            RunService(_ =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
                 globalOperationNotificationService?.OnStarted();
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
         {
-            RunService(() =>
+            RunService(_ =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
                 globalOperationNotificationService?.OnStopped(operations, cancelled);

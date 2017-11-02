@@ -8625,6 +8625,7 @@ End Module
         Public Sub MissingCompilerAssembly()
             Dim dir = Temp.CreateDirectory()
             Dim vbcPath = dir.CopyFile(GetType(Vbc).Assembly.Location).Path
+            dir.CopyFile(GetType(Compilation).Assembly.Location)
 
             ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
             Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
@@ -8634,7 +8635,6 @@ End Module
                 result.Output.Trim())
 
             ' Missing System.Collections.Immutable.dll.
-            dir.CopyFile(GetType(Compilation).Assembly.Location)
             dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
@@ -8642,6 +8642,31 @@ End Module
                 $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
         End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        <WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")>
+        Public Sub PdbPathNotEmittedWithoutPdb()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = MakeTrivialExe(directory:=dir.Path)
+            Dim args = {"/nologo", src, "/out:a.exe", "/debug-"}
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, args)
+            Dim exitCode = vbc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim exePath = Path.Combine(dir.Path, "a.exe")
+            Assert.True(File.Exists(exePath))
+            Using peStream = File.OpenRead(exePath)
+                Using peReader = New PEReader(peStream)
+                    Dim debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory
+                    Assert.Equal(0, debugDirectory.Size)
+                    Assert.Equal(0, debugDirectory.RelativeVirtualAddress)
+                End Using
+            End Using
+        End Sub
+
 
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
             Return Temp.CreateFile(directory:=directory, prefix:="", extension:=".vb").WriteAllText("

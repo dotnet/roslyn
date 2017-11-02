@@ -8,6 +8,8 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -21,13 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |   |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxxx|wwwww|
+            // |   |s|r|q|z|xxxxxxxxxxxxxxxxxxxxxxx|wwwww|
             // 
             // w = method kind.  5 bits.
             //
-            // x = modifiers.  22 bits.
-            //
-            // y = returnsVoid. 1 bit.
+            // x = modifiers.  23 bits.
             //
             // z = isExtensionMethod. 1 bit.
             //
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int DeclarationModifiersOffset = 5;
 
             private const int MethodKindMask = 0x1F;
-            private const int DeclarationModifiersMask = 0x3FFFFF;
+            private const int DeclarationModifiersMask = 0x7FFFFF;
 
             private const int ReturnsVoidBit = 1 << 27;
             private const int IsExtensionMethodBit = 1 << 28;
@@ -50,11 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsMetadataVirtualLockedBit = 1 << 31;
 
             private int _flags;
+            private bool _returnsVoid;
 
             public bool ReturnsVoid
             {
-                get { return (_flags & ReturnsVoidBit) != 0; }
-                set { _flags = value ? (_flags | ReturnsVoidBit) : (_flags & ~ReturnsVoidBit); }
+                get { return _returnsVoid; }
+                set { _returnsVoid = value; }
             }
 
             public MethodKind MethodKind
@@ -85,13 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
                 // method kind mask.
-                var methodKinds = EnumExtensions.GetValues<MethodKind>();
+                var methodKinds = EnumUtilities.GetValues<MethodKind>();
                 var maxMethodKind = (int)methodKinds.Aggregate((m1, m2) => m1 | m2);
                 Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
 
                 // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
                 // the declaration modifier mask.
-                var declarationModifiers = EnumExtensions.GetValues<DeclarationModifiers>();
+                var declarationModifiers = EnumUtilities.GetValues<DeclarationModifiers>();
                 var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
                 Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
             }
@@ -113,12 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
                 int declarationModifiersInt = ((int)declarationModifiers & DeclarationModifiersMask) << DeclarationModifiersOffset;
-                int returnsVoidInt = returnsVoid ? ReturnsVoidBit : 0;
                 int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
 
-                _flags = methodKindInt | declarationModifiersInt | returnsVoidInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
+                _flags = methodKindInt | declarationModifiersInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
+                _returnsVoid = returnsVoid;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
@@ -963,9 +964,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetReturnTypeAttributesBag().Attributes;
         }
 
-        internal override void AddSynthesizedReturnTypeAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedReturnTypeAttributes(ref attributes);
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
 
             if (this.ReturnType.ContainsDynamic())
             {
@@ -1121,6 +1122,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.DeprecatedAttribute))
             {
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
             {
                 // [Extension] attribute should not be set explicitly.
@@ -1240,6 +1251,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
@@ -1520,11 +1541,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        #endregion
+#endregion
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (this.IsAsync || this.IsIterator)
             {
@@ -1534,7 +1555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
                 // type will not have been created. In this case, omit the attribute.
                 NamedTypeSymbol stateMachineType;
-                if (compilationState.TryGetStateMachineType(this, out stateMachineType))
+                if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out stateMachineType))
                 {
                     WellKnownMember ctor = this.IsAsync ?
                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor :

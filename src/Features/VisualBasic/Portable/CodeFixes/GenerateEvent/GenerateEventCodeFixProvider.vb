@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
                 attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
                 returnType:=semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                returnsByRef:=False, name:=eventHandlerName,
+                refKind:=RefKind.None, name:=eventHandlerName,
                 parameters:=delegateSymbol.GetParameters())
 
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
                 Dim eventHandlerType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
                     eventType.GetAttributes(), eventType.DeclaredAccessibility,
-                    modifiers:=Nothing, returnType:=returnType, returnsByRef:=false,
+                    modifiers:=Nothing, returnType:=returnType, refKind:=RefKind.None,
                     name:=actualEventName + "EventHandler",
                     typeParameters:=eventType.TypeParameters, parameters:=parameters)
 
@@ -376,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
                 attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
                 returnType:=semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                returnsByRef:=False, name:=actualEventName + "Handler",
+                refKind:=RefKind.None, name:=actualEventName + "Handler",
                 parameters:=boundMethod.GetParameters())
 
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(

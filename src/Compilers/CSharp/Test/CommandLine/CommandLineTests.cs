@@ -7181,7 +7181,7 @@ class Program3
         /// the compiler should delete the file to unblock build while allowing the reader to continue 
         /// reading the previous snapshot of the file content.
         /// 
-        /// On Windows we can read the original data directly from the stream withotu creating a memory map. 
+        /// On Windows we can read the original data directly from the stream without creating a memory map. 
         /// </summary>
         [ConditionalFact(typeof(WindowsOnly))]
         public void FileShareDeleteCompatibility_Windows()
@@ -9533,6 +9533,7 @@ class C
         {
             var dir = Temp.CreateDirectory();
             var cscPath = dir.CopyFile(typeof(Csc).Assembly.Location).Path;
+            dir.CopyFile(typeof(Compilation).Assembly.Location);
 
             // Missing Microsoft.CodeAnalysis.CSharp.dll.
             var result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
@@ -9542,7 +9543,6 @@ class C
                 result.Output.Trim());
 
             // Missing System.Collections.Immutable.dll.
-            dir.CopyFile(typeof(Compilation).Assembly.Location);
             dir.CopyFile(typeof(CSharpCompilation).Assembly.Location);
             result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
@@ -9595,6 +9595,32 @@ class C
                 additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
 
             Assert.Equal("", result.Output.Trim());
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")]
+        public void PdbPathNotEmittedWithoutPdb()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var source = @"class Program { static void Main() { } }";
+            var src = dir.CreateFile("a.cs").WriteAllText(source);
+            var args = new[] { "/nologo", "a.cs", "/out:a.exe", "/debug-" };
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var csc = new MockCSharpCompiler(null, dir.Path, args);
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            var exePath = Path.Combine(dir.Path, "a.exe");
+            Assert.True(File.Exists(exePath));
+            using (var peStream = File.OpenRead(exePath))
+            using (var peReader = new PEReader(peStream))
+            {
+                var debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory;
+                Assert.Equal(0, debugDirectory.Size);
+                Assert.Equal(0, debugDirectory.RelativeVirtualAddress);
+            }
         }
 
         public class QuotedArgumentTests

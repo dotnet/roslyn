@@ -475,10 +475,9 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,58): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                // (4,58): error CS8328:  The parameter modifier 'params' cannot be used with 'out' 
                 //     public void Deconstruct(out int a, out string b, out params int[] c)
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "params").WithLocation(4, 58)
-                );
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "out").WithLocation(4, 58));
         }
 
         [Fact]
@@ -1249,10 +1248,37 @@ class C
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (7,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)
+                // (7,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 2)").WithArguments("System.ValueTuple`2").WithLocation(7, 18)
                 );
+        }
+
+        [Fact]
+        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        public void ValueTupleRequiredWhenRightHandSideIsTupleButNoReferenceEmitted()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        (x, y) = (1, 2);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+
+            Action<PEAssembly> assemblyValidator = assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var names = reader.GetAssemblyRefNames().Select(name => reader.GetString(name));
+                Assert.Empty(names.Where(name => name.Contains("ValueTuple")));
+            };
+
+            CompileAndVerify(comp, assemblyValidator: assemblyValidator);
         }
 
         [Fact]
@@ -3841,6 +3867,35 @@ static class Extension
   IL_0039:  blt.s      IL_000a
   IL_003b:  ret
 }");
+        }
+
+        [Fact]
+        [WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")]
+        public void ForEachCollectionSymbol()
+        {
+            string source = @"
+using System.Collections.Generic;
+class Deconstructable
+{
+    void M(IEnumerable<Deconstructable> x)
+    {
+        foreach (var (y1, y2) in x)
+        {
+        }
+    }
+    void Deconstruct(out int i, out int j) { i = 0; j = 0; }
+}
+";
+            var compilation = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var collection = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single().Expression;
+            Assert.Equal("x", collection.ToString());
+            var symbol = model.GetSymbolInfo(collection).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+            Assert.Equal("x", symbol.Name);
+            Assert.Equal("System.Collections.Generic.IEnumerable<Deconstructable> x", symbol.ToTestDisplayString());
         }
 
         [Fact]

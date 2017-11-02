@@ -20,7 +20,7 @@
   </PropertyGroup>
   <ItemGroup>
     <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
-      <_Parameter1>$(GitHeadSha)</_Parameter1>
+      <_Parameter1>$(CommitHashDisplay)</_Parameter1>
     </AssemblyVersionAttribute>
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -58,6 +58,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
+    <Content Include="Syntax\Syntax.xml" />
     <None Include="Errors\Errors.vb" />
   </ItemGroup>
   <ItemGroup>

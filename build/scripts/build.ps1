@@ -35,6 +35,7 @@ param (
     [switch]$testVsiNetCore = $false,
     [switch]$testDesktop = $false,
     [switch]$testCoreClr = $false,
+    [switch]$testIOperation = $false,
 
     # Special test options
     [switch]$testDeterminism = $false,
@@ -66,6 +67,7 @@ function Print-Usage() {
     Write-Host "  -testCoreClr              Run CoreClr unit tests"
     Write-Host "  -testVsi                  Run all integration tests"
     Write-Host "  -testVsiNetCore           Run just dotnet core integration tests"
+    Write-Host "  -testIOperation           Run extra checks to validate IOperations"
     Write-Host ""
     Write-Host "Special Test options" 
     Write-Host "  -testBuildCorrectness     Run build correctness tests"
@@ -126,11 +128,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
     }
     
     if ($logFile -ne "") {
-        $args += " /filelogger /fileloggerparameters:Verbosity=normal;logFile=$logFile";
-    }
-
-    if ($cibuild) { 
-        $args += " /p:PathMap=`"$($repoDir)=q:\roslyn`" /p:Feature=pdb-path-determinism" 
+        $args += " /bl:$logFile"
     }
 
     if ($official) {
@@ -139,6 +137,11 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
 
     if ($bootstrapDir -ne "") {
         $args += " /p:BootstrapBuildPath=$bootstrapDir"
+    }
+
+    if ($testIOperation)
+    {
+        $args += " /p:TestIOperationInterface=true"
     }
 
     $args += " $buildArgs"
@@ -152,7 +155,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
 # building the bootstrap.
 function Make-BootstrapBuild() {
 
-    $bootstrapLog = Join-Path $binariesDir "Bootstrap.log"
+    $bootstrapLog = Join-Path $binariesDir "Bootstrap.binlog"
     Write-Host "Building Bootstrap compiler"
     Run-MSBuild "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP build\Toolset\Toolset.csproj" -logFile $bootstrapLog 
     $dir = Join-Path $binariesDir "Bootstrap"
@@ -185,10 +188,10 @@ function Build-ExtraSignArtifacts() {
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
-        Write-Host "Publishing CscCore"
-        Run-MSBuild "..\Compilers\CSharp\CscCore\CscCore.csproj /t:PublishWithoutBuilding"
-        Write-Host "Publishing VbcCore"
-        Run-MSBuild "..\Compilers\VisualBasic\VbcCore\VbcCore.csproj /t:PublishWithoutBuilding"
+        Write-Host "Publishing csc"
+        Run-MSBuild "..\Compilers\CSharp\csc\csc.csproj /p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Publishing csc"
+        Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj /p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
         # No need to build references here as we just built the rest of the source tree. 
         # We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,
@@ -220,6 +223,10 @@ function Build-NuGetPackages() {
     }
 
     Run-MSBuild $build
+}
+
+function Build-DeployToSymStore() {
+    Run-MSBuild "Roslyn.sln /t:DeployToSymStore"
 }
 
 # These are tests that don't follow our standard restore, build, test pattern. They customize 
@@ -548,7 +555,7 @@ try {
     $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
     $dotnet, $sdkDir = Ensure-SdkInPathAndData
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $configDir = Join-Path $binariesDIr $buildConfiguration
+    $configDir = Join-Path $binariesDir $buildConfiguration
     $bootstrapDir = ""
 
     # Ensure the main output directories exist as a number of tools will fail when they don't exist. 
@@ -587,6 +594,10 @@ try {
     # VSIX, NuGet doesn't support re-packing hence we have to order it this way.
     if ($pack) {
         Build-NuGetPackages
+
+        if ($cibuild -or $official) { 
+            Build-DeployToSymStore
+        }
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var now = DateTime.Now;
             int days, seconds;
-            VersionTestHelpers.GetDefautVersion(now, out days, out seconds);
+            VersionTestHelpers.GetDefaultVersion(now, out days, out seconds);
 
             var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
             var comp = CreateStandardCompilation(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(now));
@@ -954,7 +954,7 @@ public class C {}
             // We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
             int expectedEmittedAttrsCount = expectedSrcAttrCount - expectedDuplicateAttrCount;
 
-            var allEmittedAttrs = ((SourceAssemblySymbol)assembly).GetCustomAttributesToEmit(new ModuleCompilationState(),
+            var allEmittedAttrs = ((SourceAssemblySymbol)assembly).GetCustomAttributesToEmit(GetDefaultPEBuilder(assembly.DeclaringCompilation),
                 emittingRefAssembly: false, emittingAssemblyAttributesInNetModule: false);
             var emittedAttrs = allEmittedAttrs.Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal)).AsImmutable();
 
@@ -1244,7 +1244,7 @@ public class C {}
                expectedDuplicateAttrCount: 1,
                attrTypeName: "AssemblyTitleAttribute");
 
-            var attrs = ((SourceAssemblySymbol)consoleappCompilation.Assembly).GetCustomAttributesToEmit(new ModuleCompilationState(),
+            var attrs = ((SourceAssemblySymbol)consoleappCompilation.Assembly).GetCustomAttributesToEmit(GetDefaultPEBuilder(consoleappCompilation),
                 emittingRefAssembly: false, emittingAssemblyAttributesInNetModule: false);
             foreach (var a in attrs)
             {

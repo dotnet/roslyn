@@ -51,14 +51,14 @@
         "Dlls\\XamlVisualStudio\\Microsoft.VisualStudio.LanguageServices.Xaml.dll",
         "Exes\\InteractiveHost\\InteractiveHost.exe",
         "Exes\\VBCSCompiler\\net46\\VBCSCompiler.exe",
-        "Exes\\csc\\csc.exe",
-        "Exes\\csccore\\csc.dll",
-        "Exes\\csi\\csi.exe",
-        "Exes\\csicore\\csi.dll",
-        "Exes\\vbc\\vbc.exe",
-        "Exes\\vbccore\\vbc.dll",
-        "Exes\\vbi\\vbi.exe",
-        "Exes\\vbicore\\vbi.dll",
+        "Exes\\csc\\net46\\csc.exe",
+        "Exes\\csc\\netcoreapp2.0\\csc.dll",
+        "Exes\\csi\\net46\\csi.exe",
+        "Exes\\csi\\netcoreapp2.0\\csi.dll",
+        "Exes\\vbc\\net46\\vbc.exe",
+        "Exes\\vbc\\netcoreapp2.0\\vbc.dll",
+        "Exes\\vbi\\net46\\vbi.exe",
+        "Exes\\vbi\\netcoreapp2.0\\vbi.dll",
         "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.dll",
         "Vsix\\Templates\\Roslyn.Templates.dll",
         "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.dll",
@@ -162,6 +162,8 @@
     "Microsoft.VisualStudio.Threading.dll",
     "Microsoft.VisualStudio.Validation.dll",
     "Nerdbank.FullDuplexStream.dll",
-    "Validation.dll"
+    "Validation.dll",
+    "Humanizer.dll",
+    "Humanizer.resources.dll"
   ]
 }

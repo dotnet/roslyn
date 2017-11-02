@@ -30,11 +30,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
 #if NET46
             var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-            var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
 #else
             var sdkDirectory = (string)null;
-            var compilerServerHost = new CoreClrCompilerServerHost(clientDirectory, sdkDirectory);
 #endif
+            var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
             return new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
         }
 

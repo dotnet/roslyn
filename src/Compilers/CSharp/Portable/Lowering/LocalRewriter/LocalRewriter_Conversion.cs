@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -14,11 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConversion(BoundConversion node)
         {
-            var rewrittenType = VisitType(node.Type);
             if (node.ConversionKind == ConversionKind.InterpolatedString)
             {
                 return RewriteInterpolatedStringConversion(node);
             }
+
+            var rewrittenType = VisitType(node.Type);
 
             bool wasInExpressionLambda = _inExpressionLambda;
             _inExpressionLambda = _inExpressionLambda || (node.ConversionKind == ConversionKind.AnonymousFunction && !wasInExpressionLambda && rewrittenType.IsExpressionTree());
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If original conversion has become something else with unknown precision, add an explicit identity cast.
             if (!_inExpressionLambda &&
                 node.ExplicitCastInCode &&
-                IsFloatPointExpressionOfUnknownPrecision(result))
+                IsFloatingPointExpressionOfUnknownPrecision(result))
             {
                 result = MakeConversionNode(
                     node.Syntax,
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static bool IsFloatPointExpressionOfUnknownPrecision(BoundExpression rewrittenNode)
+        private static bool IsFloatingPointExpressionOfUnknownPrecision(BoundExpression rewrittenNode)
         {
             if (rewrittenNode == null)
             {
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Sequence:
                     var sequence = (BoundSequence)rewrittenNode;
-                    return IsFloatPointExpressionOfUnknownPrecision(sequence.Value);
+                    return IsFloatingPointExpressionOfUnknownPrecision(sequence.Value);
 
                 case BoundKind.Conversion:
                     // lowered conversions have definite precision unless they are implicit identity casts
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     
                     // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
                     // If this is not an identity conversion of a float with unknown precision, strip away the identity conversion.
-                    if (!IsFloatPointExpressionOfUnknownPrecision(rewrittenOperand))
+                    if (!IsFloatingPointExpressionOfUnknownPrecision(rewrittenOperand))
                     {
                         return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenOperand);
                     }
@@ -238,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitTupleLiteral:
                     {
                         // we keep tuple literal conversions in the tree for the purpose of semantic model (for example when they are casts in the source)
-                        // for the purpose of lowering/codegeneration thay are identity conversions.
+                        // for the purpose of lowering/codegeneration they are identity conversions.
                         Debug.Assert(rewrittenOperand.Type.Equals(rewrittenType, TypeCompareKind.IgnoreDynamicAndTupleNames));
                         return rewrittenOperand;
                     }
@@ -477,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             explicitCastInCode: false,
                             constantValueOpt: default(ConstantValue),
                             type: type,
-                            hasErrors: !conversion.IsValid);
+                            hasErrors: !conversion.IsValid) { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -856,7 +858,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: consequence,
                 rewrittenAlternative: alternative,
                 constantValueOpt: null,
-                rewrittenType: type);
+                rewrittenType: type,
+                isRef: false);
 
             return new BoundSequence(
                 syntax: syntax,
@@ -983,7 +986,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 MakeConversionNode(null, syntax, conditional.Consequence, conversion, @checked, explicitCastInCode: false, constantValueOpt: ConstantValue.NotAvailable, rewrittenType: type),
                                 MakeConversionNode(null, syntax, conditional.Alternative, conversion, @checked, explicitCastInCode: false, constantValueOpt: ConstantValue.NotAvailable, rewrittenType: type),
                                 ConstantValue.NotAvailable,
-                                type),
+                                type,
+                                isRef: false),
                             type);
                     }
                 }
@@ -1096,7 +1100,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: consequence,
                 rewrittenAlternative: alternative,
                 constantValueOpt: null,
-                rewrittenType: rewrittenType);
+                rewrittenType: rewrittenType,
+                isRef: false);
 
             // temp = operand
             // temp.HasValue ? new R?(op_Whatever(temp.GetValueOrDefault())) : default(R?)

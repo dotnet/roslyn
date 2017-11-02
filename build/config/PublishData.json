@@ -1,11 +1,11 @@
 {
     "branches": {
-        "master": {
+        "dev15.5.x": {
             "nugetKind": "PerBuildPreRelease",
             "version": "2.6.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.5", "dev15.5p1" ]
+            "channels": [ "dev15.5", "dev15.5p3" ]
         },
         "dev/jaredpar/fix-publish": {
             "nugetKind": "PerBuildPreRelease",

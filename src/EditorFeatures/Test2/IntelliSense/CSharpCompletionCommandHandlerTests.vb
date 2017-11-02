@@ -928,10 +928,10 @@ class C
     }
 }]]></Document>)
 
-                state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="decimal", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("(i:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(d:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -948,10 +948,10 @@ class C
     }
 }]]></Document>)
 
-                state.SendTypeChars("i")
-                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="decimal", isHardSelected:=True)
                 state.SendTypeChars(" ")
-                Assert.Contains("(int ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(decimal ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 

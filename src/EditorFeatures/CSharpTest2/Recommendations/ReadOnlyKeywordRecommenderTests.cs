@@ -416,5 +416,126 @@ $$");
    void Goo() {
      $$");
         }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsParameterModifierInMethods()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    public static void Test(ref $$ p) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsParameterModifierInSecondParameter()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    public static void Test(int p1, ref $$ p2) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsParameterModifierInDelegates()
+        {
+            await VerifyAbsenceAsync(@"
+public delegate int Delegate(ref $$ int p);");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsParameterModifierInLocalFunctions()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    public static void Test()
+    {
+        void localFunc(ref $$ int p) { }
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsParameterModifierInLambdaExpressions()
+        {
+            await VerifyAbsenceAsync(@"
+public delegate int Delegate(ref readonly int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate lambda = (ref $$ int p) => p;
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsParameterModifierInAnonymousMethods()
+        {
+            await VerifyAbsenceAsync(@"
+public delegate int Delegate(ref readonly int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate anonymousDelegate = delegate (ref $$ int p) { return p; };
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsModifierInMethodReturnTypes()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public ref $$ int Test()
+    {
+        return ref x;
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsModifierInGlobalMemberDeclaration()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"
+public ref $$ ");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsModifierInDelegateReturnType()
+        {
+            await VerifyKeywordAsync(@"
+public delegate ref $$ int Delegate();
+
+class Program
+{
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyAsModifierInMemberDeclaration()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public ref $$ int Test { get; set; }
+}");
+        }
     }
 }

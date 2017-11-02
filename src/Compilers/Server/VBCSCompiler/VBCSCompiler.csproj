@@ -10,10 +10,11 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer</RootNamespace>
     <LargeAddressAware>true</LargeAddressAware>
-    <TargetFrameworks>net46;netcoreapp2.0</TargetFrameworks>
-    <RuntimeIdentifiers>win7;ubuntu.14.04;osx.10.10</RuntimeIdentifiers>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
+    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
@@ -23,7 +24,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration"  Condition="'$(TargetFramework)' != 'netcoreapp2.0'" />
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
   </ItemGroup>
   <ItemGroup>

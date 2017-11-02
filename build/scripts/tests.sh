@@ -5,58 +5,62 @@
 set -e
 set -u
 
-BUILD_CONFIGURATION=${1:-Debug}
+build_configuration=${1:-Debug}
 
-THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-source ${THIS_DIR}/build-utils.sh
+this_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${this_dir}"/build-utils.sh
 
-BINARIES_PATH=${THIS_DIR}/../../Binaries
-SRC_PATH=${THIS_DIR}/../..
-UNITTEST_DIR=${BINARIES_PATH}/${BUILD_CONFIGURATION}/UnitTests
-LOG_DIR=${BINARIES_PATH}/${BUILD_CONFIGURATION}/xUnitResults
-NUGET_DIR=${HOME}/.nuget/packages
-RUNTIME_ID=$(dotnet --info | awk '/RID:/{print $2;}')
-TARGET_FRAMEWORK=netcoreapp2.0
-XUNIT_CONSOLE_VERSION=$(get_package_version dotnet-xunit)
-XUNIT_CONSOLE=${NUGET_DIR}/dotnet-xunit/${XUNIT_CONSOLE_VERSION}/tools/${TARGET_FRAMEWORK}/xunit.console.dll
+root_path="$(get_repo_dir)"
+binaries_path="${root_path}"/Binaries
+unittest_dir="${binaries_path}"/"${build_configuration}"/UnitTests
+log_dir="${binaries_path}"/"${build_configuration}"/xUnitResults
+nuget_dir="${HOME}"/.nuget/packages
+runtime_id="$(dotnet --info | awk '/RID:/{print $2;}')"
+target_framework=netcoreapp2.0
+xunit_console_version="$(get_package_version dotnet-xunit)"
+xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/"${target_framework}"/xunit.console.dll
 
-echo Using $XUNIT_CONSOLE
+echo "Using ${xunit_console}"
 
 # Need to publish projects that have runtime assets before running tests
-NEED_PUBLISH=(
-    'src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj'
+need_publish=(
+    'src/Compilers/CSharp/Test/Symbol/CSharpCompilerSymbolTest.csproj'
 )
-for p in $NEED_PUBLISH
+
+for project in "${need_publish[@]}"
 do
-    echo Publishing ${p}
-    dotnet publish --no-restore ${SRC_PATH}/${p} -p:RuntimeIdentifier=${RUNTIME_ID} -p:TargetFramework=${TARGET_FRAMEWORK} -p:SelfContained=true
+    echo "Publishing ${project}"
+    dotnet publish --no-restore "${root_path}"/"${project}" -r "${runtime_id}" -f "${target_framework}" -p:SelfContained=true
 done
 
 # Discover and run the tests
-mkdir -p ${LOG_DIR}
-pushd ${UNITTEST_DIR}
+mkdir -p "${log_dir}"
 
-for d in *
+for test_path in "${unittest_dir}"/*/"${target_framework}"
 do
-    TEST_PATH=${UNITTEST_DIR}/${d}/${TARGET_FRAMEWORK}
-    PUBLISH_TEST_PATH=${TEST_PATH}/${RUNTIME_ID}/publish
-    if [ -d ${PUBLISH_TEST_PATH} ]
+    publish_test_path="${test_path}"/"${runtime_id}"/publish
+    if [[ -d "${publish_test_path}" ]]
     then
-        TEST_PATH=${PUBLISH_TEST_PATH}
+        test_path="${publish_test_path}"
     fi
 
-    pushd $TEST_PATH
-    FILE_NAME=$(ls *.UnitTests.dll)
-    LOG_NAME="${FILE_NAME%.*}.xml"
-    echo Running ${TEST_PATH}/${FILE_NAME}
-    dotnet exec --depsfile "${FILE_NAME%.*}.deps.json" --runtimeconfig "${FILE_NAME%.*}.runtimeconfig.json" ${XUNIT_CONSOLE} $FILE_NAME -xml ${LOG_DIR}/${LOG_NAME}
-    if [ $? -ne 0 ]; then
+    file_name=( "${test_path}"/*.UnitTests.dll )
+    log_file="${log_dir}"/"$(basename "${file_name%.*}.xml")"
+    deps_json="${file_name%.*}".deps.json
+    runtimeconfig_json="${file_name%.*}".runtimeconfig.json
+
+    # If the user specifies a test on the command line, only run that one
+    # "${2:-}" => take second arg, empty string if unset (regex always matches if empty)
+    if [[ ! "${file_name}" =~ "${2:-}" ]]
+    then
+        echo "Skipping ${file_name}"
+        continue
+    fi
+
+    echo Running "${file_name[@]}"
+    dotnet exec --depsfile "${deps_json}" --runtimeconfig "${runtimeconfig_json}" "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
+    if [[ $? -ne 0 ]]; then
         echo Unit test failed
         exit 1
     fi
-    popd
 done
-
-popd
-
-

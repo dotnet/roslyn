@@ -11,7 +11,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static bool IsRefOrOut(this IParameterSymbol symbol)
         {
-            return symbol.RefKind != RefKind.None;
+            switch(symbol.RefKind)
+            {
+                case RefKind.Ref:
+                case RefKind.Out:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public static IParameterSymbol RenameParameter(this IParameterSymbol parameter, string parameterName)

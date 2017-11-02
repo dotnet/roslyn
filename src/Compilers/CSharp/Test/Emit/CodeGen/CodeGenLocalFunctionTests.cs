@@ -31,6 +31,115 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
+        public void Repro481125()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+using System.Linq;
+
+public class C
+{
+    static void Main()
+    {
+        var c = new C();
+        Console.WriteLine(c.M(0).Count());
+        Console.WriteLine(c.M(1).Count());
+    }
+
+    public IQueryable<E> M(int salesOrderId)
+    {
+        using (var uow = new D())
+        {
+            return Local();
+
+            IQueryable<E> Local() => uow.ES.Where(so => so.Id == salesOrderId);
+        }
+    }
+}
+
+internal class D : IDisposable
+{
+    public IQueryable<E> ES => new[] { new E() }.AsQueryable();
+
+    public void Dispose() { }
+}
+
+public class E
+{
+    public int Id;
+}", references: new[] { LinqAssemblyRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"1
+0");
+        }
+
+        [Fact]
+        [WorkItem(22027, "https://github.com/dotnet/roslyn/issues/22027")]
+        public void Repro22027()
+        {
+            CompileAndVerify(@"
+class Program
+{
+static void Main(string[] args)
+{
+
+ }
+ public object TestLocalFn(object inp)
+ {
+     try
+     {
+         var sr = new object();
+         return sr;
+         void Local1()
+         {
+             var copy = inp;
+             Local2();
+         }
+         void Local2()
+         {
+
+         }
+     }
+     catch { throw; }
+ }
+}");
+        }
+
+        [Fact]
+        [WorkItem(21768, "https://github.com/dotnet/roslyn/issues/21768")]
+        public void Repro21768()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+using System.Linq;
+class C
+{
+    void Function(int someField) //necessary to have a parameter
+    {
+        using (IInterface db = null) //necessary to have this using statement
+        {
+            void LocalFunction() //necessary
+            {
+                var results =
+                    db.Query<Class1>() //need to call this method. using a constant array does not reproduce the bug.
+                    .Where(cje => cje.SomeField >= someField) //need expression tree here referencing parameter
+                    ;
+            }
+        }
+    }
+    interface IInterface : IDisposable
+    {
+        IQueryable<T> Query<T>();
+    }
+    class Class1
+    {
+        public int SomeField { get; set; }
+    }
+}", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
         [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
         public void Repro21811()
         {
@@ -4898,7 +5007,7 @@ class Program
 
         [Fact]
         [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
-        public void StructFrameInitUnnecesary()
+        public void StructFrameInitUnnecessary()
         {
             var c = CompileAndVerify(@"
     class Program

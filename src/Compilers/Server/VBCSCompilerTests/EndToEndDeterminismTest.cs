@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
+using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class EndToEndDeterminismTest : TestBase
     {
-        private string _flags = "/shared /deterministic+ /nologo /t:library /pdb:none";
+        private string _flags = "/deterministic+ /nologo /t:library /pdb:none";
 
         /// <summary>
         /// Compiles some source code and returns the bytes that were contained in the compiled DLL file.
@@ -19,31 +20,34 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// The default flags are "/shared /deterministic+ /nologo /t:library".
         /// </summary>
         /// <param name="source"> The source code for the program that will be compiled </param>
-        /// <param name="additionalFlags"> A string containing any additional compiler flags </param>
         /// <returns> An array of bytes that were read from the compiled DLL</returns>
-        private byte[] CompileAndGetBytes(string source, string additionalFlags, out string finalFlags)
+        private async Task<(byte[] assemblyBytes, string finalFlags)> CompileAndGetBytes(string source)
         {
             // Setup
             var tempDir = Temp.CreateDirectory();
             var srcFile = tempDir.CreateFile("test.cs").WriteAllText(source).Path;
             var outFile = srcFile.Replace("test.cs", "test.dll");
 
-            finalFlags = $"{ _flags } { additionalFlags } /pathmap:{tempDir.Path}=/";
             try
             {
-                var errorsFile = srcFile + ".errors";
-
-                // Compile
-                var result = ProcessUtilities.Run("cmd", $@"/C ""{CompilerServerUnitTests.CSharpCompilerClientExecutable}"" { finalFlags } { srcFile } /out:{ outFile } > { errorsFile }");
-                if (result.ExitCode != 0)
+                string finalFlags = null;
+                using (var serverData = ServerUtil.CreateServer())
                 {
-                    var errors = File.ReadAllText(errorsFile);
-                    AssertEx.Fail($"Deterministic compile failed \n stderr: { result.Errors } \n stdout:  { errors }");
+                    finalFlags = $"{ _flags } /shared:{ serverData.PipeName } /pathmap:{tempDir.Path}=/ /out:{ outFile } { srcFile }";
+                    var result = CompilerServerUnitTests.RunCommandLineCompiler(
+                        CompilerServerUnitTests.CSharpCompilerClientExecutable,
+                        finalFlags,
+                        currentDirectory: tempDir);
+                    if (result.ExitCode != 0)
+                    {
+                        AssertEx.Fail($"Deterministic compile failed \n stdout:  { result.Output }");
+                    }
+                    await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
                 }
                 var bytes = File.ReadAllBytes(outFile);
                 AssertEx.NotNull(bytes);
 
-                return bytes;
+                return (bytes, finalFlags);
             }
             finally
             {
@@ -56,14 +60,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// Runs CompileAndGetBytes twice and compares the output. 
         /// </summary>
         /// <param name="source"> The source of the program that will be compiled </param>
-        /// <param name="additionalFlags"> A string containing any additional compiler flags </param>
-        private void RunDeterministicTest(string source, string additionalFlags = "")
+        private async Task RunDeterministicTest(string source)
         {
-            string finalFlags1;
-            string finalFlags2;
-
-            var first = CompileAndGetBytes(source, additionalFlags, out finalFlags1);
-            var second = CompileAndGetBytes(source, additionalFlags, out finalFlags2);
+            var (first, finalFlags1) = await CompileAndGetBytes(source);
+            var (second, finalFlags2) = await CompileAndGetBytes(source);
             Assert.Equal(first.Length, second.Length);
             for (int i = 0; i < first.Length; i++)
             {
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        [Fact]
-        public void HelloWorld()
+        [ConditionalFact(typeof(WindowsOnly))]
+        public async Task HelloWorld()
         {
             var source = @"using System;
 class Hello
@@ -86,11 +86,11 @@ class Hello
     }
 }";
 
-            RunDeterministicTest(source);
+            await RunDeterministicTest(source);
         }
 
-        [Fact]
-        public void CallerInfo()
+        [ConditionalFact(typeof(WindowsOnly))]
+        public async Task CallerInfo()
         {
             var source = @"using System;
 class CallerInfo {
@@ -112,11 +112,11 @@ class CallerInfo {
         DoProcessing();
     }
 }";
-            RunDeterministicTest(source);
+            await RunDeterministicTest(source);
         }
 
-        [Fact]
-        public void AnonType()
+        [ConditionalFact(typeof(WindowsOnly))]
+        public async Task AnonType()
         {
             var source = @"using System;
 class AnonType {
@@ -130,11 +130,11 @@ class AnonType {
         Console.WriteLine(color);
     }
 }";
-            RunDeterministicTest(source);
+            await RunDeterministicTest(source);
         }
 
-        [Fact]
-        public void LineDirective()
+        [ConditionalFact(typeof(WindowsOnly))]
+        public async Task LineDirective()
         {
             var source = @"using System;
 class CallerInfo {
@@ -156,7 +156,7 @@ class CallerInfo {
         TraceMessage(""back in main"");
     }
 }";
-            RunDeterministicTest(source);
+            await RunDeterministicTest(source);
         }
     }
 }

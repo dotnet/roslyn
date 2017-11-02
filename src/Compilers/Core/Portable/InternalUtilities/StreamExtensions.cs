@@ -50,7 +50,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Reads all bytes from the current postion of the given stream to its end.
+        /// Reads all bytes from the current position of the given stream to its end.
         /// </summary>
         public static byte[] ReadAllBytes(this Stream stream)
         {
