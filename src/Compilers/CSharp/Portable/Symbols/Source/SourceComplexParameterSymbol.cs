@@ -943,7 +943,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsMetadataIn => GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
+        internal sealed override bool IsMetadataIn
+        {
+            get
+            {
+                if (RefKind == RefKind.In && ContainingSymbol.IsExtern)
+                {
+                    return true;
+                }
+
+                return GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
+            }
+        }
 
         internal sealed override bool IsMetadataOut
         {

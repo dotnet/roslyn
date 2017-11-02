@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataIn
         {
-            get { return false; }
+            get { return RefKind == RefKind.In && ContainingSymbol.IsExtern; }
         }
 
         internal override bool IsMetadataOut
