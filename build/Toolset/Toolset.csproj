@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>Toolset_DoNetUse</AssemblyName>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7;ubuntu.14.04;osx.10.10</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win7;linux;osx</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
