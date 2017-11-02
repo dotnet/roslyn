@@ -1545,8 +1545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AttributeCtorInParameter = 8358,
 
         #region diagnostics for FilterIsConstant warning message fix
-        WRN_FilterIsConstantFalse = 8355,
-        WRN_FilterIsConstantFalseRedundantTryCatch = 8356,
+        WRN_FilterIsConstantFalse = 8357,
+        WRN_FilterIsConstantFalseRedundantTryCatch = 8358,
         #endregion diagnostics for FilterIsConstant warning message fix
     }
 }
