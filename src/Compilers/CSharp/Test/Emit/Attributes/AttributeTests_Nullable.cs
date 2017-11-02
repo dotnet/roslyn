@@ -218,6 +218,53 @@ class C
         }
 
         [Fact]
+        public void EmitAttribute_NoNullable()
+        {
+            var source =
+@"public class C
+{
+    public object F = new object();
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                var type = assembly.GetTypeByMetadataName("C");
+                var field = (FieldSymbol)type.GetMembers("F").Single();
+                AssertNoNullableAttribute(field.GetAttributes());
+                AssertNoNullableAttribute(module.GetAttributes());
+                AssertAttributes(assembly.GetAttributes(),
+                    "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute");
+            });
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Should generate [module: Nullable].
+        [Fact(Skip = "TODO")]
+        public void EmitAttribute_Module()
+        {
+            var source =
+@"public class C
+{
+    public object? F = new object();
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                var type = assembly.GetTypeByMetadataName("C");
+                var field = (FieldSymbol)type.GetMembers("F").Single();
+                AssertNullableAttribute(field.GetAttributes());
+                AssertNullableAttribute(module.GetAttributes());
+                AssertAttributes(assembly.GetAttributes(),
+                    "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute");
+            });
+        }
+
+        [Fact]
         public void EmitAttribute_BaseClass()
         {
             var source =
@@ -565,7 +612,7 @@ class B : A, I
         }
 
         [Fact]
-        public void EmitAttribute_Iterator()
+        public void EmitAttribute_Iterator_01()
         {
             var source =
 @"using System.Collections.Generic;
@@ -583,12 +630,37 @@ class C
                 symbolValidator: module =>
                 {
                     var property = module.ContainingAssembly.GetTypeByMetadataName("C").GetTypeMember("<F>d__0").GetProperty("System.Collections.Generic.IEnumerator<System.Object>.Current");
-                    // Generated iterator methods have no [Nullable] attributes.
-                    // Since the methods are only called through IEnumerable<T>
-                    // or IEnumerator<T>, that is not an issue.
                     AssertNoNullableAttribute(property.GetAttributes());
                     var method = property.GetMethod;
+                    // PROTOTYPE(NullableReferenceTypes): No synthesized attributes for this
+                    // case which is inconsisten with IEnumerable<object?[]> in test below.
                     AssertNoNullableAttribute(method.GetReturnTypeAttributes());
+                    AssertAttributes(method.GetAttributes(), "System.Diagnostics.DebuggerHiddenAttribute");
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_Iterator_02()
+        {
+            var source =
+@"using System.Collections.Generic;
+class C
+{
+    static IEnumerable<object?[]> F()
+    {
+        yield break;
+    }
+}";
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular8,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var property = module.ContainingAssembly.GetTypeByMetadataName("C").GetTypeMember("<F>d__0").GetProperty("System.Collections.Generic.IEnumerator<System.Object[]>.Current");
+                    AssertNoNullableAttribute(property.GetAttributes());
+                    var method = property.GetMethod;
+                    AssertNullableAttribute(method.GetReturnTypeAttributes());
                     AssertAttributes(method.GetAttributes(), "System.Diagnostics.DebuggerHiddenAttribute");
                 });
         }

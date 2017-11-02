@@ -6391,8 +6391,40 @@ public class Test
             Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
         }
 
+        // PROTOTYPE(NullableReferenceTypes): EnsureNullableAttributeExists is not called.
+        [Fact(Skip = "TODO")]
+        public void EmitNullableAttribute_ExpressionType()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("new object?[0]", out error, testData);
+                Assert.Null(error);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+ @"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""object""
+  IL_0006:  ret
+}");
+                Assert.NotNull(GetNullableAttributeIfAny(methodData.Method));
+            });
+        }
+
         [Fact]
-        public void EmitAttribute_LambdaParameters()
+        public void EmitNullableAttribute_LambdaParameters()
         {
             var source =
 @"delegate T D<T>(T t);
