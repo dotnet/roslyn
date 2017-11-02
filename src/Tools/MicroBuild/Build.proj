@@ -11,6 +11,8 @@
     <ScriptArgs Condition="'$(RoslynNuGetApiKey)' != ''">$(ScriptArgs) -myGetApiKey $(RoslynNuGetApiKey)</ScriptArgs>
     <ScriptArgs Condition="'$(RoslynGitHubToken)' != ''">$(ScriptArgs) -gitHubUserName $(RoslynGitHubUserName) -gitHubToken $(RoslynGitHubToken) -gitHubEmail $(RoslynGitHubEmail)</ScriptArgs>
     <ScriptArgs Condition="'$(PB_SkipTests)' != 'true'">$(ScriptArgs) -testDesktop</ScriptArgs>
+    <ScriptArgs Condition="'$(PB_SignType)' == 'real'">$(ScriptArgs) -signType "real"</ScriptArgs>
+    <ScriptArgs Condition="'$(PB_SignType)' == 'test'">$(ScriptArgs) -signType "test"</ScriptArgs>
     <ScriptArgs Condition="$(PB_PublishType.Contains('vsts'))">$(ScriptArgs) -publish</ScriptArgs>
   </PropertyGroup>
 
