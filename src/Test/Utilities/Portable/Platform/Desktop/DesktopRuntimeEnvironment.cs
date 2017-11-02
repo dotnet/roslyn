@@ -12,10 +12,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using static Roslyn.Test.Utilities.RuntimeUtilities; 
+using static Roslyn.Test.Utilities.RuntimeUtilities;
 
 namespace Roslyn.Test.Utilities.Desktop
 {
@@ -291,9 +292,36 @@ namespace Roslyn.Test.Utilities.Desktop
 
         public void PeVerify()
         {
+#if NET46 || NET461
+            var emitData = GetEmitData();
+
+            // Verify with ILVerify
+            var x = new ILVerify.Verifier();
+
+            foreach (var module in emitData.AllModuleData)
+            {
+                x.AddModule(module.Image);
+            }
+
+            var builder = PooledStringBuilder.GetInstance();
             try
             {
-                var emitData = GetEmitData();
+                bool success = x.VerifyModules(new[] { emitData.MainModule.SimpleName }, builder); // TODO using SimpleName instead of FullName
+                if (!success)
+                {
+                    string message = builder.ToStringAndFree();
+                    builder = null;
+                    throw new IlVerifyException(message, emitData.MainModule.SimpleName);
+                }
+            }
+            finally
+            {
+                builder?.Free();
+            }
+#endif
+            // Verify with PEVerify
+            try
+            {
                 emitData.RuntimeData.PeverifyRequested = true;
                 emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName });
             }

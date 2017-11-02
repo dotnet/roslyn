@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 // Unsafe code might not verify, so don't try.
                 var csharpOptions = compilation.Options as CSharp.CSharpCompilationOptions;
-                verify = (csharpOptions == null || !csharpOptions.AllowUnsafe) ? Verification.Passes : Verification.Skipped;
+                // verify = (csharpOptions == null || !csharpOptions.AllowUnsafe) ? Verification.Passes : Verification.Skipped;
             }
 
             if (sourceSymbolValidator != null)

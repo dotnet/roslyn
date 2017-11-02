@@ -23,6 +23,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestILVerify()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        var obj = new C1();
+        System.Console.WriteLine(obj.field.ToString());
+    }
+}
+
+class C1
+{
+    public readonly S1 field;
+}
+
+struct S1
+{
+}
+";
+            CompileAndVerify(source);
+            // PEVerify catches the problem, but not ILVerify
+        }
+
+        [Fact]
+        public void TestILVerify2()
+        {
+            var source =
+@"
+unsafe class C
+{
+   public int* M(int* x)
+   {
+      return x;
+   }
+}
+";
+            CompileAndVerify(source, options: TestOptions.UnsafeDebugDll);
+            // IlVerify failed for assembly '17962445-862f-4904-8dd9-9625c43bc81d':
+            // [IL]: Error: [17962445-862f-4904-8dd9-9625c43bc81d : C::M([mscorlib]System.Int32*)][offset 0x00000001] Unmanaged pointers are not a verifiable type.
+        }
+
+        [Fact]
         public void TestSimpleDeclarations()
         {
             var text1 = @"
