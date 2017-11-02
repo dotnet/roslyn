@@ -282,8 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         protected override IMethodSymbol GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken)
         {
-            if (constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) is ConstructorDeclarationSyntax constructorDeclarationSyntax
-                && constructorDeclarationSyntax.Initializer.IsKind(SyntaxKind.ThisConstructorInitializer))
+            if (constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) is ConstructorDeclarationSyntax constructorDeclarationSyntax &&
+                constructorDeclarationSyntax.Initializer.IsKind(SyntaxKind.ThisConstructorInitializer))
             {
                 return semanticModel.GetSymbolInfo(constructorDeclarationSyntax.Initializer, cancellationToken).Symbol as IMethodSymbol;
             }

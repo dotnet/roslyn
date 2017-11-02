@@ -29,15 +29,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
         protected bool CanDelegeteThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken = default)
         {
-            var constructorsCount = delegatedConstructor.ContainingType.Constructors.Length;
             var currentConstructor = GetCurrentConstructor(document.SemanticModel, state.Token, cancellationToken);
-            if (currentConstructor == delegatedConstructor)
+            if (currentConstructor.Equals(delegatedConstructor))
             {
                 return false;
             }
 
             // We need ensure that delegating constructor won't cause circular dependency.
             // The chain of dependency can not exceed the number for constructors
+            var constructorsCount = delegatedConstructor.ContainingType.Constructors.Count(c => !c.IsStaticConstructor());
             for (var i = 0; i < constructorsCount; i++)
             {
                 delegatedConstructor = GetDelegatedConstructor(document.SemanticModel, delegatedConstructor, cancellationToken);
