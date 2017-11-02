@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public partial class StaticNullChecking : CSharpTestBase
+    public class StaticNullChecking_Fields : CSharpTestBase
     {
         [Fact]
         public void NoNonNullWarnings_CSharp7()
@@ -602,7 +602,26 @@ class C
         [Fact]
         public void LocalFunction()
         {
-            // PROTOTYPE(NullableReferenceTypes):
+            var source =
+@"#pragma warning disable 0169
+class C
+{
+    private object F;
+    private object G;
+    C()
+    {
+        void L(object o)
+        {
+            F = o;
+        }
+        L(new object());
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,5): warning CS8618: Non-nullable field 'G' is uninitialized.
+                //     C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "G").WithLocation(6, 5));
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool badRegion = false;
-                walker.Analyze(ref badRegion, null);
+                walker.Analyze(ref badRegion, diagnostics: null);
             }
             finally
             {
