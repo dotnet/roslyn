@@ -170,55 +170,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingSlot;
         }
 
-        protected virtual bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
+        protected abstract bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member);
+
+        protected Symbol GetNonFieldSymbol(int slot)
         {
-            receiver = null;
-            member = null;
-
-            switch (expr.Kind)
+            VariableIdentifier variableId = variableBySlot[slot];
+            while (variableId.ContainingSlot > 0)
             {
-                case BoundKind.FieldAccess:
-                    {
-                        var fieldAccess = (BoundFieldAccess)expr;
-                        var fieldSymbol = fieldAccess.FieldSymbol;
-                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixed)
-                        {
-                            return false;
-                        }
-                        member = fieldSymbol;
-                        receiver = fieldAccess.ReceiverOpt;
-                        break;
-                    }
-                case BoundKind.EventAccess:
-                    {
-                        var eventAccess = (BoundEventAccess)expr;
-                        var eventSymbol = eventAccess.EventSymbol;
-                        if (eventSymbol.IsStatic || !eventSymbol.HasAssociatedField)
-                        {
-                            return false;
-                        }
-                        member = eventSymbol.AssociatedField;
-                        receiver = eventAccess.ReceiverOpt;
-                        break;
-                    }
-                case BoundKind.PropertyAccess:
-                    {
-                        var propAccess = (BoundPropertyAccess)expr;
-                        var propSymbol = propAccess.PropertySymbol;
-                        if (propSymbol.IsStatic)
-                        {
-                            return false;
-                        }
-                        member = (propSymbol as SourcePropertySymbol)?.BackingField;
-                        receiver = propAccess.ReceiverOpt;
-                        break;
-                    }
+                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property);
+                variableId = variableBySlot[variableId.ContainingSlot];
             }
-
-            return (object)member != null &&
-                (object)receiver != null &&
-                receiver.Kind != BoundKind.TypeExpression &&
-                MayRequireTrackingReceiverType(receiver.Type);
+            return variableId.Symbol;
         }
 
         /// <summary>
@@ -307,7 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(((MethodSymbol)s).MethodKind == MethodKind.LocalFunction);
                     return null;
                 case SymbolKind.Property:
-                    Debug.Assert(s.ContainingType.IsAnonymousType);
                     return ((PropertySymbol)s).Type;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(s.Kind);

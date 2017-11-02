@@ -1874,19 +1874,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitFieldAccessInternal(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
         {
-            if (MayRequireTracking(receiverOpt, fieldSymbol) || (object)fieldSymbol != null && fieldSymbol.IsFixed)
+            bool asLvalue = fieldSymbol.IsFixed ||
+                !fieldSymbol.IsStatic && fieldSymbol.ContainingType.TypeKind == TypeKind.Struct;
+            VisitFieldReceiver(receiverOpt, fieldSymbol, asLvalue);
+        }
+
+        protected virtual void VisitFieldReceiver(BoundExpression receiverOpt, FieldSymbol fieldSymbol, bool asLvalue)
+        {
+            if (asLvalue)
             {
                 VisitLvalue(receiverOpt);
             }
             else
             {
-                VisitFieldReceiverAsRvalue(receiverOpt, fieldSymbol);
+                VisitRvalue(receiverOpt);
             }
-        }
-
-        protected virtual void VisitFieldReceiverAsRvalue(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
-        {
-            VisitRvalue(receiverOpt);
         }
 
         public override BoundNode VisitFieldInfo(BoundFieldInfo node)

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Parameter ||
                     (symbol as MethodSymbol)?.MethodKind == MethodKind.LocalFunction ||
-                    (symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType));
+                    symbol.Kind == SymbolKind.Property);
                 Symbol = symbol;
                 ContainingSlot = containingSlot;
             }

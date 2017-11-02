@@ -704,17 +704,56 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
         {
-            if (expr.Kind == BoundKind.PropertyAccess)
+            receiver = null;
+            member = null;
+
+            switch (expr.Kind)
             {
-                var propAccess = (BoundPropertyAccess)expr;
-                if (!Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentMethodOrLambda))
-                {
-                    receiver = null;
-                    member = null;
-                    return false;
-                }
+                case BoundKind.FieldAccess:
+                    {
+                        var fieldAccess = (BoundFieldAccess)expr;
+                        var fieldSymbol = fieldAccess.FieldSymbol;
+                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixed)
+                        {
+                            return false;
+                        }
+                        member = fieldSymbol;
+                        receiver = fieldAccess.ReceiverOpt;
+                        break;
+                    }
+                case BoundKind.EventAccess:
+                    {
+                        var eventAccess = (BoundEventAccess)expr;
+                        var eventSymbol = eventAccess.EventSymbol;
+                        if (eventSymbol.IsStatic)
+                        {
+                            return false;
+                        }
+                        member = eventSymbol.AssociatedField;
+                        receiver = eventAccess.ReceiverOpt;
+                        break;
+                    }
+                case BoundKind.PropertyAccess:
+                    {
+                        var propAccess = (BoundPropertyAccess)expr;
+                        if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentMethodOrLambda))
+                        {
+                            var propSymbol = propAccess.PropertySymbol;
+                            if (propSymbol.IsStatic)
+                            {
+                                return false;
+                            }
+                            member = (propSymbol as SourcePropertySymbol)?.BackingField;
+                            receiver = propAccess.ReceiverOpt;
+                        }
+                        break;
+                    }
             }
-            return base.TryGetReceiverAndMember(expr, out receiver, out member);
+
+            return (object)member != null &&
+                (object)receiver != null &&
+                receiver.Kind != BoundKind.TypeExpression &&
+                MayRequireTrackingReceiverType(receiver.Type);
         }
 
         #endregion Tracking reads/writes of variables for warnings
@@ -938,17 +977,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(unassignedSlot > 0);
             return this.State.IsAssigned(unassignedSlot);
-        }
-
-        protected Symbol GetNonFieldSymbol(int slot)
-        {
-            VariableIdentifier variableId = variableBySlot[slot];
-            while (variableId.ContainingSlot > 0)
-            {
-                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field);
-                variableId = variableBySlot[variableId.ContainingSlot];
-            }
-            return variableId.Symbol;
         }
 
         private Symbol UseNonFieldSymbolUnsafely(BoundExpression expression)

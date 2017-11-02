@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public partial class StaticNullChecking : CSharpTestBase
+    public class StaticNullChecking_TypeInference : CSharpTestBase
     {
         // PROTOTYPE(NullableReferenceTypes): `default(string)` should be non-nullable string.
         [Fact(Skip = "TODO")]
