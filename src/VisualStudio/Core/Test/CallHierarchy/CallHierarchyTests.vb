@@ -177,7 +177,7 @@ public class D : I
 
         <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
-        Public Sub TestCallHierarchyCrossProjectNavigation()
+        Public Sub TestCallHierarchyCrossProjectForImplements()
             Dim input =
 <Workspace>
     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -209,6 +209,44 @@ class CSharpIt : IChangeSignatureOptionsService
             testState.SearchRoot(root,
                                  String.Format(EditorFeaturesResources.Implements_0, "GetChangeSignatureOptions"),
                                  Sub(c)
+                                     Assert.Equal("Assembly2", c.Project.Name)
+                                 End Sub,
+                                 CallHierarchySearchScope.EntireSolution)
+        End Sub
+
+        <WorkItem(981869, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981869")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        Public Sub TestCallHierarchyCrossProjectForCallsTo()
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+        <Document>
+public class C
+{
+    public static void $$M() { }
+}
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+using System;
+
+class D
+{
+    public void M2() { C.M(); }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim testState = CallHierarchyTestState.Create(input)
+            Dim root = testState.GetRoot()
+            testState.SearchRoot(root,
+                                 String.Format(EditorFeaturesResources.Calls_To_0, "M"),
+                                 Sub(c)
+                                     ' The child items should be in the second project
                                      Assert.Equal("Assembly2", c.Project.Name)
                                  End Sub,
                                  CallHierarchySearchScope.EntireSolution)

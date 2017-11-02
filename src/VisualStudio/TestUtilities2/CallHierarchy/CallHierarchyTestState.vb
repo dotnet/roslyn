@@ -138,6 +138,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         End Sub
 
         Private Sub SearchRoot(root As CallHierarchyItem, displayName As String, callback As MockSearchCallback, scope As CallHierarchySearchScope, documents As IImmutableSet(Of Document))
+            ' Assert we have the category before we try to find it to give better diagnosing
+            Assert.Contains(displayName, root.SupportedSearchCategories.Select(Function(c) c.DisplayName))
+
             Dim category = root.SupportedSearchCategories.First(Function(c) c.DisplayName = displayName).Name
             If documents IsNot Nothing Then
                 root.StartSearchWithDocuments(category, scope, callback, documents)
@@ -179,8 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
         Friend Sub VerifyResultName(root As CallHierarchyItem, searchCategory As String, expectedCallers As String(), Optional scope As CallHierarchySearchScope = CallHierarchySearchScope.EntireSolution, Optional documents As IImmutableSet(Of Document) = Nothing)
             SearchRoot(root, searchCategory, Sub(c As ICallHierarchyNameItem)
-                                                 Assert.True(expectedCallers.Any())
-                                                 Assert.True(expectedCallers.Contains(ConvertToName(c)))
+                                                 Assert.Contains(ConvertToName(c), expectedCallers)
                                              End Sub,
                 scope,
                 documents)
@@ -188,8 +190,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
         Friend Sub VerifyResult(root As CallHierarchyItem, searchCategory As String, expectedCallers As String(), Optional scope As CallHierarchySearchScope = CallHierarchySearchScope.EntireSolution, Optional documents As IImmutableSet(Of Document) = Nothing)
             SearchRoot(root, searchCategory, Sub(c As CallHierarchyItem)
-                                                 Assert.True(expectedCallers.Any())
-                                                 Assert.True(expectedCallers.Contains(ConvertToName(c)))
+                                                 Assert.Contains(ConvertToName(c), expectedCallers)
                                              End Sub,
                 scope,
                 documents)

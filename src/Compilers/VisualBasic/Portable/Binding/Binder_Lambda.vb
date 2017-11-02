@@ -524,18 +524,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     localBuilder.Add(localForFunctionValue)
 
                     Dim returnLabel = New BoundLabelStatement(endSyntax, bodyBinder.GetReturnLabel())
-                    Dim boundLocal = New BoundLocal(endSyntax, localForFunctionValue, isLValue:=False, type:=localForFunctionValue.Type)
+                    Dim boundLocal = New BoundLocal(endSyntax, localForFunctionValue, isLValue:=False, type:=localForFunctionValue.Type).MakeCompilerGenerated()
                     Dim returnStmt = New BoundReturnStatement(endSyntax, boundLocal, Nothing, Nothing)
 
                     If lambdaSyntax.Kind = SyntaxKind.SingleLineFunctionLambdaExpression OrElse endSyntax Is lambdaSyntax Then
                         returnLabel.SetWasCompilerGenerated()
-                        boundLocal.SetWasCompilerGenerated()
                         returnStmt.SetWasCompilerGenerated()
                     End If
 
                     statements.Add(returnLabel)
                     statements.Add(returnStmt)
-
 
                 Case SyntaxKind.SingleLineSubLambdaExpression,
                     SyntaxKind.MultiLineSubLambdaExpression
