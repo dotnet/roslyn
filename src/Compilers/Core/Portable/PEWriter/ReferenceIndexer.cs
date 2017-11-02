@@ -119,6 +119,10 @@ namespace Microsoft.Cci
                         }
                     }
                 }
+                else if (!metadataWriter.MetadataOnly)
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
         }
 
