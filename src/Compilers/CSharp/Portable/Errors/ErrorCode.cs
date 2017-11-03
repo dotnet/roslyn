@@ -1545,6 +1545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion7_3 = 8360,
         #endregion diagnostics introduced for C# 7.3
 
-        // Note: you will need to re-generate compiler code after touching entries that are not ERR_* (build\scripts\generate-compiler-code.cmd)
+        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
 }
