@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            if (!IsReferenceOrNullableType(localOrParameter))
+            if (!localOrParameter.GetSymbolType().CanAddNullCheck())
             {
                 return;
             }
@@ -285,22 +285,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             return false;
-        }
-
-        private bool IsReferenceOrNullableType(ISymbol symbol)
-        {
-            ITypeSymbol type = null;
-            if (symbol is ILocalSymbol local)
-            {
-                type = local.Type; 
-            }
-
-            if (symbol is IParameterSymbol parameter)
-            {
-                type = parameter.Type;
-            }
-
-            return type != null && (type.IsReferenceType || type.IsNullable());
         }
 
         private bool TryGetLocalOrParameterSymbol(
