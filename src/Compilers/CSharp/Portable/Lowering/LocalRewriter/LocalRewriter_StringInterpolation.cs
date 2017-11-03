@@ -112,16 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
         {
-            //
-            // We lower an interpolated string into an invocation of String.Format.  For example, we translate the expression
-            //
-            //     $"Jenny don\'t change your number { 8675309 }"
-            //
-            // into
-            //
-            //     String.Format("Jenny don\'t change your number {0}", new object[] { 8675309 })
-            //
-
             Debug.Assert(node.Type.SpecialType == SpecialType.System_String); // if target-converted, we should not get here.
 
             BoundExpression result;
@@ -136,32 +126,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int length = node.Parts.Length;
                 if (length == 0)
                 {
+                    // $"" -> ""
                     return _factory.StringLiteral("");
                 }
 
-                result = null;
-                for (int i = 0; i < length; i++)
+                if (length == 1)
                 {
-                    var part = node.Parts[i];
+                    var part = node.Parts[0];
+
                     if (part is BoundStringInsert fillin)
                     {
-                        // this is one of the filled-in expressions
+                        // $"{part}"
+                        // this is the filled-in expression
                         part = fillin.Value;
+
+                        if (part.ConstantValue != null)
+                        {
+                            if (part.ConstantValue.StringValue == null)
+                            {
+                                return _factory.StringLiteral("");
+                            }
+                            else
+                            {
+                                result = part;
+                            }
+                        }
+                        else if (part is BoundBinaryOperator bbo && bbo.OperatorKind == BinaryOperatorKind.StringConcatenation)
+                        {
+                            // $"{a + b}" -> a + b
+                            result = part;
+                        }
+                        else
+                        {
+                            // TODO don't test for null if we know the expression is a string concatenation
+                            result = _factory.Coalesce(part, _factory.StringLiteral(""));
+                        }
                     }
                     else
                     {
-                        // this is one of the literal parts
-                        part = _factory.StringLiteral(Unescape(part.ConstantValue.StringValue));
+                        // $"abc" -> "abc"
+                        // this is the literal part
+                        return _factory.StringLiteral(Unescape(part.ConstantValue.StringValue));
                     }
+                }
+                else
+                {
+                    result = null;
+                    for (int i = 0; i < length; i++)
+                    {
+                        var part = node.Parts[i];
+                        if (part is BoundStringInsert fillin)
+                        {
+                            // this is one of the filled-in expressions
+                            part = fillin.Value;
+                        }
+                        else
+                        {
+                            // this is one of the literal parts
+                            part = _factory.StringLiteral(Unescape(part.ConstantValue.StringValue));
+                        }
 
-                    result = result == null ?
-                        part :
-                        _factory.Binary(BinaryOperatorKind.StringConcatenation, node.Type, result, part);
+                        result = result == null ?
+                            part :
+                            _factory.Binary(BinaryOperatorKind.StringConcatenation, node.Type, result, part);
+                    }
                 }
             }
             else
             {
-                // This is the general case, we lower to a string.Format call
+                //
+                // We lower an interpolated string into an invocation of String.Format.  For example, we translate the expression
+                //
+                //     $"Jenny don\'t change your number { 8675309 }"
+                //
+                // into
+                //
+                //     String.Format("Jenny don\'t change your number {0}", new object[] { 8675309 })
+                //
+
                 MakeInterpolatedStringFormat(node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions);
 
                 // The normal pattern for lowering is to lower subtrees before the enclosing tree. However we cannot lower
