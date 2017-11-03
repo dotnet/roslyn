@@ -1540,5 +1540,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
 
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
+
+        #region diagnostics introduced for C# 7.3
+        ERR_FeatureNotAvailableInVersion7_3 = 8360,
+        #endregion diagnostics introduced for C# 7.3
+
+        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
 }
