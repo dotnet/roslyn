@@ -21,11 +21,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -50,13 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// unused variables.
         /// </summary>
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
-
-        /// <summary>
-        /// The inferred nullability at the point of declaration of var locals.
-        /// </summary>
-        // PROTOTYPE(NullableReferenceTypes): Does this need to
-        // move to LocalState so it participates in merging?
-        private readonly PooledDictionary<LocalSymbol, bool?> _variableIsNullable = PooledDictionary<LocalSymbol, bool?>.GetInstance();
 
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
@@ -118,7 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
-            _variableIsNullable.Free();
             _usedVariables.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
@@ -136,12 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
             bool trackClassFields = false)
-            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments)
+            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments, trackClassFields: trackClassFields)
         {
-            Debug.Assert(!trackClassFields);
-
-
-
             this.initiallyAssignedVariables = null;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this.currentMethodOrLambda = member as MethodSymbol;
@@ -157,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments = false,
             HashSet<Symbol> initiallyAssignedVariables = null)
-            : base(compilation, member, node, emptyStructs ?? new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments)
+            : base(compilation, member, node, emptyStructs ?? new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments, trackClassFields: false)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;

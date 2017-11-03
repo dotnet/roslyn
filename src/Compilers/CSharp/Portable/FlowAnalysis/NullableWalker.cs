@@ -21,6 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class NullableWalker : DataFlowPassBase<NullableWalker.LocalState>
     {
         /// <summary>
+        /// The inferred nullability at the point of declaration of var locals.
+        /// </summary>
+        // PROTOTYPE(NullableReferenceTypes): Does this need to
+        // move to LocalState so it participates in merging?
+        private readonly PooledDictionary<LocalSymbol, bool?> _variableIsNullable = PooledDictionary<LocalSymbol, bool?>.GetInstance();
+
+        /// <summary>
         /// The current source assembly.
         /// </summary>
         private readonly SourceAssemblySymbol _sourceAssembly;
@@ -36,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
+            _variableIsNullable.Free();
             _placeholderLocals?.Free();
             base.Free();
         }
@@ -45,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol member,
             BoundNode node,
             bool includeNonNullableWarnings)
-            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: false)
+            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: false, trackClassFields: false)
         {
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this.currentMethodOrLambda = member as MethodSymbol;
@@ -212,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int slot = GetOrCreateSlot(symbol);
                         if (written)
                         {
-                            TrackNullableStateForAssignment(node, symbol, slot, value, valueIsNotNull);
+                            TrackNullableStateForAssignment(node, symbol, slot, value, valueIsNotNull, inferNullability: local.DeclaredType.InferredType);
                         }
                         break;
                     }
@@ -376,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void TrackNullableStateForAssignment(BoundNode node, Symbol assignmentTarget, int slot, BoundExpression value, bool? valueIsNotNull)
+        private void TrackNullableStateForAssignment(BoundNode node, Symbol assignmentTarget, int slot, BoundExpression value, bool? valueIsNotNull, bool inferNullability = false)
         {
             Debug.Assert(!IsConditionalState);
             if (this.State.Reachable)
@@ -388,9 +396,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (targetType.IsReferenceType)
                 {
+                    var local = assignmentTarget as LocalSymbol;
+                    if (inferNullability)
+                    {
+                        Debug.Assert((object)local != null);
+                        _variableIsNullable[local] = !valueIsNotNull;
+                    }
+
+                    bool? targetIsNullable;
+                    if ((object)local == null || !_variableIsNullable.TryGetValue(local, out targetIsNullable))
+                    {
+                        targetIsNullable = targetType.IsNullable;
+                    }
+
                     bool isByRefTarget = IsByRefTarget(slot);
 
-                    if (targetType.IsNullable == false)
+                    if (targetIsNullable == false)
                     {
                         if (valueIsNotNull == false && (value == null || !CheckNullAsNonNullableReference(value)))
                         {
@@ -404,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.State[slot] = isByRefTarget ?
                             // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                             // regardless of what value is being assigned. 
-                            (targetType.IsNullable == true) ? (bool?)false : null :
+                            (targetIsNullable == true) ? (bool?)false : null :
                             valueIsNotNull;
                     }
 

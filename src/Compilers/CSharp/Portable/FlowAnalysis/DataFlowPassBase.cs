@@ -40,8 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol member,
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
-            bool trackUnassignments)
-            : base(compilation, member, node, trackUnassignments)
+            bool trackUnassignments,
+            bool trackClassFields)
+            : base(compilation, member, node, trackUnassignments: trackUnassignments, trackClassFields: trackClassFields)
         {
             _emptyStructTypeCache = emptyStructs;
         }
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode lastInRegion,
             bool trackRegions,
             bool trackUnassignments)
-            : base(compilation, member, node, firstInRegion, lastInRegion, trackRegions, trackUnassignments)
+            : base(compilation, member, node, firstInRegion, lastInRegion, trackRegions: trackRegions, trackUnassignments: trackUnassignments)
         {
             _emptyStructTypeCache = emptyStructs;
         }
@@ -217,8 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)member != null &&
                 (object)receiver != null &&
                 receiver.Kind != BoundKind.TypeExpression &&
-                (object)receiver.Type != null &&
-                receiver.Type.TypeKind == TypeKind.Struct;
+                MayRequireTrackingReceiverType(receiver.Type);
         }
 
         /// <summary>
