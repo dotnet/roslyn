@@ -13819,9 +13819,9 @@ namespace TestNamespace
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (9,20): error CS0625: 'Str.<Num>k__BackingField': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                // (9,20): error CS0625: 'Str.Num': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
                 //         public int Num // CS0625
-                Diagnostic(ErrorCode.ERR_MissingStructOffset, "Num").WithArguments("TestNamespace.Str.<Num>k__BackingField").WithLocation(9, 20)
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "Num").WithArguments("TestNamespace.Str.Num").WithLocation(9, 20)
                 );
         }
 

@@ -3080,6 +3080,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_DoNotUseFixedBufferAttr" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.</value>
   </data>
+  <data name="ERR_DoNotUseFixedBufferAttrOnProperty" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</value>
+  </data>
   <data name="WRN_AssignmentToSelf" xml:space="preserve">
     <value>Assignment made to same variable; did you mean to assign something else?</value>
   </data>

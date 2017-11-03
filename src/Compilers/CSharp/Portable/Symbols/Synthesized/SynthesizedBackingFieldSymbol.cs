@@ -12,11 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a compiler generated backing field for an automatically implemented property.
     /// </summary>
-    internal sealed class SynthesizedBackingFieldSymbol : SynthesizedFieldSymbolBase, IAttributeTargetSymbol
+    internal sealed class SynthesizedBackingFieldSymbol : FieldSymbolWithAttributesAndModifiers
     {
         private readonly SourcePropertySymbol _property;
-        private readonly bool _hasInitializer;
-        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+        private readonly string _name;
+        internal bool HasInitializer { get; }
+        protected override DeclarationModifiers Modifiers { get; }
 
         public SynthesizedBackingFieldSymbol(
             SourcePropertySymbol property,
@@ -24,83 +25,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isReadOnly,
             bool isStatic,
             bool hasInitializer)
-            : base(property.ContainingType, name, isPublic: false, isReadOnly: isReadOnly, isStatic: isStatic)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
 
+            _name = name;
+
+            Modifiers = DeclarationModifiers.Private |
+                (isReadOnly ? DeclarationModifiers.ReadOnly : DeclarationModifiers.None) |
+                (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
+
             _property = property;
-            _hasInitializer = hasInitializer;
+            HasInitializer = hasInitializer;
         }
 
-        public bool HasInitializer
-        {
-            get
-            {
-                return _hasInitializer;
-            }
-        }
-
-        public override Symbol AssociatedSymbol
-        {
-            get
-            {
-                return _property;
-            }
-        }
-
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _property.Locations;
-            }
-        }
-
-        internal override bool SuppressDynamicAttribute
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
-        {
-            return _property.Type;
-        }
-
-        internal override bool HasPointerType
-        {
-            get
-            {
-                return _property.HasPointerType;
-            }
-        }
-
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
-            => GetAttributesBag().Attributes;
-
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
-            => this;
-
-        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => AttributeLocation.Field;
-
-        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
-            => AttributeLocation.Field;
+        protected override IAttributeTargetSymbol AttributeOwner
+            => _property;
 
         internal override Location ErrorLocation
             => _property.Location;
 
-        internal sealed override int? TypeLayoutOffset
-            => GetDecodedWellKnownAttributeData()?.Offset;
+        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+            => _property.CSharpSyntaxNode.AttributeLists;
 
-        internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
-            => GetDecodedWellKnownAttributeData()?.MarshallingInformation;
+        public override Symbol AssociatedSymbol
+            => _property;
+
+        public override ImmutableArray<Location> Locations
+            => _property.Locations;
+
+        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+            => _property.Type;
+
+        internal override bool HasPointerType
+            => _property.HasPointerType;
+
+        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+
+            var attribute = arguments.Attribute;
+            Debug.Assert(!attribute.HasErrors);
+            Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
+
+            if (attribute.IsTargetAttribute(this, AttributeDescription.FixedBufferAttribute))
+            {
+                // error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on property
+                arguments.Diagnostics.Add(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, arguments.AttributeSyntaxOpt.Name.Location);
+            }
+
+            base.DecodeWellKnownAttribute(ref arguments);
+        }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            SynthesizedFieldSymbolBase.AddSynthesizedFieldAttributes(ref attributes, this, suppressDynamicAttribute: false);
 
             var compilation = this.DeclaringCompilation;
 
@@ -109,133 +89,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute());
         }
 
-        internal sealed override bool IsNotSerialized
-        {
-            get
-            {
-                var data = GetDecodedWellKnownAttributeData();
-                return data != null && data.HasNonSerializedAttribute;
-            }
-        }
+        public override string Name
+            => _name;
 
-        internal sealed override bool HasSpecialName
-        {
-            get
-            {
-                if (HasRuntimeSpecialName)
-                {
-                    return true;
-                }
+        public override ImmutableArray<CustomModifier> CustomModifiers
+            => ImmutableArray<CustomModifier>.Empty;
 
-                var data = GetDecodedWellKnownAttributeData();
-                return data != null && data.HasSpecialNameAttribute;
-            }
-        }
+        internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
+            => null;
 
-        /// <summary>
-        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get
-            {
-                var containingType = (SourceMemberContainerTypeSymbol)_property.ContainingType;
-                if (!containingType.AnyMemberHasAttributes)
-                {
-                    return null;
-                }
+        public override Symbol ContainingSymbol
+            => _property.ContainingSymbol;
 
-                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
-                if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
-                {
-                    var data = (CommonFieldEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
-                    return data?.ObsoleteAttributeData;
-                }
+        public override NamedTypeSymbol ContainingType
+            => _property.ContainingType;
 
-                return ObsoleteAttributeData.Uninitialized;
-            }
-        }
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+            => ImmutableArray<SyntaxReference>.Empty;
 
-        /// <summary>
-        /// Returns data decoded from well-known attributes applied to the symbol or null if there are no applied attributes.
-        /// </summary>
-        /// <remarks>
-        /// Forces binding and decoding of attributes.
-        /// </remarks>
-        private CommonFieldWellKnownAttributeData GetDecodedWellKnownAttributeData()
-        {
-            var attributesBag = _lazyCustomAttributesBag;
-            if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
-            {
-                attributesBag = this.GetAttributesBag();
-            }
+        internal override bool HasRuntimeSpecialName
+            => false;
 
-            return (CommonFieldWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
-        }
-
-        /// <summary>
-        /// Returns a bag of custom attributes applied on the backing field and data decoded from well-known attributes. Returns null if there are no attributes.
-        /// </summary>
-        /// <remarks>
-        /// Forces binding and decoding of attributes.
-        /// </remarks>
-        private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
-        {
-            var bag = _lazyCustomAttributesBag;
-            if (bag != null && bag.IsSealed)
-            {
-                return bag;
-            }
-
-            // We let the property drive and track completion
-            _ = LoadAndValidateAttributes(OneOrMany.Create(_property.CSharpSyntaxNode.AttributeLists), ref _lazyCustomAttributesBag, AttributeLocation.Field);
-
-            Debug.Assert(_lazyCustomAttributesBag.IsSealed);
-            return _lazyCustomAttributesBag;
-        }
-
-        internal sealed override CSharpAttributeData EarlyDecodeWellKnownAttribute(
-            ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
-        {
-            CSharpAttributeData boundAttribute;
-            ObsoleteAttributeData obsoleteData;
-
-            if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
-            {
-                if (obsoleteData != null)
-                {
-                    arguments.GetOrCreateData<CommonFieldEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
-                }
-
-                return boundAttribute;
-            }
-
-            return base.EarlyDecodeWellKnownAttribute(ref arguments);
-        }
-
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
-        {
-            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
-
-            var attribute = arguments.Attribute;
-            Debug.Assert(!attribute.HasErrors);
-            Debug.Assert(arguments.SymbolPart == AttributeLocation.Field);
-
-            SourceFieldSymbol.DecodeWellKnownFieldAttribute(this, ref arguments, attribute);
-        }
-
-        internal override void PostDecodeWellKnownAttributes(
-            ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes,
-            DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
-        {
-            Debug.Assert(_lazyCustomAttributesBag != null);
-            Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
-            Debug.Assert(symbolPart == AttributeLocation.Field);
-
-            SourceFieldSymbol.PostDecodeWellKnownFieldAttributes(this, boundAttributes, allAttributeSyntaxNodes, diagnostics, decodedData);
-
-            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
-        }
+        public override bool IsImplicitlyDeclared
+            => true;
     }
 }

@@ -394,16 +394,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, location, this);
             }
 
-            CheckForFieldTargetedAttribute(_isAutoProperty, syntax, diagnostics);
+            if (_isAutoProperty)
+            {
+                CheckForFieldTargetedAttribute(syntax, diagnostics);
+            }
 
             CheckForBlockAndExpressionBody(
                 syntax.AccessorList, syntax.GetExpressionBodySyntax(), syntax, diagnostics);
         }
 
-        private void CheckForFieldTargetedAttribute(bool isAutoProperty, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        private void CheckForFieldTargetedAttribute(BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
             var languageVersion = this.DeclaringCompilation.LanguageVersion;
-            if (!isAutoProperty || languageVersion.AllowAttributesOnBackingFields())
+            if (languageVersion.AllowAttributesOnBackingFields())
             {
                 return;
             }
@@ -416,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
                             languageVersion.ToDisplayString(),
                             new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
-                        attribute.Location);
+                        attribute.Target.Location);
                 }
             }
         }

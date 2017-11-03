@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests : CompilingTestBase
     {
+        static string[] s_autoPropAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
+        static string[] s_backingFieldAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
+
         #region Function Tests
 
         [Fact]
@@ -791,58 +795,49 @@ public class Test
     public int P4 { get; }
 }
 ";
-            Func<bool, Action<ModuleSymbol>> symbolValidator = isFromSource => moduleSymbol =>
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var accessorsExpected = isFromSource ? new string[0] : new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
-
                 var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+
+                var propAttributesExpected = isFromSource ? new string[0] : s_autoPropAttributes;
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
 
                 var prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
-                AssertEx.SetEqual(accessorsExpected, GetAttributeStrings(prop1.GetMethod.GetAttributes()));
-                AssertEx.SetEqual(accessorsExpected, GetAttributeStrings(prop1.SetMethod.GetAttributes()));
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.GetMethod.GetAttributes()));
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.SetMethod.GetAttributes()));
 
-                if (isFromSource)
-                {
-                    var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
-                    AssertEx.SetEqual(accessorsExpected.Concat(new[] { "A(1)" }), GetAttributeStrings(field1.GetAttributes()));
-                }
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(1)" }), GetAttributeStrings(field1.GetAttributes()));
 
                 var prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
-                AssertEx.SetEqual(accessorsExpected, GetAttributeStrings(prop2.GetMethod.GetAttributes()));
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.GetMethod.GetAttributes()));
                 Assert.Null(prop2.SetMethod);
 
-                if (isFromSource)
-                {
-                    var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
-                    AssertEx.SetEqual(accessorsExpected.Concat(new[] { "A(2)" }), GetAttributeStrings(field2.GetAttributes()));
-                }
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(2)" }), GetAttributeStrings(field2.GetAttributes()));
 
                 var prop3 = @class.GetMember<PropertySymbol>("P3");
                 Assert.Equal("B(3)", prop3.GetAttributes().Single().ToString());
-                AssertEx.SetEqual(accessorsExpected, GetAttributeStrings(prop3.GetMethod.GetAttributes()));
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop3.GetMethod.GetAttributes()));
                 Assert.Null(prop3.SetMethod);
 
-                if (isFromSource)
-                {
-                    var field3 = @class.GetMember<FieldSymbol>("<P3>k__BackingField");
-                    AssertEx.SetEqual(accessorsExpected.Concat(new[] { "A(33)" }), GetAttributeStrings(field3.GetAttributes()));
-                }
+                var field3 = @class.GetMember<FieldSymbol>("<P3>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(33)" }), GetAttributeStrings(field3.GetAttributes()));
 
                 var prop4 = @class.GetMember<PropertySymbol>("P4");
                 Assert.Equal("B(4)", prop4.GetAttributes().Single().ToString());
-                AssertEx.SetEqual(accessorsExpected, GetAttributeStrings(prop3.GetMethod.GetAttributes()));
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop3.GetMethod.GetAttributes()));
                 Assert.Null(prop4.SetMethod);
 
-                if (isFromSource)
-                {
-                    var field4 = @class.GetMember<FieldSymbol>("<P4>k__BackingField");
-                    AssertEx.SetEqual(accessorsExpected.Concat(new[] { "A(44)", "A(444)" }), GetAttributeStrings(field4.GetAttributes()));
-                }
+                var field4 = @class.GetMember<FieldSymbol>("<P4>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(44)", "A(444)" }), GetAttributeStrings(field4.GetAttributes()));
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator(true), symbolValidator: symbolValidator(false));
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
 
@@ -856,16 +851,55 @@ public struct Test
     public static int P { get; set; }
 
     public static int P2 { get; set; }
+
+    [field: System.Runtime.CompilerServices.SpecialName]
+    public static int f;
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
+
+                var prop1 = @class.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop1.GetAttributes());
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var attributes1 = field1.GetAttributes();
+                if (isFromSource)
+                {
+                    AssertEx.SetEqual(new[] { "System.Runtime.CompilerServices.SpecialNameAttribute" }, GetAttributeStrings(attributes1));
+                }
+                else
+                {
+                    AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(attributes1));
+                }
+                Assert.True(field1.HasSpecialName);
+
+                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                Assert.Empty(prop2.GetAttributes());
+
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
+                Assert.False(field2.HasSpecialName);
+
+                var field3 = @class.GetMember<FieldSymbol>("f");
+                var attributes3 = field3.GetAttributes();
+                if (isFromSource)
+                {
+                    AssertEx.SetEqual(new[] { "System.Runtime.CompilerServices.SpecialNameAttribute" }, GetAttributeStrings(attributes3));
+                }
+                else
+                {
+                    Assert.Empty(GetAttributeStrings(attributes3));
+                }
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
-
-            var field1 = comp.SourceModule.GlobalNamespace.GetMember<FieldSymbol>("Test.<P>k__BackingField");
-            Assert.True(field1.HasSpecialName);
-
-            var field2 = comp.SourceModule.GlobalNamespace.GetMember<FieldSymbol>("Test.<P2>k__BackingField");
-            Assert.False(field2.HasSpecialName);
         }
 
         [Fact]
@@ -878,37 +912,56 @@ public class Test
     public int P { get; set; }
 
     public int P2 { get; set; }
+
+    [field: System.NonSerialized]
+    public int f;
 }
 ";
 
-            Func<bool, Action<ModuleSymbol>> symbolValidator = isFromSource => moduleSymbol =>
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var accessorsExpected = isFromSource ? new string[0] : new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
-
                 var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
 
                 var prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var attributes1 = field1.GetAttributes();
                 if (isFromSource)
                 {
-                    var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
-                    AssertEx.SetEqual(accessorsExpected.Concat(new[] { "System.NonSerializedAttribute" }), GetAttributeStrings(field1.GetAttributes()));
-                    Assert.True(field1.IsNotSerialized);
+                    AssertEx.SetEqual(new[] { "System.NonSerializedAttribute" }, GetAttributeStrings(attributes1));
                 }
+                else
+                {
+                    AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(attributes1));
+                }
+                Assert.True(field1.IsNotSerialized);
 
                 var prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
+                Assert.False(field2.IsNotSerialized);
+
+                var field3 = @class.GetMember<FieldSymbol>("f");
+                var attributes3 = field3.GetAttributes();
                 if (isFromSource)
                 {
-                    var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
-                    AssertEx.SetEqual(accessorsExpected, GetAttributeStrings(field2.GetAttributes()));
-                    Assert.False(field2.IsNotSerialized);
+                    AssertEx.SetEqual(new[] { "System.NonSerializedAttribute" }, GetAttributeStrings(attributes3));
                 }
+                else
+                {
+                    Assert.Empty(GetAttributeStrings(attributes3));
+                }
+                Assert.True(field3.IsNotSerialized);
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator(true), symbolValidator: symbolValidator(false));
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
 
@@ -1006,9 +1059,9 @@ public struct Test
 ";
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,16): error CS0625: 'Test.<P>k__BackingField': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                // (7,16): error CS0625: 'Test.P': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
                 //     public int P { get; set; }
-                Diagnostic(ErrorCode.ERR_MissingStructOffset, "P").WithArguments("Test.<P>k__BackingField").WithLocation(7, 16)
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "P").WithArguments("Test.P").WithLocation(7, 16)
                 );
         }
 
@@ -1024,9 +1077,9 @@ public class Test
 ";
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,13): error CS1716: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.
+                // (4,13): error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property
                 //     [field: System.Runtime.CompilerServices.FixedBuffer(typeof(int), 0)]
-                Diagnostic(ErrorCode.ERR_DoNotUseFixedBufferAttr, "System.Runtime.CompilerServices.FixedBuffer").WithLocation(4, 13)
+                Diagnostic(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, "System.Runtime.CompilerServices.FixedBuffer").WithLocation(4, 13)
                 );
         }
 
@@ -1105,14 +1158,30 @@ public class Test
     public int P2 { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
+
+                var prop1 = @class.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop1.GetAttributes());
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DateTimeConstantAttribute(123456)" }),
+                    GetAttributeStrings(field1.GetAttributes()));
+
+                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                Assert.Empty(prop2.GetAttributes());
+
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DateTimeConstantAttribute(123456)" }),
+                    GetAttributeStrings(field2.GetAttributes()));
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
-
-            var field1 = comp.SourceModule.GlobalNamespace.GetMember<FieldSymbol>("Test.<P>k__BackingField");
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(123456)", field1.GetAttributes().Single().ToString());
-
-            var field2 = comp.SourceModule.GlobalNamespace.GetMember<FieldSymbol>("Test.<P2>k__BackingField");
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(123456)", field2.GetAttributes().Single().ToString());
         }
 
         [Fact]
@@ -1128,14 +1197,34 @@ public class Test
     public int P2 { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+
+                var fieldAttributesExpected = isFromSource ? new string[0]
+                    : new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
+
+                var prop1 = @class.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop1.GetAttributes());
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                // TODO
+                //AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" }),
+                //    GetAttributeStrings(field1.GetAttributes()));
+
+                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                Assert.Empty(prop2.GetAttributes());
+
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" }),
+                    GetAttributeStrings(field2.GetAttributes()));
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
-
-            var field1 = comp.SourceModule.GlobalNamespace.GetMember<FieldSymbol>("Test.<P>k__BackingField");
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)", field1.GetAttributes().Single().ToString());
-
-            var field2 = comp.SourceModule.GlobalNamespace.GetMember<FieldSymbol>("Test.<P2>k__BackingField");
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)", field2.GetAttributes().Single().ToString());
         }
 
         [Fact]
@@ -1176,20 +1265,37 @@ public class Test
     public int P2 { get; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+                var propAttributesExpected = isFromSource ? new string[0] : s_autoPropAttributes;
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
+
+                var prop1 = @class.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop1.GetAttributes());
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.ObsoleteAttribute" }),
+                    GetAttributeStrings(field1.GetAttributes()));
+                Assert.Equal(ObsoleteAttributeKind.Obsolete, field1.ObsoleteAttributeData.Kind);
+                Assert.Null(field1.ObsoleteAttributeData.Message);
+                Assert.False(field1.ObsoleteAttributeData.IsError);
+
+                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                Assert.Empty(prop2.GetAttributes());
+
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { @"System.ObsoleteAttribute(""obsolete"", true)" }),
+                    GetAttributeStrings(field2.GetAttributes()));
+                Assert.Equal(ObsoleteAttributeKind.Obsolete, field2.ObsoleteAttributeData.Kind);
+                Assert.Equal("obsolete", field2.ObsoleteAttributeData.Message);
+                Assert.True(field2.ObsoleteAttributeData.IsError);
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
-
-            var field1 = comp.SourceModule.GlobalNamespace.GetMember<FieldSymbol>("Test.<P>k__BackingField");
-            Assert.Equal("System.ObsoleteAttribute", field1.GetAttributes().Single().ToString());
-            Assert.Equal(ObsoleteAttributeKind.Obsolete, field1.ObsoleteAttributeData.Kind);
-            Assert.Null(field1.ObsoleteAttributeData.Message);
-            Assert.False(field1.ObsoleteAttributeData.IsError);
-
-            var field2 = comp.SourceModule.GlobalNamespace.GetMember<FieldSymbol>("Test.<P2>k__BackingField");
-            Assert.Equal(@"System.ObsoleteAttribute(""obsolete"", true)", field2.GetAttributes().Single().ToString());
-            Assert.Equal(ObsoleteAttributeKind.Obsolete, field2.ObsoleteAttributeData.Kind);
-            Assert.Equal("obsolete", field2.ObsoleteAttributeData.Message);
-            Assert.True(field2.ObsoleteAttributeData.IsError);
         }
 
         [Fact]
@@ -1273,7 +1379,7 @@ public class Test
         }
 
         [Fact]
-        public void TestInheritedFieldAttributesOnOverridenProperty()
+        public void TestInheritedFieldAttributesOnOverriddenProperty()
         {
             string source = @"
 [System.AttributeUsage(System.AttributeTargets.All, Inherited = true) ]
@@ -1296,27 +1402,31 @@ public class Derived : Base
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
                 var parent = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+                bool isFromSource = parent is SourceNamedTypeSymbol;
+                var propAttributesExpected = isFromSource ? new string[0] : s_autoPropAttributes;
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
 
                 var prop1 = parent.GetMember<PropertySymbol>("P");
                 Assert.Equal("A(2)", prop1.GetAttributes().Single().ToString());
-                Assert.Empty(prop1.GetMethod.GetAttributes());
-                Assert.Empty(prop1.SetMethod.GetAttributes());
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.GetMethod.GetAttributes()));
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.SetMethod.GetAttributes()));
 
                 var field1 = parent.GetMember<FieldSymbol>("<P>k__BackingField");
-                Assert.Equal("A(1)", field1.GetAttributes().Single().ToString());
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(1)" }), GetAttributeStrings(field1.GetAttributes()));
 
                 var child = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
 
                 var prop2 = child.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop2.GetAttributes());
-                Assert.Empty(prop2.GetMethod.GetAttributes());
-                Assert.Empty(prop2.SetMethod.GetAttributes());
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.GetMethod.GetAttributes()));
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.SetMethod.GetAttributes()));
 
                 var field2 = child.GetMember<FieldSymbol>("<P>k__BackingField");
-                Assert.Empty(field2.GetAttributes());
+                AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator);
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
 

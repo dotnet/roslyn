@@ -43,28 +43,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            CSharpCompilation compilation = this.DeclaringCompilation;
+            AddSynthesizedFieldAttributes(ref attributes, this, this.SuppressDynamicAttribute);
+        }
+
+        internal static void AddSynthesizedFieldAttributes(
+            ref ArrayBuilder<SynthesizedAttributeData> attributes,
+            FieldSymbol field,
+            bool suppressDynamicAttribute)
+        {
+            CSharpCompilation compilation = field.DeclaringCompilation;
 
             // do not emit CompilerGenerated attributes for fields inside compiler generated types:
-            if (!_containingType.IsImplicitlyDeclared)
+            if (!field.ContainingType.IsImplicitlyDeclared)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
             }
 
-            if (!this.SuppressDynamicAttribute &&
-                this.Type.ContainsDynamic() &&
+            TypeSymbol type = field.Type;
+            if (!suppressDynamicAttribute &&
+                type.ContainsDynamic() &&
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, field.CustomModifiers.Length));
             }
 
-            if (Type.ContainsTupleNames() &&
+            if (type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(Type));
+                    compilation.SynthesizeTupleNamesAttribute(type));
             }
         }
 
@@ -123,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return null; }
         }

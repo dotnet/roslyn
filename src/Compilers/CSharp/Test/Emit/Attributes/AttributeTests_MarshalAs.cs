@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int count = 0;
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                var compilation = CreateCompilation(new SyntaxTree[0], new[] { assembly.GetReference() });
+                var compilation = CreateCompilation(new SyntaxTree[0], new[] { assembly.GetReference() },
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
                 foreach (NamedTypeSymbol type in compilation.GlobalNamespace.GetMembers().Where(s => s.Kind == SymbolKind.NamedType))
                 {
                     var fields = type.GetMembers().Where(s => s.Kind == SymbolKind.Field);
@@ -374,16 +376,7 @@ public class X
             };
 
             var verifier = CompileAndVerifyFieldMarshal(source, blobs);
-
-            using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
-            {
-                var compilation = CreateCompilation(new SyntaxTree[0], new[] { assembly.GetReference() });
-                foreach (NamedTypeSymbol type in compilation.GlobalNamespace.GetMembers().Where(s => s.Kind == SymbolKind.NamedType))
-                {
-                    var fields = type.GetMembers().Where(s => s.Kind == SymbolKind.Field);
-                    Assert.Empty(fields);
-                }
-            }
+            VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
         [Fact]
