@@ -260,6 +260,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly SmallDictionary<Symbol, Scope> _localToScope = new SmallDictionary<Symbol, Scope>();
 
 #if DEBUG
+                /// <summary>
+                /// Free variables are variables declared in expression statements that can then
+                /// be captured in nested lambdas. Normally, captured variables must lowered as
+                /// part of closure conversion, but expression tree variables are handled separately
+                /// by the expression tree rewriter and are considered free for the purposes of
+                /// closure conversion. For instance, an expression with a nested lambda, e.g.
+                ///     x => y => x + y
+                /// contains an expression variable, x, that should not be treated as a captured
+                /// variable to be replaced by closure conversion. Instead, it should be left for
+                /// expression tree conversion.
+                /// </summary>
                 private readonly HashSet<Symbol> _freeVariables = new HashSet<Symbol>();
 #endif
 
@@ -610,12 +621,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (declareAsFree)
                         {
 #if DEBUG
-                            _freeVariables.Add(local);
+                            Debug.Assert(_freeVariables.Add(local));
 #endif
                         }
                         else
                         {
-                            _localToScope[local] = scope;
+                            _localToScope.Add(local, scope);
                         }
                     }
                 }
