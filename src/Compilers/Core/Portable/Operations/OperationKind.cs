@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis
         Invalid = 0x1,
         /// <summary>Indicates an <see cref="IBlockOperation"/>.</summary>
         Block = 0x2,
-        /// <summary>Indicates an <see cref="IVariableDeclarationsOperation"/>.</summary>
-        VariableDeclarations = 0x3,
+        /// <summary>Indicates an <see cref="IVariableDeclarationGroupOperation"/>.</summary>
+        VariableDeclarationGroup = 0x3,
         /// <summary>Indicates an <see cref="ISwitchOperation"/>.</summary>
         Switch = 0x4,
         /// <summary>Indicates an <see cref="ILoopOperation"/>.</summary>
@@ -161,24 +161,26 @@ namespace Microsoft.CodeAnalysis
         ParameterInitializer = 0x4b,
         /// <summary>Indicates an <see cref="IArrayInitializerOperation"/>.</summary>
         ArrayInitializer = 0x4c,
+        /// <summary>Indicates an <see cref="IVariableDeclaratorOperation"/>.</summary>
+        VariableDeclarator = 0x4d,
         /// <summary>Indicates an <see cref="IVariableDeclarationOperation"/>.</summary>
-        VariableDeclaration = 0x4d,
+        VariableDeclaration = 0x4e,
         /// <summary>Indicates an <see cref="IArgumentOperation"/>.</summary>
-        Argument = 0x4e,
+        Argument = 0x4f,
         /// <summary>Indicates an <see cref="ICatchClauseOperation"/>.</summary>
-        CatchClause = 0x4f,
+        CatchClause = 0x50,
         /// <summary>Indicates an <see cref="ISwitchCaseOperation"/>.</summary>
-        SwitchCase = 0x50,
+        SwitchCase = 0x51,
         /// <summary>Indicates different kinds of switch case clauses as defined by <see cref="CaseKind"/>.</summary>
-        CaseClause = 0x51,
+        CaseClause = 0x52,
         /// <summary>Indicates an <see cref="IInterpolatedStringTextOperation"/>.</summary>
-        InterpolatedStringText = 0x52,
+        InterpolatedStringText = 0x53,
         /// <summary>Indicates an <see cref="IInterpolationOperation"/>.</summary>
-        Interpolation = 0x53,
+        Interpolation = 0x54,
         /// <summary>Indicates an <see cref="IConstantPatternOperation"/>.</summary>
-        ConstantPattern = 0x54,
+        ConstantPattern = 0x55,
         /// <summary>Indicates an <see cref="IDeclarationPatternOperation"/>.</summary>
-        DeclarationPattern = 0x55,
+        DeclarationPattern = 0x56,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

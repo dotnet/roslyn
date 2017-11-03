@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </remarks>
     public interface ISimpleAssignmentOperation : IAssignmentOperation
     {
+        /// <summary>
+        /// Is this a ref assignment
+        /// </summary>
+        bool IsRef { get; }
     }
 }
 

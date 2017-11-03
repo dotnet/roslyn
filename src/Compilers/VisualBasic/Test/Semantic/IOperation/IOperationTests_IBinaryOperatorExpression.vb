@@ -254,19 +254,27 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
   Locals: Local_1: x As System.Int32
     Local_2: y As System.Int32
     Local_3: r As System.Int32
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Variables: Local_1: x As System.Int32
-        Local_2: y As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
             Arguments(0)
             Initializer: 
               null
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim r As Integer')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r')
-      Variables: Local_1: r As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim r As Integer')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r As Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: r As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
+            Initializer: 
+              null
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')
@@ -635,19 +643,27 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
   Locals: Local_1: x As System.Int32
     Local_2: y As System.Int32
     Local_3: r As System.Int32
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Variables: Local_1: x As System.Int32
-        Local_2: y As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
             Arguments(0)
             Initializer: 
               null
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim r As Integer')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r')
-      Variables: Local_1: r As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim r As Integer')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r As Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: r As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
+            Initializer: 
+              null
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')
@@ -1166,10 +1182,15 @@ End Module]]>.Value
 IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As System.Int32
     Local_2: y As System.Int32
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Variables: Local_1: x As System.Int32
-        Local_2: y As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -1315,10 +1336,15 @@ End Module]]>.Value
 IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As System.Int32
     Local_2: y As System.Int32
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x, y As New Integer')
-    IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
-      Variables: Local_1: x As System.Int32
-        Local_2: y As System.Int32
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New Integer')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New Integer')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+          IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -1585,19 +1611,27 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
   Locals: Local_1: x As B2
     Local_2: y As B2
     Local_3: r As B2
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim x, y As New B2()')
-    IVariableDeclarationOperation (2 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New B2()')
-      Variables: Local_1: x As B2
-        Local_2: y As B2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim x, y As New B2()')
+    IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x, y As New B2()')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
+          IVariableDeclaratorOperation (Symbol: y As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New B2()')
           IObjectCreationOperation (Constructor: Sub B2..ctor()) (OperationKind.ObjectCreation, Type: B2) (Syntax: 'New B2()')
             Arguments(0)
             Initializer: 
               null
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim r As B2')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r')
-      Variables: Local_1: r As B2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim r As B2')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'r As B2')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: r As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
+            Initializer: 
+              null
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')

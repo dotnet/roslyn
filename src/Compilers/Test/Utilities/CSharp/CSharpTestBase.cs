@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -577,11 +577,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options = options.WithConcurrentBuild(false);
             }
 
-            return CSharpCompilation.Create(
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
                 trees,
                 references,
                 options);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            return createCompilationLambda();
         }
 
         public static CSharpCompilation CreateCompilation(
@@ -592,7 +594,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null)
         {
             var trees = (sources == null) ? null : sources.Select(s => Parse(s, options: parseOptions)).ToArray();
-            var c = CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            var c = createCompilationLambda();
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
             ((SourceAssemblySymbol)c.Assembly).lazyAssemblyIdentity = identity;
@@ -608,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            return CSharpCompilation.CreateScriptCompilation(
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 references: references,
                 options: options,
@@ -616,6 +621,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            return createCompilationLambda();
         }
 
         private static ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
@@ -629,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            return CSharpCompilation.CreateScriptCompilation(
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 references: (references != null) ? s_scriptRefs.Concat(references) : s_scriptRefs,
                 options: options,
@@ -637,6 +644,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            return createCompilationLambda();
         }
 
         public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, string expectedOutput = null)
