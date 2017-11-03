@@ -1178,7 +1178,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                         Function(tuple)
                             Return tuple.s.Kind <> OperationKind.None OrElse
                                 tuple.bound.Kind = BoundKind.WithStatement OrElse tuple.bound.Kind = BoundKind.StopStatement OrElse
-                                tuple.bound.Kind = BoundKind.EndStatement
+                                tuple.bound.Kind = BoundKind.EndStatement OrElse tuple.bound.Kind = BoundKind.UnstructuredExceptionHandlingStatement OrElse
+                                tuple.bound.Kind = BoundKind.ResumeStatement
                         End Function).Select(Function(tuple) tuple.s).ToImmutableArray()
                 End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
