@@ -1209,5 +1209,200 @@ class C
 }",
 options: ExplicitTypeEverywhere());
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void Method()
+    {
+        [|String|] test = new String(' ', 4);
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void Main()
+    {
+        foreach ([|String|] test in new String[] { ""test1"", ""test2"" })
+        {
+        }
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void Main()
+    {
+        [|Int32[]|] array = new[] { 1, 2, 3 };
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void Main()
+    {
+        [|Int32[][]|] a = new Int32[][]
+        {
+            new[] { 1, 2 },
+            new[] { 3, 4 }
+        };
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames5()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    void Main()
+    {
+        [|IEnumerable<Int32>|] a = new List<Int32> { 1, 2 }.Where(x => x > 1);
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames6()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void Main()
+    {
+        String name = ""name"";
+        [|String|] s = $""Hello, {name}""
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames7()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void Main()
+    {
+        Object name = ""name"";
+        [|String|] s = (String) name;
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames8()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    public async void ProcessRead()
+    {
+        [|String|] text = await ReadTextAsync(null);
+    }
+
+    private async Task<string> ReadTextAsync(string filePath)
+    {
+        return String.Empty;
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames9()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void Main()
+    {
+        String number = ""12"";
+        Int32.TryParse(name, out [|Int32|] number)
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames10()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void Main()
+    {
+        for ([|Int32|] i = 0; i < 5; i++)
+        {
+        }
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(20244, "https://github.com/dotnet/roslyn/issues/20244")]
+        public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames11()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    void Main()
+    {
+        [|List<Int32>|] a = new List<Int32> { 1, 2 };
+    }
+}", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
     }
 }

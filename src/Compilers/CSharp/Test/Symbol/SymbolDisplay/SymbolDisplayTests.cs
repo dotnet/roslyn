@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -5965,6 +5966,81 @@ class C
                 SymbolDisplayPartKind.ParameterName, // c
                 SymbolDisplayPartKind.Punctuation); // )
         }
+
+        [Fact]
+        [WorkItem(22507, "https://github.com/dotnet/roslyn/issues/22507")]
+        public void EdgeCasesForEnumFieldComparer()
+        {
+            // A bad comparer could cause sorting the enum fields
+            // to throw an exception due to inconsistency. See Repro22507
+            // for an example of this problem.
+
+            var lhs = new EnumField("E1", 0);
+            var rhs = new EnumField("E2", 0x1000_0000_0000_0000);
+
+            // This is a "reverse" comparer, so if lhs < rhs, return
+            // value should be > 0
+            // If the comparer subtracts and converts, result will be zero since
+            // the bottom 32 bits are zero
+            Assert.InRange(EnumField.Comparer.Compare(lhs, rhs), 1, int.MaxValue);
+
+            lhs = new EnumField("E1", 0);
+            rhs = new EnumField("E2", 0x1000_0000_0000_0001);
+            Assert.InRange(EnumField.Comparer.Compare(lhs, rhs), 1, int.MaxValue);
+
+            lhs = new EnumField("E1", 0x1000_0000_0000_000);
+            rhs = new EnumField("E2", 0);
+            Assert.InRange(EnumField.Comparer.Compare(lhs, rhs), int.MinValue, -1);
+
+            lhs = new EnumField("E1", 0);
+            rhs = new EnumField("E2", 0x1000_0000_8000_0000);
+            Assert.InRange(EnumField.Comparer.Compare(lhs, rhs), 1, int.MaxValue);
+        }
+
+        [Fact]
+        [WorkItem(22507, "https://github.com/dotnet/roslyn/issues/22507")]
+        public void Repro22507()
+        {
+            var text = @"
+using System;
+
+[Flags]
+enum E : long
+{
+    A = 0x0,
+    B = 0x400,
+    C = 0x100000,
+    D = 0x200000,
+    E = 0x2000000,
+    F = 0x4000000,
+    G = 0x8000000,
+    H = 0x40000000,
+    I = 0x80000000,
+    J = 0x20000000000,
+    K = 0x40000000000,
+    L = 0x4000000000000,
+    M = 0x8000000000000,
+    N = 0x10000000000000,
+    O = 0x20000000000000,
+    P = 0x40000000000000,
+    Q = 0x2000000000000000,
+}
+";
+            TestSymbolDescription(
+                text,
+                g => g.GetTypeMembers("E").Single().GetField("A"),
+                SymbolDisplayFormat.MinimallyQualifiedFormat
+                    .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue),
+                "E.A = 0",
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NumericLiteral);
+        }
+
 
         [Fact]
         public void TestRefStructs()

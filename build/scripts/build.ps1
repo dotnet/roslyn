@@ -35,6 +35,7 @@ param (
     [switch]$testVsiNetCore = $false,
     [switch]$testDesktop = $false,
     [switch]$testCoreClr = $false,
+    [switch]$testIOperation = $false,
 
     # Special test options
     [switch]$testDeterminism = $false,
@@ -66,6 +67,7 @@ function Print-Usage() {
     Write-Host "  -testCoreClr              Run CoreClr unit tests"
     Write-Host "  -testVsi                  Run all integration tests"
     Write-Host "  -testVsiNetCore           Run just dotnet core integration tests"
+    Write-Host "  -testIOperation           Run extra checks to validate IOperations"
     Write-Host ""
     Write-Host "Special Test options" 
     Write-Host "  -testBuildCorrectness     Run build correctness tests"
@@ -129,16 +131,17 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
         $args += " /bl:$logFile"
     }
 
-    if ($cibuild) { 
-        $args += " /p:PathMap=`"$($repoDir)=q:\roslyn`" /p:Feature=pdb-path-determinism" 
-    }
-
     if ($official) {
         $args += " /p:OfficialBuild=true"
     }
 
     if ($bootstrapDir -ne "") {
         $args += " /p:BootstrapBuildPath=$bootstrapDir"
+    }
+
+    if ($testIOperation)
+    {
+        $args += " /p:TestIOperationInterface=true"
     }
 
     $args += " $buildArgs"
@@ -175,6 +178,7 @@ function Build-Artifacts() {
 
     if ($buildAll) {
         Build-ExtraSignArtifacts
+        Build-InsertionItems
     }
 }
 
@@ -213,6 +217,51 @@ function Build-ExtraSignArtifacts() {
     }
 }
 
+function Build-InsertionItems() { 
+
+    # Create the PerfTests directory under Binaries\$(Configuration).  There are still a number
+    # of tools (in roslyn and roslyn-internal) that depend on this combined directory.
+    function Create-PerfTests() {
+        $target = Join-Path $configDir "PerfTests"
+        Write-Host "PerfTests: $target"
+        Create-Directory $target
+
+        Push-Location $configDir
+        foreach ($subDir in @("Dlls", "UnitTests")) {
+            Push-Location $subDir
+            foreach ($path in Get-ChildItem -re -in "PerfTests") {
+                Write-Host "`tcopying $path"
+                Copy-Item -force -recurse "$path\*" $target
+            }
+            Pop-Location
+        }
+        Pop-Location
+    }
+
+    $setupDir = Join-Path $repoDir "src\Setup"
+    Push-Location $setupDir
+    try { 
+        Create-PerfTests
+        Exec-Console (Join-Path $configDir "Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe") "$configDir $setupDir $(Get-PackagesDir)"
+        
+        # In non-official builds need to supply values for a few MSBuild properties. The actual value doesn't
+        # matter, just that it's provided some value.
+        $extraArgs = ""
+        if (-not $official) { 
+            $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
+        }
+
+        Run-MSBuild "DevDivPackages\Roslyn.proj"
+        Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj $extraArgs"
+        Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj $extraArgs"
+        Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj $extraArgs"
+        Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 function Build-NuGetPackages() {
     [string]$build = Join-Path $repoDir "src\NuGet\NuGet.proj"
     if (-not $official) {
@@ -220,6 +269,10 @@ function Build-NuGetPackages() {
     }
 
     Run-MSBuild $build
+}
+
+function Build-DeployToSymStore() {
+    Run-MSBuild "Roslyn.sln /t:DeployToSymStore"
 }
 
 # These are tests that don't follow our standard restore, build, test pattern. They customize 
@@ -464,7 +517,7 @@ function Run-SignTool() {
             $signToolArgs += " -test"
         }
         $signToolArgs += " `"$configDir`""
-        Exec-Command $signTool $signToolArgs
+        Exec-Console $signTool $signToolArgs
     }
     finally { 
         Pop-Location
@@ -548,7 +601,7 @@ try {
     $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
     $dotnet, $sdkDir = Ensure-SdkInPathAndData
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $configDir = Join-Path $binariesDIr $buildConfiguration
+    $configDir = Join-Path $binariesDir $buildConfiguration
     $bootstrapDir = ""
 
     # Ensure the main output directories exist as a number of tools will fail when they don't exist. 
@@ -579,14 +632,16 @@ try {
         Build-Artifacts
     }
 
-    if ($sign) {
-        Run-SignTool
-    }
-
-    # Must come after signing so that only the signed binaries are packed. Unlike 
-    # VSIX, NuGet doesn't support re-packing hence we have to order it this way.
     if ($pack) {
         Build-NuGetPackages
+
+        if ($cibuild -or $official) { 
+            Build-DeployToSymStore
+        }
+    }
+
+    if ($sign) {
+        Run-SignTool
     }
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {

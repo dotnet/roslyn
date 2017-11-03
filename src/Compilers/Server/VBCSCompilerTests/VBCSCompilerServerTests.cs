@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return new DesktopBuildServerController(appSettings).RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
             }
 
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             public async Task Standard()
             {
                 using (var serverData = ServerUtil.CreateServer())
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             /// shutdown succeeded.
             /// </summary>
             /// <returns></returns>
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             public async Task NoServerMutex()
             {
                 var pipeName = Guid.NewGuid().ToString();
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(CommonCompiler.Succeeded, exitCode);
             }
 
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             public async Task NoServerConnection()
             {
                 using (var readyMre = new ManualResetEvent(initialState: false))
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             /// the client can error out.
             /// </summary>
             /// <returns></returns>
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             public async Task ServerShutdownsDuringProcessing()
             {
                 using (var readyMre = new ManualResetEvent(initialState: false))

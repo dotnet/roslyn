@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Semantics.OperationExtensions;
+using static Microsoft.CodeAnalysis.Operations.OperationExtensions;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void IDynamicInvocationExpression_PublicExtensionMethodTests()
         {
             // Test null argument
-            IDynamicInvocationExpression nullDynamicExpression = null;
+            IDynamicInvocationOperation nullDynamicExpression = null;
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentName(0));
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void IDynamicIndexerAccessExpression_PublicExtensionMethodTests()
         {
             // Test null argument
-            IDynamicIndexerAccessExpression nullDynamicExpression = null;
+            IDynamicIndexerAccessOperation nullDynamicExpression = null;
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentName(0));
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void IDynamicObjectCreationExpression_PublicExtensionMethodTests()
         {
             // Test null argument
-            IDynamicObjectCreationExpression nullDynamicExpression = null;
+            IDynamicObjectCreationOperation nullDynamicExpression = null;
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentName(0));
             Assert.Throws<ArgumentNullException>(() => nullDynamicExpression.GetArgumentRefKind(0));
 

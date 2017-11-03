@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// This class defines all of the common stuff that is shared between the Vbc and Csc tasks.
     /// This class is not instantiatable as a Task just by itself.
     /// </summary>
-    public abstract class ManagedCompiler : ToolTask
+    public abstract class ManagedCompiler : ManagedToolTask
     {
         private CancellationTokenSource _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
@@ -409,57 +409,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #endregion
 
-        internal static DotnetHost CreateDotnetHostInfo(string toolPath, string toolExe, string toolName, string commandLine)
-        {
-            // ToolExe delegates back to ToolName if the override is not
-            // set.  So, if ToolExe == ToolName, we know ToolExe is not
-            // explicitly overriden.  So, if both ToolPath is unset and
-            // ToolExe == ToolName, we know nothing is overridden, and
-            // we can use our own csc.
-            if (string.IsNullOrEmpty(toolPath) && toolExe == toolName)
-            {
-                return DotnetHost.CreateManagedInvocationTool(toolName, commandLine);
-            }
-            else
-            {
-                // Explicitly provided ToolPath or ToolExe, don't try to
-                // figure anything out
-                return DotnetHost.CreateNativeInvocationTool(Path.Combine(toolPath ?? "", toolExe), commandLine);
-            }
-        }
+        // ToolExe delegates back to ToolName if the override is not
+        // set.  So, if ToolExe == ToolName, we know ToolExe is not
+        // explicitly overriden.  So, if both ToolPath is unset and
+        // ToolExe == ToolName, we know nothing is overridden, and
+        // we can use our own csc.
+        private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);
 
-        private DotnetHost _dotnetHostInfo;
-        private DotnetHost DotnetHostInfo
-        {
-            get
-            {
-                if (_dotnetHostInfo is null)
-                {
-                    CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
-                    AddCommandLineCommands(commandLineBuilder);
-                    var commandLine = commandLineBuilder.ToString();
-
-                    _dotnetHostInfo = CreateDotnetHostInfo(ToolPath, ToolExe, ToolName, commandLine);
-                }
-                return _dotnetHostInfo;
-            }
-        }
-
-        protected abstract string ToolNameWithoutExtension { get; }
-
-        internal static string GenerateToolName(string toolNameWithoutExtension)
-        {
-            if (CoreClrShim.IsRunningOnCoreClr)
-            {
-                return $"{toolNameWithoutExtension}.dll";
-            }
-            else
-            {
-                return $"{toolNameWithoutExtension}.exe";
-            }
-        }
-
-        protected sealed override string ToolName => GenerateToolName(ToolNameWithoutExtension);
+        protected sealed override bool IsManagedTool => !HasToolBeenOverridden;
 
         /// <summary>
         /// Method for testing only
@@ -469,20 +426,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return GenerateFullPathToTool();
         }
 
-        /// <summary>
-        /// Return the path to the tool to execute.
-        /// </summary>
-        protected override string GenerateFullPathToTool()
-        {
-            var pathToTool = DotnetHostInfo.PathToToolOpt;
+        protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
 
-            if (null == pathToTool)
-            {
-                Log.LogErrorWithCodeFromResources("General_ToolFileNotFound", ToolName);
-            }
-
-            return pathToTool;
-        }
+        protected sealed override string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
@@ -500,8 +446,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             try
             {
                 if (!UseSharedCompilation ||
-                !DotnetHostInfo.IsManagedInvocation ||
-                !BuildServerConnection.IsCompilerServerSupported)
+                    HasToolBeenOverridden ||
+                    !BuildServerConnection.IsCompilerServerSupported)
                 {
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
@@ -512,7 +458,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
-                    var clientDir = Path.GetDirectoryName(pathToTool);
+                    var clientDir = Path.GetDirectoryName(PathToManagedTool);
 
                     // Note: we can't change the "tool path" printed to the console when we run
                     // the Csc/Vbc task since MSBuild logs it for us before we get here. Instead,
@@ -527,10 +473,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         workingDir: workingDir,
                         tempDir: BuildServerConnection.GetTempPath(workingDir));
 
+                    // Note: using ToolArguments here (the property) since
+                    // commandLineCommands (the parameter) may have been mucked with
+                    // (to support using the dotnet cli)
                     var responseTask = BuildServerConnection.RunServerCompilation(
                         Language,
                         string.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
-                        GetArguments(commandLineCommands, responseFileCommands).ToList(),
+                        GetArguments(ToolArguments, responseFileCommands).ToList(),
                         buildPaths,
                         keepAlive: null,
                         libEnvVariable: LibDirectoryToUse(),
@@ -727,9 +676,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return GenerateCommandLineCommands();
         }
 
-        protected override string GenerateCommandLineCommands()
+        protected sealed override string ToolArguments
         {
-            return DotnetHostInfo.CommandLineArgs;
+            get
+            {
+                var builder = new CommandLineBuilderExtension();
+                AddCommandLineCommands(builder);
+                return builder.ToString();
+            }
         }
 
         /// <summary>

@@ -446,8 +446,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            Dim beforeConversion As BoundExpression = left
             left = ApplyConversion(left.Syntax, operandType, left, explicitSemanticForConcatArgument, diagnostics,
                                    explicitSemanticForConcatArgument:=explicitSemanticForConcatArgument)
+
+            If explicitSemanticForConcatArgument AndAlso left IsNot beforeConversion AndAlso left.Kind = BoundKind.Conversion Then
+                Dim conversion = DirectCast(left, BoundConversion)
+                left = conversion.Update(conversion.Operand, conversion.ConversionKind, conversion.Checked, explicitCastInCode:=False,
+                                         constantValueOpt:=conversion.ConstantValueOpt, extendedInfoOpt:=conversion.ExtendedInfoOpt,
+                                         type:=conversion.Type)
+            End If
 
             If (preliminaryOperatorKind = BinaryOperatorKind.LeftShift OrElse preliminaryOperatorKind = BinaryOperatorKind.RightShift) AndAlso
                 Not operandType.IsObjectType() Then
@@ -465,8 +473,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 right = ApplyImplicitConversion(right.Syntax, rightTargetType, right, diagnostics)
             Else
+                beforeConversion = right
+
                 right = ApplyConversion(right.Syntax, operandType, right, explicitSemanticForConcatArgument, diagnostics,
                                         explicitSemanticForConcatArgument:=explicitSemanticForConcatArgument)
+
+                If explicitSemanticForConcatArgument AndAlso right IsNot beforeConversion AndAlso right.Kind = BoundKind.Conversion Then
+                    Dim conversion = DirectCast(right, BoundConversion)
+                    right = conversion.Update(conversion.Operand, conversion.ConversionKind, conversion.Checked, explicitCastInCode:=False,
+                                              constantValueOpt:=conversion.ConstantValueOpt, extendedInfoOpt:=conversion.ExtendedInfoOpt,
+                                              type:=conversion.Type)
+                End If
             End If
 
             If (operatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.Add AndAlso operatorResultType.IsStringType() Then

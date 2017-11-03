@@ -23,7 +23,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
-      <_Parameter1>$(GitHeadSha)</_Parameter1>
+      <_Parameter1>$(CommitHashDisplay)</_Parameter1>
     </AssemblyVersionAttribute>
   </ItemGroup>
   <ItemGroup Label="Project References">

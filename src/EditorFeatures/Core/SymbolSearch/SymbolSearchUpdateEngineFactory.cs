@@ -26,10 +26,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 RemoteFeatureOptions.SymbolSearchEnabled, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, logService, cancellationToken).ConfigureAwait(false);
+                var callbackObject = new CallbackObject(logService, progressService);
+                var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, callbackObject, cancellationToken).ConfigureAwait(false);
                 if (session != null)
                 {
-                    return new RemoteUpdateEngine(workspace, session, logService, progressService);
+                    return new RemoteUpdateEngine(workspace, session);
                 }
             }
 
@@ -37,27 +38,19 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return new SymbolSearchUpdateEngine(logService, progressService);
         }
 
-        private partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
+        private partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine
         {
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
             private readonly Workspace _workspace;
-
-            private readonly ISymbolSearchLogService _logService;
-            private readonly ISymbolSearchProgressService _progressService;
-
             private readonly KeepAliveSession _session;
 
             public RemoteUpdateEngine(
                 Workspace workspace,
-                KeepAliveSession session,
-                ISymbolSearchLogService logService,
-                ISymbolSearchProgressService progressService)
+                KeepAliveSession session)
             {
                 _workspace = workspace;
                 _session = session;
-                _logService = logService;
-                _progressService = progressService;
             }
 
             public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
@@ -97,8 +90,18 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
                     new object[] { sourceName, localSettingsDirectory }, CancellationToken.None).ConfigureAwait(false);
             }
+        }
 
-            #region RPC callbacks
+        private class CallbackObject : ISymbolSearchLogService, ISymbolSearchProgressService
+        {
+            private readonly ISymbolSearchLogService _logService;
+            private readonly ISymbolSearchProgressService _progressService;
+
+            public CallbackObject(ISymbolSearchLogService logService, ISymbolSearchProgressService progressService)
+            {
+                _logService = logService;
+                _progressService = progressService;
+            }
 
             public Task LogExceptionAsync(string exception, string text)
                 => _logService.LogExceptionAsync(exception, text);
@@ -117,8 +120,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             public Task OnDownloadFullDatabaseFailedAsync(string message)
                 => _progressService.OnDownloadFullDatabaseFailedAsync(message);
-
-            #endregion
         }
     }
 }

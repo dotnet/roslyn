@@ -700,10 +700,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         target = BadExpression(namedFieldInitializer,
                                                target,
-                                               ErrorTypeSymbol.UnknownResultType)
+                                               ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                     End If
                 Else
-                    target = BadExpression(namedFieldInitializer, ErrorTypeSymbol.UnknownResultType)
+                    target = BadExpression(namedFieldInitializer, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 End If
 
                 ' in contrast to Dev10 Roslyn continues to bind the initialization value even if the receiver had errors.
@@ -891,7 +891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                              LookupOptions.AllMethodsOfAnyArity,
                                                                              placeholder,
                                                                              Nothing,
-                                                                             QualificationKind.QualifiedViaValue)
+                                                                             QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
 
                 Dim invocation = BindInvocationExpression(topLevelInitializer, topLevelInitializer,
                                                           TypeCharacter.None,
