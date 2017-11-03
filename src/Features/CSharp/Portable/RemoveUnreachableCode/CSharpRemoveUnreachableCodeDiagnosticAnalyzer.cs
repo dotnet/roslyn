@@ -34,18 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeBlock, ImmutableArray.Create(SyntaxKind.Block));
+            => context.RegisterSemanticModelAction(AnalyzeSemanticModel);
 
-        private void AnalyzeBlock(SyntaxNodeAnalysisContext context)
+        private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var block = context.Node;
-            if (!IsOutermostBlock(block))
-            {
-                // Don't bother processing inner blocks.  We'll have already checked them when
-                // we processed the outer block
-                return;
-            }
-
             var options = context.Options as WorkspaceAnalyzerOptions;
             if (options == null)
             {
@@ -54,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
             var fadeCode = options.Services.Workspace.Options.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
 
+            var tree = context.SemanticModel.SyntaxTree;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
@@ -69,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // binding diagnostics directly on the SourceMethodSymbol containing this block, and
             // so it can retrieve the diagnostics at practically no cost.
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var diagnostics = semanticModel.GetDiagnostics(block.Span, cancellationToken);
+            var diagnostics = semanticModel.GetDiagnostics(cancellationToken: cancellationToken);
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -81,22 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             }
         }
 
-        private bool IsOutermostBlock(SyntaxNode block)
-        {
-            // Avoid linq/allocations as we will be calling this on every block in the solution.
-            for (var current = block.Parent; current != null; current = current.Parent)
-            {
-                if (current.Kind() == SyntaxKind.Block)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private void ProcessUnreachableDiagnostic(
-            SyntaxNodeAnalysisContext context, SyntaxNode root, TextSpan sourceSpan, bool fadeOutCode)
+            SemanticModelAnalysisContext context, SyntaxNode root, TextSpan sourceSpan, bool fadeOutCode)
         {
             var node = root.FindNode(sourceSpan);
 

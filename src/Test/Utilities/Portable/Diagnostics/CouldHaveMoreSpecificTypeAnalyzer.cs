@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 operationBlockContext.RegisterOperationAction(
                                    (operationContext) =>
                                    {
-                                       if (operationContext.Operation is IAssignmentExpression assignment)
+                                       if (operationContext.Operation is IAssignmentOperation assignment)
                                        {
                                            AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
                                        }
-                                       else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
+                                       else if (operationContext.Operation is IIncrementOrDecrementOperation increment)
                                        {
                                            SyntaxNode syntax = increment.Syntax;
                                            ITypeSymbol type = increment.Type;
@@ -72,16 +72,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                            throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
                                        }
                                    },
-                                   OperationKind.SimpleAssignmentExpression,
-                                   OperationKind.CompoundAssignmentExpression,
-                                   OperationKind.IncrementExpression);
+                                   OperationKind.SimpleAssignment,
+                                   OperationKind.CompoundAssignment,
+                                   OperationKind.Increment);
 
                                 // Track arguments that match out or ref parameters.
                                 operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
-                                        IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
-                                        foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
+                                        IInvocationOperation invocation = (IInvocationOperation)operationContext.Operation;
+                                        foreach (IArgumentOperation argument in invocation.Arguments)
                                         {
                                             if (argument.Parameter.RefKind == RefKind.Out || argument.Parameter.RefKind == RefKind.Ref)
                                             {
@@ -89,14 +89,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                             }
                                         }
                                     },
-                                    OperationKind.InvocationExpression);
+                                    OperationKind.Invocation);
 
                                 // Track local variable initializations.
                                 operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
-                                        IVariableInitializer initializer = (IVariableInitializer)operationContext.Operation;
-                                        if (initializer.Parent is IVariableDeclaration variableDeclaration)
+                                        IVariableInitializerOperation initializer = (IVariableInitializerOperation)operationContext.Operation;
+                                        if (initializer.Parent is IVariableDeclarationOperation variableDeclaration)
                                         {
                                             foreach (ILocalSymbol local in variableDeclaration.Variables)
                                             {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     compilationContext.RegisterOperationAction(
                         (operationContext) =>
                         {
-                            IFieldInitializer initializer = (IFieldInitializer)operationContext.Operation;
+                            IFieldInitializerOperation initializer = (IFieldInitializerOperation)operationContext.Operation;
                             foreach (IFieldSymbol initializedField in initializer.InitializedFields)
                             {
                                 AssignTo(initializedField, initializedField.Type, fieldsSourceTypes, initializer.Value);
@@ -226,14 +226,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static void AssignTo(IOperation target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, ITypeSymbol sourceType)
         {
             OperationKind targetKind = target.Kind;
-            if (targetKind == OperationKind.LocalReferenceExpression)
+            if (targetKind == OperationKind.LocalReference)
             {
-                ILocalSymbol targetLocal = ((ILocalReferenceExpression)target).Local;
+                ILocalSymbol targetLocal = ((ILocalReferenceOperation)target).Local;
                 AssignTo(targetLocal, targetLocal.Type, localsSourceTypes, sourceType);
             }
-            else if (targetKind == OperationKind.FieldReferenceExpression)
+            else if (targetKind == OperationKind.FieldReference)
             {
-                IFieldSymbol targetField = ((IFieldReferenceExpression)target).Field;
+                IFieldSymbol targetField = ((IFieldReferenceOperation)target).Field;
                 AssignTo(targetField, targetField.Type, fieldsSourceTypes, sourceType);
             }
         }
@@ -267,10 +267,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static ITypeSymbol OriginalType(IOperation value)
         {
-            if (value.Kind == OperationKind.ConversionExpression)
+            if (value.Kind == OperationKind.Conversion)
             {
-                IConversionExpression conversion = (IConversionExpression)value;
-                if (!conversion.IsExplicitInCode)
+                IConversionOperation conversion = (IConversionOperation)value;
+                if (conversion.IsImplicit)
                 {
                     return conversion.Operand.Type;
                 }

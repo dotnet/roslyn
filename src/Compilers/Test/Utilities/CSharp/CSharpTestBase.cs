@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -24,7 +25,6 @@ using System.Text;
 using System.Threading;
 using Xunit;
 using static TestReferences;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -123,35 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 parseOptions,
                 emitOptions,
                 verify);
-        }
-
-        internal CompilationVerifier CompileAndVerifyExperimental(
-            string source,
-            MessageID feature,
-            string expectedOutput = null,
-            MetadataReference[] additionalRefs = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> assemblyValidator = null,
-            Action<ModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            CSharpCompilationOptions options = null,
-            bool verify = true)
-        {
-            options = options ??
-                ((expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
-
-            var compilation = CreateExperimentalCompilationWithMscorlib45(source, feature, additionalRefs, options);
-
-            return CompileAndVerify(
-                compilation: compilation,
-                dependencies: dependencies,
-                sourceSymbolValidator: Translate2(sourceSymbolValidator),
-                assemblyValidator: assemblyValidator,
-                symbolValidator: Translate2(symbolValidator),
-                expectedSignatures: expectedSignatures,
-                expectedOutput: expectedOutput,
-                verify: verify);
         }
 
         internal CompilationVerifier CompileAndVerifyWinRt(
@@ -409,40 +380,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 assemblyName: assemblyName);
         }
 
-        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
-            string text,
-            MessageID feature,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            string assemblyName = "",
-            string sourceFileName = "")
-        {
-            var refs = new List<MetadataReference>();
-            if (references != null)
-            {
-                refs.AddRange(references);
-            }
-            refs.Add(MscorlibRef_v4_0_30316_17626);
-            return CreateCompilation(new[] { Parse(text, sourceFileName, TestOptions.Regular.WithExperimental(feature)) }, refs, options, assemblyName);
-        }
-
-        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
-            string[] texts,
-            MessageID feature,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            string assemblyName = "",
-            string sourceFileName = "")
-        {
-            var refs = new List<MetadataReference>();
-            if (references != null)
-            {
-                refs.AddRange(references);
-            }
-            refs.Add(MscorlibRef_v4_0_30316_17626);
-            return CreateCompilation((from text in texts select Parse(text, sourceFileName, TestOptions.Regular.WithExperimental(feature))).ToArray(), refs, options, assemblyName);
-        }
-
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
             string text,
             CSharpCompilationOptions options = null,
@@ -577,11 +514,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options = options.WithConcurrentBuild(false);
             }
 
-            return CSharpCompilation.Create(
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
                 trees,
                 references,
                 options);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            return createCompilationLambda();
         }
 
         public static CSharpCompilation CreateCompilation(
@@ -592,7 +531,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null)
         {
             var trees = (sources == null) ? null : sources.Select(s => Parse(s, options: parseOptions)).ToArray();
-            var c = CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            var c = createCompilationLambda();
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
             ((SourceAssemblySymbol)c.Assembly).lazyAssemblyIdentity = identity;
@@ -608,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            return CSharpCompilation.CreateScriptCompilation(
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 references: references,
                 options: options,
@@ -616,6 +558,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            return createCompilationLambda();
         }
 
         private static ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
@@ -629,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            return CSharpCompilation.CreateScriptCompilation(
+            Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 references: (references != null) ? s_scriptRefs.Concat(references) : s_scriptRefs,
                 options: options,
@@ -637,6 +581,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            return createCompilationLambda();
         }
 
         public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, string expectedOutput = null)
@@ -1148,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return (null, null);
             }
 
-            return (model.GetOperationInternal(syntaxNode), syntaxNode);
+            return (model.GetOperation(syntaxNode), syntaxNode);
         }
 
         protected static string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)

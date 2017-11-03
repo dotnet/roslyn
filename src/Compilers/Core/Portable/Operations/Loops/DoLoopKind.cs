@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents different kinds of do loop statements.
+    /// Represents different kinds of do loop operations.
     /// </summary>
     public enum DoLoopKind
     {
+        /// <summary>
+        /// Represents unknown or error do loop kind.
+        /// </summary>
         None = 0x0,
 
         /// <summary>
@@ -31,12 +34,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Indicates a VB 'Do Until' loop with the loop condition executed at the top of the loop, i.e. beginning of the loop iteration.
         /// Loop executes while the loop condition evaluates to <code>false</code>.
         /// </summary>
-        DoUntilTopLoop = 0x4,
-
-        /// <summary>
-        /// Indicates an invalid loop. For example, VB 'Do While' or 'Do Until' loop with syntax errors where both the top and bottom conditions are provided.
-        /// </summary>
-        Invalid = 0xf,
+        DoUntilTopLoop = 0x4
     }
 }
 

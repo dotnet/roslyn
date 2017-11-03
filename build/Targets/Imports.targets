@@ -28,6 +28,7 @@
         <_CopyProjectReferences>false</_CopyProjectReferences>
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'Exe'">
@@ -35,6 +36,7 @@
         <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'WinExe'">
@@ -42,6 +44,7 @@
         <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
+        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
   </Choose>
@@ -289,16 +292,6 @@
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
   <Import Project="DisableTransitiveReferences.targets" Condition="'$(RoslynProjectType)' == 'Vsix' AND '$(RoslynSdkProject)' == 'true'" />
-
-  <!-- 
-       Work around some UI delays in the new project system
-
-       https://github.com/dotnet/project-system/issues/2297
-
-  --> 
-  <ItemGroup>
-    <ProjectCapability Remove="DependenciesTree"/>
-  </ItemGroup>
 
   <ItemDefinitionGroup>
     <VSIXSourceItem>

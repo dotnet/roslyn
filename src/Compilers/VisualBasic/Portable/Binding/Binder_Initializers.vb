@@ -617,12 +617,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     ' The result is not a constant and is not marked with hasErrors so return a BadExpression.
-                    Return BadExpression(valueSyntax, valueExpression, ErrorTypeSymbol.UnknownResultType)
+                    Return BadExpression(valueSyntax, valueExpression, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
 
                 End If
 
             Else
-                valueExpression = BadExpression(name, ErrorTypeSymbol.UnknownResultType)
+                valueExpression = BadExpression(name, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 ReportDiagnostic(diagnostics, name, ERRID.ERR_ConstantWithNoValue)
             End If
 

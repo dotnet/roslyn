@@ -35,11 +35,11 @@
     <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
-    <MicrosoftDiaSymReaderVersion>1.2.0-beta1-62008-01</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta1-62106-03</MicrosoftDiaSymReaderConverterVersion>
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62106-03</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderVersion>1.2.0</MicrosoftDiaSymReaderVersion>
+    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta1-62221-01</MicrosoftDiaSymReaderConverterVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62221-01</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.7.0-beta-25631</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.4.0-beta1-62016-01</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.4.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
     <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
@@ -140,7 +140,7 @@
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>14.0.983-pre-ge167e81694</RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>
-    <RoslynDependenciesOptimizationDataVersion>2.3.0-beta3-61801-06</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDependenciesOptimizationDataVersion>2.6.0-beta1-62205-01</RoslynDependenciesOptimizationDataVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.3.0-beta</RoslynToolsMicrosoftSignToolVersion>
     <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.4.0-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
