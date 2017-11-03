@@ -109,6 +109,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidVersionFormat, @"""-1""").WithLocation(1, 46));
         }
 
+        [Fact, WorkItem(22660, "https://github.com/dotnet/roslyn/issues/22660")]
+        public void VersionAttributeWithWildcardAndDeterminism()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyVersion(""1.1.1.*"")]";
+
+            var comp = CreateStandardCompilation(s, options: TestOptions.ReleaseDll.WithDeterministic(true));
+            comp.VerifyDiagnostics(
+                // (1,46): error CS8357: The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation
+                // [assembly: System.Reflection.AssemblyVersion("1.1.1.*")]
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormatDeterministic, @"""1.1.1.*""").WithLocation(1, 46)
+                );
+        }
+
         [Fact]
         public void FileVersionAttribute()
         {
@@ -169,24 +182,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             other.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(545947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545947"), WorkItem(546971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546971")]
+        [Fact, WorkItem(545947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545947"),
+            WorkItem(546971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546971"),
+            WorkItem(22660, "https://github.com/dotnet/roslyn/issues/22660")]
         public void SatelliteContractVersionAttributeErr()
         {
             string s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1.2.3.A"")] public class C {}";
 
             var other = CreateStandardCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(
-                // (1,63): error CS7031: The specified version string does not conform to the required format - major.minor.build.revision
+                // (1,63): error CS7058: The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)
                 // [assembly: System.Resources.SatelliteContractVersionAttribute("1.2.3.A")] public class C {}
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.3.A""").WithLocation(1, 63));
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.3.A""").WithLocation(1, 63)
+                );
 
             s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1.2.*"")] public class C {}";
 
             other = CreateStandardCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(
-                // (1,63): error CS7031: The specified version string does not conform to the required format - major.minor.build.revision
+                // (1,63): error CS7058: The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)
                 // [assembly: System.Resources.SatelliteContractVersionAttribute("1.2.*")] public class C {}
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.*""").WithLocation(1, 63));
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.*""").WithLocation(1, 63)
+                );
 
             s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1"")] public class C {}";
 

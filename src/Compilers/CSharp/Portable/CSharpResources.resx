@@ -3900,8 +3900,11 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</value>
   </data>
+  <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
+    <value>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
+  </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
-    <value>The specified version string does not conform to the required format - major.minor.build.revision</value>
+    <value>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</value>
   </data>
   <data name="WRN_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
