@@ -965,6 +965,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitConditional(IConditionalOperation operation)
         {
             LogString(nameof(IConditionalOperation));
+
+            if (operation.IsRef)
+            {
+                LogString(" (IsRef)");
+            }
+
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Condition, "Condition");
@@ -1236,6 +1242,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)
         {
             LogString(nameof(ISimpleAssignmentOperation));
+
+            if (operation.IsRef)
+            {
+                LogString(" (IsRef)");
+            }
+
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Target, "Left");

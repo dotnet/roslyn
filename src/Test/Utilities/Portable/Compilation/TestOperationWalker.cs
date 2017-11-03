@@ -371,6 +371,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitConditional(IConditionalOperation operation)
         {
+            bool isRef = operation.IsRef;
             base.VisitConditional(operation);
         }
 
@@ -536,6 +537,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)
         {
+            bool isRef = operation.IsRef;
             base.VisitSimpleAssignment(operation);
         }
 

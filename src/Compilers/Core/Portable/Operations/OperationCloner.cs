@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitConditional(IConditionalOperation operation, object argument)
         {
-            return new ConditionalOperation(Visit(operation.Condition), Visit(operation.WhenTrue), Visit(operation.WhenFalse), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ConditionalOperation(Visit(operation.Condition), Visit(operation.WhenTrue), Visit(operation.WhenFalse), operation.IsRef, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitCoalesce(ICoalesceOperation operation, object argument)
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitSimpleAssignment(ISimpleAssignmentOperation operation, object argument)
         {
-            return new SimpleAssignmentExpression(Visit(operation.Target), Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new SimpleAssignmentExpression(Visit(operation.Target), operation.IsRef, Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, object argument)

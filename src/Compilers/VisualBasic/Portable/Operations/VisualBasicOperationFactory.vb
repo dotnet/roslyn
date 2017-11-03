@@ -296,10 +296,11 @@ Namespace Microsoft.CodeAnalysis.Operations
             Else
                 Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Left))
                 Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Right))
+                Dim isRef As Boolean = False
                 Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
-                Return New LazySimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit)
+                Return New LazySimpleAssignmentExpression(target, isRef, value, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
         End Function
 
@@ -640,7 +641,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = boundTernaryConditionalExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTernaryConditionalExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundTernaryConditionalExpression.WasCompilerGenerated
-            Return New LazyConditionalOperation(condition, whenTrue, whenFalse, _semanticModel, syntax, type, constantValue, isImplicit)
+            Dim isRef As Boolean = False
+            Return New LazyConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundTypeOfOperation(boundTypeOf As BoundTypeOf) As IIsTypeOperation
@@ -951,7 +953,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundIfStatement.WasCompilerGenerated
-            Return New LazyConditionalOperation(condition, ifTrueStatement, ifFalseStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Dim isRef As Boolean = False
+            Return New LazyConditionalOperation(condition, ifTrueStatement, ifFalseStatement, isRef, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundSelectStatementOperation(boundSelectStatement As BoundSelectStatement) As ISwitchOperation

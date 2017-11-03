@@ -36,6 +36,7 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBloc
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockEndActionsCount.set -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockStartActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockStartActionsCount.set -> void
+Microsoft.CodeAnalysis.ILocalSymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.IMethodSymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRefReadonly.get -> bool
 Microsoft.CodeAnalysis.IOperation
@@ -260,6 +261,7 @@ Microsoft.CodeAnalysis.Operations.IConditionalAccessOperation.Operation.get -> M
 Microsoft.CodeAnalysis.Operations.IConditionalAccessOperation.WhenNotNull.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IConditionalOperation
 Microsoft.CodeAnalysis.Operations.IConditionalOperation.Condition.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IConditionalOperation.IsRef.get -> bool
 Microsoft.CodeAnalysis.Operations.IConditionalOperation.WhenFalse.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IConditionalOperation.WhenTrue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IConstantPatternOperation
@@ -418,6 +420,7 @@ Microsoft.CodeAnalysis.Operations.IRelationalCaseClauseOperation.Value.get -> Mi
 Microsoft.CodeAnalysis.Operations.IReturnOperation
 Microsoft.CodeAnalysis.Operations.IReturnOperation.ReturnedValue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ISimpleAssignmentOperation
+Microsoft.CodeAnalysis.Operations.ISimpleAssignmentOperation.IsRef.get -> bool
 Microsoft.CodeAnalysis.Operations.ISingleValueCaseClauseOperation
 Microsoft.CodeAnalysis.Operations.ISingleValueCaseClauseOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ISizeOfOperation

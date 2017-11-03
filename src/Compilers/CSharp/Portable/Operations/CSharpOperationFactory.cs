@@ -951,12 +951,13 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(!IsMemberInitializer(boundAssignmentOperator));
 
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundAssignmentOperator.Left));
+            bool isRef = boundAssignmentOperator.RefKind != RefKind.None;
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundAssignmentOperator.Right));
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
             ITypeSymbol type = boundAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAssignmentOperator.ConstantValue);
             bool isImplicit = boundAssignmentOperator.WasCompilerGenerated;
-            return new LazySimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazySimpleAssignmentExpression(target, isRef, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IMemberInitializerOperation CreateBoundMemberInitializerOperation(BoundAssignmentOperator boundAssignmentOperator)
@@ -1060,11 +1061,12 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundConditionalOperator.Condition));
             Lazy<IOperation> whenTrue = new Lazy<IOperation>(() => Create(boundConditionalOperator.Consequence));
             Lazy<IOperation> whenFalse = new Lazy<IOperation>(() => Create(boundConditionalOperator.Alternative));
+            bool isRef = boundConditionalOperator.IsByRef;
             SyntaxNode syntax = boundConditionalOperator.Syntax;
             ITypeSymbol type = boundConditionalOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundConditionalOperator.ConstantValue);
             bool isImplicit = boundConditionalOperator.WasCompilerGenerated;
-            return new LazyConditionalOperation(condition, whenTrue, whenFalse, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICoalesceOperation CreateBoundNullCoalescingOperatorOperation(BoundNullCoalescingOperator boundNullCoalescingOperator)
@@ -1298,11 +1300,12 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundIfStatement.Condition));
             Lazy<IOperation> ifTrueStatement = new Lazy<IOperation>(() => Create(boundIfStatement.Consequence));
             Lazy<IOperation> ifFalseStatement = new Lazy<IOperation>(() => Create(boundIfStatement.AlternativeOpt));
+            bool isRef = false;
             SyntaxNode syntax = boundIfStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundIfStatement.WasCompilerGenerated;
-            return new LazyConditionalOperation(condition, ifTrueStatement, ifFalseStatement, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyConditionalOperation(condition, ifTrueStatement, ifFalseStatement, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IWhileLoopOperation CreateBoundWhileStatementOperation(BoundWhileStatement boundWhileStatement)

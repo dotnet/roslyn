@@ -514,9 +514,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseSimpleAssignmentExpression : AssignmentExpression, ISimpleAssignmentOperation
     {
-        public BaseSimpleAssignmentExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseSimpleAssignmentExpression(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.SimpleAssignment, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            IsRef = isRef;
         }
         public override void Accept(OperationVisitor visitor)
         {
@@ -526,6 +527,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitSimpleAssignment(this, argument);
         }
+
+        /// <summary>
+        /// Is this a ref assignment
+        /// </summary>
+        public bool IsRef { get; }
     }
 
     /// <summary>
@@ -533,8 +539,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class SimpleAssignmentExpression : BaseSimpleAssignmentExpression, ISimpleAssignmentOperation
     {
-        public SimpleAssignmentExpression(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public SimpleAssignmentExpression(IOperation target, bool isRef, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
             TargetImpl = target;
             ValueImpl = value;
@@ -551,8 +557,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazySimpleAssignmentExpression(Lazy<IOperation> target, Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySimpleAssignmentExpression(Lazy<IOperation> target, bool isRef, Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
@@ -1279,9 +1285,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseConditionalOperation : Operation, IConditionalOperation
     {
-        protected BaseConditionalOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseConditionalOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.Conditional, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            IsRef = isRef;
         }
         protected abstract IOperation ConditionImpl { get; }
         protected abstract IOperation WhenTrueImpl { get; }
@@ -1324,6 +1331,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitConditional(this, argument);
         }
+
+        /// <summary>
+        /// Is result a managed reference
+        /// </summary>
+        public bool IsRef { get; }
     }
 
     /// <summary>
@@ -1336,8 +1348,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ConditionalOperation : BaseConditionalOperation, IConditionalOperation
     {
-        public ConditionalOperation(IOperation condition, IOperation whenTrue, IOperation whenFalse, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public ConditionalOperation(
+            IOperation condition, IOperation whenTrue, IOperation whenFalse, bool isRef, 
+            SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ConditionImpl = condition;
             WhenTrueImpl = whenTrue;
@@ -1363,8 +1377,10 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyWhenTrue;
         private readonly Lazy<IOperation> _lazyWhenFalse;
 
-        public LazyConditionalOperation(Lazy<IOperation> condition, Lazy<IOperation> whenTrue, Lazy<IOperation> whenFalse, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConditionalOperation(
+            Lazy<IOperation> condition, Lazy<IOperation> whenTrue, Lazy<IOperation> whenFalse, bool isRef, 
+            SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
             _lazyWhenTrue = whenTrue ?? throw new System.ArgumentNullException(nameof(whenTrue));
