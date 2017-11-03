@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
         {
-            return new ArrayInitializer(VisitArray(operation.ElementValues), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ArrayInitializer(VisitArray(operation.ElementValues), ((Operation)operation).SemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSimpleAssignment(ISimpleAssignmentOperation operation, object argument)

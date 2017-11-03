@@ -903,10 +903,9 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<ImmutableArray<IOperation>> elementValues = new Lazy<ImmutableArray<IOperation>>(() => boundArrayInitialization.Initializers.SelectAsArray(n => Create(n)));
             SyntaxNode syntax = boundArrayInitialization.Syntax;
-            ITypeSymbol type = boundArrayInitialization.Type;
             Optional<object> constantValue = ConvertToOptional(boundArrayInitialization.ConstantValue);
             bool isImplicit = boundArrayInitialization.WasCompilerGenerated;
-            return new LazyArrayInitializer(elementValues, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyArrayInitializer(elementValues, _semanticModel, syntax, constantValue, isImplicit);
         }
 
         private IDefaultValueOperation CreateBoundDefaultExpressionOperation(BoundDefaultExpression boundDefaultExpression)

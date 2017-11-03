@@ -2080,11 +2080,11 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       Instance Receiver: 
         null
       Arguments(2):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item1) (OperationKind.Argument, Type: System.Int32, IsInvalid) (Syntax: '42')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item1) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '42')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item2) (OperationKind.Argument, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(43, 44)')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item2) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '(43, 44)')
             ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(43, 44)')
               Elements(2):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 43, IsInvalid) (Syntax: '43')
@@ -2131,11 +2131,11 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) 
       Instance Receiver: 
         null
       Arguments(2):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item1) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item1) (OperationKind.Argument, Type: null) (Syntax: '1')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item2) (OperationKind.Argument, Type: System.Int32) (Syntax: '2')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item2) (OperationKind.Argument, Type: null) (Syntax: '2')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2322,7 +2322,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       Instance Receiver: 
         null
       Arguments(1):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'x1')
             ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2364,7 +2364,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       Instance Receiver: 
         null
       Arguments(1):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'x1')
             ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3436,7 +3436,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
           Instance Receiver: 
             null
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: System.Int32) (Syntax: 'out int x1')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'out int x1')
                 IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
                   ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

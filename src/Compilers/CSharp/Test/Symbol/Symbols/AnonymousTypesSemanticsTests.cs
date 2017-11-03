@@ -568,7 +568,7 @@ IInvocationOperation (virtual System.Boolean System.Object.Equals(System.Object 
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
   Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: System.Object) (Syntax: 'new { }')
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: null) (Syntax: 'new { }')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new { }')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 

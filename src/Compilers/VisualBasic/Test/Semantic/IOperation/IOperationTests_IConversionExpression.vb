@@ -1430,7 +1430,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
                     Right: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
               Initializer: 
-                IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{}')
+                IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
                   Element Values(0)
 ]]>.Value
 
@@ -1469,7 +1469,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
                     Right: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
               Initializer: 
-                IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Int32()()) (Syntax: '{}')
+                IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
                   Element Values(0)
 ]]>.Value
 
@@ -1975,7 +1975,7 @@ IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarati
                     Right: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
               Initializer: 
-                IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Char()) (Syntax: '{}')
+                IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
                   Element Values(0)
 ]]>.Value
 

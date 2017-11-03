@@ -758,10 +758,9 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundArrayInitializationOperation(boundArrayInitialization As BoundArrayInitialization) As IArrayInitializerOperation
             Dim elementValues As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundArrayInitialization.Initializers.SelectAsArray(Function(n) Create(n)))
             Dim syntax As SyntaxNode = boundArrayInitialization.Syntax
-            Dim type As ITypeSymbol = boundArrayInitialization.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundArrayInitialization.ConstantValueOpt)
             Dim isImplicit As Boolean = boundArrayInitialization.WasCompilerGenerated
-            Return New LazyArrayInitializer(elementValues, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyArrayInitializer(elementValues, _semanticModel, syntax, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundPropertyAccessOperation(boundPropertyAccess As BoundPropertyAccess) As IPropertyReferenceOperation
