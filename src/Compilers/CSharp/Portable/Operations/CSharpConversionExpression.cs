@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class BaseCSharpConversionExpression : BaseConversionExpression
     {
-        protected BaseCSharpConversionExpression(Conversion conversion, bool isExplicitInCode, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(isExplicitInCode, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseCSharpConversionExpression(Conversion conversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ConversionInternal = conversion;
         }
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class CSharpConversionExpression : BaseCSharpConversionExpression
     {
-        public CSharpConversionExpression(IOperation operand, Conversion conversion, bool isExplicit, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(conversion, isExplicit, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+        public CSharpConversionExpression(IOperation operand, Conversion conversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(conversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperandImpl = operand;
         }
@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LazyCSharpConversionExpression : BaseCSharpConversionExpression
     {
         private readonly Lazy<IOperation> _operand;
-        public LazyCSharpConversionExpression(Lazy<IOperation> operand, Conversion conversion, bool isExplicit, bool isTryCast, bool isChecked, SemanticModel semanticModel,SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(conversion, isExplicit, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCSharpConversionExpression(Lazy<IOperation> operand, Conversion conversion, bool isTryCast, bool isChecked, SemanticModel semanticModel,SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(conversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operand = operand;
         }

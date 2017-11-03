@@ -51,7 +51,7 @@ public class Cls
     null
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32[]) (Syntax: 'null')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
@@ -124,6 +124,27 @@ public class C
             var model = compilation.GetSemanticModel(tree);
 
             VerifyClone(model);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(22964, "https://github.com/dotnet/roslyn/issues/22964")]
+        [Fact]
+        public void GlobalStatement_Parent()
+        {
+            var source =
+@"
+System.Console.WriteLine();
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var statement = tree.GetRoot().DescendantNodes().OfType<StatementSyntax>().Single();
+            var model = compilation.GetSemanticModel(tree);
+            var operation = model.GetOperationInternal(statement);
+
+            Assert.Equal(OperationKind.ExpressionStatement, operation.Kind);
+            Assert.Null(operation.Parent);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

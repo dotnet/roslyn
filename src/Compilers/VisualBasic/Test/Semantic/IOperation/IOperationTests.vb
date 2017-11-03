@@ -62,7 +62,7 @@ End Module
             Dim assignment1 As ISimpleAssignmentOperation = DirectCast(expression1, ISimpleAssignmentOperation)
             Assert.Equal(assignment1.Value.Kind, OperationKind.BinaryOperator)
             Dim add1 As IBinaryOperation = DirectCast(assignment1.Value, IBinaryOperation)
-            Assert.Equal(add1.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
+            Assert.Equal(add1.OperatorKind, Operations.BinaryOperatorKind.Add)
             Assert.Null(add1.OperatorMethod)
             Dim left1 As IOperation = add1.LeftOperand
             Assert.Equal(left1.Kind, OperationKind.LocalReference)
@@ -83,8 +83,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, Is
           Left: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
-")
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')")
 
             ' x = x + y passes semantic analysis.
 
@@ -96,7 +95,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, Is
             Dim assignment2 As ISimpleAssignmentOperation = DirectCast(expression2, ISimpleAssignmentOperation)
             Assert.Equal(assignment2.Value.Kind, OperationKind.BinaryOperator)
             Dim add2 As IBinaryOperation = DirectCast(assignment2.Value, IBinaryOperation)
-            Assert.Equal(add2.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
+            Assert.Equal(add2.OperatorKind, Operations.BinaryOperatorKind.Add)
             Assert.NotNull(add2.OperatorMethod)
             Assert.Equal(add2.OperatorMethod.Name, "op_Addition")
             Dim left2 As IOperation = add2.LeftOperand
@@ -129,7 +128,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             Dim assignment3 As ISimpleAssignmentOperation = DirectCast(expression3, ISimpleAssignmentOperation)
             Assert.Equal(assignment3.Value.Kind, OperationKind.UnaryOperator)
             Dim negate3 As IUnaryOperation = DirectCast(assignment3.Value, IUnaryOperation)
-            Assert.Equal(negate3.OperatorKind, CodeAnalysis.Operations.UnaryOperatorKind.Minus)
+            Assert.Equal(negate3.OperatorKind, Operations.UnaryOperatorKind.Minus)
             Assert.Null(negate3.OperatorMethod)
             Dim operand3 As IOperation = negate3.Operand
             Assert.Equal(operand3.Kind, OperationKind.LocalReference)
@@ -192,7 +191,7 @@ End Module
             Dim value1 As ILocalReferenceOperation = TryCast(assignment1.Value, ILocalReferenceOperation)
             Assert.NotNull(value1)
             Assert.Equal(value1.Local.Name, "y")
-            Assert.Equal(assignment1.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
+            Assert.Equal(assignment1.OperatorKind, Operations.BinaryOperatorKind.Add)
             Assert.Null(assignment1.OperatorMethod)
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
@@ -218,7 +217,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             Dim value2 As ILocalReferenceOperation = TryCast(assignment2.Value, ILocalReferenceOperation)
             Assert.NotNull(value2)
             Assert.Equal(value2.Local.Name, "b")
-            Assert.Equal(assignment2.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
+            Assert.Equal(assignment2.OperatorKind, Operations.BinaryOperatorKind.Add)
             Assert.NotNull(assignment2.OperatorMethod)
             Assert.Equal(assignment2.OperatorMethod.Name, "op_Addition")
 
@@ -296,7 +295,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
   LimitValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   StepValue: 
-    IConversionOperation (Explicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = 0 T ... Next')
@@ -372,13 +371,12 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
     null
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'Nothing')
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'Nothing')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32(), Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-")
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:=
 "IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')
@@ -390,8 +388,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
         Arguments(0)
         Initializer: 
           null
-      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-")
+      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')")
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:=
 "IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'Test1(AddressOf Main)')
@@ -442,7 +439,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... essOf c1.S}')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .a = AddressOf c1.S')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Key .a = AddressOf c1.S')
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
@@ -675,19 +672,18 @@ End Module]]>.Value
 ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ...  Is Nothing')
   Locals: Local_1: ex As System.Exception
   ExceptionDeclarationOrExpression: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'ex')
-      Variables: Local_1: ex As System.Exception
+    IVariableDeclaratorOperation (Symbol: ex As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ex')
       Initializer: 
         null
   Filter: 
     IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'ex Is Nothing')
       Left: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'ex')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'ex')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILocalReferenceOperation: ex (OperationKind.LocalReference, Type: System.Exception) (Syntax: 'ex')
       Right: 
-        IConversionOperation (Implicit, TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')

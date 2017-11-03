@@ -332,13 +332,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns the scope to which a local can "escape" ref assignments or other form of aliasing
         /// Makes sense only for locals with formal scopes - i.e. source locals
         /// </summary>
-        internal virtual uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal abstract uint RefEscapeScope { get; }
 
         /// <summary>
         /// Returns the scope to which values of a local can "escape" via ordinary assignments
         /// Makes sense only for ref-like locals with formal scopes - i.e. source locals
         /// </summary>
-        internal virtual uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal abstract uint ValEscapeScope { get; }
 
         /// <summary>
         /// When a local variable's type is inferred, it may not be used in the

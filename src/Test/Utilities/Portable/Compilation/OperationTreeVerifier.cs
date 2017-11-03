@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private string _currentIndent;
         private bool _pendingIndent;
 
-        public OperationTreeVerifier(Compilation compilation, IOperation root, int initialIndent, bool trackExplicitNodes)
+        public OperationTreeVerifier(Compilation compilation, IOperation root, int initialIndent)
         {
             _compilation = compilation;
             _root = root;
@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _currentIndent = new string(' ', initialIndent);
             _pendingIndent = true;
 
-            if (trackExplicitNodes)
-            {
-                _explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
-            }
+            _explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
         }
 
         public static void Verify(Compilation compilation, IOperation operation, string expectedOperationTree, int initialIndent = 0)
@@ -50,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)
         {
-            var walker = new OperationTreeVerifier(compilation, operation, initialIndent, 
-                trackExplicitNodes: operation.Language == LanguageNames.VisualBasic);
+            var walker = new OperationTreeVerifier(compilation, operation, initialIndent);
             walker.Visit(operation);
             return walker._builder.ToString();
         }
@@ -250,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return;
             }
 
-            if (_explictNodeMap != null && !operation.IsImplicit)
+            if (!operation.IsImplicit)
             {
                 try
                 {
@@ -397,23 +393,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitBlock(operation);
         }
 
-        public override void VisitVariableDeclarations(IVariableDeclarationsOperation operation)
+        public override void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation)
         {
             var variablesCountStr = $"{operation.Declarations.Length} declarations";
-            LogString($"{nameof(IVariableDeclarationsOperation)} ({variablesCountStr})");
+            LogString($"{nameof(IVariableDeclarationGroupOperation)} ({variablesCountStr})");
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitVariableDeclarations(operation);
+            base.VisitVariableDeclarationGroup(operation);
+        }
+
+        public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
+        {
+            LogString($"{nameof(IVariableDeclaratorOperation)} (");
+            LogSymbol(operation.Symbol, "Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Initializer, "Initializer");
         }
 
         public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
         {
-            var symbolsCountStr = $"{operation.Variables.Length} variables";
-            LogString($"{nameof(IVariableDeclarationOperation)} ({symbolsCountStr})");
+            var variableCount = operation.Declarators.Length;
+            LogString($"{nameof(IVariableDeclarationOperation)} ({variableCount} declarators)");
             LogCommonPropertiesAndNewLine(operation);
 
-            LogLocals(operation.Variables, header: "Variables");
-
+            VisitArray(operation.Declarators, "Declarators", false);
             Visit(operation.Initializer, "Initializer");
         }
 
@@ -943,10 +948,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IConversionOperation));
 
-            var isExplicitStr = operation.IsExplicitInCode ? "Explicit" : "Implicit";
             var isTryCast = $"TryCast: {(operation.IsTryCast ? "True" : "False")}";
             var isChecked = operation.IsChecked ? "Checked" : "Unchecked";
-            LogString($" ({isExplicitStr}, {isTryCast}, {isChecked})");
+            LogString($" ({isTryCast}, {isChecked})");
 
             LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
             LogCommonPropertiesAndNewLine(operation);

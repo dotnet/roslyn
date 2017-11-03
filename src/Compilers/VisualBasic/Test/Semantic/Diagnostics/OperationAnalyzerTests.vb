@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -1313,9 +1314,15 @@ End Class
                              </file>
                          </compilation>
 
+            ' We have 2 OperationKind.None operations in the operation tree:
+            ' (1) BoundUnstructedExceptionHandlingStatement for the method block with Resume statement
+            ' (2) BoundResumeStatement for Resume statement
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(NoneOperationTestAnalyzer.NoneOperationDescriptor.Id, <![CDATA[Public Sub Barney  
+        Resume  
+    End Sub]]>).WithLocation(22, 5),
                                            Diagnostic(NoneOperationTestAnalyzer.NoneOperationDescriptor.Id, "Resume").WithLocation(23, 9))
         End Sub
 
@@ -2161,6 +2168,34 @@ End Class
             comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyAnalyzerDiagnostics({New SemanticModelInternalAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(SemanticModelInternalAnalyzer.GetOperationInternalDescriptor.Id, "1").WithLocation(3, 17))
+        End Sub
+
+        <Fact>
+        Public Sub TestOperationBlockAnalyzer_EmptyMethodBody()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M()
+    End Sub
+    
+    Public Sub M2(i as Integer)
+    End Sub
+    
+    Public Sub M3(Optional i as Integer = 0)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New OperationBlockAnalyzer}, Nothing, Nothing, False,
+                                            Diagnostic("ID", "M").WithArguments("M", "Block").WithLocation(2, 16),
+                                            Diagnostic("ID", "M2").WithArguments("M2", "Block").WithLocation(5, 16),
+                                            Diagnostic("ID", "M3").WithArguments("M3", "ParameterInitializer").WithLocation(8, 16),
+                                            Diagnostic("ID", "M3").WithArguments("M3", "Block").WithLocation(8, 16))
         End Sub
     End Class
 End Namespace
