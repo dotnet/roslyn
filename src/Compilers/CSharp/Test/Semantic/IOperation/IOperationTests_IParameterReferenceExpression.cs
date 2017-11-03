@@ -482,6 +482,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDe
       IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'array')
         Children(1):
             IParameterReferenceOperation: array (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'array')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -585,6 +586,7 @@ IVariableDeclaratorOperation (Symbol: dynamic y) (OperationKind.VariableDeclarat
             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
         ArgumentNames(0)
         ArgumentRefKinds(0)
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -37,6 +37,7 @@ IVariableDeclaratorOperation (Symbol: dynamic d1) (OperationKind.VariableDeclara
         Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: o1 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -66,6 +67,7 @@ IVariableDeclaratorOperation (Symbol: System.Object o2) (OperationKind.VariableD
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= o1')
       ILocalReferenceOperation: o1 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -94,6 +96,7 @@ IVariableDeclaratorOperation (Symbol: System.Double d1) (OperationKind.VariableD
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: f1 (OperationKind.LocalReference, Type: System.Single) (Syntax: 'f1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -123,6 +126,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: f1 (OperationKind.LocalReference, Type: System.Single, IsInvalid) (Syntax: 'f1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -154,6 +158,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDe
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=/*</bind>*/')
       IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
         Children(0)
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -204,6 +209,7 @@ IVariableDeclaratorOperation (Symbol: Enum1 e1) (OperationKind.VariableDeclarato
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'e1' is assigned but its value is never used
@@ -241,6 +247,7 @@ IVariableDeclaratorOperation (Symbol: Enum1 e1) (OperationKind.VariableDeclarato
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int' to 'Program.Enum1'. An explicit conversion exists (are you missing a cast?)
@@ -276,6 +283,7 @@ IVariableDeclaratorOperation (Symbol: Enum1 e1) (OperationKind.VariableDeclarato
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (5,30): error CS0266: Cannot implicitly convert type 'int' to 'Enum1'. An explicit conversion exists (are you missing a cast?)
@@ -357,6 +365,7 @@ IVariableDeclaratorOperation (Symbol: System.Object o) (OperationKind.VariableDe
                   Arguments(0)
                   Initializer: 
                     null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -430,6 +439,7 @@ IVariableDeclaratorOperation (Symbol: System.String s1) (OperationKind.VariableD
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 's1' is assigned but its value is never used
@@ -466,6 +476,7 @@ IVariableDeclaratorOperation (Symbol: S1? s1) (OperationKind.VariableDeclarator,
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 's1' is assigned but its value is never used
@@ -498,6 +509,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0037: Cannot convert null to 'int' because it is a non-nullable value type
@@ -532,6 +544,7 @@ IVariableDeclaratorOperation (Symbol: System.Int64 i1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int64, Constant: 0) (Syntax: 'default')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -567,6 +580,7 @@ IVariableDeclaratorOperation (Symbol: System.Int64 i1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32, Constant: 0) (Syntax: 'default(int)')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -601,6 +615,7 @@ IVariableDeclaratorOperation (Symbol: System.String i1) (OperationKind.VariableD
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= default(string)')
       IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null) (Syntax: 'default(string)')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -632,6 +647,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32? i1) (OperationKind.VariableD
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -665,6 +681,7 @@ IVariableDeclaratorOperation (Symbol: System.Int64? l1) (OperationKind.VariableD
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -694,6 +711,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32? i2) (OperationKind.VariableD
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -723,6 +741,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32?, IsInvalid) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -766,6 +785,7 @@ IVariableDeclaratorOperation (Symbol: System.IFormattable f1) (OperationKind.Var
                     null
                   FormatString: 
                     null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -799,6 +819,7 @@ IVariableDeclaratorOperation (Symbol: System.Object o1) (OperationKind.VariableD
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -832,6 +853,7 @@ IVariableDeclaratorOperation (Symbol: dynamic d1) (OperationKind.VariableDeclara
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -869,6 +891,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -906,6 +929,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C2' to 'C1'
@@ -941,6 +965,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
         Operand: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new/*</bind>*/')
             Children(0)
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1031: Type expected
@@ -985,6 +1010,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1022,6 +1048,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'C1' to 'I1'. An explicit conversion exists (are you missing a cast?)
@@ -1061,6 +1088,7 @@ IVariableDeclaratorOperation (Symbol: C1 i1) (OperationKind.VariableDeclarator, 
         Operand: 
           IInvalidOperation (OperationKind.Invalid, Type: I1, IsInvalid) (Syntax: 'new I1()')
             Children(0)
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0144: Cannot create an instance of the abstract class or interface 'I1'
@@ -1104,6 +1132,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: I2) (Syntax: 'i2')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1143,6 +1172,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: I2, IsInvalid) (Syntax: 'i2')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'I2' to 'I1'. An explicit conversion exists (are you missing a cast?)
@@ -1182,6 +1212,7 @@ IVariableDeclaratorOperation (Symbol: C1[] c1arr) (OperationKind.VariableDeclara
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c2arr (OperationKind.LocalReference, Type: C2[]) (Syntax: 'c2arr')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1217,6 +1248,7 @@ IVariableDeclaratorOperation (Symbol: C1[][] c1arr) (OperationKind.VariableDecla
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c2arr (OperationKind.LocalReference, Type: C2[], IsInvalid) (Syntax: 'c2arr')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C2[]' to 'C1[][]'
@@ -1256,6 +1288,7 @@ IVariableDeclaratorOperation (Symbol: C1[] c1arr) (OperationKind.VariableDeclara
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c2arr (OperationKind.LocalReference, Type: C2[], IsInvalid) (Syntax: 'c2arr')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C2[]' to 'C1[]'
@@ -1302,6 +1335,7 @@ IVariableDeclaratorOperation (Symbol: I1[] i1arr) (OperationKind.VariableDeclara
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'S1[]' to 'I1[]'
@@ -1340,6 +1374,7 @@ IVariableDeclaratorOperation (Symbol: System.Array a1) (OperationKind.VariableDe
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1374,6 +1409,7 @@ IVariableDeclaratorOperation (Symbol: System.Array a1) (OperationKind.VariableDe
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1407,6 +1443,7 @@ IVariableDeclaratorOperation (Symbol: System.Array a1) (OperationKind.VariableDe
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'object' to 'System.Array'. An explicit conversion exists (are you missing a cast?)
@@ -1445,6 +1482,7 @@ IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.In
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1478,6 +1516,7 @@ IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.In
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'object' to 'System.Collections.Generic.IList<int>'. An explicit conversion exists (are you missing a cast?)
@@ -1518,6 +1557,7 @@ IVariableDeclaratorOperation (Symbol: System.Delegate d2) (OperationKind.Variabl
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: d1 (OperationKind.LocalReference, Type: C1.DType) (Syntax: 'd1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1557,6 +1597,7 @@ IVariableDeclaratorOperation (Symbol: System.Delegate d2) (OperationKind.Variabl
             Instance Receiver: 
               ILocalReferenceOperation: d1 (OperationKind.LocalReference, Type: C1.DType, IsInvalid) (Syntax: 'd1')
             Arguments(0)
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'void' to 'System.Delegate'
@@ -1636,6 +1677,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1681,6 +1723,7 @@ IVariableDeclaratorOperation (Symbol: I1<C4> c1) (OperationKind.VariableDeclarat
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c2 (OperationKind.LocalReference, Type: C2<C3>) (Syntax: 'c2')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1726,6 +1769,7 @@ IVariableDeclaratorOperation (Symbol: I1<C3> c1) (OperationKind.VariableDeclarat
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c2 (OperationKind.LocalReference, Type: C2<C4>, IsInvalid) (Syntax: 'c2')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'C2<C4>' to 'I1<C3>'. An explicit conversion exists (are you missing a cast?)
@@ -1775,6 +1819,7 @@ IVariableDeclaratorOperation (Symbol: I1<C3> c1) (OperationKind.VariableDeclarat
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c2 (OperationKind.LocalReference, Type: C2<C4>) (Syntax: 'c2')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1820,6 +1865,7 @@ IVariableDeclaratorOperation (Symbol: I1<C4> c1) (OperationKind.VariableDeclarat
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c2 (OperationKind.LocalReference, Type: C2<C3>, IsInvalid) (Syntax: 'c2')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'C2<C3>' to 'I1<C4>'. An explicit conversion exists (are you missing a cast?)
@@ -1857,6 +1903,7 @@ IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.St
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1891,6 +1938,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T()')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1925,6 +1973,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'new T()')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'T' to 'C1'
@@ -1962,6 +2011,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T()')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1995,6 +2045,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'new T()')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'T' to 'I1'. An explicit conversion exists (are you missing a cast?)
@@ -2033,6 +2084,7 @@ IVariableDeclaratorOperation (Symbol: U u) (OperationKind.VariableDeclarator, Ty
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T()')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2067,6 +2119,7 @@ IVariableDeclaratorOperation (Symbol: U u) (OperationKind.VariableDeclarator, Ty
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'new T()')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'T' to 'U'
@@ -2104,6 +2157,7 @@ IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Ty
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 't' is assigned but its value is never used
@@ -2141,6 +2195,7 @@ IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Ty
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
@@ -2175,6 +2230,7 @@ IVariableDeclaratorOperation (Symbol: System.Object o) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2205,6 +2261,7 @@ IVariableDeclaratorOperation (Symbol: dynamic d) (OperationKind.VariableDeclarat
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2239,6 +2296,7 @@ IVariableDeclaratorOperation (Symbol: System.ValueType v1) (OperationKind.Variab
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2273,6 +2331,7 @@ IVariableDeclaratorOperation (Symbol: System.ValueType v1) (OperationKind.Variab
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C1' to 'System.ValueType'
@@ -2312,6 +2371,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2347,6 +2407,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
             Arguments(0)
             Initializer: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'S1' to 'I1'
@@ -2384,6 +2445,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: s1 (OperationKind.LocalReference, Type: S1?) (Syntax: 's1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2417,6 +2479,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: s1 (OperationKind.LocalReference, Type: S1?, IsInvalid) (Syntax: 's1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'S1?' to 'I1'
@@ -2459,6 +2522,7 @@ IVariableDeclaratorOperation (Symbol: System.Enum e) (OperationKind.VariableDecl
           IFieldReferenceOperation: E1.E (Static) (OperationKind.FieldReference, Type: E1, Constant: 0) (Syntax: 'E1.E')
             Instance Receiver: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2495,6 +2559,7 @@ IVariableDeclaratorOperation (Symbol: System.Enum e) (OperationKind.VariableDecl
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'int' to 'System.Enum'
@@ -2528,6 +2593,7 @@ IVariableDeclaratorOperation (Symbol: System.String s1) (OperationKind.VariableD
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: d1 (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2557,6 +2623,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: d1 (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2586,6 +2653,7 @@ IVariableDeclaratorOperation (Symbol: System.SByte s1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 's1' is assigned but its value is never used
@@ -2619,6 +2687,7 @@ IVariableDeclaratorOperation (Symbol: System.SByte s1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32, Constant: 4096, IsInvalid) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (7,36): error CS0031: Constant value '4096' cannot be converted to a 'sbyte'
@@ -2655,6 +2724,7 @@ IVariableDeclaratorOperation (Symbol: System.SByte s1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int' to 'sbyte'. An explicit conversion exists (are you missing a cast?)
@@ -2695,6 +2765,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C2.op_Implicit(C1 c1))
         Operand: 
           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1) (Syntax: 'this')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2735,6 +2806,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2786,6 +2858,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C1.op_Implicit(C1 c1))
                 Operand: 
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1) (Syntax: 'this')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -2831,6 +2904,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'this')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C1' to 'C2'
@@ -2882,6 +2956,7 @@ IVariableDeclaratorOperation (Symbol: C3 c3) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C3 C3.op_Implicit(C2 c2))
         Operand: 
           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2) (Syntax: 'this')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2912,6 +2987,7 @@ IVariableDeclaratorOperation (Symbol: System.Void* v1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
@@ -2943,6 +3019,7 @@ IVariableDeclaratorOperation (Symbol: System.Void* v1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2975,6 +3052,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32* i1) (OperationKind.VariableD
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: v1 (OperationKind.LocalReference, Type: System.Void*, IsInvalid) (Syntax: 'v1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'void*' to 'int*'. An explicit conversion exists (are you missing a cast?)
@@ -3010,6 +3088,7 @@ IVariableDeclaratorOperation (Symbol: System.Void* v1) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int' to 'void*'. An explicit conversion exists (are you missing a cast?)
@@ -3054,6 +3133,7 @@ IVariableDeclaratorOperation (Symbol: System.Linq.Expressions.Expression<System.
                       IParameterReferenceOperation: num (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'num')
                     Right: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3131,6 +3211,7 @@ IVariableDeclaratorOperation (Symbol: System.Linq.Expressions.Expression<System.
                 ReturnedValue: 
                   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                     Children(0)
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -3232,6 +3313,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -3270,6 +3352,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILocalReferenceOperation: objectAction (OperationKind.LocalReference, Type: System.Action<System.Object>) (Syntax: 'objectAction')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -3304,6 +3387,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILocalReferenceOperation: objectAction (OperationKind.LocalReference, Type: System.Action<System.Object>, IsInvalid) (Syntax: 'objectAction')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -3341,6 +3425,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
         Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i' is assigned but its value is never used
@@ -3376,6 +3461,7 @@ IVariableDeclaratorOperation (Symbol: System.Int64 i) (OperationKind.VariableDec
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i' is assigned but its value is never used
@@ -3439,6 +3525,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 1, IsInvalid) (Syntax: '1.0')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (6,27): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -3477,6 +3564,7 @@ IVariableDeclaratorOperation (Symbol: System.Int64 i) (OperationKind.VariableDec
             Operand: 
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -3513,6 +3601,7 @@ IVariableDeclaratorOperation (Symbol: E1 e1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'e1' is assigned but its value is never used
@@ -3551,6 +3640,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
           IFieldReferenceOperation: E1.One (Static) (OperationKind.FieldReference, Type: E1, Constant: 0) (Syntax: 'E1.One')
             Instance Receiver: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i' is assigned but its value is never used
@@ -3594,6 +3684,7 @@ IVariableDeclaratorOperation (Symbol: E2 e2) (OperationKind.VariableDeclarator, 
           IFieldReferenceOperation: E1.One (Static) (OperationKind.FieldReference, Type: E1, Constant: 0) (Syntax: 'E1.One')
             Instance Receiver: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'e2' is assigned but its value is never used
@@ -3640,6 +3731,7 @@ IVariableDeclaratorOperation (Symbol: E2 e2) (OperationKind.VariableDeclarator, 
           IFieldReferenceOperation: E1.One (Static) (OperationKind.FieldReference, Type: E1, Constant: 1000, IsInvalid) (Syntax: 'E1.One')
             Instance Receiver: 
               null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0221: Constant value '1000' cannot be converted to a 'E2' (use 'unchecked' syntax to override)
@@ -3675,6 +3767,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32? i) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Int64?) (Syntax: 'l')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3703,6 +3796,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Int64?) (Syntax: 'l')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3731,6 +3825,7 @@ IVariableDeclaratorOperation (Symbol: System.String s) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3759,6 +3854,7 @@ IVariableDeclaratorOperation (Symbol: System.String s) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3791,6 +3887,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1) (Syntax: 'c1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3823,6 +3920,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1, IsInvalid) (Syntax: 'c1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'C1' to 'C2'
@@ -3857,6 +3955,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: I1) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3887,6 +3986,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: I1) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3917,6 +4017,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: I1, IsInvalid) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'I1' to 'C1'
@@ -3953,6 +4054,7 @@ IVariableDeclaratorOperation (Symbol: I2 i2) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: I1) (Syntax: 'i1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3983,6 +4085,7 @@ IVariableDeclaratorOperation (Symbol: I2 i2) (OperationKind.VariableDeclarator, 
         Operand: 
           IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
             Children(0)
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ')'
@@ -4017,6 +4120,7 @@ IVariableDeclaratorOperation (Symbol: C2[] c2arr) (OperationKind.VariableDeclara
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c1arr (OperationKind.LocalReference, Type: C1[]) (Syntax: 'c1arr')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4047,6 +4151,7 @@ IVariableDeclaratorOperation (Symbol: C2[] c2arr) (OperationKind.VariableDeclara
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c1arr (OperationKind.LocalReference, Type: C1[], IsInvalid) (Syntax: 'c1arr')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'C1[]' to 'C2[]'
@@ -4079,6 +4184,7 @@ IVariableDeclaratorOperation (Symbol: C1[][] c2arr) (OperationKind.VariableDecla
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c1arr (OperationKind.LocalReference, Type: C1[], IsInvalid) (Syntax: 'c1arr')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'C1[]' to 'C1[][]'
@@ -4113,6 +4219,7 @@ IVariableDeclaratorOperation (Symbol: C1[] c2arr) (OperationKind.VariableDeclara
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c1arr (OperationKind.LocalReference, Type: System.Array) (Syntax: 'c1arr')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4144,6 +4251,7 @@ IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<C1> c1lis
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c1arr (OperationKind.LocalReference, Type: C1[]) (Syntax: 'c1arr')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4175,6 +4283,7 @@ IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<C1> c1lis
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c1arr (OperationKind.LocalReference, Type: C1[][], IsInvalid) (Syntax: 'c1arr')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'C1[][]' to 'System.Collections.Generic.IList<C1>'
@@ -4210,6 +4319,7 @@ IVariableDeclaratorOperation (Symbol: C1[] c1arr) (OperationKind.VariableDeclara
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c1List (OperationKind.LocalReference, Type: System.Collections.Generic.IList<C1>) (Syntax: 'c1List')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4241,6 +4351,7 @@ IVariableDeclaratorOperation (Symbol: C1[][] c1arr) (OperationKind.VariableDecla
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c1List (OperationKind.LocalReference, Type: System.Collections.Generic.IList<C1>, IsInvalid) (Syntax: 'c1List')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'System.Collections.Generic.IList<C1>' to 'C1[][]'
@@ -4275,6 +4386,7 @@ IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDe
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Delegate) (Syntax: 'd')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4319,6 +4431,7 @@ IVariableDeclaratorOperation (Symbol: I1<C4> c1) (OperationKind.VariableDeclarat
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: c2 (OperationKind.LocalReference, Type: C2<C3>) (Syntax: 'c2')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4347,6 +4460,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4375,6 +4489,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4405,6 +4520,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: v (OperationKind.LocalReference, Type: System.ValueType) (Syntax: 'v')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4440,6 +4556,7 @@ IVariableDeclaratorOperation (Symbol: E1 e1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Enum) (Syntax: 'e')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4475,6 +4592,7 @@ IVariableDeclaratorOperation (Symbol: E1? e1) (OperationKind.VariableDeclarator,
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Enum) (Syntax: 'e')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4513,6 +4631,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32? e1) (OperationKind.VariableD
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
               ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Enum, IsInvalid) (Syntax: 'e')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'E1?' to 'int?'. An explicit conversion exists (are you missing a cast?)
@@ -4551,6 +4670,7 @@ IVariableDeclaratorOperation (Symbol: S1 s1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: I1) (Syntax: 'i')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4585,6 +4705,7 @@ IVariableDeclaratorOperation (Symbol: S1 s1) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: I1, IsInvalid) (Syntax: 'i')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'I1' to 'S1'
@@ -4624,6 +4745,7 @@ IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<S1> s1Lis
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           ILocalReferenceOperation: i1List (OperationKind.LocalReference, Type: System.Collections.Generic.IList<I1>) (Syntax: 'i1List')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4653,6 +4775,7 @@ IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Ty
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: U) (Syntax: 'u')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4682,6 +4805,7 @@ IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Ty
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: U, IsInvalid) (Syntax: 'u')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'U' to 'T'
@@ -4715,6 +4839,7 @@ IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Ty
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: I1) (Syntax: 'i')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4744,6 +4869,7 @@ IVariableDeclaratorOperation (Symbol: I1 i) (OperationKind.VariableDeclarator, T
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4776,6 +4902,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C1.op_Implicit(C1 c1))
         Operand: 
           ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1) (Syntax: 'c1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4808,6 +4935,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C1.op_Explicit(C1 c1))
         Operand: 
           ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1) (Syntax: 'c1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4845,6 +4973,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C1.op_Explicit(C1 c1))
             Operand: 
               ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1) (Syntax: 'c1')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4974,6 +5103,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";

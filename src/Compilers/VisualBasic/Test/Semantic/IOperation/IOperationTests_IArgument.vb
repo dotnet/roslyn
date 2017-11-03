@@ -1439,6 +1439,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 20')
                 Initializer: 
                   null
+          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value

@@ -460,6 +460,7 @@ Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation
 Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation.Declarators.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation>
 Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation.Initializer.get -> Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation
 Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation
+Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation.IgnoredArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation.Initializer.get -> Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation
 Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation.Symbol.get -> Microsoft.CodeAnalysis.ILocalSymbol
 Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation

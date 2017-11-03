@@ -64,6 +64,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Elements(2):
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -141,6 +142,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -222,6 +224,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'b')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -299,6 +302,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -361,6 +365,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Elements(2):
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -426,6 +431,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                     Elements(2):
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -510,6 +516,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -650,6 +657,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String C.op_Implicit(C c))
                           Operand: 
                             IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -756,6 +764,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
                                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -847,6 +856,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: (System.Int32, System.String) C.op_Implicit(C c))
                 Operand: 
                   IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -990,6 +1000,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.String C.op_Implicit(C c))
                           Operand: 
                             IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";

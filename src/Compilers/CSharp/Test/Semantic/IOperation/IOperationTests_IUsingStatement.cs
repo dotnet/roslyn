@@ -43,6 +43,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
                     Arguments(0)
                     Initializer: 
                       null
+              IgnoredArguments(0)
         Initializer: 
           null
   Body: 
@@ -102,6 +103,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (C c1 ... }')
                     Arguments(0)
                     Initializer: 
                       null
+              IgnoredArguments(0)
             IVariableDeclaratorOperation (Symbol: C c2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2 = new C()')
               Initializer: 
                 IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
@@ -109,6 +111,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (C c1 ... }')
                     Arguments(0)
                     Initializer: 
                       null
+              IgnoredArguments(0)
         Initializer: 
           null
   Body: 
@@ -216,6 +219,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
                     Arguments(0)
                     Initializer: 
                       null
+              IgnoredArguments(0)
         Initializer: 
           null
   Body: 
@@ -231,6 +235,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
                         Arguments(0)
                         Initializer: 
                           null
+                  IgnoredArguments(0)
             Initializer: 
               null
       Body: 
@@ -357,6 +362,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (va
                     Arguments(0)
                     Initializer: 
                       null
+              IgnoredArguments(0)
             IVariableDeclaratorOperation (Symbol: C c2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2 = new C()')
               Initializer: 
                 IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C()')
@@ -364,6 +370,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (va
                     Arguments(0)
                     Initializer: 
                       null
+              IgnoredArguments(0)
         Initializer: 
           null
   Body: 
@@ -438,6 +445,7 @@ IBlockOperation (5 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                   Arguments(0)
                   Initializer: 
                     null
+            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var c2 = new C();')
@@ -450,6 +458,7 @@ IBlockOperation (5 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                   Arguments(0)
                   Initializer: 
                     null
+            IgnoredArguments(0)
       Initializer: 
         null
   IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (c1')
@@ -541,6 +550,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (va
                     Arguments(0)
                     Initializer: 
                       null
+              IgnoredArguments(0)
         Initializer: 
           null
   Body: 
@@ -798,6 +808,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
               Arguments(0)
               Initializer: 
                 null
+        IgnoredArguments(0)
   Initializer: 
     null
 ";
@@ -911,6 +922,7 @@ IVariableDeclaratorOperation (Symbol: C c1) (OperationKind.VariableDeclarator, T
         Arguments(0)
         Initializer: 
           null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -410,6 +410,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Initializer, "Initializer");
+            VisitArray(operation.IgnoredArguments, "IgnoredArguments", logElementCount: true);
         }
 
         public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)

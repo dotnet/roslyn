@@ -37,6 +37,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                       IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
                         ReturnedValue: 
                           null
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -102,6 +103,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                       IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
                         ReturnedValue: 
                           null
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -139,6 +141,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Target: 
                   IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
                     IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -271,6 +274,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                       IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
                         ReturnedValue: 
                           null
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -307,6 +311,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                       IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return 1;')
                         ReturnedValue: 
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -344,6 +349,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Target: 
                   IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'delegate(int i) { }')
                     IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -383,6 +389,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                   IMethodReferenceOperation: void Program.M1() (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
                     Instance Receiver: 
                       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -444,6 +451,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Operand: 
                   IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M1')
                     Children(0)
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -512,6 +520,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                   IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
                     Instance Receiver: 
                       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -582,6 +591,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
                     Children(1):
                         IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -1644,6 +1654,7 @@ IVariableDeclaratorOperation (Symbol: Program.DType d1) (OperationKind.VariableD
               IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '')
                 ReturnedValue: 
                   null
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -1683,6 +1694,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
                     Children(1):
                         IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -1723,6 +1735,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                   IMethodReferenceOperation: void Program.M1(System.Int32 i) (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
                     Instance Receiver: 
                       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M1')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";

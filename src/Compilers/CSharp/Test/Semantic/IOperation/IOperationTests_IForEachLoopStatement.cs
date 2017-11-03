@@ -600,6 +600,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
                                     Children(1):
                                         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: MissingType) (Syntax: 'x')
                                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                IgnoredArguments(0)
           Initializer: 
             null
   NextVariables(0)

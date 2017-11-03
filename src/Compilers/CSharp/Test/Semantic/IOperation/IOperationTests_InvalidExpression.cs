@@ -139,6 +139,7 @@ IVariableDeclaratorOperation (Symbol: ? y) (OperationKind.VariableDeclarator, Ty
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x.MissingField')
         Children(1):
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program) (Syntax: 'x')
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1061: 'Program' does not contain a definition for 'MissingField' and no extension method 'MissingField' accepting a first argument of type 'Program' could be found (are you missing a using directive or an assembly reference?)
@@ -183,6 +184,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                   IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
                     Instance Receiver: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -232,6 +234,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                   IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
                     Instance Receiver: 
                       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -355,6 +358,7 @@ IVariableDeclaratorOperation (Symbol: var x) (OperationKind.VariableDeclarator, 
                 Instance Receiver: 
                   null
                 Arguments(0)
+  IgnoredArguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0815: Cannot assign lambda expression to an implicitly-typed variable

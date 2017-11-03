@@ -317,6 +317,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                     Element Values(2):
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          IgnoredArguments(0)
     Initializer: 
       null
 ";

@@ -111,6 +111,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
             IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -122,6 +123,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
             IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -179,6 +181,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
             IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -236,6 +239,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
             IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -293,9 +297,11 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1, c ... End 
             IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
+              IgnoredArguments(0)
             IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -400,9 +406,11 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1,
             IVariableDeclaratorOperation (Symbol: c1 As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1')
               Initializer: 
                 null
+              IgnoredArguments(0)
             IVariableDeclaratorOperation (Symbol: c2 As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           null
   Body: 
@@ -518,6 +526,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 =  ... End 
             IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -529,9 +538,11 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 =  ... End 
             IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
               Initializer: 
                 null
+              IgnoredArguments(0)
             IVariableDeclaratorOperation (Symbol: c3 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c3')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -589,6 +600,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 
             IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -600,6 +612,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 
             IVariableDeclaratorOperation (Symbol: c2 As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c2')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           null
   Body: 
@@ -657,6 +670,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 
             IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c1')
               Initializer: 
                 null
+              IgnoredArguments(0)
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C, IsInvalid) (Syntax: 'New C')
@@ -824,6 +838,7 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
           Initializer: 
             null
+          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
         IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -835,6 +850,7 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: c2 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c2')
           Initializer: 
             null
+          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
         IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')

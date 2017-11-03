@@ -260,9 +260,11 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
           IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
+            IgnoredArguments(0)
           IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
             Initializer: 
               null
+            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -275,6 +277,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
           IVariableDeclaratorOperation (Symbol: r As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
             Initializer: 
               null
+            IgnoredArguments(0)
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')
@@ -649,9 +652,11 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
           IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
+            IgnoredArguments(0)
           IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
             Initializer: 
               null
+            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -664,6 +669,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
           IVariableDeclaratorOperation (Symbol: r As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
             Initializer: 
               null
+            IgnoredArguments(0)
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')
@@ -1188,9 +1194,11 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
           IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
+            IgnoredArguments(0)
           IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
             Initializer: 
               null
+            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -1342,9 +1350,11 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
           IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
+            IgnoredArguments(0)
           IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
             Initializer: 
               null
+            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
           IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -1617,9 +1627,11 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
           IVariableDeclaratorOperation (Symbol: x As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
+            IgnoredArguments(0)
           IVariableDeclaratorOperation (Symbol: y As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
             Initializer: 
               null
+            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New B2()')
           IObjectCreationOperation (Constructor: Sub B2..ctor()) (OperationKind.ObjectCreation, Type: B2) (Syntax: 'New B2()')
@@ -1632,6 +1644,7 @@ IBlockOperation (24 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
           IVariableDeclaratorOperation (Symbol: r As B2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'r')
             Initializer: 
               null
+            IgnoredArguments(0)
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'r = x + y')

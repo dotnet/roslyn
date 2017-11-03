@@ -5424,11 +5424,13 @@ namespace Microsoft.CodeAnalysis.Operations
         public ILocalSymbol Symbol { get; }
 
         protected abstract IVariableInitializerOperation InitializerImpl { get; }
+        protected abstract ImmutableArray<IOperation> IgnoredArgumentsImpl { get; }
 
         /// <summary>
         /// Optional initializer of the variable.
         /// </summary>
         public IVariableInitializerOperation Initializer => Operation.SetParentOperation(InitializerImpl, this);
+        public ImmutableArray<IOperation> IgnoredArguments => Operation.SetParentOperation(IgnoredArgumentsImpl, this);
 
         public override IEnumerable<IOperation> Children
         {
@@ -5437,6 +5439,13 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (Initializer != null)
                 {
                     yield return Initializer;
+                }
+                if (!IgnoredArguments.IsEmpty)
+                {
+                    foreach (var arg in IgnoredArguments)
+                    {
+                        yield return arg;
+                    }
                 }
             }
         }
@@ -5457,13 +5466,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class VariableDeclarator : BaseVariableDeclarator
     {
-        public VariableDeclarator(ILocalSymbol symbol, IVariableInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public VariableDeclarator(ILocalSymbol symbol, IVariableInitializerOperation initializer, ImmutableArray<IOperation> ignoredArguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InitializerImpl = initializer;
+            IgnoredArgumentsImpl = ignoredArguments;
         }
 
         protected override IVariableInitializerOperation InitializerImpl { get; }
+        protected override ImmutableArray<IOperation> IgnoredArgumentsImpl { get; }
     }
 
     /// <summary>
@@ -5472,14 +5483,17 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class LazyVariableDeclarator : BaseVariableDeclarator
     {
         private readonly Lazy<IVariableInitializerOperation> _lazyInitializer;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyIgnoredArguments;
 
-        public LazyVariableDeclarator(ILocalSymbol symbol, Lazy<IVariableInitializerOperation> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyVariableDeclarator(ILocalSymbol symbol, Lazy<IVariableInitializerOperation> initializer, Lazy<ImmutableArray<IOperation>> ignoredArguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
+            _lazyIgnoredArguments = ignoredArguments;
         }
 
         protected override IVariableInitializerOperation InitializerImpl => _lazyInitializer.Value;
+        protected override ImmutableArray<IOperation> IgnoredArgumentsImpl => _lazyIgnoredArguments.Value;
     }
 
     internal abstract partial class BaseVariableDeclaration : Operation, IVariableDeclarationOperation

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
@@ -35,5 +37,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// to check in all locations. It is only possible to have initializers in both locations in VB invalid code scenarios.
         /// </remarks>
         IVariableInitializerOperation Initializer { get; }
+
+        /// <summary>
+        /// Additional arguments supplied to the declarator in error cases, ignored by the compiler. This only used for C# cases, of
+        /// DeclaredArgumentSyntax nodes on a VariableDeclaratorSyntax.
+        /// </summary>
+        ImmutableArray<IOperation> IgnoredArguments { get; }
     }
 }
