@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             });
         }
 
-        [Fact, WorkItem(545947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545947"), WorkItem(22660, "https://github.com/dotnet/roslyn/issues/22660")]
+        [Fact, WorkItem(545947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545947")]
         public void VersionAttributeErr()
         {
             string s = @"[assembly: System.Reflection.AssemblyVersion(""1.*"")] public class C {}";
@@ -107,11 +107,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,46): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersion("-1")] public class C {}
                 Diagnostic(ErrorCode.ERR_InvalidVersionFormat, @"""-1""").WithLocation(1, 46));
+        }
 
-            string s3 = @"[assembly: System.Reflection.AssemblyVersion(""1.1.1.*"")]";
+        [Fact, WorkItem(22660, "https://github.com/dotnet/roslyn/issues/22660")]
+        public void VersionAttributeWithWildcardAndDeterminism()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyVersion(""1.1.1.*"")]";
 
-            var comp3 = CreateStandardCompilation(s3, options: TestOptions.ReleaseDll.WithDeterministic(true));
-            comp3.VerifyDiagnostics(
+            var comp = CreateStandardCompilation(s, options: TestOptions.ReleaseDll.WithDeterministic(true));
+            comp.VerifyDiagnostics(
                 // (1,46): error CS8357: The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation
                 // [assembly: System.Reflection.AssemblyVersion("1.1.1.*")]
                 Diagnostic(ErrorCode.ERR_InvalidVersionFormatDeterministic, @"""1.1.1.*""").WithLocation(1, 46)
