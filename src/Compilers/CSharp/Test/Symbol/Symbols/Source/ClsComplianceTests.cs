@@ -3230,9 +3230,9 @@ namespace N{0}
     }}
 }}
 ";
-
-            var tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), path: "a.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), path: "b.cs");
+            var parseOptions = TestOptions.Regular7;
+            var tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), parseOptions, path: "a.cs");
+            var tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), parseOptions, path: "b.cs");
             var comp = CreateStandardCompilation(new[] { tree1, tree2 });
 
             comp.VerifyDiagnostics(

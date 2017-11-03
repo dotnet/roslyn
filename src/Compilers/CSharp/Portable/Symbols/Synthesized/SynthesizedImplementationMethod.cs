@@ -76,31 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            var compilation = this.DeclaringCompilation;
-            TypeSymbolWithAnnotations returnType = this.ReturnType;
-            if (returnType.TypeSymbol.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType.TypeSymbol, returnType.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
-            }
-
-            if (returnType.TypeSymbol.ContainsTupleNames() &&
-                compilation.HasTupleNamesAttributes &&
-                compilation.CanEmitSpecialType(SpecialType.System_String))
-            {
-                AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(returnType.TypeSymbol));
-            }
-
-            if (returnType.ContainsNullableReferenceTypes())
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(returnType));
-            }
-        }
-
         internal sealed override bool GenerateDebugInfo
         {
             get { return _generateDebugInfo; }

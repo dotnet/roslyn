@@ -396,6 +396,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             return GetAttributeIfAny(method, "System.Runtime.CompilerServices.TupleElementNamesAttribute");
         }
 
+        internal static SynthesizedAttributeData GetNullableAttributeIfAny(IMethodSymbol method)
+        {
+            return GetAttributeIfAny(method, "System.Runtime.CompilerServices.NullableAttribute");
+        }
+
         internal static SynthesizedAttributeData GetAttributeIfAny(IMethodSymbol method, string typeName)
         {
             return ((MethodSymbol)method).GetSynthesizedAttributes(forReturnType: true).

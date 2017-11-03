@@ -52,6 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
 
         /// <summary>
+        /// The inferred nullability at the point of declaration of var locals.
+        /// </summary>
+        // PROTOTYPE(NullableReferenceTypes): Does this need to
+        // move to LocalState so it participates in merging?
+        private readonly PooledDictionary<LocalSymbol, bool?> _variableIsNullable = PooledDictionary<LocalSymbol, bool?>.GetInstance();
+
+        /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
         /// unused variables.
         /// </summary>
@@ -111,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
+            _variableIsNullable.Free();
             _usedVariables.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
@@ -126,9 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             bool trackUnassignments = false,
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
-            bool requireOutParamsAssigned = true)
+            bool requireOutParamsAssigned = true,
+            bool trackClassFields = false)
             : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments)
         {
+            Debug.Assert(!trackClassFields);
+
+
+
             this.initiallyAssignedVariables = null;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this.currentMethodOrLambda = member as MethodSymbol;
@@ -276,11 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;
 
-                            var sourceField = field as SourceMemberFieldSymbol;
-                            if (sourceField?.HasInitializer == true) continue;
-
-                            var backingField = field as SynthesizedBackingFieldSymbol;
-                            if (backingField?.HasInitializer == true) continue;
+                            if (HasInitializer(field)) continue;
 
                             int fieldSlot = VariableSlot(field, thisSlot);
                             if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
@@ -306,6 +315,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Diagnostics.Add(ErrorCode.ERR_ParamUnassigned, location, parameter.Name);
                 }
             }
+        }
+
+        protected static bool HasInitializer(FieldSymbol field)
+        {
+            return (field as SourceMemberFieldSymbol)?.HasInitializer == true ||
+                (field as SynthesizedBackingFieldSymbol)?.HasInitializer == true;
         }
 
         /// <summary>
@@ -694,7 +709,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = oldNext; i < nextVariableSlot; i++)
             {
                 var id = variableBySlot[i];
-                state.Assigned[i] = (id.ContainingSlot > 0) && state.Assigned[id.ContainingSlot];
+                int slot = id.ContainingSlot;
+                state.Assigned[i] = (slot > 0) &&
+                    state.Assigned[slot] &&
+                    variableBySlot[slot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct;
             }
         }
 
@@ -1103,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingSlot != -1);
             Debug.Assert(!state.IsAssigned(containingSlot));
             VariableIdentifier variable = variableBySlot[containingSlot];
-            NamedTypeSymbol structType = VariableType(variable.Symbol) as NamedTypeSymbol;
+            NamedTypeSymbol structType = (NamedTypeSymbol)VariableType(variable.Symbol)?.TypeSymbol;
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
                 if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;
@@ -1131,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];
-            TypeSymbol type = VariableType(id.Symbol);
+            TypeSymbol type = VariableType(id.Symbol)?.TypeSymbol;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (slot >= state.Assigned.Capacity) Normalize(ref state);
             if (state.IsAssigned(slot)) return; // was already fully assigned.
@@ -1167,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];
-            TypeSymbol type = VariableType(id.Symbol);
+            TypeSymbol type = VariableType(id.Symbol)?.TypeSymbol;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (!state.IsAssigned(slot)) return; // was already unassigned
             state.Unassign(slot);

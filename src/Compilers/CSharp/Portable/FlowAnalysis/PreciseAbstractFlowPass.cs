@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly bool _trackExceptions;
 
         /// <summary>
+        /// Track fields of classes in addition to structs.
+        /// </summary>
+        protected readonly bool _trackClassFields;
+
+        /// <summary>
         /// Pending escapes generated in the current scope (or more deeply nested scopes). When jump
         /// statements (goto, break, continue, return) are processed, they are placed in the
         /// pendingBranches buffer to be processed later by the code handling the destination
@@ -159,7 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode firstInRegion = null,
             BoundNode lastInRegion = null,
             bool trackRegions = false,
-            bool trackExceptions = false)
+            bool trackExceptions = false,
+            bool trackClassFields = false)
         {
             Debug.Assert(node != null);
 
@@ -191,6 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _loopHeadState = new Dictionary<BoundLoopStatement, LocalState>(ReferenceEqualityComparer.Instance);
             _trackRegions = trackRegions;
             _trackExceptions = trackExceptions;
+            _trackClassFields = trackClassFields;
         }
 
         protected abstract string Dump(LocalState state);
@@ -1892,7 +1899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected static bool MayRequireTracking(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
+        protected bool MayRequireTracking(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
         {
             return
                 (object)fieldSymbol != null && //simplifies calling pattern for events
@@ -1900,9 +1907,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !fieldSymbol.IsStatic &&
                 !fieldSymbol.IsFixed &&
                 receiverOpt.Kind != BoundKind.TypeExpression &&
-                receiverOpt.Type != null &&
-                receiverOpt.Type.IsStructType() &&
+                MayRequireTrackingReceiverType(receiverOpt.Type) &&
                 !receiverOpt.Type.IsPrimitiveRecursiveStruct();
+        }
+
+        protected bool MayRequireTrackingReceiverType(TypeSymbol type)
+        {
+            return (object)type != null &&
+                (_trackClassFields || type.TypeKind == TypeKind.Struct);
         }
 
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)

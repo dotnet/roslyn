@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Since analysis may proceed in multiple passes, it is possible the slot is already assigned.
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
-                var variableType = VariableType(symbol);
+                var variableType = VariableType(symbol)?.TypeSymbol;
                  if (_emptyStructTypeCache.IsEmptyStructType(variableType))
                 {
                     return -1;
@@ -255,22 +255,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        protected static TypeSymbol VariableType(Symbol s)
+        protected static TypeSymbolWithAnnotations VariableType(Symbol s)
         {
             switch (s.Kind)
             {
                 case SymbolKind.Local:
-                    return ((LocalSymbol)s).Type.TypeSymbol;
+                    return ((LocalSymbol)s).Type;
                 case SymbolKind.Field:
-                    return ((FieldSymbol)s).Type.TypeSymbol;
+                    return ((FieldSymbol)s).Type;
                 case SymbolKind.Parameter:
-                    return ((ParameterSymbol)s).Type.TypeSymbol;
+                    return ((ParameterSymbol)s).Type;
                 case SymbolKind.Method:
                     Debug.Assert(((MethodSymbol)s).MethodKind == MethodKind.LocalFunction);
                     return null;
                 case SymbolKind.Property:
                     Debug.Assert(s.ContainingType.IsAnonymousType);
-                    return ((PropertySymbol)s).Type.TypeSymbol;
+                    return ((PropertySymbol)s).Type;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(s.Kind);
             }

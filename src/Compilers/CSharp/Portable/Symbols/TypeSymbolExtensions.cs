@@ -1536,18 +1536,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation declaringCompilation,
             Cci.ITypeReference typeRef)
         {
+            var builder = ArrayBuilder<Cci.ICustomAttribute>.GetInstance();
             if (type.ContainsTupleNames())
             {
                 var attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
                 if (attr != null)
                 {
-                    return new Cci.TypeReferenceWithAttributes(
-                        typeRef,
-                        ImmutableArray.Create<Cci.ICustomAttribute>(attr));
+                    builder.Add(attr);
                 }
             }
-
-            return new Cci.TypeReferenceWithAttributes(typeRef);
+            if (type.ContainsNullableReferenceTypes())
+            {
+                // PROTOTYPE(NullableReferenceTypes): Create attribute
+                // with PEModuleBuilder.SynthesizeNullableAttribute().
+                // See AttributeTests_Nullable.EmitAttribute_Interface.
+            }
+            return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }
 
         internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol)

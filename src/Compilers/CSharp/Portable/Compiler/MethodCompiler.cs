@@ -943,6 +943,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested);
 
+                    if (body != null && methodSymbol.MethodKind == MethodKind.Constructor)
+                    {
+                        // PROTOTYPE(NullableReferenceTypes): Consider moving analysis down to
+                        // FlowAnalysisPass below, so the initializers are included in the body.
+                        UnassignedFieldsWalker.Analyze(_compilation, methodSymbol, body, diagsForCurrentMethod);
+                    }
+
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors 
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
                     // (see later in this method). Don't bother lowering _now_ if this particular ctor won't have the initializers 

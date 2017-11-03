@@ -499,8 +499,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (type.ContainsNullableReferenceTypes())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
+            }
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            if (this.Type.ContainsNullableReferenceTypes())
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, ErrorLocation, modifyCompilation: true);
             }
         }
 

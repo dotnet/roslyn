@@ -457,10 +457,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)
             {
-                binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilationForRefReadOnly: false);
+                binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaSymbol.Parameters, diagnostics, modifyCompilationForRefReadOnly: false);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaSymbol.Parameters, diagnostics, modifyCompilation: false);
+
+            if (returnType?.ContainsNullableReferenceTypes() == true)
+            {
+                binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
+            }
+
+            ParameterHelpers.EnsureNullableAttributeExists(lambdaSymbol.Parameters, diagnostics, modifyCompilation: false);
 
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 

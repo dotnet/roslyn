@@ -1386,12 +1386,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsByRefLikeType)
             {
-                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, Locations[0], modifyCompilationForIsByRefLike: true);
+                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, Locations[0], modifyCompilation: true);
             }
 
             if (this.IsReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilationForRefReadOnly: true);
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilation: true);
+            }
+
+            if (this.BaseTypeNoUseSiteDiagnostics?.ContainsNullableReferenceTypes() == true)
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, Locations[0], modifyCompilation: true);
             }
         }
 

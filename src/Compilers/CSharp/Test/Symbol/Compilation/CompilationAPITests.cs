@@ -531,17 +531,15 @@ class D
     }
 }
 ";
-            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
-            var parseOptions = TestOptions.Regular7;
-            SyntaxTree t1 = SyntaxFactory.ParseSyntaxTree(s1, parseOptions);
-            SyntaxTree withErrorTree = SyntaxFactory.ParseSyntaxTree(s2, parseOptions);
-            SyntaxTree withErrorTree1 = SyntaxFactory.ParseSyntaxTree(s3, parseOptions);
-            SyntaxTree withErrorTreeVB = SyntaxFactory.ParseSyntaxTree(s4, parseOptions);
-            SyntaxTree withExpressionRootTree = SyntaxFactory.ParseExpression(s3, options: parseOptions).SyntaxTree;
-            var withWarning = SyntaxFactory.ParseSyntaxTree(s5, parseOptions);
+            SyntaxTree t1 = SyntaxFactory.ParseSyntaxTree(s1);
+            SyntaxTree withErrorTree = SyntaxFactory.ParseSyntaxTree(s2);
+            SyntaxTree withErrorTree1 = SyntaxFactory.ParseSyntaxTree(s3);
+            SyntaxTree withErrorTreeVB = SyntaxFactory.ParseSyntaxTree(s4);
+            SyntaxTree withExpressionRootTree = SyntaxFactory.ParseExpression(s3).SyntaxTree;
+            var withWarning = SyntaxFactory.ParseSyntaxTree(s5);
 
             // Create compilation takes three args
-            var comp = CSharpCompilation.Create("Compilation", syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(s1, parseOptions) }, options: TestOptions.ReleaseDll);
+            var comp = CSharpCompilation.Create("Compilation", syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(s1) }, options: TestOptions.ReleaseDll);
             comp = comp.AddSyntaxTrees(t1, withErrorTree, withErrorTree1, withErrorTreeVB);
             Assert.Equal(5, comp.SyntaxTrees.Length);
             comp = comp.RemoveSyntaxTrees(t1, withErrorTree, withErrorTree1, withErrorTreeVB);
@@ -555,13 +553,13 @@ class D
             comp = comp.AddSyntaxTrees(t1);
             Assert.Equal(2, comp.SyntaxTrees.Length);
             Assert.Contains(t1, comp.SyntaxTrees);
-            Assert.False(comp.SyntaxTrees.Contains(SyntaxFactory.ParseSyntaxTree(s1, parseOptions)));
+            Assert.False(comp.SyntaxTrees.Contains(SyntaxFactory.ParseSyntaxTree(s1)));
 
-            comp = comp.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(s1, parseOptions));
+            comp = comp.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(s1));
             Assert.Equal(3, comp.SyntaxTrees.Length);
 
             // Replace an existing item with another valid item 
-            comp = comp.ReplaceSyntaxTree(t1, SyntaxFactory.ParseSyntaxTree(s1, parseOptions));
+            comp = comp.ReplaceSyntaxTree(t1, SyntaxFactory.ParseSyntaxTree(s1));
             Assert.Equal(3, comp.SyntaxTrees.Length);
 
             // Replace an existing item with same item 
@@ -575,7 +573,7 @@ class D
             Assert.Throws<ArgumentException>(() => comp.ReplaceSyntaxTree(t1, comp.SyntaxTrees[0]));
 
             // SyntaxTrees have reference equality. This removal should fail.
-            Assert.Throws<ArgumentException>(() => comp = comp.RemoveSyntaxTrees(SyntaxFactory.ParseSyntaxTree(s1, parseOptions)));
+            Assert.Throws<ArgumentException>(() => comp = comp.RemoveSyntaxTrees(SyntaxFactory.ParseSyntaxTree(s1)));
             Assert.Equal(4, comp.SyntaxTrees.Length);
 
             // Remove non-existing item 

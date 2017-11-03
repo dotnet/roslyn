@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
         }
 
         internal ConstructorDeclarationSyntax GetSyntax()

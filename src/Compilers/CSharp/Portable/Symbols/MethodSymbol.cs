@@ -1155,11 +1155,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Build and add synthesized return type attributes for this method symbol.
         /// </summary>
-        internal virtual void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             if (this.ReturnsByRefReadonly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
+
+            var compilation = this.DeclaringCompilation;
+            var type = this.ReturnType;
+
+            if (type.TypeSymbol.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+            }
+
+            if (type.TypeSymbol.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+            }
+
+            if (type.ContainsNullableReferenceTypes())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
         }
 

@@ -326,8 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (type.ContainsNullableReferenceTypes())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
         }
 
@@ -683,6 +682,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             this.CheckModifiersAndType(diagnostics);
             this.Type.CheckAllConstraints(conversions, this.Locations[0], diagnostics);
+
+            if (this.Type.ContainsNullableReferenceTypes())
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, this.Locations[0], modifyCompilation: true);
+            }
         }
     }
 }

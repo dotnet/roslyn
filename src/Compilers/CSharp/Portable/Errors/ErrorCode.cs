@@ -1509,7 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInTypeOnExplicitImplementation = 8615,
         WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation = 8616,
         WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation = 8617,
-        // unused 8618
+        WRN_UninitializedNonNullableField = 8618,
         WRN_NullabilityMismatchInAssignment = 8619,
         WRN_NullabilityMismatchInArgument = 8620,
         WRN_NullabilityMismatchInReturnTypeOfTargetDelegate = 8621,

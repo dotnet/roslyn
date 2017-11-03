@@ -1998,10 +1998,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _declarationDiagnosticsFrozen = true;
 
-            // Also freeze generated attribute flags by observing them
-            // symbols bound after getting the declaration diagnostics shouldn't need to modify the flags
-            _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
-            _needsGeneratedIsByRefLikeAttribute_IsFrozen = true;
+            // Also freeze generated attribute flags.
+            // Symbols bound after getting the declaration
+            // diagnostics shouldn't need to modify the flags.
+            _needsGeneratedAttributes_IsFrozen = true;
 
             var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
             return result;
@@ -3097,7 +3097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Nullable annotations on definition should be ignored
-            TypeSymbolWithAnnotations definitionType = definition.Kind == SymbolKind.Parameter ? ((ParameterSymbol)definition).Type : definition.GetTypeOrReturnType();
+            TypeSymbolWithAnnotations definitionType = definition.GetTypeOrReturnType();
             TypeSymbolWithAnnotations adjustedDefinitionType = definitionType.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)definition == symbol)
@@ -3108,7 +3108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)definitionType == adjustedDefinitionType)
             {
                 // Adjustment has no effect
-                return symbol.Kind == SymbolKind.Parameter ? ((ParameterSymbol)symbol).Type : symbol.GetTypeOrReturnType();
+                return symbol.GetTypeOrReturnType();
             }
 
             // The original symbol was substituted, need to re-apply substitution to the adjusted type.   

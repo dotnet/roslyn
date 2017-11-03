@@ -619,7 +619,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void ReportDiagnosticsForSynthesizedAttributes(CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             ReportDiagnosticsForUnsafeSynthesizedAttributes(compilation, diagnostics);
-            ReportDiagnosticsForNullableAttribute(compilation, diagnostics);
 
             CSharpCompilationOptions compilationOptions = compilation.Options;
             if (!compilationOptions.OutputKind.IsNetModule())
@@ -645,19 +644,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__WrapNonExceptionThrows, diagnostics, NoLocation.Singleton);
                 }
             }
-        }
-
-        private static void ReportDiagnosticsForNullableAttribute(CSharpCompilation compilation, DiagnosticBag diagnostics)
-        {
-            if (compilation.SourceModule.UtilizesNullableReferenceTypes)
-            {
-                GetUseSiteDiagnosticsForNullableAttribute(compilation, diagnostics);
-            }
-        }
-
-        internal static void GetUseSiteDiagnosticsForNullableAttribute(CSharpCompilation compilation, DiagnosticBag diagnostics)
-        {
-            ((SourceModuleSymbol)compilation.SourceModule).GetNullableAttribute(diagnostics);
         }
 
         /// <summary>

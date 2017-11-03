@@ -708,6 +708,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
+            Location getTypeLocation() => CSharpSyntaxNode.Type.Location;
+
+            Debug.Assert(getTypeLocation() != null);
+
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // property name location for any such errors. We'll do the same for return
             // type errors but for parameter errors, we'll use the parameter location.
@@ -721,10 +725,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, CSharpSyntaxNode.Type.Location, modifyCompilationForRefReadOnly: true);
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, getTypeLocation(), modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+
+            if (this.Type.ContainsNullableReferenceTypes())
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getTypeLocation(), modifyCompilation: true);
+            }
+
+            ParameterHelpers.EnsureNullableAttributeExists(this.Parameters, diagnostics, modifyCompilation: true);
         }
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)
@@ -1122,8 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (type.ContainsNullableReferenceTypes())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
 
             if (this.ReturnsByRefReadonly)
