@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp3 = CreateStandardCompilation(s3, options: TestOptions.ReleaseDll.WithDeterministic(true));
             comp3.VerifyDiagnostics(
-                // (1,46): error CS8357: The specified version string does not conform to the required format - major[.minor[.build[.revision]]] (without wildcards, due to determinism)
+                // (1,46): error CS8357: The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation
                 // [assembly: System.Reflection.AssemblyVersion("1.1.1.*")]
                 Diagnostic(ErrorCode.ERR_InvalidVersionFormatDeterministic, @"""1.1.1.*""").WithLocation(1, 46)
                 );
