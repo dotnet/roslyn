@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (!proxies.TryGetValue(local, out proxy))
                 {
-                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type), isReusable: true);
+                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type, local), isReusable: true);
 
                     proxies.Add(local, proxy);
                 }
@@ -293,11 +293,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need to produce hoisted local scope debug information for user locals as well as 
                 // lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
                 // in Locals window.
-                if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && 
-                        local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
+                if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
                     local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
-                    hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxy).HoistedField);
+                    var field = ((CapturedToStateMachineFieldReplacement)proxy).HoistedField;
+
+                    // NB: This is the case when the local backed by recycled field will not be visible in debugger.
+                    //     The backing field could be reused in Release and it may so happen that it was originally created for a local with a different name.
+                    //     Since the field name encodes the name of the local that it represents, nothing can be done about that here. Do not add such fields to the scope.
+                    if (field.LocalNameOpt == local.Name)
+                    {
+                        hoistedLocalsWithDebugScopes.Add(field);
+                    }
                 }
             }
 
@@ -415,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type)
+        private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, LocalSymbol local = null)
         {
             // In debug builds we don't reuse any hoisted variable.
             Debug.Assert(F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release);
@@ -427,8 +434,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fields.RemoveLast();
                 return field;
             }
+            
+            var slotIndex = _nextHoistedFieldId++;
 
-            return F.StateMachineField(type, GeneratedNames.ReusableHoistedLocalFieldName(_nextHoistedFieldId++));
+            if (local?.SynthesizedKind == SynthesizedLocalKind.UserDefined)
+            {
+                string fieldName = GeneratedNames.MakeHoistedLocalFieldName(SynthesizedLocalKind.UserDefined, slotIndex, local.Name);
+                return F.StateMachineField(type, fieldName, SynthesizedLocalKind.UserDefined, slotIndex, local.Name);
+            }
+
+            return F.StateMachineField(type, GeneratedNames.ReusableHoistedLocalFieldName(slotIndex));
         }
 
         private void FreeReusableHoistedField(StateMachineFieldSymbol field)
@@ -611,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         string fieldName = GeneratedNames.MakeHoistedLocalFieldName(kind, slotIndex);
-                        hoistedField = F.StateMachineField(expr.Type, fieldName, new LocalSlotDebugInfo(kind, id), slotIndex);
+                        hoistedField = F.StateMachineField(expr.Type, fieldName, new LocalSlotDebugInfo(kind, id), slotIndex, localNameOpt: null);
                     }
                     else
                     {

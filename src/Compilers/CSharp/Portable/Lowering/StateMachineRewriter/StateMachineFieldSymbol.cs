@@ -19,26 +19,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         // -1 if the field doesn't represent a long-lived local or an awaiter.
         internal readonly int SlotIndex;
 
+        // if the field represents a local variable - name of the variable.
+        internal readonly string LocalNameOpt;
+
         internal readonly LocalSlotDebugInfo SlotDebugInfo;
 
         // Some fields need to be public since they are initialized directly by the kickoff method.
         public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, bool isPublic, bool isThis)
-            : this(stateMachineType, type, name, new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, LocalDebugId.None), slotIndex: -1, isPublic: isPublic)
+            : this(stateMachineType, type, name, new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, LocalDebugId.None), slotIndex: -1, localNameOpt: null, isPublic: isPublic)
         {
             _isThis = isThis;
         }
 
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex, bool isPublic)
-            : this(stateMachineType, type, name, new LocalSlotDebugInfo(synthesizedKind, LocalDebugId.None), slotIndex, isPublic: isPublic)
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex, string localNameOpt, bool isPublic)
+            : this(stateMachineType, type, name, new LocalSlotDebugInfo(synthesizedKind, LocalDebugId.None), slotIndex, localNameOpt, isPublic: isPublic)
         {
         }
 
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic)
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, string localNameOpt, bool isPublic)
             : base(stateMachineType, name, isPublic: isPublic, isReadOnly: false, isStatic: false)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(slotDebugInfo.SynthesizedKind.IsLongLived() == (slotIndex >= 0));
 
+            this.LocalNameOpt = localNameOpt;
             _type = type;
             this.SlotIndex = slotIndex;
             this.SlotDebugInfo = slotDebugInfo;

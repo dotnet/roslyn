@@ -190,6 +190,7 @@ class Program
           <namespace usingCount=""0"" />
         </using>
         <hoistedLocalScopes>
+          <slot />
           <slot startOffset=""0x2a"" endOffset=""0xb4"" />
           <slot startOffset=""0x6e"" endOffset=""0xb2"" />
         </hoistedLocalScopes>

@@ -211,16 +211,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex)
+        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex, string localNameOpt)
         {
-            var result = new StateMachineFieldSymbol(CurrentType, type, name, synthesizedKind, slotIndex, isPublic: false);
+            var result = new StateMachineFieldSymbol(CurrentType, type, name, synthesizedKind, slotIndex, localNameOpt, isPublic: false);
             AddField(CurrentType, result);
             return result;
         }
 
-        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex)
+        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, string localNameOpt)
         {
-            var result = new StateMachineFieldSymbol(CurrentType, type, name, slotDebugInfo, slotIndex, isPublic: false);
+            var result = new StateMachineFieldSymbol(CurrentType, type, name, slotDebugInfo, slotIndex, localNameOpt, isPublic: false);
             AddField(CurrentType, result);
             return result;
         }
