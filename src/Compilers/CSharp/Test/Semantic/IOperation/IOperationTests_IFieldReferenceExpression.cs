@@ -244,7 +244,7 @@ IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: 
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void IFieldReference_StaticCallWithInstanceReceiver()
+        public void IFieldReference_StaticFieldWithInstanceReceiver()
         {
             string source = @"
 class C

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return null;
             }
 
-            // Static methods cannot have an implicit this receiver
+            // Static members cannot have an implicit this receiver
             if (symbol != null && symbol.IsStatic && instance.WasCompilerGenerated && instance.Kind == BoundKind.ThisReference)
             {
                 return null;
