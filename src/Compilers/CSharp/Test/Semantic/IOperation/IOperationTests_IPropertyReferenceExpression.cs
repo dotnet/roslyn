@@ -114,5 +114,32 @@ IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IPropertyReference_StaticPropertyInObjectInitializer_NoInstance()
+        {
+            string source = @"
+class C
+{
+    static int I1 { get; set; }
+    public static void Main()
+    {
+        var c = new C { /*<bind>*/I1/*</bind>*/ = 1 };
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceOperation: System.Int32 C.I1 { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'I1')
+  Instance Receiver: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1914: Static field or property 'C.I1' cannot be assigned in an object initializer
+                //         var c = new C { /*<bind>*/I1/*</bind>*/ = 1 };
+                Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "I1").WithArguments("C.I1").WithLocation(7, 35)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

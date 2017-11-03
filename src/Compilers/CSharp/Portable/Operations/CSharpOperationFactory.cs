@@ -591,12 +591,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
         {
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => new InstanceReferenceExpression(
-                    semanticModel: _semanticModel,
-                    syntax: boundObjectInitializerMember.Syntax,
-                    type: boundObjectInitializerMember.ReceiverType,
-                    constantValue: default(Optional<object>),
-                    isImplicit: true));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => boundObjectInitializerMember.MemberSymbol.IsStatic ?
+                                                                   null :
+                                                                   new InstanceReferenceExpression(
+                                                                       semanticModel: _semanticModel,
+                                                                       syntax: boundObjectInitializerMember.Syntax,
+                                                                       type: boundObjectInitializerMember.ReceiverType,
+                                                                       constantValue: default(Optional<object>),
+                                                                       isImplicit: true));
 
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
             ITypeSymbol type = boundObjectInitializerMember.Type;

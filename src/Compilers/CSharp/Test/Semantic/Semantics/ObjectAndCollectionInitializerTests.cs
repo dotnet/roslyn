@@ -1716,7 +1716,7 @@ IObjectCreationOperation (Constructor: X..ctor()) (OperationKind.ObjectCreation,
             Left: 
               IFieldReferenceOperation: X.x (Static) (OperationKind.FieldReference, Type: X, IsInvalid) (Syntax: 'x')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: X, IsInvalid, IsImplicit) (Syntax: 'x')
+                  null
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
@@ -1755,14 +1755,14 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Left: 
               IFieldReferenceOperation: System.Int32 MemberInitializerTest.x (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'x')
+                  null
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'Prop = 1')
             Left: 
               IPropertyReferenceOperation: System.Int32 MemberInitializerTest.Prop { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'Prop')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'Prop')
+                  null
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";

@@ -485,7 +485,7 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
             Left: 
               IFieldReferenceOperation: C1.Field1 As System.String (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'Field1')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'New C1() Wi ... lo World!"}')
+                  null
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
@@ -494,6 +494,47 @@ IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCrea
 BC30991: Member 'Field1' cannot be initialized in an object initializer expression because it is shared.
         Dim c1 As New C1() With {.Field1 = "Hello World!"}'BIND:"New C1() With {.Field1 = "Hello World!"}"
                                   ~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ObjectInitializerInitializeSharedPropertyOnNewInstance()
+            Dim source = <![CDATA[
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Property Property1 As String
+
+    Public Shared Sub Main()
+        Dim c1 As New C1() With {.Property1 = "Hello World!"} 'BIND:"New C1() With {.Field1 = "Hello World!"}"'BIND:"New C1() With {.Property1 = "Hello World!"}"
+    End Sub
+
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub ConsoleApp2.C1..ctor()) (OperationKind.ObjectCreation, Type: ConsoleApp2.C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ConsoleApp2.C1, IsInvalid) (Syntax: 'With {.Prop ... lo World!"}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '.Property1  ... llo World!"')
+            Left: 
+              IPropertyReferenceOperation: Property ConsoleApp2.C1.Property1 As System.String (Static) (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Property1')
+                Instance Receiver: 
+                  null
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30991: Member 'Property1' cannot be initialized in an object initializer expression because it is shared.
+        Dim c1 As New C1() With {.Property1 = "Hello World!"} 'BIND:"New C1() With {.Field1 = "Hello World!"}"'BIND:"New C1() With {.Property1 = "Hello World!"}"
+                                  ~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
