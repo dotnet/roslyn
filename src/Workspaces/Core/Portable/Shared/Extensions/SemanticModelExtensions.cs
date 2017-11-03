@@ -239,6 +239,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbols;
         }
 
+        public static IEnumerable<ISymbol> GetExistingSymbols(
+            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            // Ignore an annonymous type property or tuple field.  It's ok if they have a name that 
+            // matches the name of the local we're introducing.
+            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
+                                .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
+        }
+
         private static void GetAllDeclaredSymbols(
             SemanticModel semanticModel, SyntaxNode node,
             HashSet<ISymbol> symbols, CancellationToken cancellationToken)
