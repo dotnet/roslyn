@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseThrowExpression
@@ -132,6 +133,11 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             if (!TryFindAssignmentExpression(containingBlock, ifOperation, localOrParameter,
                     out var expressionStatement, out var assignmentExpression))
+            {
+                return;
+            }
+
+            if (!IsReferenceOrNullableType(localOrParameter))
             {
                 return;
             }
@@ -279,6 +285,22 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             return false;
+        }
+
+        private bool IsReferenceOrNullableType(ISymbol symbol)
+        {
+            ITypeSymbol type = null;
+            if (symbol is ILocalSymbol local)
+            {
+                type = local.Type; 
+            }
+
+            if (symbol is IParameterSymbol parameter)
+            {
+                type = parameter.Type;
+            }
+
+            return type != null && (type.IsReferenceType || type.IsNullable());
         }
 
         private bool TryGetLocalOrParameterSymbol(
