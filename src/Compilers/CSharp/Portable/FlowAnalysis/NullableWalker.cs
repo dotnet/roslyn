@@ -897,13 +897,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
-            int slot = GetOrCreateSlot(node.LocalSymbol); // not initially assigned
-
-            // When data flow analysis determines that the variable is sometimes
-            // used without being assigned first, we want to treat that variable, during region analysis,
-            // as assigned at its point of declaration.
-            Assign(node, value: null, valueIsNotNull: null);
-
             var result = base.VisitLocalDeclaration(node);
             if (node.InitializerOpt != null)
             {
