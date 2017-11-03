@@ -15,10 +15,19 @@ binaries_path="${root_path}"/Binaries
 unittest_dir="${binaries_path}"/"${build_configuration}"/UnitTests
 log_dir="${binaries_path}"/"${build_configuration}"/xUnitResults
 nuget_dir="${HOME}"/.nuget/packages
-runtime_id="$(dotnet --info | awk '/RID:/{print $2;}')"
 target_framework=netcoreapp2.0
 xunit_console_version="$(get_package_version dotnet-xunit)"
 xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/"${target_framework}"/xunit.console.dll
+
+UNAME="$(uname)"
+if [ "$UNAME" == "Darwin" ]; then
+    runtime_id=osx-x64
+elif [ "$UNAME" == "Linux" ]; then
+    runtime_id=linux-x64
+else
+    echo "Unknown OS: $UNAME" 1>&2
+    exit 1
+fi
 
 echo "Using ${xunit_console}"
 
