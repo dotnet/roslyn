@@ -39,14 +39,19 @@ namespace Microsoft.CodeAnalysis.Operations
             return new BlockStatement(VisitArray(operation.Operations), operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitVariableDeclarations(IVariableDeclarationsOperation operation, object argument)
+        public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, object argument)
         {
-            return new VariableDeclarationStatement(VisitArray(operation.Declarations), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new VariableDeclarationGroupOperation(VisitArray(operation.Declarations), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitVariableDeclarator(IVariableDeclaratorOperation operation, object argument)
+        {
+            return new VariableDeclarator(operation.Symbol, Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, object argument)
         {
-            return new VariableDeclaration(operation.Variables, Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new VariableDeclaration(VisitArray(operation.Declarators), Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSwitch(ISwitchOperation operation, object argument)

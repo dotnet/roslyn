@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit: expression.WasCompilerGenerated || argument == null);
         }
 
-        private IVariableDeclarationOperation CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        private IVariableDeclaratorOperation CreateVariableDeclaratorInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
             IVariableInitializerOperation initializer = null;
             if (boundLocalDeclaration.InitializerOpt != null)
             {
                 IOperation initializerValue = Create(boundLocalDeclaration.InitializerOpt);
                 SyntaxNode initializerSyntax = null;
-                bool isImplicit = false;
+                bool initializerIsImplicit = false;
                 if (syntax is VariableDeclaratorSyntax variableDeclarator)
                 {
                     initializerSyntax = variableDeclarator.Initializer;
@@ -72,18 +72,24 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     // There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
                     initializerSyntax = initializerValue.Syntax;
-                    isImplicit = true;
+                    initializerIsImplicit = true;
                 }
 
-                initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit);
+                initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, initializerIsImplicit);
             }
 
-            return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, initializer, _semanticModel, syntax);
+            ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol;
+            SyntaxNode syntaxNode = boundLocalDeclaration.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default;
+            bool isImplicit = false;
+
+            return new VariableDeclarator(symbol, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IVariableDeclarationOperation CreateVariableDeclaration(BoundLocal boundLocal)
+        private IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocal boundLocal)
         {
-            return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
+            return new VariableDeclarator(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
         }
 
         private IOperation CreateBoundCallInstanceOperation(BoundCall boundCall)
