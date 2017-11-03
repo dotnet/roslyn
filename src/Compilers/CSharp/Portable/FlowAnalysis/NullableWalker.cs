@@ -167,20 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    (propSymbol.Type.IsReferenceType || EmptyStructTypeCache.IsTrackableStructType(propSymbol.Type.TypeSymbol));
         }
 
-        private int MakeSlot(BoundFieldAccess fieldAccess)
-        {
-            var fieldSymbol = fieldAccess.FieldSymbol;
-            var receiverOpt = fieldAccess.ReceiverOpt;
-
-            if (!MayRequireTracking(receiverOpt, fieldSymbol))
-            {
-                return -1;
-            }
-
-            int containingSlot = MakeSlot(receiverOpt);
-            return (containingSlot == -1) ? -1 : GetOrCreateSlot(fieldSymbol, containingSlot);
-        }
-
         private Symbol GetNonFieldSymbol(int slot)
         {
             VariableIdentifier variableId = variableBySlot[slot];
