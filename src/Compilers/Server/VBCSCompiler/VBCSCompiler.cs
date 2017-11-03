@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Collections.Specialized;
 using System.IO;
+using System.Runtime;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -11,6 +12,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         public static int Main(string[] args)
         {
+            // Enable multi-core JITing
+            // https://blogs.msdn.microsoft.com/dotnet/2012/10/18/an-easy-solution-for-improving-app-launch-performance/
+#if NET46
+            var profileRoot = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                nameof(VBCSCompiler),
+                "ProfileOptimization");
+            try
+            {
+                Directory.CreateDirectory(profileRoot);
+                ProfileOptimization.SetProfileRoot(profileRoot);
+                ProfileOptimization.StartProfile("Startup.profile");
+            }
+            catch
+            {
+                // Ignore if we can't set multicore JIT
+            }
+#endif
+
             NameValueCollection appSettings;
             try
             {
