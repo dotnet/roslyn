@@ -1070,7 +1070,7 @@ public class Cls
 
         private static void AssertTypeFromOperation(SemanticModel model, TypeSymbol expectedType, DeclarationExpressionSyntax decl)
         {
-            // see https://github.com/dotnet/roslyn/issues/22175 for more detail.
+            // see https://github.com/dotnet/roslyn/issues/23006 and https://github.com/dotnet/roslyn/issues/23007 for more detail
 
             // unlike GetSymbolInfo or GetTypeInfo, GetOperation doesn't use SemanticModel's recovery mode.
             // what that means is that GetOperation might return null for ones GetSymbol/GetTypeInfo do return info from
