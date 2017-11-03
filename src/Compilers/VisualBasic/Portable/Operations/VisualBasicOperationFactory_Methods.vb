@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
                 Dim constantValue As [Optional](Of Object) = value.ConstantValue
-                Dim assignment = New SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit:=value.IsImplicit)
+                Dim assignment = New SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit:=expression.WasCompilerGenerated)
                 builder.Add(assignment)
             Next i
 
