@@ -1126,7 +1126,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     If boundCatchBlock.LocalOpt IsNot Nothing AndAlso
                         boundCatchBlock.ExceptionSourceOpt?.Kind = BoundKind.Local AndAlso
                         boundCatchBlock.LocalOpt Is DirectCast(boundCatchBlock.ExceptionSourceOpt, BoundLocal).LocalSymbol Then
-                        Return OperationFactory.CreateVariableDeclaration(boundCatchBlock.LocalOpt, initializer:=Nothing, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax)
+                        Return New VariableDeclarator(boundCatchBlock.LocalOpt, initializer:=Nothing, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=False)
                     Else
                         Return Create(boundCatchBlock.ExceptionSourceOpt)
                     End If
@@ -1220,13 +1220,14 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return New LazyWhileLoopStatement(condition, body, locals, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationsOperation
-            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclarationOperation)) = New Lazy(Of ImmutableArray(Of IVariableDeclarationOperation))(Function() GetVariableDeclarationStatementVariables(boundDimStatement.LocalDeclarations))
+        Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationGroupOperation
+            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclarationOperation)) =
+                New Lazy(Of ImmutableArray(Of IVariableDeclarationOperation))(Function() GetVariableDeclarationStatementVariables(boundDimStatement.LocalDeclarations))
             Dim syntax As SyntaxNode = boundDimStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundDimStatement.WasCompilerGenerated
-            Return New LazyVariableDeclarationStatement(declarations, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyVariableDeclarationGroupOperation(declarations, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundYieldStatementOperation(boundYieldStatement As BoundYieldStatement) As IReturnOperation

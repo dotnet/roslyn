@@ -5,23 +5,28 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents an operation with one or more <see cref="IVariableDeclarationOperation"/>.
-    /// <para>
-    /// Current usage:
-    ///  (1) C# local declaration statement.
-    ///  (2) VB Dim statement.
-    /// </para>
+    /// Represents a variable declaration statement.
     /// </summary>
+    /// <para>
+    /// Current Usage:
+    ///   (1) C# local declaration statement
+    ///   (2) C# fixed statement
+    ///   (3) C# using statement
+    ///   (4) VB Dim statement
+    ///   (5) VB Using statement
+    /// </para>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IVariableDeclarationsOperation : IOperation
+    public interface IVariableDeclarationGroupOperation : IOperation
     {
         /// <summary>
-        /// Variables declared.
+        /// Variable declaration in the statement.
         /// </summary>
+        /// <remarks>
+        /// In C#, this will always be a single declaration, with all variables in <see cref="IVariableDeclarationOperation.Declarators"/>.
+        /// </remarks>
         ImmutableArray<IVariableDeclarationOperation> Declarations { get; }
     }
 }
-

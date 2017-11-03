@@ -511,20 +511,20 @@ Class C1
     Public Shared Property Property1 As String
 
     Public Shared Sub Main()
-        Dim c1 As New C1() With {.Property1 = "Hello World!"} 'BIND:"New C1() With {.Field1 = "Hello World!"}"'BIND:"New C1() With {.Property1 = "Hello World!"}"
+        Dim c1 As New C1() With {.Property1 = "Hello World!"}'BIND:"New C1() With {.Property1 = "Hello World!"}"
     End Sub
 
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationOperation (Constructor: Sub ConsoleApp2.C1..ctor()) (OperationKind.ObjectCreation, Type: ConsoleApp2.C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
+IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
   Arguments(0)
   Initializer: 
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ConsoleApp2.C1, IsInvalid) (Syntax: 'With {.Prop ... lo World!"}')
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C1, IsInvalid) (Syntax: 'With {.Prop ... lo World!"}')
       Initializers(1):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '.Property1  ... llo World!"')
             Left: 
-              IPropertyReferenceOperation: Property ConsoleApp2.C1.Property1 As System.String (Static) (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Property1')
+              IPropertyReferenceOperation: Property C1.Property1 As System.String (Static) (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Property1')
                 Instance Receiver: 
                   null
             Right: 
@@ -533,7 +533,7 @@ IObjectCreationOperation (Constructor: Sub ConsoleApp2.C1..ctor()) (OperationKin
 
             Dim expectedDiagnostics = <![CDATA[
 BC30991: Member 'Property1' cannot be initialized in an object initializer expression because it is shared.
-        Dim c1 As New C1() With {.Property1 = "Hello World!"} 'BIND:"New C1() With {.Field1 = "Hello World!"}"'BIND:"New C1() With {.Property1 = "Hello World!"}"
+        Dim c1 As New C1() With {.Property1 = "Hello World!"}'BIND:"New C1() With {.Property1 = "Hello World!"}"
                                   ~~~~~~~~~
 ]]>.Value
 
@@ -846,9 +846,12 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As C3
-  IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x')
-      Variables: Local_1: x As C3
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'x As New C3 ... .X = "goo"}')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: x As C3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+            Initializer: 
+              null
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New C3() ... .X = "goo"}')
           IObjectCreationOperation (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreation, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')

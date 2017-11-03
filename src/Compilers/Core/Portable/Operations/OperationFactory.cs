@@ -1,28 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
     internal static class OperationFactory
     {
-        public static IVariableDeclarationOperation CreateVariableDeclaration(ILocalSymbol variable, IVariableInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax)
-        {
-            return CreateVariableDeclaration(ImmutableArray.Create(variable), initializer, semanticModel, syntax);
-        }
-
-        public static VariableDeclaration CreateVariableDeclaration(ImmutableArray<ILocalSymbol> variables, IVariableInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax)
-        {
-            return new VariableDeclaration(
-                variables,
-                initializer,
-                semanticModel,
-                syntax,
-                type: null,
-                constantValue: default(Optional<object>),
-                isImplicit: false); // variable declaration is always explicit
-        }
-
         public static IVariableInitializerOperation CreateVariableInitializer(SyntaxNode syntax, IOperation initializerValue, SemanticModel semanticModel, bool isImplicit)
         {
             return new VariableInitializer(initializerValue, semanticModel, syntax, type: null, constantValue: default, isImplicit: isImplicit);
@@ -95,5 +79,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new InvalidOperation(children, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
+
+        public static Lazy<IVariableInitializerOperation> EmptyInitializer { get; } = new Lazy<IVariableInitializerOperation>(() => null);
     }
 }
