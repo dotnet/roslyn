@@ -143,12 +143,16 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var semanticFacts = GetSemanticFactsService();
             var semanticModel = context.SemanticModel;
 
-            if (semanticModel.GetTypeInfo(conditionalExpression).Type?.IsValueType == true)
+            var type = semanticModel.GetTypeInfo(conditionalExpression).Type;
+            if (type?.IsValueType == true)
             {
-                // User has something like:  If(str is nothing, nothing, str.Length)
-                // In this case, converting to str?.Length changes the type of this from
-                // int to int?
-                return;
+                if (!(type is INamedTypeSymbol namedType) || namedType.ConstructedFrom.SpecialType != SpecialType.System_Nullable_T)
+                {
+                    // User has something like:  If(str is nothing, nothing, str.Length)
+                    // In this case, converting to str?.Length changes the type of this from
+                    // int to int?
+                    return;
+                }
             }
 
             if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, cancellationToken))
