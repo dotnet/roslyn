@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // PROTOTYPE(NullableReferenceTypes): Should pass includeNullability: false.
                 bestResultType = BestTypeInferrer.InferBestType(resultTypes, binder.Conversions, includeNullability, ref useSiteDiagnostics);
             }
 
@@ -200,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _types = types;
             }
 
+            // PROTOTYPE(NullableReferenceTypes): Remove includeNullability parameter.
             public static ImmutableArray<TypeSymbolWithAnnotations> GetReturnTypes(bool includeNullability, BoundBlock block, out RefKind refKind, out int numberOfDistinctReturns)
             {
                 var types = new HashSet<TypeSymbolWithAnnotations>(TypeSymbolWithAnnotations.EqualsComparer.Instance);

@@ -5824,9 +5824,6 @@ class CL1
                  // (25,14): warning CS8619: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
                  //         u2 = a2;
                  Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("CL1?[]", "CL1[]").WithLocation(25, 14),
-                 // (26,14): warning CS8619: Nullability of reference types in value of type 'CL1?[*,*]' doesn't match target type 'CL1[*,*]'.
-                 //         v2 = b2;
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("CL1?[*,*]", "CL1[*,*]").WithLocation(26, 14),
                  // (31,21): warning CS8619: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
                  //         CL1 [] x8 = new [] { y8, z8 };
                  Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [] { y8, z8 }").WithArguments("CL1?[]", "CL1[]").WithLocation(31, 21),
@@ -9309,9 +9306,6 @@ class CL0
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator &(CL0 x, CL0? y)'.
                  //         CL0? z1 = x1 && y1;
                  Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator &(CL0 x, CL0? y)").WithLocation(10, 19),
-                 // (11,18): warning CS8601: Possible null reference assignment.
-                 //         CL0 u1 = z1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z1").WithLocation(11, 18),
                  // (17,18): hidden CS8607: Expression is probably never null.
                  //         CL0 u2 = z2 ?? new CL0();
                  Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z2").WithLocation(17, 18)
@@ -9708,6 +9702,48 @@ class CL0
                  // (10,25): warning CS8604: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0? x, CL0 y)'.
                  //         CL0? u1 = x1 && !y1;
                  Diagnostic(ErrorCode.WRN_NullReferenceArgument, "!y1").WithArguments("y", "CL0 CL0.operator &(CL0? x, CL0 y)").WithLocation(10, 25)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_13()
+        {
+            CSharpCompilation c = CreateStandardCompilation(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1, CL0 y1)
+    {
+        CL0 z1 = x1 && y1;
+    }
+}
+
+class CL0
+{
+    public static CL0? operator &(CL0 x, CL0 y)
+    {
+        return new CL0();
+    }
+
+    public static bool operator true(CL0 x)
+    {
+        return false;
+    }
+
+    public static bool operator false(CL0? x)
+    {
+        return false;
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (10,18): warning CS8601: Possible null reference assignment.
+                //         CL0 z1 = x1 && y1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1 && y1").WithLocation(10, 18)
                 );
         }
 

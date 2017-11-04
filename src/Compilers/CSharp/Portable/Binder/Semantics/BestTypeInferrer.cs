@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _conversions = conversions;
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Remove includeNullability parameter. Nullability should be calculated in flow analysis.
         public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, bool includeNullability, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var inferrer = new BestTypeInferrer(conversions);

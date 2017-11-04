@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Visit a boolean condition expression.
         /// </summary>
         /// <param name="node"></param>
-        protected void VisitCondition(BoundExpression node)
+        protected virtual void VisitCondition(BoundExpression node, bool inExpression = false)
         {
             Visit(node);
             AdjustConditionalState(node);
@@ -627,17 +627,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!this.IsConditionalState);
         }
 
-        private static bool IsConstantTrue(BoundExpression node)
+        protected static bool IsConstantTrue(BoundExpression node)
         {
             return node.ConstantValue == ConstantValue.True;
         }
 
-        private static bool IsConstantFalse(BoundExpression node)
+        protected static bool IsConstantFalse(BoundExpression node)
         {
             return node.ConstantValue == ConstantValue.False;
         }
 
-        private static bool IsConstantNull(BoundExpression node)
+        protected static bool IsConstantNull(BoundExpression node)
         {
             return node.ConstantValue == ConstantValue.Null;
         }
@@ -1991,7 +1991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
         {
-            VisitArrayAccessTargetAsRvalue(node);
+            VisitRvalue(node.Expression);
             foreach (var i in node.Indices)
             {
                 VisitRvalue(i);
@@ -1999,11 +1999,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             return null;
-        }
-
-        protected virtual void VisitArrayAccessTargetAsRvalue(BoundArrayAccess node)
-        {
-            VisitRvalue(node.Expression);
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
@@ -2067,7 +2062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(stack.Count > 0);
 
-            VisitCondition(child);
+            VisitCondition(child, inExpression: true);
 
             while (true)
             {
@@ -2270,31 +2265,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.InitializerOpt != null && !node.InitializerOpt.Initializers.IsDefault)
             {
-                VisitArrayInitializationInternal(node, node.InitializerOpt);
+                VisitArrayInitializer(node, node.InitializerOpt);
             }
 
             if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
-        private void VisitArrayInitializationInternal(BoundArrayCreation arrayCreation, BoundArrayInitialization node)
+        protected virtual void VisitArrayInitializer(BoundArrayCreation arrayCreation, BoundArrayInitialization node)
         {
             foreach (var child in node.Initializers)
             {
                 if (child.Kind == BoundKind.ArrayInitialization)
                 {
-                    VisitArrayInitializationInternal(arrayCreation, (BoundArrayInitialization)child);
+                    VisitArrayInitializer(arrayCreation, (BoundArrayInitialization)child);
                 }
                 else
                 {
-                    VisitArrayElementInitializer(arrayCreation, child);
+                    VisitRvalue(child);
                 }
             }
-        }
-
-        protected virtual BoundNode VisitArrayElementInitializer(BoundArrayCreation arrayCreation, BoundExpression child)
-        {
-            return VisitRvalue(child);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
@@ -2536,7 +2526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public sealed override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
+        public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
             var isByRef = node.IsByRef;
 
@@ -2569,7 +2559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
+        protected void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
         {
             SetState(state);
             if (isByRef)
