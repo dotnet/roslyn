@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class DataFlowPass
+    internal partial class DataFlowPassBase<TLocalState>
     {
         protected struct VariableIdentifier : IEquatable<VariableIdentifier>
         {

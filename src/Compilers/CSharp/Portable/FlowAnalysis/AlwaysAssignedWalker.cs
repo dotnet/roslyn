@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ref parameter does not "always" assign.
             if (refKind == RefKind.Out)
             {
-                Assign(arg, value: null, valueIsNotNull: null);
+                Assign(arg, value: null);
             }
         }
 
