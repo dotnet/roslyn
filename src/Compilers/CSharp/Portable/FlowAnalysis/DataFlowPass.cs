@@ -1327,44 +1327,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitStatementsWithLocalFunctions(BoundBlock block)
-        {
-            // Visit the statements in two phases:
-            //   1. Local function declarations
-            //   2. Everything else
-            //
-            // The idea behind visiting local functions first is
-            // that we may be able to gather the captured variables
-            // they read and write ahead of time in a single pass, so
-            // when they are used by other statements in the block we
-            // won't have to recompute the set by doing multiple passes.
-            //
-            // If the local functions contain forward calls to other local
-            // functions then we may have to do another pass regardless,
-            // but hopefully that will be an uncommon case in real-world code.
-
-            // First phase
-            if (!block.LocalFunctions.IsDefaultOrEmpty)
-            {
-                foreach (var stmt in block.Statements)
-                {
-                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
-                    {
-                        VisitAlways(stmt);
-                    }
-                }
-            }
-
-            // Second phase
-            foreach (var stmt in block.Statements)
-            {
-                if (stmt.Kind != BoundKind.LocalFunctionStatement)
-                {
-                    VisitStatement(stmt);
-                }
-            }
-        }
-
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             DeclareVariables(node.InnerLocals);
@@ -1399,14 +1361,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitForEachStatement(BoundForEachStatement node)
-        {
-            // NOTE: iteration variables are not declared or assigned
-            //       before the collection expression is evaluated 
-            var result = base.VisitForEachStatement(node);
-            return result;
-        }
-
         public override BoundNode VisitDoStatement(BoundDoStatement node)
         {
             DeclareVariables(node.Locals);
@@ -1420,18 +1374,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeclareVariables(node.Locals);
             var result = base.VisitWhileStatement(node);
             ReportUnusedVariables(node.Locals);
-            return result;
-        }
-
-        public override BoundNode VisitIfStatement(BoundIfStatement node)
-        {
-            var result = base.VisitIfStatement(node);
-            return result;
-        }
-
-        public override BoundNode VisitLockStatement(BoundLockStatement node)
-        {
-            var result = base.VisitLockStatement(node);
             return result;
         }
 
