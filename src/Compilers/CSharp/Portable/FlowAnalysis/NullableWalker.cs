@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Reflects the enclosing method or lambda at the current location (in the bound tree).
         /// </summary>
-        private MethodSymbol currentMethodOrLambda;
+        private MethodSymbol _currentMethodOrLambda;
 
         private readonly bool _includeNonNullableWarnings;
         private PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal> _placeholderLocals;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: false, trackClassFields: false)
         {
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
-            this.currentMethodOrLambda = member as MethodSymbol;
+            this._currentMethodOrLambda = member as MethodSymbol;
             _includeNonNullableWarnings = includeNonNullableWarnings;
         }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr.Kind == BoundKind.PropertyAccess)
             {
                 var propAccess = (BoundPropertyAccess)expr;
-                if (!Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentMethodOrLambda))
+                if (!Binder.AccessingAutoPropertyFromConstructor(propAccess, this._currentMethodOrLambda))
                 {
                     var propSymbol = propAccess.PropertySymbol;
                     if (IsTrackableAnonymousTypeProperty(propSymbol))
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void EnterParameter(ParameterSymbol parameter)
         {
             int slot = GetOrCreateSlot(parameter);
-            if (parameter.RefKind == RefKind.Out && !this.currentMethodOrLambda.IsAsync) // out parameters not allowed in async
+            if (parameter.RefKind == RefKind.Out && !this._currentMethodOrLambda.IsAsync) // out parameters not allowed in async
             {
             }
             else
@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (node.ExpressionOpt != null && this.State.Reachable)
             {
-                TypeSymbolWithAnnotations returnType = this.currentMethodOrLambda?.ReturnType;
+                TypeSymbolWithAnnotations returnType = this._currentMethodOrLambda?.ReturnType;
 
                 if (this.State.ResultIsNotNull == false)
                 {
@@ -1609,8 +1609,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode VisitLambdaOrLocalFunction(IBoundLambdaOrFunction node)
         {
-            var oldMethodOrLambda = this.currentMethodOrLambda;
-            this.currentMethodOrLambda = node.Symbol;
+            var oldMethodOrLambda = this._currentMethodOrLambda;
+            this._currentMethodOrLambda = node.Symbol;
 
             var oldPending = SavePending(); // we do not support branches into a lambda
             LocalState finalState = this.State;
@@ -1630,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.State = finalState;
 
-            this.currentMethodOrLambda = oldMethodOrLambda;
+            this._currentMethodOrLambda = oldMethodOrLambda;
             return null;
         }
 
