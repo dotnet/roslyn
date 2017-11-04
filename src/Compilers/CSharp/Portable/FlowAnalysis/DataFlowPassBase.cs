@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableIdentifier variableId = variableBySlot[slot];
             while (variableId.ContainingSlot > 0)
             {
-                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property);
+                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property || variableId.Symbol.Kind == SymbolKind.Event);
                 variableId = variableBySlot[variableId.ContainingSlot];
             }
             return variableId.Symbol;
@@ -269,6 +269,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 case SymbolKind.Property:
                     return ((PropertySymbol)s).Type;
+                case SymbolKind.Event:
+                    return ((EventSymbol)s).Type;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(s.Kind);
             }

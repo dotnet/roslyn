@@ -420,6 +420,7 @@ class C
 class A<T>
 {
     internal T F;
+    internal T P { get; }
 }
 class B1 : A<object?> { }
 class B2 : A<object> { }
@@ -428,22 +429,22 @@ class C
     static void F(bool b, A<object> x, B1 y)
     {
         (b ? x : y).F.ToString();
-        (b ? y : x).F.ToString();
+        (b ? y : x).P.ToString();
     }
     static void G(bool b, A<object?> x, B2 y)
     {
         (b ? x : y).F.ToString();
-        (b ? y : x).F.ToString();
+        (b ? y : x).P.ToString();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (17,9): warning CS8602: Possible dereference of a null reference.
-                //         (b ? x : y).F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? x : y).F").WithLocation(17, 9),
                 // (18,9): warning CS8602: Possible dereference of a null reference.
-                //         (b ? y : x).F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? y : x).F").WithLocation(18, 9));
+                //         (b ? x : y).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? x : y).F").WithLocation(18, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         (b ? y : x).P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? y : x).P").WithLocation(19, 9));
         }
 
         [Fact]
@@ -689,6 +690,160 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ?? c)[0]").WithLocation(15, 13));
         }
 
+        // PROTOTYPE(NullableReferenceType): NullableWalker.VisitAnonymousObjectCreationExpression
+        // should support initializers with inferred nullability.
+        [Fact(Skip = "TODO")]
+        public void AnonymousObjectCreation_01()
+        {
+            var source =
+@"class C
+{
+    static void F(object? o)
+    {
+        (new { P = o }).P.ToString();
+        if (o == null) return;
+        (new { Q = o }).Q.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,9): warning CS8602: Possible dereference of a null reference.
+                //         (new { P = o }).P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new { P = o }).P").WithLocation(5, 9));
+        }
+
+        // PROTOTYPE(NullableReferenceType): NullableWalker.VisitAnonymousObjectCreationExpression
+        // should support initializers with inferred nullability.
+        [Fact(Skip = "TODO")]
+        public void AnonymousObjectCreation_02()
+        {
+            var source =
+@"class C
+{
+    static void F(object? o)
+    {
+        (new { P = new[] { o }}).P[0].ToString();
+        if (o == null) return;
+        (new { Q = new[] { o }}).Q[0].ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,9): warning CS8602: Possible dereference of a null reference.
+                //         (new { P = new[] { o }}).P[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new { P = new[] { o }}).P[0]").WithLocation(5, 9));
+        }
+
+        [Fact]
+        public void ObjectInitializer_01()
+        {
+            var source =
+@"class C
+{
+    C(object o) { }
+    static void F(object? x)
+    {
+        var y = new C(x);
+        if (x != null) y = new C(x);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,23): warning CS8604: Possible null reference argument for parameter 'o' in 'C.C(object o)'.
+                //         var y = new C(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("o", "C.C(object o)").WithLocation(6, 23));
+        }
+
+        [Fact]
+        public void ObjectInitializer_02()
+        {
+            var source =
+@"class A
+{
+    internal B F = new B();
+}
+class B
+{
+    internal object? G;
+}
+class C
+{
+    static void Main()
+    {
+        var o = new A() { F = { G = new object() } };
+        o.F.G.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicInvocation()
+        {
+            var source =
+@"class C
+{
+    static void F(object x, object y)
+    {
+    }
+    static void G(object? x, dynamic y)
+    {
+        F(x, y);
+        if (x != null) F(y, x);
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): We should be able to report warnings
+            // when all applicable methods agree on the nullability of particular parameters.
+            // (For instance, x in F(x, y) above.)
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicObjectCreation_01()
+        {
+            var source =
+@"class C
+{
+    C(object x, object y)
+    {
+    }
+    static void G(object? x, dynamic y)
+    {
+        var o = new C(x, y);
+        if (x != null) o = new C(y, x);
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): We should be able to report warnings
+            // when all applicable methods agree on the nullability of particular parameters.
+            // (For instance, x in F(x, y) above.)
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicObjectCreation_02()
+        {
+            var source =
+@"class C
+{
+    C(object f)
+    {
+        F = f;
+    }
+    object? F;
+    object? G;
+    static void M(dynamic d)
+    {
+        var o = new C(d) { G = new object() };
+        o.G.ToString();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void TypeInference_01()
         {
@@ -727,6 +882,29 @@ class C
                 // (23,19): warning CS8600: Cannot convert null to non-nullable reference.
                 //             y.F = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(23, 19));
+        }
+
+        [Fact]
+        public void TypeInference_ArgumentOrder()
+        {
+            var source =
+@"interface I<T>
+{
+     T P { get; }
+}
+class C
+{
+    static T F<T, U>(I<T> x, I<U> y) => x.P;
+    static void M(I<object?> x, I<string> y)
+    {
+        F(y: y, x: x).ToString();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         F(y: y, x: x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y: y, x: x)").WithLocation(10, 9));
         }
 
         [Fact]
@@ -846,7 +1024,8 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => o)").WithLocation(11, 24));
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Infer lambda return type nullability.
+        [Fact(Skip = "TODO")]
         public void LambdaReturnValue_05()
         {
             var source =

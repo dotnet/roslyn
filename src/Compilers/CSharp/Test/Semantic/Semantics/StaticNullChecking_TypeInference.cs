@@ -1140,9 +1140,15 @@ class C
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (7,11): warning CS8620: Nullability of reference types in argument of type '(string x, string? y)' doesn't match target type '(string?, string?)' for parameter 't' in '(string?, string?) C.F<string?>((string?, string?) t)'.
+                //         F((x, y)).Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(string x, string? y)", "(string?, string?)", "t", "(string?, string?) C.F<string?>((string?, string?) t)").WithLocation(7, 11),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         F((x, y)).Item2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F((x, y)).Item2").WithLocation(7, 9),
+                // (8,11): warning CS8620: Nullability of reference types in argument of type '(string? y, string x)' doesn't match target type '(string?, string?)' for parameter 't' in '(string?, string?) C.F<string?>((string?, string?) t)'.
+                //         F((y, x)).Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(y, x)").WithArguments("(string? y, string x)", "(string?, string?)", "t", "(string?, string?) C.F<string?>((string?, string?) t)").WithLocation(8, 11),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F((y, x)).Item2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F((y, x)).Item2").WithLocation(8, 9),
@@ -1171,6 +1177,12 @@ class C
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (6,11): warning CS8620: Nullability of reference types in argument of type '(string, string)' doesn't match target type '(string, string?)' for parameter 't' in '(string, string) C.F<string>((string, string?) t)'.
+                //         F((x, x)).Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, x)").WithArguments("(string, string)", "(string, string?)", "t", "(string, string) C.F<string>((string, string?) t)").WithLocation(6, 11),
+                // (8,11): warning CS8620: Nullability of reference types in argument of type '(string? y, string x)' doesn't match target type '(string?, string?)' for parameter 't' in '(string?, string?) C.F<string?>((string?, string?) t)'.
+                //         F((y, x)).Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(y, x)").WithArguments("(string? y, string x)", "(string?, string?)", "t", "(string?, string?) C.F<string?>((string?, string?) t)").WithLocation(8, 11),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F((y, x)).Item2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F((y, x)).Item2").WithLocation(8, 9),
@@ -1662,7 +1674,10 @@ class C
             comp.VerifyDiagnostics(
                 // (13,22): error CS1061: '(object?, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object?, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         c.F((o, -1)).x.ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object?, int)", "x").WithLocation(13, 22));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object?, int)", "x").WithLocation(13, 22),
+                // (13,13): warning CS8620: Nullability of reference types in argument of type '(object o, int)' doesn't match target type '(object?, int)' for parameter 't' in '(object?, int) E.F<(object?, int)>(C<(object?, int)> c, (object?, int) t)'.
+                //         c.F((o, -1)).x.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(o, -1)").WithArguments("(object o, int)", "(object?, int)", "t", "(object?, int) E.F<(object?, int)>(C<(object?, int)> c, (object?, int) t)").WithLocation(13, 13));
         }
 
         [Fact]
@@ -1721,7 +1736,10 @@ class C
                 source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8620: Nullability of reference types in argument of type '(dynamic x, object y)' doesn't match target type '(dynamic, object?)' for parameter 't' in '(dynamic, object?) E.F<(dynamic, object?)>(C<(dynamic, object?)> c, (dynamic, object?) t)'.
+                //         c.F((x, y)).Item1.G();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(dynamic x, object y)", "(dynamic, object?)", "t", "(dynamic, object?) E.F<(dynamic, object?)>(C<(dynamic, object?)> c, (dynamic, object?) t)").WithLocation(13, 13));
         }
 
         // Assert failure in ConversionsBase.IsValidExtensionMethodThisArgConversion.
@@ -1767,15 +1785,17 @@ class C
         object? y = x;
         F(x).ToString();
         F(y).ToString();
+        y = null;
+        F(y).ToString();
     }
 }";
             var comp = CreateStandardCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (9,9): warning CS8602: Possible dereference of a null reference.
+                // (11,9): warning CS8602: Possible dereference of a null reference.
                 //         F(y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y)").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y)").WithLocation(11, 9));
         }
 
         [Fact]
