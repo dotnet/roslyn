@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
-    Partial Friend Class ShadowsBaseCodeFixProvider
+    Partial Friend Class OverloadBaseCodeFixProvider
         Private Class AddShadowsKeywordAction
             Inherits CodeAction
 
