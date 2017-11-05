@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(IsMemberInitializer(boundAssignmentOperator));
 
-            Lazy<IMemberReferenceOperation> target = new Lazy<IMemberReferenceOperation>(() => (IMemberReferenceOperation)Create(boundAssignmentOperator.Left));
+            Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundAssignmentOperator.Left));
             Lazy<IObjectOrCollectionInitializerOperation> value = new Lazy<IObjectOrCollectionInitializerOperation>(() => (IObjectOrCollectionInitializerOperation)Create(boundAssignmentOperator.Right));
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
             ITypeSymbol type = boundAssignmentOperator.Type;

@@ -6304,7 +6304,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
         }
 
-        protected abstract IMemberReferenceOperation InitializedMemberImpl { get; }
+        protected abstract IOperation InitializedMemberImpl { get; }
         protected abstract IObjectOrCollectionInitializerOperation InitializerImpl { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -6323,7 +6323,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Initialized member.
         /// </summary>
-        public IMemberReferenceOperation InitializedMember => Operation.SetParentOperation(InitializedMemberImpl, this);
+        public IOperation InitializedMember => Operation.SetParentOperation(InitializedMemberImpl, this);
 
         /// <summary>
         /// Member initializer.
@@ -6344,14 +6344,14 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class MemberInitializerExpression : BaseMemberInitializerExpression, IMemberInitializerOperation
     {
-        public MemberInitializerExpression(IMemberReferenceOperation initializedMember, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public MemberInitializerExpression(IOperation initializedMember, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             InitializedMemberImpl = initializedMember;
             InitializerImpl = initializer;
         }
 
-        protected override IMemberReferenceOperation InitializedMemberImpl { get; }
+        protected override IOperation InitializedMemberImpl { get; }
         protected override IObjectOrCollectionInitializerOperation InitializerImpl { get; }
     }
 
@@ -6360,17 +6360,17 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class LazyMemberInitializerExpression : BaseMemberInitializerExpression, IMemberInitializerOperation
     {
-        private readonly Lazy<IMemberReferenceOperation> _lazyInitializedMember;
+        private readonly Lazy<IOperation> _lazyInitializedMember;
         private readonly Lazy<IObjectOrCollectionInitializerOperation> _lazyInitializer;
 
-        public LazyMemberInitializerExpression(Lazy<IMemberReferenceOperation> initializedMember, Lazy<IObjectOrCollectionInitializerOperation> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyMemberInitializerExpression(Lazy<IOperation> initializedMember, Lazy<IObjectOrCollectionInitializerOperation> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInitializedMember = initializedMember ?? throw new System.ArgumentNullException(nameof(initializedMember));
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
 
-        protected override IMemberReferenceOperation InitializedMemberImpl => _lazyInitializedMember.Value;
+        protected override IOperation InitializedMemberImpl => _lazyInitializedMember.Value;
 
         protected override IObjectOrCollectionInitializerOperation InitializerImpl => _lazyInitializer.Value;
     }
