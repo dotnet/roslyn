@@ -182,7 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    this.ArgsToParamsOpt,
                    this.BinderOpt,
                    useSetterForDefaultArgumentGeneration,
-                   this.Type)
+                   this.Type,
+                   this.HasErrors)
                 {
                     WasCompilerGenerated = this.WasCompilerGenerated,
                     OriginalIndexersOpt = this.OriginalIndexersOpt
