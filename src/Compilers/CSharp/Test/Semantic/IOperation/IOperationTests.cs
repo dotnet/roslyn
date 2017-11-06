@@ -159,5 +159,45 @@ System.Console.WriteLine();
 
             VerifyParentOperations(model);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(23001, "https://github.com/dotnet/roslyn/issues/23001")]
+        [Fact]
+        public void TestGetOperationForQualifiedName()
+        {
+            var text = @"using System;
+
+public class Test
+{
+    class A
+    {
+        public B b;
+    }
+    class B
+    {
+    }
+    
+    void M(A a)
+    {
+        int x2 = /*<bind>*/a.b/*</bind>*/;
+    }
+}
+";
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // Verify we return non-null operation only for topmost member access expression.
+            var expr = (MemberAccessExpressionSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            Assert.Equal("a.b", expr.ToString());
+            var operation = model.GetOperation(expr);
+            Assert.NotNull(operation);
+            Assert.Equal(OperationKind.FieldReference, operation.Kind);
+            var fieldOperation = (IFieldReferenceOperation)operation;
+            Assert.Equal("b", fieldOperation.Field.Name);
+
+            // Verify we return null operation for child nodes of member access expression.
+            Assert.Null(model.GetOperation(expr.Name));
+        }
     }
 }
