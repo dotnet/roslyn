@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureTuples = MessageBase + 12711,
         IDS_FeatureOutVar = MessageBase + 12713,
 
-        IDS_FeatureIOperation = MessageBase + 12714,
+        // IDS_FeatureIOperation = MessageBase + 12714,
         IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
         IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
         IDS_ThrowExpression = MessageBase + 12717,
@@ -176,23 +176,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static LocalizableErrorArgument Localize(this MessageID id)
         {
             return new LocalizableErrorArgument(id);
-        }
-
-        // Returns the string to be used in the /features flag switch to enable the MessageID feature.
-        // Always call this before RequiredVersion:
-        //   If this method returns null, call RequiredVersion and use that.
-        //   If this method returns non-null, use that.
-        // Features should be mutually exclusive between RequiredFeature and RequiredVersion.
-        //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
-        internal static string RequiredFeature(this MessageID feature)
-        {
-            switch (feature)
-            {
-                case MessageID.IDS_FeatureIOperation:
-                    return "IOperation";
-                default:
-                    return null;
-            }
         }
 
         internal static LanguageVersion RequiredVersion(this MessageID feature)
