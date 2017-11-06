@@ -4409,5 +4409,84 @@ struct TextSpan
     }
 }");
         }
+
+        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnValueTupleFieldName1()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public C(string a, string b)
+    {
+        var tuple = (id: 1, date: [|DateTime.Now.ToString()|]);
+    }
+}",
+@"using System;
+
+class C
+{
+    public C(string a, string b)
+    {
+        string {|Rename:date|} = DateTime.Now.ToString();
+        var tuple = (id: 1, date: date);
+    }
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+        }
+
+        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnValueTupleFieldName2()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        var tuple = (key: 1, value: [|1 + 1|]);
+    }
+}",
+@"using System;
+
+class C
+{
+    private const int {|Rename:Value|} = 1 + 1;
+
+    public C()
+    {
+        var tuple = (key: 1, value: Value);
+    }
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 0);
+        }
+
+        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnValueTupleFieldName3()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        var tuple = (key: 1, value: [|1 + 1|]);
+    }
+}",
+@"using System;
+
+class C
+{
+    public C()
+    {
+        const int {|Rename:Value|} = 1 + 1;
+        var tuple = (key: 1, value: Value);
+    }
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 2);
+        }
     }
 }
