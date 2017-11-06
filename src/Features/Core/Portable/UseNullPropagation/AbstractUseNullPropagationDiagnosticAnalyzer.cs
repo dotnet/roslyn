@@ -153,6 +153,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                     // int to int?
                     return;
                 }
+                // But for a nullable type, such as  If(c is nothing, nothing, c.nullable)
+                // converting to c?.nullable doesn't affect the type
             }
 
             if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, cancellationToken))
