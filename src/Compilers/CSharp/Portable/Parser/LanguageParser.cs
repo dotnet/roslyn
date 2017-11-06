@@ -5128,6 +5128,8 @@ tryAgain:
             // This could be a type-argument list, or it could be an expression.  Need to see
             // what came after the last '>' to find out which it is.
 
+            // Scan for a type argument list. If we think it's a type argument list
+            // then assume it is unless we see specific tokens following it.
             SyntaxToken lastTokenOfList = null;
             ScanTypeFlags possibleTypeArgumentFlags = ScanPossibleTypeArgumentList(
                 ref lastTokenOfList, out bool isDefinitelyTypeArgumentList);
@@ -5142,8 +5144,12 @@ tryAgain:
                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
             }
 
-            // Scan for a type argument list. If we think it's a type argument list
-            // then assume it is unless we see specific tokens following it.
+            // If we did not definitively determine from immediate syntax that it was or
+            // was not a type argument list, we must have scanned the entire thing up through
+            // the closing greater-than token. In that case we will disambiguate based on the
+            // token that follows it.
+            Debug.Assert(lastTokenOfList.Kind == SyntaxKind.GreaterThanToken);
+
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.IdentifierToken:
