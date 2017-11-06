@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             AssertIsForeground();
             VerifyNotDismissed();
-            this.ReplacementText = _renameInfo.GetFinalSymbolName(replacementText);
+            this.ReplacementText = replacementText;
 
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ApplyReplacementText));
 
