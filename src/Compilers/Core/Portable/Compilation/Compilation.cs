@@ -1118,6 +1118,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
 
+        internal abstract void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default);
+
         internal void EnsureCompilationEventQueueCompleted()
         {
             Debug.Assert(EventQueue != null);

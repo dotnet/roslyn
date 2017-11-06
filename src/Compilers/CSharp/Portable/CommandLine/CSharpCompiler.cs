@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree tree,
             SourceReferenceResolver resolver,
             OrderedSet<string> embeddedFiles,
-            IList<Diagnostic> diagnostics)
+            DiagnosticBag diagnostics)
         {
             foreach (LineDirectiveTriviaSyntax directive in tree.GetRoot().GetDirectives(
                 d => d.IsActive && !d.HasErrors && d.Kind() == SyntaxKind.LineDirectiveTrivia))

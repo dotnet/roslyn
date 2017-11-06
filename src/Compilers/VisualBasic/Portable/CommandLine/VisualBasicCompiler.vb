@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             tree As SyntaxTree,
             resolver As SourceReferenceResolver,
             embeddedFiles As OrderedSet(Of String),
-            diagnostics As IList(Of Diagnostic))
+            diagnostics As DiagnosticBag)
 
             For Each directive As ExternalSourceDirectiveTriviaSyntax In tree.GetRoot().GetDirectives(
                 Function(d) d.Kind() = SyntaxKind.ExternalSourceDirectiveTrivia)

@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
                 options: FileOptions.None);
         }
 
-        internal EmbeddedText TryReadEmbeddedFileContent(string filePath, IList<Diagnostic> diagnostics)
+        internal EmbeddedText TryReadEmbeddedFileContent(string filePath, DiagnosticBag diagnostics)
         {
             try
             {
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ImmutableArray<EmbeddedText> AcquireEmbeddedTexts(Compilation compilation, IList<Diagnostic> diagnostics)
+        private ImmutableArray<EmbeddedText> AcquireEmbeddedTexts(Compilation compilation, DiagnosticBag diagnostics)
         {
             if (Arguments.EmbeddedFiles.IsEmpty)
             {
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     text = TryReadEmbeddedFileContent(path, diagnostics);
-                    Debug.Assert(text != null || diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error));
+                    Debug.Assert(text != null || diagnostics.HasAnyErrors());
                 }
 
                 // We can safely add nulls because result will be ignored if any error is produced.
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxTree tree,
             SourceReferenceResolver resolver,
             OrderedSet<string> embeddedFiles,
-            IList<Diagnostic> diagnostics);
+            DiagnosticBag diagnostics);
 
         private static IReadOnlySet<string> GetEmbeddedSourcePaths(CommandLineArguments arguments)
         {
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-        public bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
+        internal bool ReportErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
         {
             bool hasErrors = false;
             foreach (var diag in diagnostics)
@@ -429,6 +429,10 @@ namespace Microsoft.CodeAnalysis
             return hasErrors;
         }
 
+        private bool ReportErrors(DiagnosticBag diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
+            => ReportErrors(diagnostics.ToReadOnly(), consoleOutput, errorLoggerOpt);
+
+
         /// <summary>
         /// Returns true if the diagnostic is an error that should be reported.
         /// </summary>
@@ -449,17 +453,26 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(Arguments.ErrorLogPath != null);
 
+            var diagnostics = DiagnosticBag.GetInstance();
             var errorLog = OpenFile(Arguments.ErrorLogPath,
-                                    consoleOutput,
+                                    diagnostics,
                                     FileMode.Create,
                                     FileAccess.Write,
                                     FileShare.ReadWrite | FileShare.Delete);
+
+            StreamErrorLogger logger;
             if (errorLog == null)
             {
-                return null;
+                Debug.Assert(diagnostics.HasAnyErrors());
+                logger = null;
+            }
+            else
+            {
+                logger = new StreamErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
             }
 
-            return new StreamErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
+            ReportErrors(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger);
+            return logger;
         }
 
         /// <summary>
@@ -559,33 +572,80 @@ namespace Microsoft.CodeAnalysis
                 return Failed;
             }
 
-            var diagnostics = new List<Diagnostic>();
+            var diagnostics = DiagnosticBag.GetInstance();
+
             ImmutableArray<EmbeddedText> embeddedTexts = AcquireEmbeddedTexts(compilation, diagnostics);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
                 return Failed;
             }
 
-            bool reportAnalyzer = false;
+            CompileAndEmit(
+                touchedFilesLogger,
+                ref compilation,
+                analyzers,
+                additionalTextFiles,
+                embeddedTexts,
+                diagnostics,
+                cancellationToken,
+                out bool reportAnalyzer,
+                out var analyzerDriver);
+
+            var exitCode = ReportErrors(diagnostics, consoleOutput, errorLogger)
+                ? Failed
+                : Succeeded;
+
+            // The act of reporting errors can cause more errors to appear in
+            // additional files due to forcing all additional files to fetch text
+            foreach (var additionalFile in additionalTextFiles)
+            {
+                if (ReportErrors(additionalFile.Diagnostics, consoleOutput, errorLogger))
+                {
+                    exitCode = Failed;
+                }
+            }
+
+            diagnostics.Free();
+            if (reportAnalyzer)
+            {
+                ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
+            }
+
+            return exitCode;
+        }
+
+        private void CompileAndEmit(
+            TouchedFileLogger touchedFilesLogger,
+            ref Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<AdditionalTextFile> additionalTextFiles,
+            ImmutableArray<EmbeddedText> embeddedTexts,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken,
+            out bool reportAnalyzer,
+            out AnalyzerDriver analyzerDriver)
+        {
+            reportAnalyzer = false;
             CancellationTokenSource analyzerCts = null;
             AnalyzerManager analyzerManager = null;
-            AnalyzerDriver analyzerDriver = null;
+            analyzerDriver = null;
 
             try
             {
                 // Print the diagnostics produced during the parsing stage and exit if there were any errors.
-                if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
+                compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
+                if (diagnostics.HasAnyErrors())
                 {
-                    return Failed;
+                    return;
                 }
 
-                ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
+                DiagnosticBag analyzerExceptionDiagnostics = null;
 
                 if (!analyzers.IsEmpty)
                 {
                     analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     analyzerManager = new AnalyzerManager(analyzers);
-                    analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+                    analyzerExceptionDiagnostics = new DiagnosticBag();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
 
@@ -593,9 +653,10 @@ namespace Microsoft.CodeAnalysis
                     reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
                 }
 
-                if (ReportErrors(compilation.GetDeclarationDiagnostics(), consoleOutput, errorLogger))
+                compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
+                if (diagnostics.HasAnyErrors())
                 {
-                    return Failed;
+                    return;
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -605,7 +666,6 @@ namespace Microsoft.CodeAnalysis
                 var finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalPeFilePath, ".pdb");
                 var finalXmlFilePath = Arguments.DocumentationPath;
 
-                var diagnosticBag = DiagnosticBag.GetInstance();
                 NoThrowStreamDisposer sourceLinkStreamDisposerOpt = null;
 
                 try
@@ -626,7 +686,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         var sourceLinkStreamOpt = OpenFile(
                             Arguments.SourceLink,
-                            consoleOutput,
+                            diagnostics,
                             FileMode.Open,
                             FileAccess.Read,
                             FileShare.Read);
@@ -636,13 +696,13 @@ namespace Microsoft.CodeAnalysis
                             sourceLinkStreamDisposerOpt = new NoThrowStreamDisposer(
                                 sourceLinkStreamOpt,
                                 Arguments.SourceLink,
-                                consoleOutput,
+                                diagnostics,
                                 MessageProvider);
                         }
                     }
 
                     var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
-                        diagnosticBag,
+                        diagnostics,
                         Arguments.ManifestResources,
                         emitOptions,
                         debugEntryPoint: null,
@@ -662,7 +722,7 @@ namespace Microsoft.CodeAnalysis
                                 Arguments.EmitPdb,
                                 emitOptions.EmitMetadataOnly,
                                 emitOptions.EmitTestCoverageData,
-                                diagnosticBag,
+                                diagnostics,
                                 filterOpt: null,
                                 cancellationToken: cancellationToken);
 
@@ -675,32 +735,31 @@ namespace Microsoft.CodeAnalysis
                                 if (finalXmlFilePath != null)
                                 {
                                     var xmlStreamOpt = OpenFile(finalXmlFilePath,
-                                                                consoleOutput,
+                                                                diagnostics,
                                                                 FileMode.OpenOrCreate,
                                                                 FileAccess.Write,
                                                                 FileShare.ReadWrite | FileShare.Delete);
 
                                     if (xmlStreamOpt == null)
                                     {
-                                        return Failed;
+                                        return;
                                     }
 
                                     xmlStreamOpt.SetLength(0);
                                     xmlStreamDisposerOpt = new NoThrowStreamDisposer(
                                         xmlStreamOpt,
                                         finalXmlFilePath,
-                                        consoleOutput,
+                                        diagnostics,
                                         MessageProvider);
                                 }
 
                                 using (xmlStreamDisposerOpt)
                                 {
-                                    IEnumerable<DiagnosticInfo> errors;
-                                    using (var win32ResourceStreamOpt = GetWin32Resources(Arguments, compilation, out errors))
+                                    using (var win32ResourceStreamOpt = GetWin32Resources(Arguments, compilation, diagnostics))
                                     {
-                                        if (ReportErrors(errors, consoleOutput, errorLogger))
+                                        if (diagnostics.HasAnyErrors())
                                         {
-                                            return Failed;
+                                            return;
                                         }
 
                                         success = compilation.GenerateResourcesAndDocumentationComments(
@@ -708,20 +767,20 @@ namespace Microsoft.CodeAnalysis
                                             xmlStreamDisposerOpt?.Stream,
                                             win32ResourceStreamOpt,
                                             emitOptions.OutputNameOverride,
-                                            diagnosticBag,
+                                            diagnostics,
                                             cancellationToken);
                                     }
                                 }
 
                                 if (xmlStreamDisposerOpt?.HasFailedToDispose == true)
                                 {
-                                    return Failed;
+                                    return;
                                 }
 
                                 // only report unused usings if we have success.
                                 if (success)
                                 {
-                                    compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
+                                    compilation.ReportUnusedImports(null, diagnostics, cancellationToken);
                                 }
                             }
 
@@ -733,7 +792,7 @@ namespace Microsoft.CodeAnalysis
                                 // since that method calls EventQueue.TryComplete. Without
                                 // TryComplete, we may miss diagnostics.
                                 var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
-                                diagnosticBag.AddRange(hostDiagnostics);
+                                diagnostics.AddRange(hostDiagnostics);
                                 if (hostDiagnostics.Any(IsReportedError))
                                 {
                                     success = false;
@@ -763,7 +822,7 @@ namespace Microsoft.CodeAnalysis
                                     refPeStreamProviderOpt,
                                     pdbStreamProviderOpt,
                                     testSymWriterFactory: null,
-                                    diagnostics: diagnosticBag,
+                                    diagnostics: diagnostics,
                                     metadataOnly: emitOptions.EmitMetadataOnly,
                                     includePrivateMembers: emitOptions.IncludePrivateMembers,
                                     emitTestCoverageData: emitOptions.EmitTestCoverageData,
@@ -772,9 +831,9 @@ namespace Microsoft.CodeAnalysis
                             }
                             finally
                             {
-                                peStreamProvider.Close(diagnosticBag);
-                                refPeStreamProviderOpt?.Close(diagnosticBag);
-                                pdbStreamProviderOpt?.Close(diagnosticBag);
+                                peStreamProvider.Close(diagnostics);
+                                refPeStreamProviderOpt?.Close(diagnostics);
+                                pdbStreamProviderOpt?.Close(diagnostics);
                             }
 
                             if (success && touchedFilesLogger != null)
@@ -792,48 +851,37 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    var compileAndEmitDiagnostics = diagnosticBag.ToReadOnly();
-                    if (ReportErrors(compileAndEmitDiagnostics, consoleOutput, errorLogger))
+                    if (diagnostics.HasAnyErrors())
                     {
-                        return Failed;
+                        return;
                     }
                 }
                 finally
                 {
-                    diagnosticBag.Free();
                     sourceLinkStreamDisposerOpt?.Dispose();
                 }
 
                 if (sourceLinkStreamDisposerOpt?.HasFailedToDispose == true)
                 {
-                    return Failed;
+                    return;
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (analyzerExceptionDiagnostics != null && ReportErrors(analyzerExceptionDiagnostics, consoleOutput, errorLogger))
+                if (analyzerExceptionDiagnostics != null)
                 {
-                    return Failed;
-                }
-
-                bool errorsReadingAdditionalFiles = false;
-                foreach (var additionalFile in additionalTextFiles)
-                {
-                    if (ReportErrors(additionalFile.Diagnostics, consoleOutput, errorLogger))
+                    diagnostics.AddRange(analyzerExceptionDiagnostics);
+                    if (analyzerExceptionDiagnostics.HasAnyErrors())
                     {
-                        errorsReadingAdditionalFiles = true;
+                        return;
                     }
                 }
 
-                if (errorsReadingAdditionalFiles)
-                {
-                    return Failed;
-                }
-
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!WriteTouchedFiles(consoleOutput, touchedFilesLogger, finalXmlFilePath))
+
+                if (!WriteTouchedFiles(diagnostics, touchedFilesLogger, finalXmlFilePath))
                 {
-                    return Failed;
+                    return;
                 }
             }
             finally
@@ -845,18 +893,11 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerCts != null)
                 {
                     analyzerCts.Cancel();
-
-                    if (reportAnalyzer)
-                    {
-                        ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
-                    }
                 }
             }
-
-            return Succeeded;
         }
 
-        private bool WriteTouchedFiles(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, string finalXmlFilePath)
+        private bool WriteTouchedFiles(DiagnosticBag diagnostics, TouchedFileLogger touchedFilesLogger, string finalXmlFilePath)
         {
             if (Arguments.TouchedFilesPath != null)
             {
@@ -870,8 +911,8 @@ namespace Microsoft.CodeAnalysis
                 string readFilesPath = Arguments.TouchedFilesPath + ".read";
                 string writtenFilesPath = Arguments.TouchedFilesPath + ".write";
 
-                var readStream = OpenFile(readFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
-                var writtenStream = OpenFile(writtenFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
+                var readStream = OpenFile(readFilesPath, diagnostics, mode: FileMode.OpenOrCreate);
+                var writtenStream = OpenFile(writtenFilesPath, diagnostics, mode: FileMode.OpenOrCreate);
 
                 if (readStream == null || writtenStream == null)
                 {
@@ -896,7 +937,7 @@ namespace Microsoft.CodeAnalysis
                 catch (Exception e)
                 {
                     Debug.Assert(filePath != null);
-                    MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
+                    MessageProvider.ReportStreamWriteException(e, filePath, diagnostics);
                     return false;
                 }
             }
@@ -1007,7 +1048,7 @@ namespace Microsoft.CodeAnalysis
 
         private Stream OpenFile(
             string filePath,
-            TextWriter consoleOutput,
+            DiagnosticBag diagnostics,
             FileMode mode = FileMode.Open,
             FileAccess access = FileAccess.ReadWrite,
             FileShare share = FileShare.None)
@@ -1018,42 +1059,43 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e)
             {
-                MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
+                MessageProvider.ReportStreamWriteException(e, filePath, diagnostics);
                 return null;
             }
         }
 
-        protected Stream GetWin32Resources(CommandLineArguments arguments, Compilation compilation, out IEnumerable<DiagnosticInfo> errors)
+        protected Stream GetWin32Resources(CommandLineArguments arguments, Compilation compilation, DiagnosticBag diagnostics)
         {
-            return GetWin32ResourcesInternal(MessageProvider, arguments, compilation, out errors);
+            return GetWin32ResourcesInternal(MessageProvider, arguments, compilation, diagnostics);
         }
 
         // internal for testing
         internal static Stream GetWin32ResourcesInternal(CommonMessageProvider messageProvider, CommandLineArguments arguments, Compilation compilation, out IEnumerable<DiagnosticInfo> errors)
         {
-            List<DiagnosticInfo> errorList = new List<DiagnosticInfo>();
-            errors = errorList;
-
+            var diagnostics = DiagnosticBag.GetInstance();
+            var stream = GetWin32ResourcesInternal(messageProvider, arguments, compilation, diagnostics);
+            errors = diagnostics.ToReadOnlyAndFree().SelectAsArray(diag => new DiagnosticInfo(messageProvider, diag.IsWarningAsError, diag.Code, (object[])diag.Arguments));
+            return stream;
+        }
+        
+        private static Stream GetWin32ResourcesInternal(CommonMessageProvider messageProvider, CommandLineArguments arguments, Compilation compilation, DiagnosticBag diagnostics)
+        {
             if (arguments.Win32ResourceFile != null)
             {
-                return OpenStream(messageProvider, arguments.Win32ResourceFile, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Resource, errorList);
+                return OpenStream(messageProvider, arguments.Win32ResourceFile, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Resource, diagnostics);
             }
 
-            using (Stream manifestStream = OpenManifestStream(messageProvider, compilation.Options.OutputKind, arguments, errorList))
+            using (Stream manifestStream = OpenManifestStream(messageProvider, compilation.Options.OutputKind, arguments, diagnostics))
             {
-                using (Stream iconStream = OpenStream(messageProvider, arguments.Win32Icon, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Icon, errorList))
+                using (Stream iconStream = OpenStream(messageProvider, arguments.Win32Icon, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Icon, diagnostics))
                 {
                     try
                     {
                         return compilation.CreateDefaultWin32Resources(true, arguments.NoWin32Manifest, manifestStream, iconStream);
                     }
-                    catch (ResourceException ex)
+                    catch (Exception ex)
                     {
-                        errorList.Add(new DiagnosticInfo(messageProvider, messageProvider.ERR_ErrorBuildingWin32Resource, ex.Message));
-                    }
-                    catch (OverflowException ex)
-                    {
-                        errorList.Add(new DiagnosticInfo(messageProvider, messageProvider.ERR_ErrorBuildingWin32Resource, ex.Message));
+                        diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_ErrorBuildingWin32Resource, Location.None, ex.Message));
                     }
                 }
             }
@@ -1061,21 +1103,21 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        private static Stream OpenManifestStream(CommonMessageProvider messageProvider, OutputKind outputKind, CommandLineArguments arguments, List<DiagnosticInfo> errorList)
+        private static Stream OpenManifestStream(CommonMessageProvider messageProvider, OutputKind outputKind, CommandLineArguments arguments, DiagnosticBag diagnostics)
         {
             return outputKind.IsNetModule()
                 ? null
-                : OpenStream(messageProvider, arguments.Win32Manifest, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Manifest, errorList);
+                : OpenStream(messageProvider, arguments.Win32Manifest, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Manifest, diagnostics);
         }
 
-        private static Stream OpenStream(CommonMessageProvider messageProvider, string path, string baseDirectory, int errorCode, IList<DiagnosticInfo> errors)
+        private static Stream OpenStream(CommonMessageProvider messageProvider, string path, string baseDirectory, int errorCode, DiagnosticBag diagnostics)
         {
             if (path == null)
             {
                 return null;
             }
 
-            string fullPath = ResolveRelativePath(messageProvider, path, baseDirectory, errors);
+            string fullPath = ResolveRelativePath(messageProvider, path, baseDirectory, diagnostics);
             if (fullPath == null)
             {
                 return null;
@@ -1087,18 +1129,18 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception ex)
             {
-                errors.Add(new DiagnosticInfo(messageProvider, errorCode, fullPath, ex.Message));
+                diagnostics.Add(messageProvider.CreateDiagnostic(errorCode, Location.None, fullPath, ex.Message));
             }
 
             return null;
         }
 
-        private static string ResolveRelativePath(CommonMessageProvider messageProvider, string path, string baseDirectory, IList<DiagnosticInfo> errors)
+        private static string ResolveRelativePath(CommonMessageProvider messageProvider, string path, string baseDirectory, DiagnosticBag diagnostics)
         {
             string fullPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
             if (fullPath == null)
             {
-                errors.Add(new DiagnosticInfo(messageProvider, messageProvider.FTL_InputFileNameTooLong, path));
+                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.FTL_InputFileNameTooLong, Location.None, path));
             }
 
             return fullPath;
