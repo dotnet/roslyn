@@ -1541,5 +1541,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
+
+        #region diagnostics introduced for C# 7.3
+        ERR_FeatureNotAvailableInVersion7_3 = 8360,
+        #endregion diagnostics introduced for C# 7.3
+
+        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
 }
