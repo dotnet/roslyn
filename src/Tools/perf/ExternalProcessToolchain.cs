@@ -1,15 +1,17 @@
-﻿using BenchmarkDotNet.Characteristics;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using BenchmarkDotNet.Characteristics;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains;
 
-namespace perf
+namespace Perf
 {
     /// <summary>
     /// This toolchain is designed to take an existing managed application
     /// and run it in an external process.
     /// </summary>
-    internal class ExternalProcessToolchain : IToolchain
+    internal sealed class ExternalProcessToolchain : IToolchain
     {
         public string Name => throw new System.NotImplementedException();
 

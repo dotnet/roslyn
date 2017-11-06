@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using BenchmarkDotNet.Characteristics;
 using BenchmarkDotNet.Configs;
@@ -7,9 +9,9 @@ using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.Results;
 
-namespace perf
+namespace Perf
 {
-    class ExternalProcessGenerator : IGenerator
+    internal sealed class ExternalProcessGenerator : IGenerator
     {
         private readonly ArtifactsPaths _artifactsPaths;
 

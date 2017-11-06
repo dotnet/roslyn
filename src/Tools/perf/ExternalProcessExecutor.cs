@@ -1,9 +1,7 @@
-﻿
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
 using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Horology;
@@ -14,14 +12,14 @@ using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.Parameters;
 using BenchmarkDotNet.Toolchains.Results;
 
-namespace perf
+namespace Perf
 {
     /// <summary>
     /// Executor designed to take a Benchmark that lists a target executable
     /// and a set of command line parameters and executes that process using
     /// an external dotnet runtime process.
     /// </summary>
-    internal class ExternalProcessExecutor : IExecutor
+    internal sealed class ExternalProcessExecutor : IExecutor
     {
         public ExecuteResult Execute(ExecuteParameters executeParameters)
         {
