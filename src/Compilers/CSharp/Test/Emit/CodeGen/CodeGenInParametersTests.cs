@@ -234,6 +234,64 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void InParamPassRoField1()
+        {
+            var text = @"
+class Program
+{
+    public static readonly int F = 42;
+
+    public static void Main()
+    {
+        System.Console.WriteLine(M(in F));
+    }
+
+    static ref readonly int M(in int x)
+    {
+        return ref x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: "42");
+
+            comp.VerifyIL("Program.Main()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldsflda    ""int Program.F""
+  IL_0005:  call       ""ref readonly int Program.M(in int)""
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
+}");
+
+
+            comp.VerifyIL("Program.M(in int)", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+            comp = CompileAndVerify(text, verify: false, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldsflda    ""int Program.F""
+  IL_0005:  call       ""ref readonly int Program.M(in int)""
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
+}");
+
+        }
+
+        [Fact]
         public void InParamPassRoParamReturn()
         {
             var text = @"
@@ -796,6 +854,143 @@ class Program
                 //             M1(in RefReturning(ref local), await GetT(2), 3);
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await GetT(2)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 44)
                 );
+        }
+
+        [Fact]
+        public void ReadonlyParamAsyncSpillInRoField()
+        {
+            var text = @"
+    using System.Threading.Tasks;
+
+    class Program
+    {
+        public static readonly int F = 5;
+
+        static void Main(string[] args)
+        {
+            Test().Wait();
+        }
+
+        public static async Task Test()
+        {
+            int local = 1;
+            M1(in F, await GetT(2), 3);
+        } 
+
+        public static async Task<T> GetT<T>(T val)
+        {
+            await Task.Yield();
+            MutateReadonlyField();
+            return val;
+        }
+
+        private static unsafe void MutateReadonlyField()
+        {
+            fixed(int* ptr = &F)
+            {
+                *ptr = 42;
+            }
+        }
+
+        public static void M1(in int arg1, in int arg2, in int arg3)
+        {
+            System.Console.WriteLine(arg1 + arg2 + arg3);
+        }
+    }
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe);
+            var result = CompileAndVerify(comp, verify: false, expectedOutput: @"47");
+
+            var expectedIL = @"
+{
+  // Code size      162 (0xa2)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+                int V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__2.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_003f
+    IL_000a:  ldc.i4.2
+    IL_000b:  call       ""System.Threading.Tasks.Task<int> Program.GetT<int>(int)""
+    IL_0010:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0015:  stloc.2
+    IL_0016:  ldloca.s   V_2
+    IL_0018:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_001d:  brtrue.s   IL_005b
+    IL_001f:  ldarg.0
+    IL_0020:  ldc.i4.0
+    IL_0021:  dup
+    IL_0022:  stloc.0
+    IL_0023:  stfld      ""int Program.<Test>d__2.<>1__state""
+    IL_0028:  ldarg.0
+    IL_0029:  ldloc.2
+    IL_002a:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Test>d__2.<>u__1""
+    IL_002f:  ldarg.0
+    IL_0030:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__2.<>t__builder""
+    IL_0035:  ldloca.s   V_2
+    IL_0037:  ldarg.0
+    IL_0038:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Test>d__2>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Test>d__2)""
+    IL_003d:  leave.s    IL_00a1
+    IL_003f:  ldarg.0
+    IL_0040:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Test>d__2.<>u__1""
+    IL_0045:  stloc.2
+    IL_0046:  ldarg.0
+    IL_0047:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Test>d__2.<>u__1""
+    IL_004c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0052:  ldarg.0
+    IL_0053:  ldc.i4.m1
+    IL_0054:  dup
+    IL_0055:  stloc.0
+    IL_0056:  stfld      ""int Program.<Test>d__2.<>1__state""
+    IL_005b:  ldloca.s   V_2
+    IL_005d:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0062:  stloc.1
+    IL_0063:  ldsflda    ""int Program.F""
+    IL_0068:  ldloca.s   V_1
+    IL_006a:  ldc.i4.3
+    IL_006b:  stloc.3
+    IL_006c:  ldloca.s   V_3
+    IL_006e:  call       ""void Program.M1(in int, in int, in int)""
+    IL_0073:  leave.s    IL_008e
+  }
+  catch System.Exception
+  {
+    IL_0075:  stloc.s    V_4
+    IL_0077:  ldarg.0
+    IL_0078:  ldc.i4.s   -2
+    IL_007a:  stfld      ""int Program.<Test>d__2.<>1__state""
+    IL_007f:  ldarg.0
+    IL_0080:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__2.<>t__builder""
+    IL_0085:  ldloc.s    V_4
+    IL_0087:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_008c:  leave.s    IL_00a1
+  }
+  IL_008e:  ldarg.0
+  IL_008f:  ldc.i4.s   -2
+  IL_0091:  stfld      ""int Program.<Test>d__2.<>1__state""
+  IL_0096:  ldarg.0
+  IL_0097:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__2.<>t__builder""
+  IL_009c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00a1:  ret
+}
+";
+
+            result.VerifyIL("Program.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", expectedIL);
+
+            comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            result = CompileAndVerify(comp, verify: false, expectedOutput: @"47");
+
+            result.VerifyIL("Program.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", expectedIL);
+
         }
 
         [Fact]

@@ -426,10 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     // this does not need to be writeable
                     // we may call "HasValue" on this, but it is not mutating 
-                    // (however verification does not know that and considers all calls mutating)
-                    var addressKind = EnablePEVerifyCompat()? 
-                                            AddressKind.Writeable: 
-                                            AddressKind.ReadOnly;
+                    var addressKind = AddressKind.ReadOnly;
 
                     receiverTemp = EmitReceiverRef(receiver, addressKind);
                     _builder.EmitOpCode(ILOpCode.Dup);
@@ -605,7 +602,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 default:
-                    var unexpectedTemp = EmitAddress(argument, AddressKind.Writeable);
+                    // NOTE: passing "ReadOnlyStrict" here. 
+                    //       we should not get an address of a copy if at all possible
+                    var unexpectedTemp = EmitAddress(argument, refKind == RefKindExtensions.StrictIn? AddressKind.ReadOnlyStrict: AddressKind.Writeable);
                     if (unexpectedTemp != null)
                     {
                         // interestingly enough "ref dynamic" sometimes is passed via a clone
@@ -619,8 +618,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitAddressOfExpression(BoundAddressOfOperator expression, bool used)
         {
-            var temp = EmitAddress(expression.Operand, AddressKind.Writeable);
+            // NOTE: passing "ReadOnlyStrict" here. 
+            //       we should not get an address of a copy if at all possible
+            var temp = EmitAddress(expression.Operand, AddressKind.ReadOnlyStrict);
             Debug.Assert(temp == null, "If the operand is addressable, then a temp shouldn't be required.");
+
             if (used)
             {
                 // When computing an address to be used to initialize a fixed-statement variable, we have to be careful
@@ -811,15 +813,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters)
+        private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> refKindsOpt)
         {
             // We might have an extra argument for the __arglist() of a varargs method.
             Debug.Assert(arguments.Length == parameters.Length || arguments.Length == parameters.Length + 1, "argument count must match parameter count");
             for (int i = 0; i < arguments.Length; i++)
             {
-                BoundExpression argument = arguments[i];
-                RefKind refKind = (i == parameters.Length) ? RefKind.None : parameters[i].RefKind;
-                EmitArgument(argument, refKind);
+                RefKind refKind;
+
+                if (!refKindsOpt.IsDefault && i < refKindsOpt.Length)
+                {
+                    // if we have an explicit refKind for the given argument, use that
+                    refKind = refKindsOpt[i];
+                }
+                else if (i < parameters.Length)
+                {
+                    // otherwise check the parameter
+                    refKind = parameters[i].RefKind;
+                }
+                else
+                {
+                    // vararg case
+                    Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
+                    refKind = RefKind.None;
+                }
+
+                EmitArgument(arguments[i], refKind);
             }
         }
 
@@ -1068,7 +1087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // can we take address at all?
-            if (!HasHome(receiver, needWriteable: false))
+            if (!HasHome(receiver, AddressKind.ReadOnly))
             {
                 return false;
             }
@@ -1491,13 +1510,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         if (method.IsMetadataVirtual())
                         {
                             // NB: all methods that a struct could inherit from bases are non-mutating
-                            //     we are passing here "Writeable" just to keep verifier happy
-                            //     we can pass here "ReadOnly" and avoid unnecessary copy
-                            var addressKind = EnablePEVerifyCompat() ?
-                                                AddressKind.Writeable :
-                                                AddressKind.ReadOnly;
-
-                            tempOpt = EmitReceiverRef(receiver, addressKind);
+                            //     treat receiver as ReadOnly
+                            tempOpt = EmitReceiverRef(receiver, AddressKind.ReadOnly);
                             callKind = CallKind.ConstrainedCallVirt;
                         }
                         else
@@ -1569,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            EmitArguments(arguments, method.Parameters);
+            EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
             int stackBehavior = GetCallStackBehavior(call);
             switch (callKind)
             {
@@ -1861,7 +1875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    EmitArguments(expression.Arguments, constructor.Parameters);
+                    EmitArguments(expression.Arguments, constructor.Parameters, expression.ArgumentRefKindsOpt);
 
                     var stackAdjustment = GetObjCreationStackBehavior(expression);
                     _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
@@ -2033,7 +2047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool SafeToGetWriteableReference(BoundExpression left)
         {
-            if (!HasHome(left, needWriteable: true))
+            if (!HasHome(left, AddressKind.Writeable))
             {
                 return false;
             }
@@ -2079,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
 
             var constructor = objCreation.Constructor;
-            EmitArguments(objCreation.Arguments, constructor.Parameters);
+            EmitArguments(objCreation.Arguments, constructor.Parameters, objCreation.ArgumentRefKindsOpt);
             // -2 to adjust for consumed target address and not produced value.
             var stackAdjustment = GetObjCreationStackBehavior(objCreation) - 2;
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment);
@@ -2335,10 +2349,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 int exprTempsBefore = _expressionTemps?.Count ?? 0;
+                var local = ((BoundLocal)assignmentOperator.Left).LocalSymbol;
 
-                // NOTE: passing "ReadOnly" here. Assuming we do not have compile errors, 
-                //       We should not get an address of a copy, even if the RHS is readonly
-                LocalDefinition temp = EmitAddress(assignmentOperator.Right, AddressKind.ReadOnly);
+                // NOTE: passing "ReadOnlyStrict" here. 
+                //       we should not get an address of a copy if at all possible
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, local.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
 
                 // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a temp in synthetic code.
@@ -2346,7 +2361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 AddExpressionTemp(temp);
 
                 // are we, by the way, ref-assigning to something that lives longer than encompassing expression?
-                if (((BoundLocal)assignmentOperator.Left).LocalSymbol.SynthesizedKind.IsLongLived())
+                if (local.SynthesizedKind.IsLongLived())
                 {
                     var exprTempsAfter = _expressionTemps?.Count ?? 0;
 

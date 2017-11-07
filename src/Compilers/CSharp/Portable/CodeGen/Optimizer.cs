@@ -2152,7 +2152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             throw new NotImplementedException();
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }

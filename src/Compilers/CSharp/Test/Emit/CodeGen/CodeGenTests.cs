@@ -12025,7 +12025,7 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"42", verify: false);
+            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: false);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12059,6 +12059,38 @@ struct MyManagedStruct
 ");
 
             comp = CompileAndVerify(source, expectedOutput: @"42", verify: true, parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (MyManagedStruct V_0)
+  IL_0000:  newobj     ""cls1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""MyManagedStruct cls1.y""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       ""void MyManagedStruct.mutate(int)""
+  IL_0015:  dup
+  IL_0016:  ldfld      ""MyManagedStruct cls1.y""
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_0023:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0028:  ldc.i4     0x1c8
+  IL_002d:  call       ""void MyManagedStruct.Nested.Nested1.mutate(int)""
+  IL_0032:  ldfld      ""MyManagedStruct cls1.y""
+  IL_0037:  ldfld      ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_003c:  ldfld      ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0041:  ldfld      ""int MyManagedStruct.Nested.Nested1.num""
+  IL_0046:  call       ""void System.Console.WriteLine(int)""
+  IL_004b:  ret
+}
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: true, parseOptions: TestOptions.Regular7_1);
 
             comp.VerifyIL("Program.Main",
 @"
