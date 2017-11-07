@@ -1135,9 +1135,9 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundControlVariableOperation(boundForStatement As BoundForStatement) As IOperation
-            Dim localOpt = boundForStatement.DeclaredOrInferredLocalOpt
-            Dim controlVariable = boundForStatement.ControlVariable
-            Return If(localOpt IsNot Nothing AndAlso controlVariable?.Syntax.Kind = SyntaxKind.VariableDeclarator,
+            Dim localOpt As LocalSymbol = boundForStatement.DeclaredOrInferredLocalOpt
+            Dim controlVariable As BoundExpression = boundForStatement.ControlVariable
+            Return If(localOpt IsNot Nothing,
                 OperationFactory.CreateVariableDeclaration(localOpt, initializer:=Nothing, semanticModel:=_semanticModel, syntax:=controlVariable.Syntax),
                 Create(controlVariable))
         End Function

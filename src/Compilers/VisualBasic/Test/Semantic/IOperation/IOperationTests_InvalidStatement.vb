@@ -283,7 +283,10 @@ End Module]]>.Value
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For Step (M ... Next')
   Locals: Local_1:  As System.Object
   LoopControlVariable: 
-    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsInvalid) (Syntax: '')
+    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: '')
+      Variables: Local_1:  As System.Object
+      Initializer: 
+        null
   InitialValue: 
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
