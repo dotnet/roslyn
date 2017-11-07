@@ -170,7 +170,7 @@ IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void IPropertyReference_StaticPropertyAccessOnClass_Indexer()
+        public void IPropertyReference_StaticPropertyAccessOnClass_IndexerOnProperty()
         {
             string source = @"
 using System.Collections.Generic;
@@ -204,7 +204,7 @@ IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void IPropertyReference_InstancePropertyAccessOnClass_Indexer()
+        public void IPropertyReference_InstancePropertyAccessOnClass_IndexerOnProperty()
         {
             string source = @"
 using System.Collections.Generic;
@@ -235,6 +235,89 @@ IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System
                 // CS0120: An object reference is required for the non-static field, method, or property 'C.list'
                 //         var i1 = /*<bind>*/C.list[1]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "C.list").WithArguments("C.list").WithLocation(10, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IPropertyReference_InstancePropertyAccessOnClass_IndexerAccessOnType()
+        {
+            string source = @"
+class C
+{
+    public C this[int i]
+    {
+        get => null;
+        set { }
+    }
+
+    public static void M()
+    {
+        var c1 = /*<bind>*/C[1]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceOperation: C C.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C, IsInvalid) (Syntax: 'C[1]')
+  Instance Receiver: 
+    IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid, IsImplicit) (Syntax: 'C')
+      Children(1):
+          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0119: 'C' is a type, which is not valid in the given context
+                //         var c1 = /*<bind>*/C[1]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "C").WithArguments("C", "type").WithLocation(12, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IPropertyReference_InstancePropertyAccessOnClass_StaticIndexerAccessOnType()
+        {
+            string source = @"
+class C
+{
+    public static C this[int i]
+    {
+        get => null;
+        set { }
+    }
+
+    public static void M()
+    {
+        var c1 = /*<bind>*/C[1]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceOperation: C C.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C, IsInvalid) (Syntax: 'C[1]')
+  Instance Receiver: 
+    IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid, IsImplicit) (Syntax: 'C')
+      Children(1):
+          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0106: The modifier 'static' is not valid for this item
+                //     public static C this[int i]
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(4, 21),
+                // CS0119: 'C' is a type, which is not valid in the given context
+                //         var c1 = /*<bind>*/C[1]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "C").WithArguments("C", "type").WithLocation(12, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

@@ -247,5 +247,35 @@ BC30469: Reference to a non-shared member requires an object reference.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IFieldReference_StaticFieldReferenceInInitializer_RightHandSide()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Public Shared i1 As Integer
+        Public i2 As Integer
+    End Class
+
+    Sub S1()
+        Dim a = New C1 With {.i2 = .i1}'BIND:".i1"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldReferenceOperation: M1.C1.i1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.i1')
+  Instance Receiver: 
+    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace
