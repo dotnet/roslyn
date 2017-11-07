@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Gets the semantic information associated with a select or group clause.
+        /// Gets the semantic information associated with a LINQ query syntax clause.
         /// </summary>
         public abstract SymbolInfo GetSymbolInfo(QueryClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
@@ -4539,8 +4539,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetSymbolInfo(selectOrGroupClause, cancellationToken);
                 case OrderByClauseSyntax orderByClauseSyntax when orderByClauseSyntax.Orderings[0].AscendingOrDescendingKeyword.Kind() == SyntaxKind.None:
                     return this.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken);
-                case QueryClauseSyntax whereClauseSyntax:
-                    return this.GetSymbolInfo(whereClauseSyntax, cancellationToken);
+                case QueryClauseSyntax queryClauseSyntax:
+                    return this.GetSymbolInfo(queryClauseSyntax, cancellationToken);
                 case OrderingSyntax orderingSyntax:
                     return this.GetSymbolInfo(orderingSyntax, cancellationToken);
             }
