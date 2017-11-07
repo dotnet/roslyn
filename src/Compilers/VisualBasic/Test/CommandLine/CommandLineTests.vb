@@ -2927,6 +2927,59 @@ print Goodbye, World"
 
         <CompilerTrait(CompilerFeature.Determinism)>
         <Fact>
+        Public Sub PathMapParser()
+            Dim parsedArgs = DefaultParse({"/pathmap:", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/pathmap:").WithLocation(1, 1)
+            )
+            Assert.Equal(ImmutableArray.Create(Of KeyValuePair(Of String, String))(), parsedArgs.PathMap)
+
+            parsedArgs = DefaultParse({"/pathmap:K1=V1", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K1\", "V1\"), parsedArgs.PathMap(0))
+
+            parsedArgs = DefaultParse({"/pathmap:C:\goo\=/", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("C:\goo\", "/"), parsedArgs.PathMap(0))
+
+            parsedArgs = DefaultParse({"/pathmap:K1=V1,K2=V2", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K1\", "V1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K2\", "V2\"), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:,,,", "a.vb"}, _baseDirectory)
+            Assert.Equal(4, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(1).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(2).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(3).Code)
+
+            parsedArgs = DefaultParse({"/pathmap:k=,=v", "a.vb"}, _baseDirectory)
+            Assert.Equal(2, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(1).Code)
+
+            parsedArgs = DefaultParse({"/pathmap:k=v=bad", "a.vb"}, _baseDirectory)
+            Assert.Equal(1, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+
+            parsedArgs = DefaultParse({"/pathmap:""supporting spaces=is hard""", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("supporting spaces\", "is hard\"), parsedArgs.PathMap(0))
+
+            parsedArgs = DefaultParse({"/pathmap:""K 1=V 1"",""K 2=V 2""", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:""K 1""=""V 1"",""K 2""=""V 2""", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
+        End Sub
+
+        <CompilerTrait(CompilerFeature.Determinism)>
+        <Fact>
         Public Sub PathMapPdbDeterminism()
             Dim assertPdbEmit =
                 Sub(dir As TempDirectory, pePdbPath As String, extraArgs As String())

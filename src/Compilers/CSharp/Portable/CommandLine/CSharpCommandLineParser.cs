@@ -1037,11 +1037,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "pathmap":
                             // "/pathmap:K1=V1,K2=V2..."
+                            unquoted = RemoveQuotesAndSlashes(value);
                             {
-                                if (value == null)
+                                if (unquoted == null)
                                     break;
 
-                                pathMap = pathMap.Concat(ParsePathMap(value, diagnostics));
+                                pathMap = pathMap.Concat(ParsePathMap(unquoted, diagnostics));
                             }
                             continue;
 

@@ -9139,6 +9139,20 @@ class C {
             parsedArgs = DefaultParse(new[] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+
+            parsedArgs = DefaultParse(new[] { "/pathmap:\"supporting spaces=is hard\"", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(KeyValuePair.Create("supporting spaces\\", "is hard\\"), parsedArgs.PathMap[0]);
+
+            parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1=V 1\",\"K 2=V 2\"", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(KeyValuePair.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
+
+            parsedArgs = DefaultParse(new[] { "/pathmap:\"K 1\"=\"V 1\",\"K 2\"=\"V 2\"", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(KeyValuePair.Create("K 1\\", "V 1\\"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
         }
 
         [Fact]
