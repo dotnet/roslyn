@@ -1040,8 +1040,7 @@ ILocalFunctionOperation (Symbol: System.Collections.Generic.IEnumerable<T> Itera
     IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... rn element;')
       Locals: Local_1: T element
       LoopControlVariable: 
-        IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var')
-          Variables: Local_1: T element
+        IVariableDeclaratorOperation (Symbol: T element) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
           Initializer: 
             null
       Collection: 

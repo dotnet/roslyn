@@ -1969,8 +1969,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
       IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
         Locals: Local_1: System.String item
         LoopControlVariable: 
-          IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var')
-            Variables: Local_1: System.String item
+          IVariableDeclaratorOperation (Symbol: System.String item) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
             Initializer: 
               null
         Collection: 

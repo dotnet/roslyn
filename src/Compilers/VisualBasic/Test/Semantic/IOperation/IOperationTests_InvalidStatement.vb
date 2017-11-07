@@ -236,8 +236,7 @@ End Module
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For i As In ... Next i')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Integer')
-      Variables: Local_1: i As System.Int32
+    IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i As Integer')
       Initializer: 
         null
   InitialValue: 
@@ -284,8 +283,7 @@ End Module]]>.Value
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For Step (M ... Next')
   Locals: Local_1:  As System.Object
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: '')
-      Variables: Local_1:  As System.Object
+    IVariableDeclaratorOperation (Symbol:  As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
       Initializer: 
         null
   InitialValue: 
@@ -337,8 +335,7 @@ End Module]]>.Value
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For i As In ... Next i')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i As Integer')
-      Variables: Local_1: i As System.Int32
+    IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i As Integer')
       Initializer: 
         null
   InitialValue: 

@@ -31,8 +31,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each s  ... Next')
   Locals: Local_1: s As System.String
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 's As String')
-      Variables: Local_1: s As System.String
+    IVariableDeclaratorOperation (Symbol: s As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's As String')
       Initializer: 
         null
   Collection: 
@@ -80,8 +79,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each it ... Next')
   Locals: Local_1: item As System.String
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'item As String')
-      Variables: Local_1: item As System.String
+    IVariableDeclaratorOperation (Symbol: item As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'item As String')
       Initializer: 
         null
   Collection: 
@@ -129,8 +127,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
   Locals: Local_1: y As System.Char
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'y As Char')
-      Variables: Local_1: y As System.Char
+    IVariableDeclaratorOperation (Symbol: y As System.Char) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y As Char')
       Initializer: 
         null
   Collection: 
@@ -188,8 +185,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next y, x')
   Locals: Local_1: x As System.String
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x As String')
-      Variables: Local_1: x As System.String
+    IVariableDeclaratorOperation (Symbol: x As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x As String')
       Initializer: 
         null
   Collection: 
@@ -202,8 +198,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next y, x')
         Locals: Local_1: y As System.Char
         LoopControlVariable: 
-          IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'y As Char')
-            Variables: Local_1: y As System.Char
+          IVariableDeclaratorOperation (Symbol: y As System.Char) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y As Char')
             Initializer: 
               null
         Collection: 
@@ -266,8 +261,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
   Locals: Local_1: y As System.Int32
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'y As Integer')
-      Variables: Local_1: y As System.Int32
+    IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y As Integer')
       Initializer: 
         null
   Collection: 
@@ -314,8 +308,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.String
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x As String')
-      Variables: Local_1: x As System.String
+    IVariableDeclaratorOperation (Symbol: x As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x As String')
       Initializer: 
         null
   Collection: 
@@ -328,8 +321,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
         Locals: Local_1: y As System.Char
         LoopControlVariable: 
-          IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'y As Char')
-            Variables: Local_1: y As System.Char
+          IVariableDeclaratorOperation (Symbol: y As System.Char) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y As Char')
             Initializer: 
               null
         Collection: 
@@ -383,8 +375,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Object
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x')
-      Variables: Local_1: x As System.Object
+    IVariableDeclaratorOperation (Symbol: x As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
       Initializer: 
         null
   Collection: 
@@ -432,8 +423,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each y  ... Next')
   Locals: Local_1: y As System.Char
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'y')
-      Variables: Local_1: y As System.Char
+    IVariableDeclaratorOperation (Symbol: y As System.Char) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
       Initializer: 
         null
   Collection: 
@@ -481,8 +471,7 @@ End Structure
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Object
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x')
-      Variables: Local_1: x As System.Object
+    IVariableDeclaratorOperation (Symbol: x As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
       Initializer: 
         null
   Collection: 
@@ -565,8 +554,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each co ... Next')
   Locals: Local_1: country As <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'country')
-      Variables: Local_1: country As <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>
+    IVariableDeclaratorOperation (Symbol: country As <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'country')
       Initializer: 
         null
   Collection: 
@@ -601,8 +589,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
       IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each cu ... Next')
         Locals: Local_1: customer As Customer
         LoopControlVariable: 
-          IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'customer')
-            Variables: Local_1: customer As Customer
+          IVariableDeclaratorOperation (Symbol: customer As Customer) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'customer')
             Initializer: 
               null
         Collection: 
@@ -677,8 +664,7 @@ End Module
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each [C ... Next')
   Locals: Local_1: Custom As System.Int32
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: '[Custom]')
-      Variables: Local_1: Custom As System.Int32
+    IVariableDeclaratorOperation (Symbol: Custom As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: '[Custom]')
       Initializer: 
         null
   Collection: 
@@ -757,8 +743,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Object
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x')
-      Variables: Local_1: x As System.Object
+    IVariableDeclaratorOperation (Symbol: x As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
       Initializer: 
         null
   Collection: 
@@ -820,8 +805,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Int32
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'x')
-      Variables: Local_1: x As System.Int32
+    IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
       Initializer: 
         null
   Collection: 
@@ -931,8 +915,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For Each el ... Next')
   Locals: Local_1: element As System.Int32
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'element As Integer')
-      Variables: Local_1: element As System.Int32
+    IVariableDeclaratorOperation (Symbol: element As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'element As Integer')
       Initializer: 
         null
   Collection: 
@@ -979,8 +962,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each s  ... Next')
   Locals: Local_1: s As System.String
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 's As String')
-      Variables: Local_1: s As System.String
+    IVariableDeclaratorOperation (Symbol: s As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's As String')
       Initializer: 
         null
   Collection: 
@@ -1043,8 +1025,7 @@ End Class
 IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'For Each o  ... Next')
   Locals: Local_1: o As System.Object
   LoopControlVariable: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'o')
-      Variables: Local_1: o As System.Object
+    IVariableDeclaratorOperation (Symbol: o As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'o')
       Initializer: 
         null
   Collection: 
