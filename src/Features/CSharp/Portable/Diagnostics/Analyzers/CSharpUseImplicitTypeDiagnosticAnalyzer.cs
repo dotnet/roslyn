@@ -107,8 +107,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 }
 
                 var variable = variableDeclaration.Variables.Single();
+                var initializer = variable.Initializer.Value;
+
+                // Do not suggest var replacement for stackalloc span expressions.
+                // This will change the bound type from a span to a pointer.
+                if (!variableDeclaration.Type.IsKind(SyntaxKind.PointerType))
+                {
+                    var containsStackAlloc = initializer
+                        .DescendantNodesAndSelf(descendIntoChildren: node => !node.IsAnyLambdaOrAnonymousMethod())
+                        .Any(node => node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
+
+                    if (containsStackAlloc)
+                    {
+                        issueSpan = default;
+                        return false;
+                    }
+                }
+
                 if (AssignmentSupportsStylePreference(
-                        variable.Identifier, typeName, variable.Initializer.Value,
+                        variable.Identifier, typeName, initializer,
                         semanticModel, optionSet, cancellationToken))
                 {
                     issueSpan = candidateIssueSpan;
