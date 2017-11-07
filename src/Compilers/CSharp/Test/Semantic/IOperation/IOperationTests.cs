@@ -127,6 +127,27 @@ public class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(22964, "https://github.com/dotnet/roslyn/issues/22964")]
+        [Fact]
+        public void GlobalStatement_Parent()
+        {
+            var source =
+@"
+System.Console.WriteLine();
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var statement = tree.GetRoot().DescendantNodes().OfType<StatementSyntax>().Single();
+            var model = compilation.GetSemanticModel(tree);
+            var operation = model.GetOperationInternal(statement);
+
+            Assert.Equal(OperationKind.ExpressionStatement, operation.Kind);
+            Assert.Null(operation.Parent);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestParentOperations()
         {
