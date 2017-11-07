@@ -183,6 +183,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddKeyword(SyntaxKind.RefKeyword);
                 AddSpace();
+
+                if (symbol.RefKind == RefKind.RefReadOnly)
+                {
+                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                    AddSpace();
+                }
             }
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
