@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -118,11 +117,14 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<string> _keyFileSearchPaths;
         private readonly string _tempPath;
+        internal StrongNameFileSystem FileSystem { get; }
 
         // for testing/mocking
         internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
 
-        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, null)
+        internal override SigningCapability Capability => SigningCapability.SignsStream;
+
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, null, null)
         {
         }
 
@@ -131,63 +133,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="tempPath">Path to use for any temporary file generation.</param>
         /// <param name="keyFileSearchPaths">An ordered set of fully qualified paths which are searched when locating a cryptographic key file.</param>
-        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>), string tempPath = null)
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>), string tempPath = null): this(keyFileSearchPaths, tempPath, null)
+        {
+        }
+
+        internal DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, string tempPath, StrongNameFileSystem strongNameFileSystem)
         {
             if (!keyFileSearchPaths.IsDefault && keyFileSearchPaths.Any(path => !PathUtilities.IsAbsolute(path)))
             {
                 throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(keyFileSearchPaths));
             }
 
+            FileSystem = strongNameFileSystem ?? StrongNameFileSystem.Instance;
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
             _tempPath = tempPath;
         }
 
-        internal virtual bool FileExists(string fullPath)
-        {
-            Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
-            return File.Exists(fullPath);
-        }
-
-        internal virtual byte[] ReadAllBytes(string fullPath)
-        {
-            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return File.ReadAllBytes(fullPath);
-        }
-
-        /// <summary>
-        /// Resolves assembly strong name key file path.
-        /// Internal for testing.
-        /// </summary>
-        /// <returns>Normalized key file path or null if not found.</returns>
-        internal string ResolveStrongNameKeyFile(string path)
-        {
-            // Dev11: key path is simply appended to the search paths, even if it starts with the current (parent) directory ("." or "..").
-            // This is different from PathUtilities.ResolveRelativePath.
-
-            if (PathUtilities.IsAbsolute(path))
-            {
-                if (FileExists(path))
-                {
-                    return FileUtilities.TryNormalizeAbsolutePath(path);
-                }
-
-                return path;
-            }
-
-            foreach (var searchPath in _keyFileSearchPaths)
-            {
-                string combinedPath = PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, path);
-
-                Debug.Assert(combinedPath == null || PathUtilities.IsAbsolute(combinedPath));
-
-                if (FileExists(combinedPath))
-                {
-                    return FileUtilities.TryNormalizeAbsolutePath(combinedPath);
-                }
-            }
-
-            return null;
-        }
 
         /// <exception cref="IOException"></exception>
         internal override Stream CreateInputStream()
@@ -208,24 +169,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-                try
-                {
-                    string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath);
-                    if (resolvedKeyFile == null)
-                    {
-                        throw new FileNotFoundException(CodeAnalysisResources.FileNotFound, keyFilePath);
-                    }
-
-                    Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                    var fileContent = ImmutableArray.Create(ReadAllBytes(resolvedKeyFile));
-                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
-                }
-                catch (Exception ex)
-                {
-                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
-                }
-                // it turns out that we don't need IClrStrongName to retrieve a key file,
-                // so there's no need for a catch of ClrStrongNameMissingException in this case
+                return CommonCreateKeys(FileSystem, keyFilePath, _keyFileSearchPaths, messageProvider);
             }
             else if (!string.IsNullOrEmpty(keyContainerName))
             {
@@ -245,7 +189,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new StrongNameKeys(keyPair, publicKey, container, keyFilePath);
+            return new StrongNameKeys(keyPair, publicKey, null, container, keyFilePath);
         }
 
         internal virtual void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
@@ -267,7 +211,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="IOException"></exception>
         /// <exception cref="ClrStrongNameMissingException"></exception>
-        internal override void SignAssembly(StrongNameKeys keys, Stream inputStream, Stream outputStream)
+        internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream)
         {
             Debug.Assert(inputStream is TempFileStream);
 
@@ -293,7 +237,7 @@ namespace Microsoft.CodeAnalysis
         // EDMAURER in the event that the key is supplied as a file,
         // this type could get an instance member that caches the file
         // contents to avoid reading the file twice - once to get the
-        // public key to establish the assembly name and another to do 
+        // public key to establish the assembly name and another to do
         // the actual signing
 
         // internal for testing
@@ -386,21 +330,28 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public override int GetHashCode()
+        {
+            return Hash.CombineValues(_keyFileSearchPaths, StringComparer.Ordinal);
+        }
+
         public override bool Equals(object obj)
         {
-            // Explicitly check that we're not comparing against a derived type
-            if (obj == null || GetType() != obj.GetType())
+            if (obj is null || GetType() != obj.GetType())
             {
                 return false;
             }
 
             var other = (DesktopStrongNameProvider)obj;
-            return _keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths, StringComparer.Ordinal);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.CombineValues(_keyFileSearchPaths, StringComparer.Ordinal);
+            if (FileSystem != other.FileSystem)
+            {
+                return false;
+            }
+            if (!_keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths, StringComparer.Ordinal))
+            {
+                return false;
+            }
+            return string.Equals(_tempPath, other._tempPath, StringComparison.Ordinal);
         }
     }
 }

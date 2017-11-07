@@ -6,12 +6,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class CommonCompiler
     {
-        internal sealed class LoggingStrongNameProvider : DesktopStrongNameProvider
+        internal sealed class LoggingStrongNameFileSystem : StrongNameFileSystem
         {
             private readonly TouchedFileLogger _loggerOpt;
 
-            public LoggingStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, TouchedFileLogger logger, string tempPath)
-                : base(keyFileSearchPaths, tempPath)
+            public LoggingStrongNameFileSystem(TouchedFileLogger logger)
             {
                 _loggerOpt = logger;
             }
