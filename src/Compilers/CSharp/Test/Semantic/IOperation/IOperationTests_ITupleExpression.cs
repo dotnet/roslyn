@@ -570,7 +570,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1)) (S
         Operand: 
           IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(0)')
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -640,7 +640,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                           Operand: 
                             IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(0)')
                               Arguments(1):
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -903,7 +903,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int16, System.String c1), Is
             Operand: 
               IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C(0)')
                 Arguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32, IsInvalid) (Syntax: '0')
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '0')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -980,7 +980,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                               Operand: 
                                 IObjectCreationOperation (Constructor: C..ctor(System.Int32 x)) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C(0)')
                                   Arguments(1):
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32, IsInvalid) (Syntax: '0')
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '0')
                                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1044,11 +1044,11 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Right: 
     IObjectCreationOperation (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreation, Type: Point) (Syntax: 'new Point(0, 1)')
       Arguments(2):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: '1')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1115,11 +1115,11 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
               Element Values(1):
                   IObjectCreationOperation (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreation, Type: Point) (Syntax: 'new Point(0, 1)')
                     Arguments(2):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: '1')
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1177,11 +1177,11 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
   Right: 
     IObjectCreationOperation (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreation, Type: Point) (Syntax: 'new Point(0, 1)')
       Arguments(2):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: '0')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: '1')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

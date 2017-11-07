@@ -157,7 +157,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {x}')
               Initializer: 
-                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{x}')
+                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{x}')
                   Element Values(1):
                       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       Arguments(0)

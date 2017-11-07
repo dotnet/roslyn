@@ -258,6 +258,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
+            Assert.True(operation.Type == null || !operation.MustHaveNullType(), $"Unexpected non-null type: {operation.Type}");
+
             if (operation != _root)
             {
                 Indent();
@@ -445,25 +447,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        public override void VisitDoLoop(IDoLoopOperation operation)
-        {
-            LogString(nameof(IDoLoopOperation));
-
-            LogString($" (DoLoopKind: {operation.DoLoopKind})");
-            LogLoopStatementHeader(operation);
-
-            Visit(operation.Condition, "Condition");
-            Visit(operation.IgnoredCondition, "IgnoredCondition");
-            Visit(operation.Body, "Body");
-        }
-
         public override void VisitWhileLoop(IWhileLoopOperation operation)
         {
             LogString(nameof(IWhileLoopOperation));
+            LogString($" (ConditionIsTop: {operation.ConditionIsTop}, ConditionIsUntil: {operation.ConditionIsUntil})");
             LogLoopStatementHeader(operation);
 
             Visit(operation.Condition, "Condition");
             Visit(operation.Body, "Body");
+            Visit(operation.IgnoredCondition, "IgnoredCondition");
         }
 
         public override void VisitForLoop(IForLoopOperation operation)
