@@ -834,5 +834,39 @@ IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, T
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(23001, "https://github.com/dotnet/roslyn/issues/23001")>
+        Public Sub TestGetOperationForQualifiedName()
+            Dim source = <![CDATA[
+Public Class Test
+	Private Class A
+		Public b As B
+	End Class
+	Private Class B
+	End Class
+
+	Private Sub M(a As A)
+		Dim x2 As Integer = a.b'BIND:"a.b"
+	End Sub
+End Class
+]]>.Value
+
+            Dim comp = CreateVisualBasicCompilation(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+
+            ' Verify we return non-null operation only for topmost member access expression.
+            Dim expr = CompilationUtils.FindBindingText(Of MemberAccessExpressionSyntax)(comp, tree.FilePath)
+            Assert.Equal("a.b", expr.ToString())
+            Dim operation = model.GetOperation(expr)
+            Assert.NotNull(operation)
+            Assert.Equal(OperationKind.FieldReference, operation.Kind)
+            Dim fieldOperation = DirectCast(operation, IFieldReferenceOperation)
+            Assert.Equal("b", fieldOperation.Field.Name)
+
+            ' Verify we return null operation for child nodes of member access expression.
+            Assert.Null(model.GetOperation(expr.Name))
+        End Sub
     End Class
 End Namespace
