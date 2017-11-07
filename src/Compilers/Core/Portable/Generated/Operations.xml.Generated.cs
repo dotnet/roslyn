@@ -5640,28 +5640,28 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// Represents a C# 'do while' or VB 'Do While' or 'Do Until' loop statement.
+    /// Represents a while or do while loop.
+    /// <para>
+    /// Current usage:
+    ///  (1) C# 'while' and 'do while' loop statements.
+    ///  (2) VB 'While', 'Do While' and 'Do Until' loop statements.
+    /// </para>
     /// </summary>
-    internal abstract partial class BaseDoLoopStatement : LoopStatement, IDoLoopOperation
+    internal abstract partial class BaseWhileLoopStatement : LoopStatement, IWhileLoopOperation
     {
-        public BaseDoLoopStatement(DoLoopKind doLoopKind, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(LoopKind.Do, locals, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseWhileLoopStatement(ImmutableArray<ILocalSymbol> locals, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(LoopKind.While, locals, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            DoLoopKind = doLoopKind;
+            ConditionIsTop = conditionIsTop;
+            ConditionIsUntil = conditionIsUntil;
         }
-        /// <summary>
-        /// Represents kind of do loop operation.
-        /// </summary>
-        public DoLoopKind DoLoopKind { get; }
         protected abstract IOperation ConditionImpl { get; }
         protected abstract IOperation IgnoredConditionImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (DoLoopKind == DoLoopKind.DoWhileTopLoop ||
-                    DoLoopKind == DoLoopKind.DoUntilTopLoop ||
-                    DoLoopKind == DoLoopKind.None)
+                if (ConditionIsTop)
                 {
                     if (Condition != null)
                     {
@@ -5672,8 +5672,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     yield return Body;
                 }
-                if (DoLoopKind == DoLoopKind.DoWhileBottomLoop ||
-                    DoLoopKind == DoLoopKind.DoUntilBottomLoop)
+                if (!ConditionIsTop)
                 {
                     if (Condition != null)
                     {
@@ -5691,88 +5690,24 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public IOperation Condition => Operation.SetParentOperation(ConditionImpl, this);
         /// <summary>
+        /// True if the <see cref="Condition"/> is evaluated at start of each loop iteration.
+        /// False if it is evaluated at the end of each loop iteration.
+        /// </summary>
+
+        public bool ConditionIsTop { get; }
+
+        /// <summary>
+        /// True if the loop has 'Until' loop semantics and the loop is executed while <see cref="Condition"/> is false.
+        /// </summary>
+
+        public bool ConditionIsUntil { get; }
+        /// <summary>
         /// Additional conditional supplied for loop in error cases, which is ignored by the compiler.
         /// For example, for VB 'Do While' or 'Do Until' loop with syntax errors where both the top and bottom conditions are provided.
         /// The top condition is preferred and exposed as <see cref="Condition"/> and the bottom condition is ignored and exposed by this property.
         /// This property should be null for all non-error cases.
         /// </summary>
         public IOperation IgnoredCondition => Operation.SetParentOperation(IgnoredConditionImpl, this);
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitDoLoop(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitDoLoop(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a C# 'do while' or VB 'Do While' or 'Do Until' loop statement.
-    /// </summary>
-    internal sealed partial class DoLoopStatement : BaseDoLoopStatement, IDoLoopOperation
-    {
-        public DoLoopStatement(DoLoopKind doLoopKind, IOperation condition, IOperation body, IOperation ignoredConditionOpt, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(doLoopKind, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ConditionImpl = condition;
-            BodyImpl = body;
-            IgnoredConditionImpl = ignoredConditionOpt;
-        }
-        protected override IOperation ConditionImpl { get; }
-        protected override IOperation BodyImpl { get; }
-        protected override IOperation IgnoredConditionImpl { get; }
-    }
-
-    /// <summary>
-    /// Represents a C# 'do while' or VB 'Do While' or 'Do Until' loop statement.
-    /// </summary>
-    internal sealed partial class LazyDoLoopStatement : BaseDoLoopStatement, IDoLoopOperation
-    {
-        private readonly Lazy<IOperation> _lazyCondition;
-        private readonly Lazy<IOperation> _lazyBody;
-        private readonly Lazy<IOperation> _lazyIgnoredCondition;
-
-        public LazyDoLoopStatement(DoLoopKind doLoopKind, Lazy<IOperation> condition, Lazy<IOperation> body, Lazy<IOperation> ignoredCondition, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(doLoopKind, locals, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
-            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
-            _lazyIgnoredCondition = ignoredCondition ?? throw new System.ArgumentNullException(nameof(ignoredCondition));
-        }
-        protected override IOperation ConditionImpl => _lazyCondition.Value;
-        protected override IOperation BodyImpl => _lazyBody.Value;
-        protected override IOperation IgnoredConditionImpl => _lazyIgnoredCondition.Value;
-    }
-
-    /// <summary>
-    /// Represents a C# 'while' or a VB 'While' loop statement.
-    /// </summary>
-    internal abstract partial class BaseWhileLoopStatement : LoopStatement, IWhileLoopOperation
-    {
-        public BaseWhileLoopStatement(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(LoopKind.While, locals, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-        protected abstract IOperation ConditionImpl { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                if (Condition != null)
-                {
-                    yield return Condition;
-                }
-                if (Body != null)
-                {
-                    yield return Body;
-                }
-            }
-        }
-        /// <summary>
-        /// Condition of the loop.
-        /// </summary>
-        public IOperation Condition => Operation.SetParentOperation(ConditionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitWhileLoop(this);
@@ -5784,36 +5719,51 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// Represents a C# 'while' or a VB 'While' loop statement.
+    /// Represents a while or do while loop.
+    /// <para>
+    /// Current usage:
+    ///  (1) C# 'while' and 'do while' loop statements.
+    ///  (2) VB 'While', 'Do While' and 'Do Until' loop statements.
+    /// </para>
     /// </summary>
     internal sealed partial class WhileLoopStatement : BaseWhileLoopStatement, IWhileLoopOperation
     {
-        public WhileLoopStatement(IOperation condition, IOperation body, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public WhileLoopStatement(IOperation condition, IOperation body, IOperation ignoredCondition, ImmutableArray<ILocalSymbol> locals, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ConditionImpl = condition;
             BodyImpl = body;
+            IgnoredConditionImpl = ignoredCondition;
         }
         protected override IOperation ConditionImpl { get; }
         protected override IOperation BodyImpl { get; }
+        protected override IOperation IgnoredConditionImpl { get; }
     }
 
     /// <summary>
-    /// Represents a C# 'while' or a VB 'While' loop statement.
+    /// Represents a while or do while loop.
+    /// <para>
+    /// Current usage:
+    ///  (1) C# 'while' and 'do while' loop statements.
+    ///  (2) VB 'While', 'Do While' and 'Do Until' loop statements.
+    /// </para>
     /// </summary>
     internal sealed partial class LazyWhileLoopStatement : BaseWhileLoopStatement, IWhileLoopOperation
     {
         private readonly Lazy<IOperation> _lazyCondition;
         private readonly Lazy<IOperation> _lazyBody;
+        private readonly Lazy<IOperation> _lazyIgnoredCondition;
 
-        public LazyWhileLoopStatement(Lazy<IOperation> condition, Lazy<IOperation> body, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyWhileLoopStatement(Lazy<IOperation> condition, Lazy<IOperation> body, Lazy<IOperation> ignoredCondition, ImmutableArray<ILocalSymbol> locals, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+            _lazyIgnoredCondition = ignoredCondition ?? throw new System.ArgumentNullException(nameof(ignoredCondition));
         }
         protected override IOperation ConditionImpl => _lazyCondition.Value;
         protected override IOperation BodyImpl => _lazyBody.Value;
+        protected override IOperation IgnoredConditionImpl => _lazyIgnoredCondition.Value;
     }
 
     /// <summary>
