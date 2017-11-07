@@ -13,6 +13,9 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _cache As ConcurrentDictionary(Of BoundNode, IOperation) =
             New ConcurrentDictionary(Of BoundNode, IOperation)(concurrencyLevel:=2, capacity:=10)
 
+        Private ReadOnly _lazyNothingOperation As Lazy(Of IOperation) =
+            New Lazy(Of IOperation)(Function() Nothing)
+
         Private ReadOnly _semanticModel As SemanticModel
 
         Public Sub New(semanticModel As SemanticModel)
@@ -1215,7 +1218,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileLoopOperation
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWhileStatement.Condition))
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWhileStatement.Body))
-            Dim ignoredCondition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Nothing)
+            Dim ignoredCondition As Lazy(Of IOperation) = _lazyNothingOperation
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
             Dim conditionIsTop As Boolean = True
             Dim conditionIsUntil As Boolean = False
@@ -1246,7 +1249,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundLabelStatementOperation(boundLabelStatement As BoundLabelStatement) As ILabeledOperation
             Dim label As ILabelSymbol = boundLabelStatement.Label
-            Dim statement As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Nothing)
+            Dim statement As Lazy(Of IOperation) = _lazyNothingOperation
             Dim syntax As SyntaxNode = boundLabelStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1493,7 +1496,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess) As IPropertyReferenceOperation
-            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Nothing)
+            Dim instance As Lazy(Of IOperation) = _lazyNothingOperation
             Dim [property] As IPropertySymbol = DirectCast(boundAnonymousTypePropertyAccess.ExpressionSymbol, IPropertySymbol)
             Dim arguments As Lazy(Of ImmutableArray(Of IArgumentOperation)) = New Lazy(Of ImmutableArray(Of IArgumentOperation))(Function() ImmutableArray(Of IArgumentOperation).Empty)
             Dim syntax As SyntaxNode = boundAnonymousTypePropertyAccess.Syntax

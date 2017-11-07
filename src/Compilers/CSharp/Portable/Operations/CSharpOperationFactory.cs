@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly ConcurrentDictionary<BoundNode, IOperation> _cache =
             new ConcurrentDictionary<BoundNode, IOperation>(concurrencyLevel: 2, capacity: 10);
 
+        private readonly Lazy<IOperation> _lazyNullOperation =
+            new Lazy<IOperation>(() => null);
+
         private readonly SemanticModel _semanticModel;
 
         public CSharpOperationFactory(SemanticModel semanticModel)
@@ -479,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IPropertyReferenceOperation CreateBoundAnonymousPropertyDeclarationOperation(BoundAnonymousPropertyDeclaration boundAnonymousPropertyDeclaration)
         {
             PropertySymbol property = boundAnonymousPropertyDeclaration.Property;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => null);
+            Lazy<IOperation> instance = _lazyNullOperation;
             Lazy<ImmutableArray<IArgumentOperation>> arguments = new Lazy<ImmutableArray<IArgumentOperation>>(() => ImmutableArray<IArgumentOperation>.Empty);
             SyntaxNode syntax = boundAnonymousPropertyDeclaration.Syntax;
             ITypeSymbol type = boundAnonymousPropertyDeclaration.Type;
@@ -1309,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundWhileStatement.Condition));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundWhileStatement.Body));
-            Lazy<IOperation> ignoredCondition = new Lazy<IOperation>(() => null);
+            Lazy<IOperation> ignoredCondition = _lazyNullOperation;
             ImmutableArray<ILocalSymbol> locals = boundWhileStatement.Locals.As<ILocalSymbol>();
             bool conditionIsTop = true;
             bool conditionIsUntil = false;
@@ -1324,7 +1327,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundDoStatement.Condition));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundDoStatement.Body));
-            Lazy<IOperation> ignoredCondition = new Lazy<IOperation>(() => null);
+            Lazy<IOperation> ignoredCondition = _lazyNullOperation;
             bool conditionIsTop = false;
             bool conditionIsUntil = false;
             ImmutableArray<ILocalSymbol> locals = boundDoStatement.Locals.As<ILocalSymbol>();
@@ -1366,7 +1369,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
-                loopControlVariable = new Lazy<IOperation>(() => null);
+                loopControlVariable = _lazyNullOperation;
             }
 
             Lazy<IOperation> collection = new Lazy<IOperation>(() => Create(boundForEachStatement.Expression));
