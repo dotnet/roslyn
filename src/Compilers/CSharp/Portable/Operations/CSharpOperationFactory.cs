@@ -1361,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 var local = (LocalSymbol)locals.Single();
                 // We use iteration variable type syntax as the underlying syntax node as there is no variable declarator syntax in the syntax tree.
                 var declaratorSyntax = boundForEachStatement.IterationVariableType.Syntax;
-                loopControlVariable = new Lazy<IOperation>(() => OperationFactory.CreateVariableDeclaration(local, initializer: null, semanticModel: _semanticModel, syntax: declaratorSyntax));
+                loopControlVariable = new Lazy<IOperation>(() => new VariableDeclarator(local, initializer: null, semanticModel: _semanticModel, syntax: declaratorSyntax, type: null, constantValue: default, isImplicit: false));
             }
             else
             {

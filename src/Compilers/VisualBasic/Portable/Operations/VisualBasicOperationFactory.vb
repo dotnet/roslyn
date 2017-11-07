@@ -1141,7 +1141,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim localOpt As LocalSymbol = boundForStatement.DeclaredOrInferredLocalOpt
             Dim controlVariable As BoundExpression = boundForStatement.ControlVariable
             Return If(localOpt IsNot Nothing,
-                OperationFactory.CreateVariableDeclaration(localOpt, initializer:=Nothing, semanticModel:=_semanticModel, syntax:=controlVariable.Syntax),
+                New VariableDeclarator(localOpt, initializer:=Nothing, semanticModel:=_semanticModel, syntax:=controlVariable.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundForStatement.WasCompilerGenerated),
                 Create(controlVariable))
         End Function
 
