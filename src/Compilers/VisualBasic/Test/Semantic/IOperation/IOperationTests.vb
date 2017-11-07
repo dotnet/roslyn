@@ -289,7 +289,9 @@ End Class]]>.Value
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i = 0 T ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
-    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+    IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
+      Initializer: 
+        null
   InitialValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 

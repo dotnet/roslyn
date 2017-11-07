@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override IOperation VisitArgument(IArgumentOperation operation, object argument)
         {
-            return new CSharpArgument(operation.ArgumentKind, operation.Parameter, Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new CSharpArgument(operation.ArgumentKind, operation.Parameter, Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, object argument)

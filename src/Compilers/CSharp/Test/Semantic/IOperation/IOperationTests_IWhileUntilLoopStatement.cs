@@ -33,15 +33,13 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Loop, Type: null) (Syntax: 'do ... le (i < 4);')
+IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'do ... le (i < 4);')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 4')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-  IgnoredCondition: 
-    null
   Body: 
     IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'sum += ids[i];')
@@ -60,6 +58,8 @@ IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
           IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
             Target: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<DoStatementSyntax>(source, expectedOperationTree);
         }
@@ -88,7 +88,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (i <  ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (i <  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
@@ -109,6 +109,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
           IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
             Target: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -138,7 +140,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (cond ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (cond ... }')
   Condition: 
     ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
   Body: 
@@ -173,6 +175,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
         WhenFalse: 
           null
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -203,7 +207,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: 
@@ -235,7 +239,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   Instance Receiver: 
                     null
                   Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '""While-loop break""')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""While-loop break""')
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""While-loop break"") (Syntax: '""While-loop break""')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -248,10 +252,12 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '""While-loop statement""')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""While-loop statement""')
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""While-loop statement"") (Syntax: '""While-loop statement""')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -281,7 +287,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: 
@@ -310,7 +316,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw new E ... ever hit"");')
               IObjectCreationOperation (Constructor: System.Exception..ctor(System.String message)) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new Excepti ... Never hit"")')
                 Arguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: System.String) (Syntax: '""Never hit""')
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument, Type: null) (Syntax: '""Never hit""')
                       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Never hit"") (Syntax: '""Never hit""')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -324,10 +330,12 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '""While-loop statement""')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""While-loop statement""')
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""While-loop statement"") (Syntax: '""While-loop statement""')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -354,7 +362,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while ((i = ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while ((i = ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(i = value) >= 0')
       Left: 
@@ -373,18 +381,18 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Instance Receiver: 
               null
             Arguments(3):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument, Type: System.String) (Syntax: '""While {0} {1}""')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument, Type: null) (Syntax: '""While {0} {1}""')
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""While {0} {1}"") (Syntax: '""While {0} {1}""')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument, Type: System.Object) (Syntax: 'i')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument, Type: null) (Syntax: 'i')
                   IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
                       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument, Type: System.Object) (Syntax: 'value')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument, Type: null) (Syntax: 'value')
                   IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'value')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
@@ -396,6 +404,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
           IIncrementOrDecrementOperation (Postfix) (OperationKind.Decrement, Type: System.Int32) (Syntax: 'value--')
             Target: 
               ILocalReferenceOperation: value (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'value')
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -417,7 +427,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'while (numb ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'while (numb ... }')
   Condition: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'number')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -425,6 +435,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
         ILocalReferenceOperation: number (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'number')
   Body: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -456,7 +468,7 @@ class Program
 ";
 
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: 
@@ -484,6 +496,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
           IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'number++')
             Target: 
               IParameterReferenceOperation: number (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'number')
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -515,7 +529,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
   Body: 
@@ -546,6 +560,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
           IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return number;')
             ReturnedValue: 
               IParameterReferenceOperation: number (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'number')
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -573,7 +589,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'while () ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'while () ... }')
   Condition: 
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
@@ -609,6 +625,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
         WhenFalse: 
           null
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -631,7 +649,7 @@ class ContinueTest
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i <=  ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i <=  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i <= 10')
       Left: 
@@ -640,6 +658,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -667,7 +687,7 @@ class ContinueTest
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i <=  ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i <=  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i <= 10')
       Left: 
@@ -699,10 +719,12 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -732,7 +754,7 @@ class Test
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i<10) ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i<10) ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i<10')
       Left: 
@@ -756,7 +778,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Initializer: 
             null
-      IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
+      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
@@ -776,20 +798,24 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   Instance Receiver: 
                     null
                   Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'j')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'j')
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IgnoredCondition: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... iteLine(i);')
         Expression: 
           IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -820,7 +846,7 @@ class Test
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i<10) ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while(i<10) ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i<10')
       Left: 
@@ -844,7 +870,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           Initializer: 
             null
-      IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
+      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
@@ -875,20 +901,24 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   Instance Receiver: 
                     null
                   Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'j')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'j')
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IgnoredCondition: 
+          null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... iteLine(i);')
         Expression: 
           IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -937,7 +967,7 @@ public class MyWhile
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (d.Do ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (d.Do ... }')
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd.Done')
       Operand: 
@@ -958,6 +988,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Arguments(0)
             ArgumentNames(0)
             ArgumentRefKinds(0)
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -981,7 +1013,7 @@ class Program
 
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while ( ++i ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while ( ++i ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '++i < 5')
       Left: 
@@ -998,10 +1030,12 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -1023,7 +1057,7 @@ class C
     }
 }";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (i >  ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (i >  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
       Left: 
@@ -1037,6 +1071,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
           IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
             Target: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -1059,7 +1095,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (b == ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (b == ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: True) (Syntax: 'b == b')
       Left: 
@@ -1071,6 +1107,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return b;')
         ReturnedValue: 
           ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean, Constant: True) (Syntax: 'b')
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -1101,7 +1139,7 @@ public class TryCatchFinally
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (x--  ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (x--  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x-- > 0')
       Left: 
@@ -1143,6 +1181,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                 Arguments(0)
                 Initializer: 
                   null
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -1179,18 +1219,18 @@ public class X
 }
 ";
             string expectedOperationTree = @"
-IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (Dumm ... }')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (Dumm ... }')
   Locals: Local_1: System.Int32 x1
   Condition: 
     IInvocationOperation (System.Boolean X.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x1), x1)')
       Instance Receiver: 
         null
       Arguments(3):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Boolean) (Syntax: 'f')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'f')
             ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: System.Object) (Syntax: 'TakeOutPara ... out var x1)')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'TakeOutPara ... out var x1)')
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TakeOutPara ... out var x1)')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
@@ -1198,7 +1238,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                   Instance Receiver: 
                     null
                   Arguments(2):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: System.Int32, IsImplicit) (Syntax: 'f ? 1 : 2')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'f ? 1 : 2')
                         IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'f ? 1 : 2')
                           Condition: 
                             ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
@@ -1208,14 +1248,14 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: 'out var x1')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'out var x1')
                         IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var x1')
                           ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: System.Object) (Syntax: 'x1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: null) (Syntax: 'x1')
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
@@ -1230,7 +1270,7 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'x1')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x1')
                   ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1241,6 +1281,8 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
               ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+  IgnoredCondition: 
+    null
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
@@ -1276,18 +1318,18 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Loop, Type: null) (Syntax: 'do ...  x1), x1));')
+IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'do ...  x1), x1));')
   Locals: Local_1: System.Int32 x1
   Condition: 
     IInvocationOperation (System.Boolean X.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x1), x1)')
       Instance Receiver: 
         null
       Arguments(3):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Boolean) (Syntax: 'f')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'f')
             ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: System.Object) (Syntax: 'TakeOutPara ... out var x1)')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'TakeOutPara ... out var x1)')
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'TakeOutPara ... out var x1)')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
@@ -1295,7 +1337,7 @@ IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
                   Instance Receiver: 
                     null
                   Arguments(2):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: System.Int32, IsImplicit) (Syntax: 'f ? 1 : 2')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'f ? 1 : 2')
                         IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'f ? 1 : 2')
                           Condition: 
                             ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
@@ -1305,22 +1347,20 @@ IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32) (Syntax: 'out var x1')
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'out var x1')
                         IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var x1')
                           ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: System.Object) (Syntax: 'x1')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: null) (Syntax: 'x1')
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
                 ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IgnoredCondition: 
-    null
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'f = false;')
@@ -1330,6 +1370,8 @@ IDoLoopOperation (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
               ILocalReferenceOperation: f (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'f')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+  IgnoredCondition: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

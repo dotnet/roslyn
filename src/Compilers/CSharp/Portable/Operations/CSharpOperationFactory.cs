@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly ConcurrentDictionary<BoundNode, IOperation> _cache =
             new ConcurrentDictionary<BoundNode, IOperation>(concurrencyLevel: 2, capacity: 10);
 
+        private readonly Lazy<IOperation> _lazyNullOperation =
+            new Lazy<IOperation>(() => null);
+
         private readonly SemanticModel _semanticModel;
 
         public CSharpOperationFactory(SemanticModel semanticModel)
@@ -479,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IPropertyReferenceOperation CreateBoundAnonymousPropertyDeclarationOperation(BoundAnonymousPropertyDeclaration boundAnonymousPropertyDeclaration)
         {
             PropertySymbol property = boundAnonymousPropertyDeclaration.Property;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => null);
+            Lazy<IOperation> instance = _lazyNullOperation;
             Lazy<ImmutableArray<IArgumentOperation>> arguments = new Lazy<ImmutableArray<IArgumentOperation>>(() => ImmutableArray<IArgumentOperation>.Empty);
             SyntaxNode syntax = boundAnonymousPropertyDeclaration.Syntax;
             ITypeSymbol type = boundAnonymousPropertyDeclaration.Type;
@@ -903,10 +906,9 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<ImmutableArray<IOperation>> elementValues = new Lazy<ImmutableArray<IOperation>>(() => boundArrayInitialization.Initializers.SelectAsArray(n => Create(n)));
             SyntaxNode syntax = boundArrayInitialization.Syntax;
-            ITypeSymbol type = boundArrayInitialization.Type;
             Optional<object> constantValue = ConvertToOptional(boundArrayInitialization.ConstantValue);
             bool isImplicit = boundArrayInitialization.WasCompilerGenerated;
-            return new LazyArrayInitializer(elementValues, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyArrayInitializer(elementValues, _semanticModel, syntax, constantValue, isImplicit);
         }
 
         private IDefaultValueOperation CreateBoundDefaultExpressionOperation(BoundDefaultExpression boundDefaultExpression)
@@ -1312,26 +1314,30 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundWhileStatement.Condition));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundWhileStatement.Body));
+            Lazy<IOperation> ignoredCondition = _lazyNullOperation;
             ImmutableArray<ILocalSymbol> locals = boundWhileStatement.Locals.As<ILocalSymbol>();
+            bool conditionIsTop = true;
+            bool conditionIsUntil = false;
             SyntaxNode syntax = boundWhileStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundWhileStatement.WasCompilerGenerated;
-            return new LazyWhileLoopStatement(condition, body, locals, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyWhileLoopStatement(condition, body, ignoredCondition, locals, conditionIsTop, conditionIsUntil, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IDoLoopOperation CreateBoundDoStatementOperation(BoundDoStatement boundDoStatement)
+        private IWhileLoopOperation CreateBoundDoStatementOperation(BoundDoStatement boundDoStatement)
         {
-            DoLoopKind doLoopKind = DoLoopKind.DoWhileBottomLoop;
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundDoStatement.Condition));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundDoStatement.Body));
-            Lazy<IOperation> ignoredCondition = new Lazy<IOperation>(() => null);
+            Lazy<IOperation> ignoredCondition = _lazyNullOperation;
+            bool conditionIsTop = false;
+            bool conditionIsUntil = false;
             ImmutableArray<ILocalSymbol> locals = boundDoStatement.Locals.As<ILocalSymbol>();
             SyntaxNode syntax = boundDoStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundDoStatement.WasCompilerGenerated;
-            return new LazyDoLoopStatement(doLoopKind, condition, body, ignoredCondition, locals, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyWhileLoopStatement(condition, body, ignoredCondition, locals, conditionIsTop, conditionIsUntil, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IForLoopOperation CreateBoundForStatementOperation(BoundForStatement boundForStatement)
@@ -1359,13 +1365,13 @@ namespace Microsoft.CodeAnalysis.Operations
             else if (locals.Length == 1)
             {
                 var local = (LocalSymbol)locals.Single();
-                bool isDeclaration = true;
-                // This node is implicit because there is no good syntax for it other than the entire 'foreach' statement.
-                loopControlVariable = new Lazy<IOperation>(() => new LocalReferenceExpression(local, isDeclaration, _semanticModel, local.GetDeclaratorSyntax(), local.Type, local.ConstantValue, isImplicit: true));
+                // We use iteration variable type syntax as the underlying syntax node as there is no variable declarator syntax in the syntax tree.
+                var declaratorSyntax = boundForEachStatement.IterationVariableType.Syntax;
+                loopControlVariable = new Lazy<IOperation>(() => new VariableDeclarator(local, initializer: null, semanticModel: _semanticModel, syntax: declaratorSyntax, type: null, constantValue: default, isImplicit: false));
             }
             else
             {
-                loopControlVariable = new Lazy<IOperation>(() => null);
+                loopControlVariable = _lazyNullOperation;
             }
 
             Lazy<IOperation> collection = new Lazy<IOperation>(() => Create(boundForEachStatement.Expression));
