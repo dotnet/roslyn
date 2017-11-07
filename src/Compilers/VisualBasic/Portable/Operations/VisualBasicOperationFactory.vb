@@ -272,26 +272,23 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundAssignmentOperatorOperation(boundAssignmentOperator As BoundAssignmentOperator) As IOperation
-            Dim kind = GetAssignmentKind(boundAssignmentOperator)
+            Dim assignmentInfo = GetAssignmentInfo(boundAssignmentOperator)
             Dim isImplicit As Boolean = boundAssignmentOperator.WasCompilerGenerated
-            If kind = OperationKind.CompoundAssignment Then
-                ' convert Right to IOperation temporarily. we do this to get right operand, operator method and etc
-                Dim temporaryRight = DirectCast(Create(boundAssignmentOperator.Right), IBinaryOperation)
+            If assignmentInfo.OperationKind = OperationKind.CompoundAssignment Then
 
-                Dim operatorKind As BinaryOperatorKind = temporaryRight.OperatorKind
+                Dim operatorKind As BinaryOperatorKind = assignmentInfo.OperatorKind
                 Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Left))
 
                 ' right now, parent of right operand is set to the temporary IOperation, reset the parent
                 ' we basically need to do this since we skip BoundAssignmentOperator.Right from IOperation tree
-                Dim rightOperand = Operation.ResetParentOperation(temporaryRight.RightOperand)
-                Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() rightOperand)
+                Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(assignmentInfo.RightNode))
 
-                Dim operatorMethod As IMethodSymbol = temporaryRight.OperatorMethod
+                Dim operatorMethod As IMethodSymbol = assignmentInfo.OperatorMethod
                 Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
                 Dim isLifted As Boolean = boundAssignmentOperator.Type.IsNullableType()
-                Dim isChecked As Boolean = temporaryRight.IsChecked
+                Dim isChecked As Boolean = assignmentInfo.IsChecked
                 Return New LazyCompoundAssignmentExpression(operatorKind, isLifted, isChecked, target, value, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
             Else
                 Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Left))

@@ -12,28 +12,127 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return If(value Is Nothing OrElse value.IsBad, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))
         End Function
 
-        Private Shared Function GetAssignmentKind(value As BoundAssignmentOperator) As OperationKind
+        Private Shared Function GetAssignmentInfo(value As BoundAssignmentOperator) As (OperationKind As OperationKind, OperatorKind As BinaryOperatorKind, IsChecked As Boolean, InConversion As Conversion, OutConversion As Conversion, RightNode As BoundExpression, OperatorMethod As IMethodSymbol)
+            Dim identityConversion = New Conversion(Conversions.Identity)
             If value.LeftOnTheRightOpt IsNot Nothing Then
                 Select Case value.Right.Kind
                     Case BoundKind.BinaryOperator
                         Dim rightBinary As BoundBinaryOperator = DirectCast(value.Right, BoundBinaryOperator)
                         If rightBinary.Left Is value.LeftOnTheRightOpt Then
-                            Return OperationKind.CompoundAssignment
+                            Dim operatorKind = Helper.DeriveBinaryOperatorKind(rightBinary.OperatorKind, rightBinary.Left)
+                            Return (OperationKind.CompoundAssignment,
+                                    operatorKind,
+                                    IsChecked:=rightBinary.Checked,
+                                    InConversion:=identityConversion,
+                                    OutConversion:=identityConversion,
+                                    RightNode:=rightBinary.Right,
+                                    OperatorMethod:=Nothing)
                         End If
                     Case BoundKind.UserDefinedBinaryOperator
                         Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = DirectCast(value.Right, BoundUserDefinedBinaryOperator)
+                        Dim inConversion As Conversion = identityConversion
+                        Dim operatorMethod As IMethodSymbol = Nothing
+                        If IsUserDefinedBinaryOperatorCompound(rightOperatorBinary, value.LeftOnTheRightOpt, inConversion, operatorMethod) Then
+                            Dim operatorKind = Helper.DeriveBinaryOperatorKind(rightOperatorBinary.OperatorKind, leftOpt:=Nothing)
+                            Return (OperationKind.CompoundAssignment,
+                                    operatorKind,
+                                    IsChecked:=rightOperatorBinary.Checked,
+                                    inConversion,
+                                    OutConversion:=identityConversion,
+                                    RightNode:=GetUserDefinedBinaryOperatorChildBoundNode(rightOperatorBinary, 1),
+                                    operatorMethod)
+                        End If
+                    Case BoundKind.Conversion
+                        ' In this case, we could be in a scenario like this:
+                        '
+                        ' Dim x, y As New Integer
+                        ' x /= y
+                        '
+                        ' In this case, there will be a BoundConversion on top of the BoundBinaryOperator, and a BoundConversion on
+                        ' top of the left operand to the BoundBinaryOperator. The operand of the conversion on the left and the
+                        ' value of LeftOnTheRightOpt will be the same BoundCompoundAssignmentTargetPlaceholder
+                        Dim rightConversion = DirectCast(value.Right, BoundConversion)
+                        Dim outConversion = CreateConversion(rightConversion)
+                        If rightConversion.Operand.Kind = BoundKind.BinaryOperator Then
+                            Dim binaryOperator = DirectCast(rightConversion.Operand, BoundBinaryOperator)
 
-                        ' It is not permissible to access the Left property of a BoundUserDefinedBinaryOperator unconditionally,
-                        ' because that property can throw an exception if the operator expression is semantically invalid.
-                        ' get it through helper method
-                        Dim leftOperand = GetUserDefinedBinaryOperatorChildBoundNode(rightOperatorBinary, 0)
-                        If leftOperand Is value.LeftOnTheRightOpt Then
-                            Return OperationKind.CompoundAssignment
+                            ' binaryOperator.Left must be a conversion or the TargetPlaceholder (in error cases). The Operand of the
+                            ' Conversion will be the same BoundCompoundAssignmentTargetPlaceholder as value.LeftOnTheRightOpt
+                            If binaryOperator.Left Is value.LeftOnTheRightOpt OrElse
+                               (binaryOperator.Left.Kind = BoundKind.Conversion AndAlso
+                                DirectCast(binaryOperator.Left, BoundConversion).Operand Is value.LeftOnTheRightOpt) Then
+                                Dim operatorKind = Helper.DeriveBinaryOperatorKind(binaryOperator.OperatorKind, binaryOperator.Left)
+                                Return (OperationKind.CompoundAssignment,
+                                        operatorKind,
+                                        IsChecked:=binaryOperator.Checked,
+                                        InConversion:=identityConversion,
+                                        outConversion,
+                                        RightNode:=binaryOperator.Right,
+                                        OperatorMethod:=Nothing)
+                            End If
+                        ElseIf rightConversion.Operand.Kind = BoundKind.UserDefinedConversion OrElse
+                               rightConversion.Operand.Kind = BoundKind.UserDefinedBinaryOperator Then
+
+                            ' In error scenarios, we can have a standard conversion on top of a UserDefinedBinaryOperator
+                            Dim rightOperatorBinary = If(TryCast(rightConversion.Operand, BoundUserDefinedBinaryOperator),
+                                                         TryCast(DirectCast(rightConversion.Operand, BoundUserDefinedConversion).Operand, BoundUserDefinedBinaryOperator))
+                            If rightOperatorBinary IsNot Nothing Then
+                                Dim inConversion As Conversion = identityConversion
+                                Dim operatorMethod As IMethodSymbol = Nothing
+                                If IsUserDefinedBinaryOperatorCompound(rightOperatorBinary, value.LeftOnTheRightOpt, inConversion, operatorMethod) Then
+                                    Dim operatorKind = Helper.DeriveBinaryOperatorKind(rightOperatorBinary.OperatorKind, leftOpt:=Nothing)
+                                    Return (OperationKind.CompoundAssignment,
+                                            operatorKind,
+                                            IsChecked:=rightOperatorBinary.Checked,
+                                            inConversion,
+                                            outConversion,
+                                            RightNode:=GetUserDefinedBinaryOperatorChildBoundNode(rightOperatorBinary, 1),
+                                            operatorMethod)
+                                End If
+                            End If
                         End If
                 End Select
             End If
 
-            Return OperationKind.SimpleAssignment
+            Return (OperationKind.SimpleAssignment, OperatorKind:=Nothing, IsChecked:=False, InConversion:=identityConversion, OutConversion:=identityConversion, RightNode:=Nothing, OperatorMethod:=Nothing)
+        End Function
+
+        Private Shared Function IsUserDefinedBinaryOperatorCompound([operator] As BoundUserDefinedBinaryOperator,
+                                                                    leftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder,
+                                                                    ByRef inConversion As Conversion,
+                                                                    ByRef operatorMethod As IMethodSymbol) As Boolean
+
+            ' It is not permissible to access the Left property of a BoundUserDefinedBinaryOperator unconditionally,
+            ' because that property can throw an exception if the operator expression is semantically invalid.
+            ' get it through helper method
+            Dim leftOperand = GetUserDefinedBinaryOperatorChildBoundNode([operator], 0)
+            operatorMethod = If([operator].UnderlyingExpression.Kind = BoundKind.Call, [operator].Call.Method, Nothing)
+            If leftOperand Is leftOnTheRightOpt Then
+                Return True
+            ElseIf leftOperand.Kind = BoundKind.Conversion Then
+                ' In this case, we might have a user-defined operator with an in-conversion on the left operand
+                ' This can happen in the case when the user-defined operator returns the target type, but the left
+                ' parameter does not accept the target type and it must be converted before use.
+                Dim leftConversion = DirectCast(leftOperand, BoundConversion)
+                If leftConversion.Operand.Kind = BoundKind.UserDefinedConversion Then
+                    Dim userDefinedConversion = DirectCast(leftConversion.Operand, BoundUserDefinedConversion)
+                    If userDefinedConversion.Operand Is leftOnTheRightOpt Then
+                        inConversion = CreateConversion(leftConversion)
+                        Return True
+                    End If
+                End If
+            End If
+
+            Return False
+        End Function
+
+        Private Shared Function CreateConversion(boundConversion As BoundConversion) As Conversion
+            If boundConversion.Operand.Kind = BoundKind.UserDefinedConversion Then
+                Dim userDefinedConversion = DirectCast(boundConversion.Operand, BoundUserDefinedConversion)
+                Return New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundConversion.ConversionKind, userDefinedConversion.Call.Method))
+            Else
+                Return New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundConversion.ConversionKind, Nothing))
+            End If
         End Function
 
         Private Function GetUserDefinedBinaryOperatorChild([operator] As BoundUserDefinedBinaryOperator, index As Integer) As IOperation
@@ -45,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return OperationFactory.CreateInvalidExpression(_semanticModel, [operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
         End Function
 
-        Private Shared Function GetUserDefinedBinaryOperatorChildBoundNode([operator] As BoundUserDefinedBinaryOperator, index As Integer) As BoundNode
+        Private Shared Function GetUserDefinedBinaryOperatorChildBoundNode([operator] As BoundUserDefinedBinaryOperator, index As Integer) As BoundExpression
             If [operator].UnderlyingExpression.Kind = BoundKind.Call Then
                 If index = 0 Then
                     Return [operator].Left
@@ -176,10 +275,10 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return OperationFactory.CreateInvalidExpression(_semanticModel, parent.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
         End Function
 
-        Private Shared Function GetChildOfBadExpressionBoundNode(parent As BoundNode, index As Integer) As BoundNode
+        Private Shared Function GetChildOfBadExpressionBoundNode(parent As BoundNode, index As Integer) As BoundExpression
             Dim badParent As BoundBadExpression = TryCast(parent, BoundBadExpression)
             If badParent?.ChildBoundNodes.Length > index Then
-                Dim child As BoundNode = badParent.ChildBoundNodes(index)
+                Dim child As BoundExpression = badParent.ChildBoundNodes(index)
                 If child IsNot Nothing Then
                     Return child
                 End If
