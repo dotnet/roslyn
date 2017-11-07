@@ -30,8 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 Return
             End If
 
-            context.RegisterCodeFix(New AddOverloadsKeywordAction(context.Document, token.Parent), context.Diagnostics)
-            context.RegisterCodeFix(New AddShadowsKeywordAction(context.Document, token.Parent), context.Diagnostics)
+            If diagnostic.Descriptor.Id = BC40003 Then
+                context.RegisterCodeFix(New AddOverloadsKeywordAction(context.Document, token.Parent), context.Diagnostics)
+            End If
+            If diagnostic.Descriptor.Id = BC40004 Then
+                context.RegisterCodeFix(New AddShadowsKeywordAction(context.Document, token.Parent), context.Diagnostics)
+            End If
         End Function
     End Class
 End Namespace

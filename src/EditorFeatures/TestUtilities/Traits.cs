@@ -188,6 +188,7 @@ namespace Roslyn.Test.Utilities
             public const string VsNavInfo = nameof(VsNavInfo);
             public const string XmlTagCompletion = nameof(XmlTagCompletion);
             public const string CodeActionsAddOverload = "CodeActions.AddOverloads";
+            public const string CodeActionsAddShadows = "CodeActions.AddShadows";
             public const string CodeActionsAddNew = "CodeActions.AddNew";
         }
     }
