@@ -258,6 +258,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
+            Assert.True(operation.Type == null || !operation.MustHaveNullType(), $"Unexpected non-null type: {operation.Type}");
+
             if (operation != _root)
             {
                 Indent();
