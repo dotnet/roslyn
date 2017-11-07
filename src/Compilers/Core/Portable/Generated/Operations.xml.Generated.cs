@@ -1127,6 +1127,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
+        public abstract CommonConversion InConversion { get; }
+        public abstract CommonConversion OutConversion { get; }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1136,39 +1138,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitCompoundAssignment(this, argument);
         }
-    }
-
-    /// <summary>
-    /// Represents an assignment expression that includes a binary operation.
-    /// </summary>
-    internal sealed partial class CompoundAssignmentExpression : BaseCompoundAssignmentExpression, ICompoundAssignmentOperation
-    {
-        public CompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IOperation target, IOperation value, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            TargetImpl = target;
-            ValueImpl = value;
-        }
-        protected override IOperation TargetImpl { get; }
-        protected override IOperation ValueImpl { get; }
-    }
-
-    /// <summary>
-    /// Represents an assignment expression that includes a binary operation.
-    /// </summary>
-    internal sealed partial class LazyCompoundAssignmentExpression : BaseCompoundAssignmentExpression, ICompoundAssignmentOperation
-    {
-        private readonly Lazy<IOperation> _lazyTarget;
-        private readonly Lazy<IOperation> _lazyValue;
-
-        public LazyCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, Lazy<IOperation> target, Lazy<IOperation> value, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
-            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
-        }
-        protected override IOperation TargetImpl => _lazyTarget.Value;
-        protected override IOperation ValueImpl => _lazyValue.Value;
     }
 
     /// <summary>

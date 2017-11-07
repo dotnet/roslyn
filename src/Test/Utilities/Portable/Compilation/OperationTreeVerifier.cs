@@ -1289,6 +1289,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
             LogCommonPropertiesAndNewLine(operation);
+            Indent();
+            LogConversion(operation.InConversion, "InConversion");
+            LogNewLine();
+            LogConversion(operation.OutConversion, "OutConversion");
+            LogNewLine();
+            Unindent();
 
             Visit(operation.Target, "Left");
             Visit(operation.Value, "Right");

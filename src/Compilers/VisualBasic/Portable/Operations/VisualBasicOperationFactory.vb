@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
                 Dim isLifted As Boolean = boundAssignmentOperator.Type.IsNullableType()
                 Dim isChecked As Boolean = assignmentInfo.IsChecked
-                Return New LazyCompoundAssignmentExpression(operatorKind, isLifted, isChecked, target, value, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+                Return New LazyVisualBasicCompoundAssignmentOperation(target, value, assignmentInfo.InConversion, assignmentInfo.OutConversion, operatorKind, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
             Else
                 Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Left))
                 Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Right))

@@ -36,6 +36,8 @@ End Module]]>.Value
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a += x')
   Expression: 
     ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function Module1.C.op_Addition(c As System.Int32, i As Module1.C) As Module1.C) (OperationKind.CompoundAssignment, Type: Module1.C, IsImplicit) (Syntax: 'a += x')
+      InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function Module1.C.op_Implicit(c As Module1.C) As System.Int32)
+      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Left: 
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: Module1.C) (Syntax: 'a')
       Right: 
@@ -78,6 +80,8 @@ End Module]]>.Value
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a += x')
   Expression: 
     ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function Module1.C.op_Addition(c As Module1.C, i As System.Int32) As System.Int32) (OperationKind.CompoundAssignment, Type: Module1.C, IsImplicit) (Syntax: 'a += x')
+      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function Module1.C.op_Implicit(i As System.Int32) As Module1.C)
       Left: 
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: Module1.C) (Syntax: 'a')
       Right: 
@@ -117,6 +121,8 @@ End Module]]>.Value
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a += x')
   Expression: 
     ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function Module1.C.op_Addition(c As System.Int32, i As Module1.C) As System.Int32) (OperationKind.CompoundAssignment, Type: Module1.C, IsImplicit) (Syntax: 'a += x')
+      InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function Module1.C.op_Implicit(c As Module1.C) As System.Int32)
+      OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function Module1.C.op_Implicit(i As System.Int32) As Module1.C)
       Left: 
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: Module1.C) (Syntax: 'a')
       Right: 
@@ -147,6 +153,8 @@ End Module]]>.Value
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x /= y')
   Expression: 
     ICompoundAssignmentOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
+      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Left: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
       Right: 
@@ -186,6 +194,8 @@ End Module]]>.Value
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'a += x')
   Expression: 
     ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: Module1.C, IsInvalid, IsImplicit) (Syntax: 'a += x')
+      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Left: 
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: Module1.C, IsInvalid) (Syntax: 'a')
       Right: 
@@ -226,6 +236,8 @@ End Module]]>.Value
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'a += x')
   Expression: 
     ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function Module1.C.op_Addition(c As Module1.C, i As System.Int32) As System.Int32) (OperationKind.CompoundAssignment, Type: Module1.C, IsInvalid, IsImplicit) (Syntax: 'a += x')
+      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Left: 
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: Module1.C, IsInvalid) (Syntax: 'a')
       Right: 
@@ -266,6 +278,8 @@ End Module]]>.Value
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'a += x')
   Expression: 
     ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: Module1.C, IsInvalid, IsImplicit) (Syntax: 'a += x')
+      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function Module1.C.op_Implicit(c As System.Int32) As Module1.C)
       Left: 
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: Module1.C, IsInvalid) (Syntax: 'a')
       Right: 
@@ -303,6 +317,8 @@ End Module]]>.Value
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'a += x')
   Expression: 
     ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: Module1.C, IsInvalid, IsImplicit) (Syntax: 'a += x')
+      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Left: 
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: Module1.C, IsInvalid) (Syntax: 'a')
       Right: 

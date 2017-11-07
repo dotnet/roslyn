@@ -1416,6 +1416,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Extension>
+        Public Function GetInConversion(compoundOperation As ICompoundAssignmentOperation) As Conversion
+            If compoundOperation Is Nothing Then
+                Throw New ArgumentNullException(NameOf(compoundOperation))
+            End If
+
+            Dim basicCompoundOperation = TryCast(compoundOperation, BaseVisualBasicCompoundAssignmentOperation)
+            If basicCompoundOperation IsNot Nothing Then
+                Return basicCompoundOperation.InConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
+                                                          NameOf(compoundOperation)),
+                                            NameOf(compoundOperation))
+            End If
+        End Function
+
+        <Extension>
+        Public Function GetOutConversion(compoundOperation As ICompoundAssignmentOperation) As Conversion
+            If compoundOperation Is Nothing Then
+                Throw New ArgumentNullException(NameOf(compoundOperation))
+            End If
+
+            Dim basicCompoundOperation = TryCast(compoundOperation, BaseVisualBasicCompoundAssignmentOperation)
+            If basicCompoundOperation IsNot Nothing Then
+                Return basicCompoundOperation.OutConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
+                                                          NameOf(compoundOperation)),
+                                            NameOf(compoundOperation))
+            End If
+        End Function
+
+        <Extension>
         Public Function GetSpeculativeConversion(semanticModel As SemanticModel, position As Integer, expression As ExpressionSyntax, bindingOption As SpeculativeBindingOption) As Conversion
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
