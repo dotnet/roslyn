@@ -59,9 +59,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // StreamJsonRpc will throw RemoteInvocationException for cancellation as its cancellation support.
-                // we asked servicehub team to throw cancellation token we gave in, but now, they don't. so here
-                // we translate RemoteInvocationException of our cancellation to our cancellation exception
+                // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
+                // Handle this case by throwing a proper cancellation exception instead.
+                // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
                 cancellationToken.ThrowIfCancellationRequested();
 
                 LogError($"exception: {ex.ToString()}");
@@ -82,9 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // StreamJsonRpc will throw RemoteInvocationException for cancellation as its cancellation support.
-                // we asked servicehub team to throw cancellation token we gave in, but now, they don't. so here
-                // we translate RemoteInvocationException of our cancellation to our cancellation exception
+                // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
+                // Handle this case by throwing a proper cancellation exception instead.
+                // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
                 cancellationToken.ThrowIfCancellationRequested();
 
                 LogError($"exception: {ex.ToString()}");
@@ -107,9 +107,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
             {
-                // StreamJsonRpc will throw RemoteInvocationException for cancellation as its cancellation support.
-                // we asked servicehub team to throw cancellation token we gave in, but now, they don't. so here
-                // we translate RemoteInvocationException of our cancellation to our cancellation exception
+                // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
+                // Handle this case by throwing a proper cancellation exception instead.
+                // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
                 cancellationToken.ThrowIfCancellationRequested();
 
                 LogError($"exception: {ex.ToString()}");
@@ -131,9 +131,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
             {
-                // StreamJsonRpc will throw RemoteInvocationException for cancellation as its cancellation support.
-                // we asked servicehub team to throw cancellation token we gave in, but now, they don't. so here
-                // we translate RemoteInvocationException of our cancellation to our cancellation exception
+                // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
+                // Handle this case by throwing a proper cancellation exception instead.
+                // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
                 cancellationToken.ThrowIfCancellationRequested();
 
                 LogError($"exception: {ex.ToString()}");
