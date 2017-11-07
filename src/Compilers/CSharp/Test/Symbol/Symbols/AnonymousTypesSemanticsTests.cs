@@ -210,12 +210,10 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
                                 Initializers(3):
                                     IPropertyReferenceOperation: System.Int32 ClassA.aa { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '(new ClassA()).aa')
                                       Instance Receiver: 
-                                        IParenthesizedOperation (OperationKind.Parenthesized, Type: ClassA) (Syntax: '(new ClassA())')
-                                          Operand: 
-                                            IObjectCreationOperation (Constructor: ClassA..ctor()) (OperationKind.ObjectCreation, Type: ClassA) (Syntax: 'new ClassA()')
-                                              Arguments(0)
-                                              Initializer: 
-                                                null
+                                        IObjectCreationOperation (Constructor: ClassA..ctor()) (OperationKind.ObjectCreation, Type: ClassA) (Syntax: 'new ClassA()')
+                                          Arguments(0)
+                                          Initializer: 
+                                            null
                                     IFieldReferenceOperation: System.String ClassA.BB (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""-=-= -"") (Syntax: 'ClassA.BB')
                                       Instance Receiver: 
                                         null
@@ -356,12 +354,10 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Initializers(2):
                 IPropertyReferenceOperation: System.Int32 ClassA.select { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '(new ClassA()).select')
                   Instance Receiver: 
-                    IParenthesizedOperation (OperationKind.Parenthesized, Type: ClassA) (Syntax: '(new ClassA())')
-                      Operand: 
-                        IObjectCreationOperation (Constructor: ClassA..ctor()) (OperationKind.ObjectCreation, Type: ClassA) (Syntax: 'new ClassA()')
-                          Arguments(0)
-                          Initializer: 
-                            null
+                    IObjectCreationOperation (Constructor: ClassA..ctor()) (OperationKind.ObjectCreation, Type: ClassA) (Syntax: 'new ClassA()')
+                      Arguments(0)
+                      Initializer: 
+                        null
                 IFieldReferenceOperation: System.String ClassA.global (Static) (OperationKind.FieldReference, Type: System.String, Constant: "" -=-= -"") (Syntax: 'global')
                   Instance Receiver: 
                     null
@@ -418,13 +414,11 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Right: 
           IDelegateCreationOperation (OperationKind.DelegateCreation, Type: D1) (Syntax: '(D1)(() => false)')
             Target: 
-              IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(() => false)')
-                Operand: 
-                  IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '() => false')
-                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'false')
-                      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'false')
-                        ReturnedValue: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '() => false')
+                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'false')
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'false')
+                    ReturnedValue: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1193,12 +1187,10 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                 Initializers(3):
                                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '(new ClassA()).aa')
                                       Children(1):
-                                          IParenthesizedOperation (OperationKind.Parenthesized, Type: ClassA) (Syntax: '(new ClassA())')
-                                            Operand: 
-                                              IObjectCreationOperation (Constructor: ClassA..ctor()) (OperationKind.ObjectCreation, Type: ClassA) (Syntax: 'new ClassA()')
-                                                Arguments(0)
-                                                Initializer: 
-                                                  null
+                                          IObjectCreationOperation (Constructor: ClassA..ctor()) (OperationKind.ObjectCreation, Type: ClassA) (Syntax: 'new ClassA()')
+                                            Arguments(0)
+                                            Initializer: 
+                                              null
                                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'ClassA.BB')
                                       Children(1):
                                           IOperation:  (OperationKind.None, Type: null) (Syntax: 'ClassA')

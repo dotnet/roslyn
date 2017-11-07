@@ -306,16 +306,14 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?
   Left: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program) (Syntax: 'x')
   Right: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: ?, IsInvalid) (Syntax: '(y * args.Length)')
-      Operand: 
-        IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
-          Left: 
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'y')
-              Children(0)
-          Right: 
-            IPropertyReferenceOperation: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'args.Length')
-              Instance Receiver: 
-                IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[]) (Syntax: 'args')
+    IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
+      Left: 
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'y')
+          Children(0)
+      Right: 
+        IPropertyReferenceOperation: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'args.Length')
+          Instance Receiver: 
+            IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[]) (Syntax: 'args')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'y' does not exist in the current context

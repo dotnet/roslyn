@@ -1238,21 +1238,17 @@ IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, 
           Left: 
             IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: '(a >> 10) + (b << 20)')
               Left: 
-                IParenthesizedOperation (OperationKind.Parenthesized, Type: S) (Syntax: '(a >> 10)')
-                  Operand: 
-                    IBinaryOperation (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'a >> 10')
-                      Left: 
-                        ILocalReferenceOperation: a (OperationKind.LocalReference, Type: S) (Syntax: 'a')
-                      Right: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                IBinaryOperation (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'a >> 10')
+                  Left: 
+                    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: S) (Syntax: 'a')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
               Right: 
-                IParenthesizedOperation (OperationKind.Parenthesized, Type: S) (Syntax: '(b << 20)')
-                  Operand: 
-                    IBinaryOperation (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'b << 20')
-                      Left: 
-                        ILocalReferenceOperation: b (OperationKind.LocalReference, Type: S) (Syntax: 'b')
-                      Right: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+                IBinaryOperation (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'b << 20')
+                  Left: 
+                    ILocalReferenceOperation: b (OperationKind.LocalReference, Type: S) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
           Right: 
             IBinaryOperation (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'c * d / e % f')
               Left: 

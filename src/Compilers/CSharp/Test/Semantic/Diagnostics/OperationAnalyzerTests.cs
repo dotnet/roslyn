@@ -1392,7 +1392,7 @@ class A
             .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidAddrOp, "a + b").WithLocation(7, 18))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AddressOfTestAnalyzer() }, null, null, false,
                 Diagnostic("AddressOfOperation", "&(a + b)").WithLocation(7, 16),
-                Diagnostic("InvalidAddressOfReference", "(a + b)").WithLocation(7, 17),
+                Diagnostic("InvalidAddressOfReference", "a + b").WithLocation(7, 18),
                 Diagnostic("AddressOfOperation", "&a").WithLocation(9, 16),
                 Diagnostic("AddressOfOperation", "&i").WithLocation(28, 22),
                 Diagnostic("AddressOfOperation", "&_i").WithLocation(31, 25),

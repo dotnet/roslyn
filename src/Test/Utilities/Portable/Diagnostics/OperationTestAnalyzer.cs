@@ -1272,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      var addressOfOperation = (IAddressOfOperation)operationContext.Operation;
                      operationContext.ReportDiagnostic(Diagnostic.Create(AddressOfDescriptor, addressOfOperation.Syntax.GetLocation()));
 
-                     if (addressOfOperation.Reference.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
+                     if (addressOfOperation.Reference.Kind == OperationKind.Invalid && addressOfOperation.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(InvalidAddressOfReferenceDescriptor, addressOfOperation.Reference.Syntax.GetLocation()));
                      }

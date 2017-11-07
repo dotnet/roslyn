@@ -1,12 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -26,18 +21,8 @@ class P
     }
 }
 ";
-            string expectedOperationTree = @"
-IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
-  Operand: 
-    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-      Left: 
-        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-      Right: 
-        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -81,13 +66,11 @@ class P
             string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (a + b);')
   ReturnedValue: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
-      Operand: 
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-          Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-          Right: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+      Left: 
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+      Right: 
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -107,20 +90,35 @@ class P
     }
 }
 ";
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedMultipleNestingParent()
+        {
+            string source = @"
+class P
+{
+    static int M1(int a, int b)
+    {
+        /*<bind>*/return (((a + b)));/*</bind>*/
+    }
+}
+";
             string expectedOperationTree = @"
-IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '((a + b))')
-  Operand: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
-      Operand: 
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-          Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-          Right: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (((a + b)));')
+  ReturnedValue: 
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+      Left: 
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+      Right: 
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -136,24 +134,39 @@ class P
     }
 }
 ";
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedMultipleNesting02Parent()
+        {
+            string source = @"
+class P
+{
+    static int M1(int a, int b, int c)
+    {
+        /*<bind>*/return (((a + b) * c));/*</bind>*/
+    }
+}
+";
             string expectedOperationTree = @"
-IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '((a + b) * c)')
-  Operand: 
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (((a + b) * c));')
+  ReturnedValue: 
     IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a + b) * c')
       Left: 
-        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
-          Operand: 
-            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-              Left: 
-                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-              Right: 
-                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
       Right: 
         IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -169,22 +182,35 @@ class P
     }
 }
 ";
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedMultipleNesting03Parent()
+        {
+            string source = @"
+class P
+{
+    static int M1(int a, int b)
+    {
+        /*<bind>*/return (((a + b)));/*</bind>*/
+    }
+}
+";
             string expectedOperationTree = @"
-IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(((a + b)))')
-  Operand: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '((a + b))')
-      Operand: 
-        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
-          Operand: 
-            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-              Left: 
-                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-              Right: 
-                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (((a + b)));')
+  ReturnedValue: 
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+      Left: 
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+      Right: 
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -200,18 +226,8 @@ class P
     }
 }
 ";
-            string expectedOperationTree = @"
-IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
-  Operand: 
-    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-      Left: 
-        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-      Right: 
-        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -227,16 +243,8 @@ class P
     }
 }
 ";
-            string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-  Left: 
-    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-  Right: 
-    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -252,21 +260,8 @@ class P
     }
 }
 ";
-            string expectedOperationTree = @"
-IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int64) (Syntax: '(a + b)')
-  Operand: 
-    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
-      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: 
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-          Left: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-          Right: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -285,16 +280,14 @@ class P
             string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (a + b);')
   ReturnedValue: 
-    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int64) (Syntax: '(a + b)')
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
-            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-              Left: 
-                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-              Right: 
-                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -314,18 +307,8 @@ class P
     }
 }
 ";
-            string expectedOperationTree = @"
-IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
-  Operand: 
-    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-      Left: 
-        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-      Right: 
-        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -347,13 +330,11 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (double)(a 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double) (Syntax: '(double)(a + b)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(a + b)')
-          Operand: 
-            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
-              Left: 
-                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-              Right: 
-                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -373,14 +354,31 @@ class P
     }
 }
 ";
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedConstantValueParent()
+        {
+            string source = @"
+class P
+{
+    static int M1()
+    {
+        /*<bind>*/return (5);/*</bind>*/
+    }
+}
+";
             string expectedOperationTree = @"
-IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32, Constant: 5) (Syntax: '(5)')
-  Operand: 
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (5);')
+  ReturnedValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -398,16 +396,60 @@ class P
     }
 }
 ";
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedQueryClauseParent()
+        {
+            string source = @"
+using System.Linq;
+
+class P
+{
+    static object M1(int[] a)
+    {
+        /*<bind>*/return from r in a select (-r);/*</bind>*/
+    }
+}
+";
             string expectedOperationTree = @"
-IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(-r)')
-  Operand: 
-    IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-r')
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return from ... elect (-r);')
+  ReturnedValue: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'from r in a select (-r)')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IOperation:  (OperationKind.None, Type: null) (Syntax: 'r')
+        ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'from r in a select (-r)')
+          Expression: 
+            IInvocationOperation (System.Collections.Generic.IEnumerable<System.Int32> System.Linq.Enumerable.Select<System.Int32, System.Int32>(this System.Collections.Generic.IEnumerable<System.Int32> source, System.Func<System.Int32, System.Int32> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'select (-r)')
+              Instance Receiver: 
+                null
+              Arguments(2):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from r in a')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from r in a')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: 
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: System.Func<System.Int32, System.Int32>, IsImplicit) (Syntax: '(-r)')
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32, System.Int32>, IsImplicit) (Syntax: '(-r)')
+                      Target: 
+                        IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: '(-r)')
+                          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '(-r)')
+                            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '(-r)')
+                              ReturnedValue: 
+                                IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-r')
+                                  Operand: 
+                                    IOperation:  (OperationKind.None, Type: null) (Syntax: 'r')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -423,9 +465,26 @@ class P
     }
 }
 ";
+            // GetOperation returns null for ParenthesizedExpressionSyntax
+            Assert.Null(GetOperationTreeForTest<ParenthesizedExpressionSyntax>(source));
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestParenthesizedErrorOperandParent()
+        {
+            string source = @"
+class P
+{
+    static int M1()
+    {
+        /*<bind>*/return (a);/*</bind>*/
+    }
+}
+";
             string expectedOperationTree = @"
-IParenthesizedOperation (OperationKind.Parenthesized, Type: ?, IsInvalid) (Syntax: '(a)')
-  Operand: 
+IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return (a);')
+  ReturnedValue: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a')
       Children(0)
 ";
@@ -435,7 +494,7 @@ IParenthesizedOperation (OperationKind.Parenthesized, Type: ?, IsInvalid) (Synta
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

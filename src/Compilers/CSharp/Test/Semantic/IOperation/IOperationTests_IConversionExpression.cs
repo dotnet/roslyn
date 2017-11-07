@@ -3981,10 +3981,8 @@ IVariableDeclaratorOperation (Symbol: I2 i2) (OperationKind.VariableDeclarator, 
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: I2, IsInvalid) (Syntax: '(I2)()')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '()')
-            Operand: 
-              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-                Children(0)
+          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+            Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ')'

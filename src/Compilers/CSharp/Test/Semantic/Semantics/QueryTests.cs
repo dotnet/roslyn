@@ -1250,25 +1250,23 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                               ReturnedValue: 
                                 IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(x + y / 10 ...  / 100) < 6')
                                   Left: 
-                                    IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(x + y / 10 + z / 100)')
-                                      Operand: 
-                                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y / 10 + z / 100')
+                                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y / 10 + z / 100')
+                                      Left: 
+                                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y / 10')
                                           Left: 
-                                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y / 10')
-                                              Left: 
-                                                IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
-                                              Right: 
-                                                IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'y / 10')
-                                                  Left: 
-                                                    IOperation:  (OperationKind.None, Type: null) (Syntax: 'y')
-                                                  Right: 
-                                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
                                           Right: 
-                                            IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'z / 100')
+                                            IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'y / 10')
                                               Left: 
-                                                IOperation:  (OperationKind.None, Type: null) (Syntax: 'z')
+                                                IOperation:  (OperationKind.None, Type: null) (Syntax: 'y')
                                               Right: 
-                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                                      Right: 
+                                        IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'z / 100')
+                                          Left: 
+                                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'z')
+                                          Right: 
+                                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
                                   Right: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4080,13 +4078,11 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32, System.Int32>, IsInvalid) (Syntax: '(Func<int, int>)(a => 1)')
                           Target: 
-                            IParenthesizedOperation (OperationKind.Parenthesized, Type: null, IsInvalid) (Syntax: '(a => 1)')
-                              Operand: 
-                                IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'a => 1')
-                                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '1')
-                                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '1')
-                                      ReturnedValue: 
-                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'a => 1')
+                              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '1')
+                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '1')
+                                  ReturnedValue: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";

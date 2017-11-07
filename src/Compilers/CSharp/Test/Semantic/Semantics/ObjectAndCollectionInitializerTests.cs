@@ -3131,13 +3131,11 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
       Initializers(1):
           ICollectionElementInitializerOperation (AddMethod: void C.Add(System.Int32 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsImplicit) (Syntax: '(i = 1)')
             Arguments(1):
-                IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(i = 1)')
-                  Operand: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
-                      Left: 
-                        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
-                      Right: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
+                  Left: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0165: Use of unassigned local variable 'i'
