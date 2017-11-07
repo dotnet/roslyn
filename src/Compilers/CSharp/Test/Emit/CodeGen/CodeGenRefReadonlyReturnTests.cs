@@ -54,35 +54,30 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            // WithPEVerifyCompatFeature should not cause us to get a ref of a temp in ref assignments
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: false);
             comp.VerifyIL("C.M", @"
 {
-  // Code size       65 (0x41)
+  // Code size       59 (0x3b)
   .maxstack  2
-  .locals init (S V_0,
-                S V_1,
-                S2 V_2)
+  .locals init (S V_0)
   IL_0000:  ldsflda    ""S C.s1""
   IL_0005:  dup
   IL_0006:  ldobj      ""S""
   IL_000b:  stloc.0
   IL_000c:  ldloca.s   V_0
   IL_000e:  call       ""void S.AddOne()""
-  IL_0013:  ldsfld     ""S C.s2""
-  IL_0018:  stloc.0
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  ldobj      ""S""
-  IL_0020:  stloc.1
-  IL_0021:  ldloca.s   V_1
-  IL_0023:  call       ""void S.AddOne()""
-  IL_0028:  ldsflda    ""S2 C.s3""
-  IL_002d:  call       ""void S2.AddOne()""
-  IL_0032:  ldarg.0
-  IL_0033:  ldfld      ""S2 C.s4""
-  IL_0038:  stloc.2
-  IL_0039:  ldloca.s   V_2
-  IL_003b:  call       ""void S2.AddOne()""
-  IL_0040:  ret
+  IL_0013:  ldsflda    ""S C.s2""
+  IL_0018:  ldobj      ""S""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""void S.AddOne()""
+  IL_0025:  ldsflda    ""S2 C.s3""
+  IL_002a:  call       ""void S2.AddOne()""
+  IL_002f:  ldarg.0
+  IL_0030:  ldflda     ""S2 C.s4""
+  IL_0035:  call       ""void S2.AddOne()""
+  IL_003a:  ret
 }");
 
             comp = CompileAndVerify(source, verify: false);
@@ -864,47 +859,36 @@ class Program
   IL_0033:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_0038:  ret
 }");
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: false);
 
+            // WithPEVerifyCompatFeature should not cause us to get a ref of a temp in ref returns
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: false);
             comp.VerifyIL("Program.Test", @"
 {
-  // Code size       70 (0x46)
+  // Code size       57 (0x39)
   .maxstack  1
-  .locals init (bool V_0, //b
-                int V_1,
-                System.ValueTuple<int, int> V_2,
-                int V_3,
-                System.ValueTuple<int, int> V_4)
+  .locals init (bool V_0) //b
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_0020
+  IL_0003:  brfalse.s  IL_001a
   IL_0005:  ldloc.0
-  IL_0006:  brfalse.s  IL_0012
+  IL_0006:  brfalse.s  IL_000f
   IL_0008:  ldarg.0
-  IL_0009:  ldfld      ""int Program.F""
-  IL_000e:  stloc.1
-  IL_000f:  ldloca.s   V_1
-  IL_0011:  ret
-  IL_0012:  ldsfld     ""(int Alice, int Bob) Program.F1""
-  IL_0017:  stloc.2
-  IL_0018:  ldloca.s   V_2
-  IL_001a:  ldflda     ""int System.ValueTuple<int, int>.Item1""
-  IL_001f:  ret
-  IL_0020:  ldloc.0
-  IL_0021:  brfalse.s  IL_0032
-  IL_0023:  ldarg.0
-  IL_0024:  ldfld      ""Program.S Program.S1""
-  IL_0029:  ldfld      ""int Program.S.F""
-  IL_002e:  stloc.3
-  IL_002f:  ldloca.s   V_3
-  IL_0031:  ret
-  IL_0032:  ldsfld     ""Program.S Program.S2""
-  IL_0037:  ldfld      ""(int Alice, int Bob) Program.S.F1""
-  IL_003c:  stloc.s    V_4
-  IL_003e:  ldloca.s   V_4
-  IL_0040:  ldflda     ""int System.ValueTuple<int, int>.Item1""
-  IL_0045:  ret
+  IL_0009:  ldflda     ""int Program.F""
+  IL_000e:  ret
+  IL_000f:  ldsflda    ""(int Alice, int Bob) Program.F1""
+  IL_0014:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_0019:  ret
+  IL_001a:  ldloc.0
+  IL_001b:  brfalse.s  IL_0029
+  IL_001d:  ldarg.0
+  IL_001e:  ldflda     ""Program.S Program.S1""
+  IL_0023:  ldflda     ""int Program.S.F""
+  IL_0028:  ret
+  IL_0029:  ldsflda    ""Program.S Program.S2""
+  IL_002e:  ldflda     ""(int Alice, int Bob) Program.S.F1""
+  IL_0033:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_0038:  ret
 }");
         }
 

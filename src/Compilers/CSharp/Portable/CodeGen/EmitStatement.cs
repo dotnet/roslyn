@@ -724,7 +724,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly? AddressKind.ReadOnly: AddressKind.Writeable);
+                // NOTE: passing "ReadOnlyStrict" here. 
+                //       we should never return an address of a copy
+                var unexpectedTemp = this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                Debug.Assert(unexpectedTemp == null, "ref-returning a temp?");
             }
 
             if (ShouldUseIndirectReturn())

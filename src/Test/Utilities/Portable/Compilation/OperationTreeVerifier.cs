@@ -393,23 +393,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitBlock(operation);
         }
 
-        public override void VisitVariableDeclarations(IVariableDeclarationsOperation operation)
+        public override void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation)
         {
             var variablesCountStr = $"{operation.Declarations.Length} declarations";
-            LogString($"{nameof(IVariableDeclarationsOperation)} ({variablesCountStr})");
+            LogString($"{nameof(IVariableDeclarationGroupOperation)} ({variablesCountStr})");
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitVariableDeclarations(operation);
+            base.VisitVariableDeclarationGroup(operation);
+        }
+
+        public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
+        {
+            LogString($"{nameof(IVariableDeclaratorOperation)} (");
+            LogSymbol(operation.Symbol, "Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Initializer, "Initializer");
         }
 
         public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
         {
-            var symbolsCountStr = $"{operation.Variables.Length} variables";
-            LogString($"{nameof(IVariableDeclarationOperation)} ({symbolsCountStr})");
+            var variableCount = operation.Declarators.Length;
+            LogString($"{nameof(IVariableDeclarationOperation)} ({variableCount} declarators)");
             LogCommonPropertiesAndNewLine(operation);
 
-            LogLocals(operation.Variables, header: "Variables");
-
+            VisitArray(operation.Declarators, "Declarators", false);
             Visit(operation.Initializer, "Initializer");
         }
 
@@ -946,6 +955,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitConditional(IConditionalOperation operation)
         {
             LogString(nameof(IConditionalOperation));
+
+            if (operation.IsRef)
+            {
+                LogString(" (IsRef)");
+            }
+
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Condition, "Condition");
@@ -1217,6 +1232,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)
         {
             LogString(nameof(ISimpleAssignmentOperation));
+
+            if (operation.IsRef)
+            {
+                LogString(" (IsRef)");
+            }
+
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Target, "Left");

@@ -30,7 +30,12 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
-        public virtual void VisitVariableDeclarations(IVariableDeclarationsOperation operation)
+        public virtual void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
         {
             DefaultVisit(operation);
         }
@@ -525,7 +530,12 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitVariableDeclarations(IVariableDeclarationsOperation operation, TArgument argument)
+        public virtual TResult VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitVariableDeclarator(IVariableDeclaratorOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -982,7 +992,7 @@ namespace Microsoft.CodeAnalysis.Operations
         
         public virtual TResult VisitRaiseEvent(IRaiseEventOperation operation, TArgument argument)
         {
-            return DefaultVisit(operation, argument); 
+            return DefaultVisit(operation, argument);
         }
     }
 }

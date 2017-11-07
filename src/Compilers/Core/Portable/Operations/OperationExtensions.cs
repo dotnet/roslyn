@@ -96,26 +96,62 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         /// <summary>
-        /// Gets all the declared local variables in the given <paramref name="declarationStatement"/>.
+        /// Gets all the declared local variables in the given <paramref name="declarationGroup"/>.
         /// </summary>
-        /// <param name="declarationStatement">Variable declaration statement</param>
-        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationsOperation declarationStatement)
+        /// <param name="declarationGroup">Variable declaration group</param>
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationGroupOperation declarationGroup)
         {
-            if (declarationStatement == null)
+            if (declarationGroup == null)
             {
-                throw new ArgumentNullException(nameof(declarationStatement));
+                throw new ArgumentNullException(nameof(declarationGroup));
             }
 
             var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
-            foreach (IVariableDeclarationOperation group in declarationStatement.Declarations)
+            foreach (IVariableDeclarationOperation group in declarationGroup.Declarations)
             {
-                foreach (ILocalSymbol symbol in group.Variables)
-                {
-                    arrayBuilder.Add(symbol);
-                }
+                group.GetDeclaredVariables(arrayBuilder);
             }
 
             return arrayBuilder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Gets all the declared local variables in the given <paramref name="declaration"/>.
+        /// </summary>
+        /// <param name="declaration">Variable declaration</param>
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationOperation declaration)
+        {
+            if (declaration == null)
+            {
+                throw new ArgumentNullException(nameof(declaration));
+            }
+
+            var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
+            declaration.GetDeclaredVariables(arrayBuilder);
+            return arrayBuilder.ToImmutableAndFree();
+        }
+
+        private static void GetDeclaredVariables(this IVariableDeclarationOperation declaration, ArrayBuilder<ILocalSymbol> arrayBuilder)
+        {
+            foreach (var decl in declaration.Declarators)
+            {
+                arrayBuilder.Add(decl.Symbol);
+            }
+        }
+
+        /// <summary>
+        /// Gets the variable initialzer for the given <paramref name="declarationOperation"/>, checking to see if there is a parent initializer
+        /// if the single variable initializer is null.
+        /// </summary>
+        /// <param name="declarationOperation">Single variable declaration to retrieve initializer for.</param>
+        public static IVariableInitializerOperation GetVariableInitializer(this IVariableDeclaratorOperation declarationOperation)
+        {
+            if (declarationOperation == null)
+            {
+                throw new ArgumentNullException(nameof(declarationOperation));
+            }
+
+            return declarationOperation.Initializer ?? (declarationOperation.Parent as IVariableDeclarationOperation)?.Initializer;
         }
 
         /// <summary>

@@ -3,11 +3,10 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents an initialization of member within an object initializer.
+    /// Represents an initialization of member within an object initializer with a nested object or collection initializer.
     /// <para>
     /// Current usage:
-    ///  (1) C# member initializer expression.
-    ///  (2) VB member initializer expression.
+    ///  (1) C# nested member initializer expression.
     /// For example, given an object creation with initializer "new Class() { X = x, Y = { x, y, 3 }, Z = { X = z } }",
     /// member initializers for Y and Z, i.e. "Y = { x, y, 3 }", and "Z = { X = z }" are nested member initializers represented by this operation.
     /// </para>
@@ -19,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IMemberInitializerOperation : IOperation
     {
         /// <summary>
-        /// Initialized member.
+        /// Initialized member reference <see cref="IMemberReferenceOperation"/> or an invalid operation for error cases.
         /// </summary>
-        IMemberReferenceOperation InitializedMember { get; }
+        IOperation InitializedMember { get; }
         
         /// <summary>
         /// Member initializer.
