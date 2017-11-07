@@ -43,37 +43,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            AddSynthesizedFieldAttributes(ref attributes, this, this.SuppressDynamicAttribute);
-        }
-
-        internal static void AddSynthesizedFieldAttributes(
-            ref ArrayBuilder<SynthesizedAttributeData> attributes,
-            FieldSymbol field,
-            bool suppressDynamicAttribute)
-        {
-            CSharpCompilation compilation = field.DeclaringCompilation;
+            CSharpCompilation compilation = this.DeclaringCompilation;
 
             // do not emit CompilerGenerated attributes for fields inside compiler generated types:
-            if (!field.ContainingType.IsImplicitlyDeclared)
+            if (!_containingType.IsImplicitlyDeclared)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
             }
 
-            TypeSymbol type = field.Type;
-            if (!suppressDynamicAttribute &&
-                type.ContainsDynamic() &&
+            if (!this.SuppressDynamicAttribute &&
+                this.Type.ContainsDynamic() &&
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, field.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length));
             }
 
-            if (type.ContainsTupleNames() &&
+            if (Type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(type));
+                    compilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 

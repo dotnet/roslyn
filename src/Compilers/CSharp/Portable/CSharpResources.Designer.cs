@@ -6452,7 +6452,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute.
         /// </summary>
         internal static string ERR_MissingStructOffset {
             get {

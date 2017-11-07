@@ -72,17 +72,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on property
                 arguments.Diagnostics.Add(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, arguments.AttributeSyntaxOpt.Name.Location);
             }
-
-            base.DecodeWellKnownAttribute(ref arguments);
+            else
+            {
+                base.DecodeWellKnownAttribute(ref arguments);
+            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            SynthesizedFieldSymbolBase.AddSynthesizedFieldAttributes(ref attributes, this, suppressDynamicAttribute: false);
-
             var compilation = this.DeclaringCompilation;
+
+            // do not emit CompilerGenerated attributes for fields inside compiler generated types:
+            if (!this.ContainingType.IsImplicitlyDeclared)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            }
 
             // Dev11 doesn't synthesize this attribute, the debugger has a knowledge
             // of special name C# compiler uses for backing fields, which is not desirable.

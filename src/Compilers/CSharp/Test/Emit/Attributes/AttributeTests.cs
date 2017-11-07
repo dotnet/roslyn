@@ -842,6 +842,41 @@ public class Test
         }
 
         [Fact]
+        public void TestGeneratedTupleAndDynamicAttributesOnAutoProperty()
+        {
+            string source = @"
+public class Test
+{
+    public (dynamic a, int b) P { get; set; }
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                if (isFromSource)
+                {
+                    Assert.Empty(field1.GetAttributes());
+                }
+                else
+                {
+                    var dynamicAndTupleNames = new[] {
+                        "System.Runtime.CompilerServices.DynamicAttribute({false, true, false})",
+                        @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})" };
+
+                    AssertEx.SetEqual(s_backingFieldAttributes.Concat(dynamicAndTupleNames), GetAttributeStrings(field1.GetAttributes()));
+                }
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestWellKnownAttributeOnProperty_SpecialName()
         {
             string source = @"
@@ -1059,7 +1094,7 @@ public struct Test
 ";
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,16): error CS0625: 'Test.P': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                // (7,16): error CS0625: 'Test.P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
                 //     public int P { get; set; }
                 Diagnostic(ErrorCode.ERR_MissingStructOffset, "P").WithArguments("Test.P").WithLocation(7, 16)
                 );
@@ -1195,6 +1230,9 @@ public class Test
 
     [field: System.Runtime.CompilerServices.DecimalConstant(0, 0, 100, 100, 100)]
     public int P2 { get; set; }
+
+    [field: System.Runtime.CompilerServices.DecimalConstant(0, 0, 100, 100, 100)]
+    public decimal field;
 }
 ";
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
@@ -1210,9 +1248,15 @@ public class Test
                 Assert.Empty(prop1.GetAttributes());
 
                 var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
-                // TODO
-                //AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" }),
-                //    GetAttributeStrings(field1.GetAttributes()));
+                if (isFromSource)
+                {
+                    AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" }),
+                        GetAttributeStrings(field1.GetAttributes()));
+                }
+                else
+                {
+                    AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field1.GetAttributes()));
+                }
 
                 var prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
@@ -1220,6 +1264,17 @@ public class Test
                 var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" }),
                     GetAttributeStrings(field2.GetAttributes()));
+
+                var field3 = @class.GetMember<FieldSymbol>("field");
+                if (isFromSource)
+                {
+                    AssertEx.SetEqual(new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" },
+                        GetAttributeStrings(field3.GetAttributes()));
+                }
+                else
+                {
+                    Assert.Empty(GetAttributeStrings(field3.GetAttributes()));
+                }
             };
 
             var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,

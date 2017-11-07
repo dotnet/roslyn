@@ -5,8 +5,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -365,6 +367,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null ? data.Offset : null;
+            }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            if (this.Type.ContainsDynamic())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, CustomModifiers.Length));
+            }
+
+            if (Type.ContainsTupleNames())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
     }

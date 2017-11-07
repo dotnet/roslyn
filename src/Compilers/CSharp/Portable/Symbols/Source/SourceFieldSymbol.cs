@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -120,24 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1716: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.
                 arguments.Diagnostics.Add(ErrorCode.ERR_DoNotUseFixedBufferAttr, arguments.AttributeSyntaxOpt.Name.Location);
             }
-
-            base.DecodeWellKnownAttribute(ref arguments);
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (this.Type.ContainsDynamic())
+            else
             {
-                AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, CustomModifiers.Length));
-            }
-
-            if (Type.ContainsTupleNames())
-            {
-                AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
+                base.DecodeWellKnownAttribute(ref arguments);
             }
         }
 
