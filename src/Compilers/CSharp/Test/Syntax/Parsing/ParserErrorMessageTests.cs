@@ -3486,21 +3486,21 @@ public static void Method6<T, U, V>(ref in int i) { }
                 // (6,32): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
                 // public static void Method2(ref in int i) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(6, 32),
-                // (9,34): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (9,34): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
                 // public static void Method3<T>(in ref int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("out", "in").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(9, 34),
                 // (10,35): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
                 // public static void Method4<T>(ref in int i) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(10, 35),
-                // (13,40): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (13,40): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
                 // public static void Method5<T, U, V>(in ref int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("out", "in").WithLocation(13, 40),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(13, 40),
                 // (14,41): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
                 // public static void Method6<T, U, V>(ref in int i) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(14, 41),
-                // (5,31): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (5,31): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
                 // public static void Method1(in ref int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("out", "in").WithLocation(5, 31));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(5, 31));
         }
 
         [Fact]
@@ -3561,21 +3561,21 @@ public static void Method6<T, U, V>(params in int[] i) { }
                 // (6,35): error CS1611: The params parameter cannot be declared as in
                 // public static void Method2(params in int[] i) { }
                 Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(6, 35),
-                // (9,34): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (9,34): error CS8328:  The parameter modifier 'params' cannot be used with 'in'
                 // public static void Method3<T>(in params int[] i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("out", "in").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "in").WithLocation(9, 34),
                 // (10,38): error CS1611: The params parameter cannot be declared as in
                 // public static void Method4<T>(params in int[] i) { }
                 Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(10, 38),
-                // (13,40): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (13,40): error CS8328:  The parameter modifier 'params' cannot be used with 'in'
                 // public static void Method5<T, U, V>(in params int[] i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("out", "in").WithLocation(13, 40),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "in").WithLocation(13, 40),
                 // (14,44): error CS1611: The params parameter cannot be declared as in
                 // public static void Method6<T, U, V>(params in int[] i) { }
                 Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(14, 44),
-                // (5,31): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (5,31): error CS8328:  The parameter modifier 'params' cannot be used with 'in'
                 // public static void Method1(in params int[] i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("out", "in").WithLocation(5, 31));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "in").WithLocation(5, 31));
         }
 
         [Fact]
