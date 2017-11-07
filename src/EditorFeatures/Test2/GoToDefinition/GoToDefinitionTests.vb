@@ -879,7 +879,7 @@ namespace System
     {
         static void Main(string[] args)
         {
-            var x = ([|Pro$$gram|]: 1, Main: 2);
+            var x = (Pro$$gram: 1, Main: 2);
 
             var z = x.Program;
         }
@@ -890,7 +890,7 @@ namespace System
     </Project>
 </Workspace>
 
-            Test(workspace)
+            Test(workspace, expectedResult:=False)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
@@ -951,7 +951,7 @@ namespace System
     {
         static void Main(string[] args)
         {
-            (string Alice, int Bob) x = ([|Al$$ice|]: null, Bob: 2);
+            (string Alice, int Bob) x = (Al$$ice: null, Bob: 2);
 
              var z1 = x.Alice;
         }
@@ -962,7 +962,7 @@ namespace System
     </Project>
 </Workspace>
 
-            Test(workspace)
+            Test(workspace, expectedResult:=False)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
@@ -2059,6 +2059,88 @@ class C
 </Workspace>
 
             Test(workspace)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGotoDefinitionPropertyGet()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class SomeClass
+            {
+                public int Number { $$get; set; }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGotoDefinitionPropertySet()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class SomeClass
+            {
+                public int Number { get; $$set; }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGotoDefinitionPartialMethod1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class SomeClass
+            {
+                partial void $$M();
+            }
+
+            partial class SomeClass
+            {
+                partial void [|M|]() {}
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(22097, "https://github.com/dotnet/roslyn/issues/22097")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGotoDefinitionPartialMethod2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class SomeClass
+            {
+                partial void M();
+            }
+
+            partial class SomeClass
+            {
+                partial void $$M() {}
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
         End Sub
 
 #Region "Show notification tests"

@@ -13,15 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     {
         protected abstract ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation);
 
-        protected abstract bool ShouldTryToNavigateToToken(SyntaxToken token);
-
         public async Task<(ISymbol, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var token = await GetToken(semanticModel, workspace, position, cancellationToken).ConfigureAwait(false);
-            if (!ShouldTryToNavigateToToken(token))
+            if (token == default)
             {
                 return EmptyResult;
             }
@@ -36,6 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                          semanticInfo.ReferencedSymbols.FirstOrDefault() ??
                          semanticInfo.DeclaredSymbol ??
                          semanticInfo.Type;
+
+            if (symbol != null 
+                && !IsPartialMethodImplementation(symbol)
+                && symbol.DeclaringSyntaxReferences.Length == 1 
+                && symbol.DeclaringSyntaxReferences[0].GetSyntax().Equals(token.Parent))
+            {
+                return EmptyResult;
+            }
 
             return (FindRelatedExplicitlyDeclaredSymbol(symbol, semanticModel.Compilation), semanticInfo.Span);
         }
@@ -53,6 +59,16 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             return default;
+        }
+
+        private static bool IsPartialMethodImplementation(ISymbol symbol)
+        {
+            if (symbol is IMethodSymbol methodSymbol)
+            {
+                return methodSymbol.PartialImplementationPart != null;
+            }
+
+            return false;
         }
 
         private static readonly (ISymbol, TextSpan) EmptyResult = (default, default);

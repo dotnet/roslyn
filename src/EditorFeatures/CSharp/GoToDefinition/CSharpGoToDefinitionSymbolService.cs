@@ -11,11 +11,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
     [ExportLanguageService(typeof(IGoToDefinitionSymbolService), LanguageNames.CSharp), Shared]
     internal class CSharpGoToDefinitionSymbolService : AbstractGoToDefinitionSymbolService
     {
-        protected override bool ShouldTryToNavigateToToken(SyntaxToken token)
-        {
-            return !token.IsKind(SyntaxKind.GetKeyword, SyntaxKind.SetKeyword);
-        }
-
         protected override ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation)
         {
             return symbol;
