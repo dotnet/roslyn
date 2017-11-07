@@ -375,7 +375,7 @@ Microsoft.CodeAnalysis.Operations.ILoopOperation.Body.get -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.Operations.ILoopOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.ILoopOperation.LoopKind.get -> Microsoft.CodeAnalysis.Operations.LoopKind
 Microsoft.CodeAnalysis.Operations.IMemberInitializerOperation
-Microsoft.CodeAnalysis.Operations.IMemberInitializerOperation.InitializedMember.get -> Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation
+Microsoft.CodeAnalysis.Operations.IMemberInitializerOperation.InitializedMember.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IMemberInitializerOperation.Initializer.get -> Microsoft.CodeAnalysis.Operations.IObjectOrCollectionInitializerOperation
 Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation
 Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation.Instance.get -> Microsoft.CodeAnalysis.IOperation
