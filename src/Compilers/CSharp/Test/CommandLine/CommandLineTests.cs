@@ -9236,6 +9236,13 @@ class C {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
                 AssertPdbEmit(dir, pdbPath, @"/a.pdb", $@"/pathmap:{dir.Path}=/");
             }
+
+            // Multi-specified path map with mixed slashes
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                var pdbPath = Path.Combine(dir.Path, "a.pdb");
+                AssertPdbEmit(dir, pdbPath, "/goo/a.pdb", $"/pathmap:{dir.Path}=/goo,{dir.Path}{PathUtilities.DirectorySeparatorChar}=/bar");
+            }
         }
 
         [CompilerTrait(CompilerFeature.Determinism)]

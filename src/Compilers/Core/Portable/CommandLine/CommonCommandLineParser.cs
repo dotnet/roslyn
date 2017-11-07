@@ -214,8 +214,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    from = PathUtilities.AddTrailingSeparator(from);
-                    to = PathUtilities.AddTrailingSeparator(to);
+                    from = PathUtilities.EnsureTrailingSeparator(from);
+                    to = PathUtilities.EnsureTrailingSeparator(to);
                     pathMapBuilder.Add(new KeyValuePair<string, string>(from, to));
                 }
             }

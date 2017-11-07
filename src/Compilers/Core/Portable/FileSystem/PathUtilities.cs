@@ -60,7 +60,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Ensures a trailing directory separator character
         /// </summary>
-        public static string AddTrailingSeparator(string s)
+        public static string EnsureTrailingSeparator(string s)
         {
             if (s.Length == 0 || IsAnyDirectorySeparator(s[s.Length - 1]))
             {
@@ -80,7 +80,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                // If the slashes are not consistent, use the current platform's slash.
+                // If there are no slashes or they are inconsistent, use the current platform's slash.
                 return s + DirectorySeparatorChar;
             }
         }

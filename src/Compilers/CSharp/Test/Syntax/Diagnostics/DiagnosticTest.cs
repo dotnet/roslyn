@@ -2527,25 +2527,44 @@ class Program
         [Fact]
         public void PathMapKeepsCrossPlatformRoot()
         {
-            CSharpCommandLineArguments Parse(params string[] args)
+            CSharpCommandLineArguments parse(params string[] args)
             {
                 var parsedArgs = CSharpCommandLineParser.Default.Parse(args, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
                 parsedArgs.Errors.Verify();
                 return parsedArgs;
             }
-            Assert.Equal(new KeyValuePair<string, string>("C:\\", "/"), Parse("/pathmap:C:\\=/", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("C:\\", "/temp/"), Parse("/pathmap:C:\\=/temp", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("C:\\", "/temp/"), Parse("/pathmap:C:\\=/temp/", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("C:\\temp\\", "/"), Parse("/pathmap:C:\\temp\\=/", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("C:\\temp\\", "/temp/"), Parse("/pathmap:C:\\temp=/temp", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("C:\\temp\\", "/temp/"), Parse("/pathmap:C:\\temp\\=/temp/", "a.cs").PathMap[0]);
 
-            Assert.Equal(new KeyValuePair<string, string>("/", "C:\\"), Parse("/pathmap:/=C:\\", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("/", "C:\\temp\\"), Parse("/pathmap:/=C:\\temp", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("/", "C:\\temp\\"), Parse("/pathmap:/=C:\\temp\\", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("/temp/", "C:\\"), Parse("/pathmap:/temp/=C:\\", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("/temp/", "C:\\temp\\"), Parse("/pathmap:/temp=C:\\temp", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("/temp/", "C:\\temp\\"), Parse("/pathmap:/temp/=C:\\temp\\", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("C:\\", "/"), parse("/pathmap:C:\\=/", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("C:\\", "/temp/"), parse("/pathmap:C:\\=/temp", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("C:\\", "/temp/"), parse("/pathmap:C:\\=/temp/", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("C:\\temp\\", "/"), parse("/pathmap:C:\\temp\\=/", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("C:\\temp\\", "/temp/"), parse("/pathmap:C:\\temp=/temp", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("C:\\temp\\", "/temp/"), parse("/pathmap:C:\\temp\\=/temp/", "a.cs").PathMap[0]);
+
+            Assert.Equal(new KeyValuePair<string, string>("/", "C:\\"), parse("/pathmap:/=C:\\", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("/", "C:\\temp\\"), parse("/pathmap:/=C:\\temp", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("/", "C:\\temp\\"), parse("/pathmap:/=C:\\temp\\", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("/temp/", "C:\\"), parse("/pathmap:/temp/=C:\\", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("/temp/", "C:\\temp\\"), parse("/pathmap:/temp=C:\\temp", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("/temp/", "C:\\temp\\"), parse("/pathmap:/temp/=C:\\temp\\", "a.cs").PathMap[0]);
+        }
+
+        [Fact]
+        public void PathMapInconsistentSlashes()
+        {
+            CSharpCommandLineArguments parse(params string[] args)
+            {
+                var parsedArgs = CSharpCommandLineParser.Default.Parse(args, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
+                parsedArgs.Errors.Verify();
+                return parsedArgs;
+            }
+
+            var sep = PathUtilities.DirectorySeparatorChar;
+            Assert.Equal(new KeyValuePair<string, string>("C:\\temp/goo" + sep, "/temp\\goo" + sep), parse("/pathmap:C:\\temp/goo=/temp\\goo", "a.cs").PathMap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("noslash" + sep, "withoutslash" + sep), parse("/pathmap:noslash=withoutslash", "a.cs").PathMap[0]);
+            var doublemap = parse("/pathmap:/temp=/goo,/temp/=/bar", "a.cs").PathMap;
+            Assert.Equal(new KeyValuePair<string, string>("/temp/", "/goo/"), doublemap[0]);
+            Assert.Equal(new KeyValuePair<string, string>("/temp/", "/bar/"), doublemap[1]);
         }
         #endregion
     }

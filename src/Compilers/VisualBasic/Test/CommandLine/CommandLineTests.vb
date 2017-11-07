@@ -3043,6 +3043,18 @@ End Module
                 Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
                 assertPdbEmit(dir, "a.pdb", {"/features:pdb-path-determinism"})
             End Using
+
+            ' Unix path map
+            Using dir As New DisposableDirectory(Temp)
+                Dim pdbPath = Path.Combine(dir.Path, "a.pdb")
+                assertPdbEmit(dir, "/a.pdb", {$"/pathmap:{dir.Path}=/"})
+            End Using
+
+            ' Multi-specified path map with mixed slashes
+            Using dir As New DisposableDirectory(Temp)
+                Dim pdbPath = Path.Combine(dir.Path, "a.pdb")
+                assertPdbEmit(dir, "/goo/a.pdb", {$"/pathmap:{dir.Path}=/goo,{dir.Path}{PathUtilities.DirectorySeparatorChar}=/bar"})
+            End Using
         End Sub
 
 

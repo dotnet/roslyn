@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis
                         throw new ArgumentException(CodeAnalysisResources.NullValueInPathMap, nameof(pathMap));
                     }
 
-                    var normalizedKey = PathUtilities.AddTrailingSeparator(key);
-                    var normalizedValue = PathUtilities.AddTrailingSeparator(value);
+                    var normalizedKey = PathUtilities.EnsureTrailingSeparator(key);
+                    var normalizedValue = PathUtilities.EnsureTrailingSeparator(value);
 
                     pathMapBuilder.Add(new KeyValuePair<string, string>(normalizedKey, normalizedValue));
                 }
