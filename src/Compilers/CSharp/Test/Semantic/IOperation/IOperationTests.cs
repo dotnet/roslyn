@@ -141,7 +141,7 @@ System.Console.WriteLine();
             var tree = compilation.SyntaxTrees.Single();
             var statement = tree.GetRoot().DescendantNodes().OfType<StatementSyntax>().Single();
             var model = compilation.GetSemanticModel(tree);
-            var operation = model.GetOperationInternal(statement);
+            var operation = model.GetOperation(statement);
 
             Assert.Equal(OperationKind.ExpressionStatement, operation.Kind);
             Assert.Null(operation.Parent);
