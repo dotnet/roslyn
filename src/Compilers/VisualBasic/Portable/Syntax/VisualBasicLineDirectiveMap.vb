@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     state = PositionState.RemappedAfterUnknown
                 Else
                     ' should be Hidden, but can be a remapping in broken code scenarios (nested #ExternalSource)
-                    ' RemappedAfterUnknow can happen in such a case:
+                    ' RemappedAfterUnknown can happen in such a case:
                     ' <file begin>
                     ' stmts
                     ' #externalsource("file.vb", 23)

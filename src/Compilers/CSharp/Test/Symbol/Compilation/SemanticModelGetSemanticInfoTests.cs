@@ -13635,10 +13635,11 @@ public class MemberInitializerTest
 ";
             var semanticInfo = GetSemanticInfoForTest<PostfixUnaryExpressionSyntax>(sourceCode);
 
-            Assert.Equal("System.Object", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
+            Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);

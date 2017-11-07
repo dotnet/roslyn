@@ -3520,7 +3520,7 @@ End Module
 
         <WorkItem(546132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546132")>
         <Fact()>
-        Public Sub SymbolnfoForFunctionAggregationSyntax()
+        Public Sub SymbolInfoForFunctionAggregationSyntax()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[

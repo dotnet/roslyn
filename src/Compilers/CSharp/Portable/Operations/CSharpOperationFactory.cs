@@ -1623,7 +1623,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
 
-            // lambda body can point to expression directly and binder can insert exression statement there. and end up statement pointing to
+            // lambda body can point to expression directly and binder can insert expression statement there. and end up statement pointing to
             // expression syntax node since there is no statement syntax node to point to. this will mark such one as implicit since it doesn't
             // actually exist in code
             bool isImplicit = boundExpressionStatement.WasCompilerGenerated || boundExpressionStatement.Syntax == boundExpressionStatement.Expression.Syntax;

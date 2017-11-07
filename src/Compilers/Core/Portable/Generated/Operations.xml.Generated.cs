@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
         /// <summary>
-        /// Expresson that is conditionally accessed.
+        /// Expression that is conditionally accessed.
         /// </summary>
         public IOperation Operation => CodeAnalysis.Operation.SetParentOperation(ExpressionImpl, this);
         /// <summary>
@@ -1463,7 +1463,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// Reprsents an empty statement.
+    /// Represents an empty statement.
     /// </summary>
     internal sealed partial class EmptyStatement : Operation, IEmptyOperation
     {

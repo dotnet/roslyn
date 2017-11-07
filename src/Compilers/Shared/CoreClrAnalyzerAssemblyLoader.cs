@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         {
             //.NET Native doesn't support AssemblyLoadContext.GetLoadContext. 
             // Initializing the _loadContext in the .ctor would cause
-            // .NET Native builds to fail beacause the .ctor is called. 
+            // .NET Native builds to fail because the .ctor is called. 
             // However, LoadFromPathImpl is never called in .NET Native, so 
             // we do a lazy initialization here to make .NET Native builds happy.
             if (_loadContext == null)

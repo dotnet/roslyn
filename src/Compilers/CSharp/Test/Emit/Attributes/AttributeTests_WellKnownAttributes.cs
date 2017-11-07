@@ -2026,29 +2026,117 @@ class C
         }
 
         [Fact]
-        public void InOutAttributes_Errors()
+        public void InAttribute_RefParameter()
         {
-            var source = @"
+            CreateStandardCompilation(@"
 using System.Runtime.InteropServices;
-
 class C
 {
-    public static void E1([In]out int b) { }
-    public static void E2([Out]ref int a) { }
-    public static void E3([In, Out]out int a) { }
-}
-";
-            CreateStandardCompilation(source).VerifyDiagnostics(
-                // (6,28): error CS0036: An out parameter cannot have the In attribute
-                Diagnostic(ErrorCode.ERR_InAttrOnOutParam, "In"),
-                // (7,27): error CS0662: Cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither.
-                Diagnostic(ErrorCode.ERR_OutAttrOnRefParam, "a"),
-                // (8,28): error CS0036: An out parameter cannot have the In attribute
-                Diagnostic(ErrorCode.ERR_InAttrOnOutParam, "In"),
-                // (6,24): error CS0177: The out parameter 'b' must be assigned to before control leaves the current method
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "E1").WithArguments("b"),
-                // (8,24): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "E3").WithArguments("a"));
+    public static void M([In]ref int p) { }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutAttribute_RefParameter()
+        {
+            CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void M([Out]ref int p) { }
+}").VerifyDiagnostics(
+                // (5,39): error CS0662: Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.
+                //     public static void M([Out]ref int p) { }
+                Diagnostic(ErrorCode.ERR_OutAttrOnRefParam, "p").WithLocation(5, 39));
+        }
+
+        [Fact]
+        public void InAndOutAttributes_RefParameter()
+        {
+            CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void M([In, Out]ref int p) { }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAttribute_OutParameter()
+        {
+            CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void M([In]out int p) { p = 0; }
+}").VerifyDiagnostics(
+                // (5,38): error CS0036: An out parameter cannot have the In attribute
+                //     public static void M([In]out int p) { p = 0; }
+                Diagnostic(ErrorCode.ERR_InAttrOnOutParam, "p").WithLocation(5, 38));
+        }
+
+        [Fact]
+        public void OutAttribute_OutParameter()
+        {
+            CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void M([Out]out int p) { p = 0; }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InAndOutAttributes_OutParameter()
+        {
+            CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void M([In, Out]out int p) { p = 0; }
+}").VerifyDiagnostics(
+                // (5,43): error CS0036: An out parameter cannot have the In attribute
+                //     public static void M([In, Out]out int p) { p = 0; }
+                Diagnostic(ErrorCode.ERR_InAttrOnOutParam, "p").WithLocation(5, 43));
+        }
+
+        [Fact]
+        public void InAttribute_InParameter()
+        {
+            CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void M([In]in int p) { }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutAttribute_InParameter()
+        {
+            CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void M([Out]in int p) { }
+}").VerifyDiagnostics(
+                // (5,38): error CS8355: An in parameter cannot have the Out attribute.
+                //     public static void M([Out]in int p) { }
+                Diagnostic(ErrorCode.ERR_OutAttrOnInParam, "p").WithLocation(5, 38));
+        }
+
+        [Fact]
+        public void OutAndInAttributes_InParameter()
+        {
+            CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+class C
+{
+    public static void M([Out, In]in int p) { }
+}").VerifyDiagnostics(
+                // (5,42): error CS8355: An in parameter cannot have the Out attribute.
+                //     public static void M([Out, In]in int p) { }
+                Diagnostic(ErrorCode.ERR_OutAttrOnInParam, "p").WithLocation(5, 42));
         }
 
         [Fact]

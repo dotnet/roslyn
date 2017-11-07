@@ -1191,7 +1191,7 @@ IVariableDeclaratorOperation (Symbol: C1[] c1arr) (OperationKind.VariableDeclara
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void ConversionExpression_Implicit_ReferenceArrayToArrayConversion_InvalidDimenionMismatch()
+        public void ConversionExpression_Implicit_ReferenceArrayToArrayConversion_InvalidDimensionMismatch()
         {
             string source = @"
 using System;
@@ -3096,7 +3096,7 @@ IVariableDeclarationStatement (1 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "num").WithArguments("lambda expression").WithLocation(9, 60)
             };
 
-            // Due to https://github.com/dotnet/roslyn/issues/20291, we cannot verify that the types of the ioperation tree and the sematic model
+            // Due to https://github.com/dotnet/roslyn/issues/20291, we cannot verify that the types of the ioperation tree and the semantic model
             // match, as they do not actually match.
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);

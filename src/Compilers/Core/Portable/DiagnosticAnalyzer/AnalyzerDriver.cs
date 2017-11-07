@@ -1842,14 +1842,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                         {
                                             if (analyzerActions.OperationBlockStartActions.IsEmpty &&
                                                 analyzerActions.OperationBlockActions.IsEmpty &&
-                                                analyzerActions.OpererationBlockEndActions.IsEmpty)
+                                                analyzerActions.OperationBlockEndActions.IsEmpty)
                                             {
                                                 continue;
                                             }
 
                                             if (!analyzerExecutor.TryExecuteOperationBlockActions(
                                                 analyzerActions.OperationBlockStartActions, analyzerActions.OperationBlockActions,
-                                                analyzerActions.OpererationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
+                                                analyzerActions.OperationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
                                                 operationBlocksToAnalyze, operationsToAnalyze, semanticModel, decl, declarationIndex, analysisScope, analysisStateOpt, isInGeneratedCode))
                                             {
                                                 success = false;
@@ -1912,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public ImmutableArray<CodeBlockAnalyzerAction> CodeBlockEndActions;
             public ImmutableArray<OperationBlockStartAnalyzerAction> OperationBlockStartActions;
             public ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions;
-            public ImmutableArray<OperationBlockAnalyzerAction> OpererationBlockEndActions;
+            public ImmutableArray<OperationBlockAnalyzerAction> OperationBlockEndActions;
         }
 
         private IEnumerable<CodeBlockAnalyzerActions> GetCodeBlockActions(AnalysisScope analysisScope)
@@ -1966,7 +1966,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             CodeBlockEndActions = codeBlockEndActions,
                             OperationBlockStartActions = operationBlockStartActions,
                             OperationBlockActions = operationBlockActions,
-                            OpererationBlockEndActions = operationBlockEndActions
+                            OperationBlockEndActions = operationBlockEndActions
                         };
                 }
             }

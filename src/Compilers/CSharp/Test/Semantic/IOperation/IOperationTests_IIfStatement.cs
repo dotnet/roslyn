@@ -601,7 +601,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-        public void IIfstatementExplictEmbeddedOutVar()
+        public void IIfstatementExplicitEmbeddedOutVar()
         {
             string source = @"
 class P

@@ -7,7 +7,7 @@
     <OutputArchitecture>neutral</OutputArchitecture>
     <OutputLocalized>false</OutputLocalized>
     <RoslynOutputPath>$(OutputPath)</RoslynOutputPath>
-    <OutputPath>$(OutputPath)\Insertion</OutputPath>
+    <OutputPath>$(OutputPath)Vsix\CodeAnalysisCompilers</OutputPath>
     <IsPackage>true</IsPackage>
     <OutputType>vsix</OutputType>
   </PropertyGroup>
@@ -15,7 +15,7 @@
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
 
   <PropertyGroup>
-    <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);Version=$(VsixVersion);OutputPath=$(RoslynOutputPath)</PackagePreprocessorDefinitions>
+    <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);Version=$(VsixVersion);OutputPath=$(RoslynOutputPath);RepoRoot=$(RepoRoot)</PackagePreprocessorDefinitions>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 
@@ -24,4 +24,7 @@
   </ItemGroup>
 
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
+
+  <!-- Disable automatic signing. This will be signed in the batch phase -->
+  <Target Name="AddTargetPathToFilesToSign" />
 </Project>

@@ -3263,8 +3263,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        var instace = new Program();
-        instace.NonStaticMethod();
+        var instance = new Program();
+        instance.NonStaticMethod();
     }
 
     private void NonStaticMethod()

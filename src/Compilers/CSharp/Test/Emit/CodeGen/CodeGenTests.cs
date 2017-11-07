@@ -14890,7 +14890,7 @@ class Program
 
         [WorkItem(5880, "https://github.com/dotnet/roslyn/issues/5880")]
         [Fact]
-        public void StuctCtorArgTernary()
+        public void StructCtorArgTernary()
         {
             string source = @"
    using System.Collections.Generic;

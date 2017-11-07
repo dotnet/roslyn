@@ -1470,7 +1470,11 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
-    <value>Predefined type '{0}' is not defined or imported, or is declared in multiple referenced assemblies</value>
+    <!-- We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget) -->
+    <value>Predefined type '{0}' is not defined or imported</value>
+  </data>
+  <data name="ERR_PredefinedValueTupleTypeAmbiguous3" xml:space="preserve">
+    <value>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</value>
   </data>
   <data name="ERR_StructWithBaseConstructorCall" xml:space="preserve">
     <value>'{0}': structs cannot call base class constructors</value>
@@ -1833,7 +1837,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Type defines operator == or operator != but does not override Object.GetHashCode()</value>
   </data>
   <data name="ERR_OutAttrOnRefParam" xml:space="preserve">
-    <value>Cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither.</value>
+    <value>Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.</value>
   </data>
   <data name="ERR_OverloadRefKind" xml:space="preserve">
     <value>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</value>
@@ -3896,8 +3900,11 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</value>
   </data>
+  <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
+    <value>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
+  </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
-    <value>The specified version string does not conform to the required format - major.minor.build.revision</value>
+    <value>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</value>
   </data>
   <data name="WRN_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
@@ -5209,5 +5216,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
+  </data>
+  <data name="ERR_OutAttrOnInParam" xml:space="preserve">
+    <value>An in parameter cannot have the Out attribute.</value>
   </data>
 </root>

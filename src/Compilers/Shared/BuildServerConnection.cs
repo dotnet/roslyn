@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -13,6 +14,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     internal struct BuildPathsAlt
     {
         /// <summary>
-        /// The path which containts the compiler binaries and response files.
+        /// The path which contains the compiler binaries and response files.
         /// </summary>
         internal string ClientDirectory { get; }
 
@@ -54,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
     internal sealed class BuildServerConnection
     {
-        internal const string ServerName = "VBCSCompiler.exe";
+        internal const string ServerNameDesktop = "VBCSCompiler.exe";
+        internal const string ServerNameCoreClr = "VBCSCompiler.dll";
 
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
         internal const int TimeOutMsExistingProcess = 1000;
@@ -66,28 +69,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
         internal static bool IsCompilerServerSupported => 
-            PlatformInformation.IsWindows &&
-            GetRuntimeDirectoryOpt() != null &&
             GetPipeNameForPathOpt("") != null;
-
-        internal static string GetRuntimeDirectoryOpt()
-        {
-            Type runtimeEnvironmentType;
-            try
-            {
-                runtimeEnvironmentType = Type.GetType("System.Runtime.InteropServices.RuntimeEnvironment", throwOnError: false);
-            }
-            catch
-            {
-                return null;
-            }
-
-            return (string)runtimeEnvironmentType
-                ?.GetTypeInfo()
-                .GetDeclaredMethod("GetRuntimeDirectory")
-                ?.Invoke(obj: null, parameters: null);
-        }
-
 
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
@@ -112,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken: cancellationToken);
         }
 
-        internal static Task<BuildResponse> RunServerCompilationCore(
+        internal static async Task<BuildResponse> RunServerCompilationCore(
             RequestLanguage language,
             List<string> arguments,
             BuildPathsAlt buildPaths,
@@ -125,22 +107,22 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             if (pipeName == null)
             {
-                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+                return new RejectedBuildResponse();
             }
 
             if (buildPaths.TempDirectory == null)
             {
-                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+                return new RejectedBuildResponse();
             }
 
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
             var clientMutexName = GetClientMutexName(pipeName);
-            bool holdsMutex;
+            Task<NamedPipeClientStream> pipeTask = null;
             using (var clientMutex = new Mutex(initiallyOwned: true,
                                                name: clientMutexName,
-                                               createdNew: out holdsMutex))
+                                               createdNew: out var holdsMutex))
             {
                 try
                 {
@@ -152,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                             if (!holdsMutex)
                             {
-                                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+                                return new RejectedBuildResponse();
                             }
                         }
                         catch (AbandonedMutexException)
@@ -166,25 +148,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                     var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
-                    NamedPipeClientStream pipe = null;
-
                     if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
                     {
-                        pipe = TryConnectToServer(pipeName,
-                                                  timeout,
-                                                  cancellationToken);
-                    }
-
-                    if (pipe != null)
-                    {
-                        var request = BuildRequest.Create(language,
-                                                          buildPaths.WorkingDirectory,
-                                                          buildPaths.TempDirectory,
-                                                          arguments,
-                                                          keepAlive,
-                                                          libEnvVariable);
-
-                        return TryCompile(pipe, request, cancellationToken);
+                        pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
                     }
                 }
                 finally
@@ -196,7 +162,23 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
             }
 
-            return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+            if (pipeTask != null)
+            {
+                var pipe = await pipeTask.ConfigureAwait(false);
+                if (pipe != null)
+                {
+                    var request = BuildRequest.Create(language,
+                                                      buildPaths.WorkingDirectory,
+                                                      buildPaths.TempDirectory,
+                                                      arguments,
+                                                      keepAlive,
+                                                      libEnvVariable);
+
+                    return await TryCompile(pipe, request, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return new RejectedBuildResponse();
         }
 
         /// <summary>
@@ -305,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// An open <see cref="NamedPipeClientStream"/> to the server process or null on failure.
         /// </returns>
-        private static NamedPipeClientStream TryConnectToServer(
+        internal static async Task<NamedPipeClientStream> TryConnectToServerAsync(
             string pipeName,
             int timeoutMs,
             CancellationToken cancellationToken)
@@ -322,8 +304,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Log("Attempt to connect named pipe '{0}'", pipeName);
-                if (!TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken))
+                try
                 {
+                    await pipeStream.ConnectAsync(timeoutMs, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e) when (e is IOException || e is TimeoutException)
+                {
+                    // Note: IOException can also indicate timeout. From docs:
+                    // TimeoutException: Could not connect to the server within the
+                    //                   specified timeout period.
+                    // IOException: The server is connected to another client and the
+                    //              time-out period has expired.
+
                     Log($"Connecting to server timed out after {timeoutMs} ms");
                     return null;
                 }
@@ -340,112 +332,104 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 return pipeStream;
             }
-            catch (Exception e) when (!(e is TaskCanceledException))
+            catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
                 LogException(e, "Exception while connecting to process");
                 return null;
             }
         }
 
-        internal static bool TryConnectToNamedPipeWithSpinWait(NamedPipeClientStream pipeStream,
-                                                               int timeoutMs,
-                                                               CancellationToken cancellationToken)
-        {
-            Debug.Assert(timeoutMs == Timeout.Infinite || timeoutMs > 0);
-
-            // .NET 4.5 implementation of NamedPipeStream.Connect busy waits the entire time.
-            // Work around is to spin wait.
-            const int maxWaitIntervalMs = 50;
-            int elapsedMs = 0;
-            var sw = new SpinWait();
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                int waitTime;
-                if (timeoutMs == Timeout.Infinite)
-                {
-                    waitTime = maxWaitIntervalMs;
-                }
-                else
-                {
-                    waitTime = Math.Min(timeoutMs - elapsedMs, maxWaitIntervalMs);
-                    if (waitTime <= 0)
-                    {
-                        return false;
-                    }
-                }
-
-                try
-                {
-                    pipeStream.Connect(waitTime);
-                    break;
-                }
-                catch (Exception e) when (e is IOException || e is TimeoutException)
-                {
-                    // Ignore timeout
-
-                    // Note: IOException can also indicate timeout. From docs:
-                    // TimeoutException: Could not connect to the server within the
-                    //                   specified timeout period.
-                    // IOException: The server is connected to another client and the
-                    //              time-out period has expired.
-                }
-                unchecked { elapsedMs += waitTime; }
-                sw.SpinOnce();
-            }
-            return true;
-        }
-
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {
-            // The server should be in the same directory as the client
-            string expectedPath = Path.Combine(clientDir, ServerName);
-
-            if (!File.Exists(expectedPath))
-                return false;
-
-            // As far as I can tell, there isn't a way to use the Process class to
-            // create a process with no stdin/stdout/stderr, so we use P/Invoke.
-            // This code was taken from MSBuild task starting code.
-
-            STARTUPINFO startInfo = new STARTUPINFO();
-            startInfo.cb = Marshal.SizeOf(startInfo);
-            startInfo.hStdError = InvalidIntPtr;
-            startInfo.hStdInput = InvalidIntPtr;
-            startInfo.hStdOutput = InvalidIntPtr;
-            startInfo.dwFlags = STARTF_USESTDHANDLES;
-            uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
-
-            PROCESS_INFORMATION processInfo;
-
-            Log("Attempting to create process '{0}'", expectedPath);
-
-            var builder = new StringBuilder($@"""{expectedPath}"" ""-pipename:{pipeName}""");
-
-            bool success = CreateProcess(
-                lpApplicationName: null,
-                lpCommandLine: builder,
-                lpProcessAttributes: NullPtr,
-                lpThreadAttributes: NullPtr,
-                bInheritHandles: false,
-                dwCreationFlags: dwCreationFlags,
-                lpEnvironment: NullPtr, // Inherit environment
-                lpCurrentDirectory: clientDir,
-                lpStartupInfo: ref startInfo,
-                lpProcessInformation: out processInfo);
-
-            if (success)
+#if NETSTANDARD1_3
+            bool isRunningOnCoreClr = CoreClrShim.IsRunningOnCoreClr;
+#elif NET46
+            bool isRunningOnCoreClr = false;
+#elif NETCOREAPP2_0
+            bool isRunningOnCoreClr = true;
+#endif
+            string expectedPath;
+            string processArguments;
+            if (isRunningOnCoreClr)
             {
-                Log("Successfully created process with process id {0}", processInfo.dwProcessId);
-                CloseHandle(processInfo.hProcess);
-                CloseHandle(processInfo.hThread);
+                // The server should be in the same directory as the client
+                var expectedCompilerPath = Path.Combine(clientDir, ServerNameCoreClr);
+                expectedPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
+                processArguments = $@"""{expectedCompilerPath}"" ""-pipename:{pipeName}""";
+
+                if (!File.Exists(expectedCompilerPath))
+                {
+                    return false;
+                }
             }
             else
             {
-                Log("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                // The server should be in the same directory as the client
+                expectedPath = Path.Combine(clientDir, ServerNameDesktop);
+                processArguments = $@"""-pipename:{pipeName}""";
+
+                if (!File.Exists(expectedPath))
+                {
+                    return false;
+                }
             }
-            return success;
+
+            if (PlatformInformation.IsWindows)
+            {
+                // As far as I can tell, there isn't a way to use the Process class to
+                // create a process with no stdin/stdout/stderr, so we use P/Invoke.
+                // This code was taken from MSBuild task starting code.
+
+                STARTUPINFO startInfo = new STARTUPINFO();
+                startInfo.cb = Marshal.SizeOf(startInfo);
+                startInfo.hStdError = InvalidIntPtr;
+                startInfo.hStdInput = InvalidIntPtr;
+                startInfo.hStdOutput = InvalidIntPtr;
+                startInfo.dwFlags = STARTF_USESTDHANDLES;
+                uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
+
+                PROCESS_INFORMATION processInfo;
+
+                Log("Attempting to create process '{0}'", expectedPath);
+
+                var builder = new StringBuilder($@"""{expectedPath}"" {processArguments}");
+
+                bool success = CreateProcess(
+                    lpApplicationName: null,
+                    lpCommandLine: builder,
+                    lpProcessAttributes: NullPtr,
+                    lpThreadAttributes: NullPtr,
+                    bInheritHandles: false,
+                    dwCreationFlags: dwCreationFlags,
+                    lpEnvironment: NullPtr, // Inherit environment
+                    lpCurrentDirectory: clientDir,
+                    lpStartupInfo: ref startInfo,
+                    lpProcessInformation: out processInfo);
+
+                if (success)
+                {
+                    Log("Successfully created process with process id {0}", processInfo.dwProcessId);
+                    CloseHandle(processInfo.hProcess);
+                    CloseHandle(processInfo.hThread);
+                }
+                else
+                {
+                    Log("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                }
+                return success;
+            }
+            else
+            {
+                try
+                {
+                    Process.Start(expectedPath, processArguments);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
         }
 
         /// <summary>
@@ -462,11 +446,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             try
             {
-                var currentIdentity = WindowsIdentity.GetCurrent();
-                var currentOwner = currentIdentity.Owner;
-                var remotePipeSecurity = GetPipeSecurity(pipeStream);
-                var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
-                return currentOwner.Equals(remoteOwner);
+                if (PlatformInformation.IsWindows)
+                {
+                    var currentIdentity = WindowsIdentity.GetCurrent();
+                    var currentOwner = currentIdentity.Owner;
+                    var remotePipeSecurity = GetPipeSecurity(pipeStream);
+                    var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
+                    return currentOwner.Equals(remoteOwner);
+                }
+                else
+                {
+                    return CheckIdentityUnix(pipeStream);
+                }
             }
             catch (Exception ex)
             {
@@ -475,11 +466,49 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream) =>
-            (ObjectSecurity)typeof(PipeStream)
-            .GetTypeInfo()
-            .GetDeclaredMethod("GetAccessControl")
-            ?.Invoke(pipeStream, parameters: null);
+#if NETSTANDARD1_3
+        internal static bool CheckIdentityUnix(PipeStream stream)
+        {
+            // Identity verification is unavailable in the MSBuild task,
+            // but verification is not needed client-side so that's okay.
+            // (unavailable due to lack of internal reflection capabilities in netstandard1.3)
+            return true;
+        }
+#else
+        [DllImport("System.Native", EntryPoint = "SystemNative_GetEUid")]
+        private static extern uint GetEUid();
+
+        [DllImport("System.Native", EntryPoint = "SystemNative_GetPeerID", SetLastError = true)]
+        private static extern int GetPeerID(SafeHandle socket, out uint euid);
+
+        internal static bool CheckIdentityUnix(PipeStream stream)
+        {
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var handle = (SafePipeHandle)typeof(PipeStream).GetField("_handle", flags).GetValue(stream);
+            var handle2 = (SafeHandle)typeof(SafePipeHandle).GetField("_namedPipeSocketHandle", flags).GetValue(handle);
+
+            uint myID = GetEUid();
+
+            if (GetPeerID(handle, out uint peerID) == -1)
+            {
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+
+            return myID == peerID;
+        }
+#endif
+
+        private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
+        {
+#if NETSTANDARD1_3
+            return (ObjectSecurity)typeof(PipeStream)
+                .GetTypeInfo()
+                .GetDeclaredMethod("GetAccessControl")
+                ?.Invoke(pipeStream, parameters: null);
+#else
+            return pipeStream.GetAccessControl();
+#endif
+        }
 
         private static string GetUserName() =>
             (string)typeof(Environment)
@@ -495,9 +524,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var basePipeName = GetBasePipeName(compilerExeDirectory);
 
             // Prefix with username and elevation
-            var currentIdentity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(currentIdentity);
-            var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
+            bool isAdmin = false;
+            if (PlatformInformation.IsWindows)
+            {
+                var currentIdentity = WindowsIdentity.GetCurrent();
+                var principal = new WindowsPrincipal(currentIdentity);
+                isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+
             var userName = GetUserName();
             if (userName == null)
             {
@@ -556,6 +590,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         public static string GetTempPath(string workingDir)
         {
+            if (PlatformInformation.IsUnix)
+            {
+                // Unix temp path is fine: it does not use the working directory
+                // (it uses ${TMPDIR} if set, otherwise, it returns /tmp)
+                return Path.GetTempPath();
+            }
+
             var tmp = Environment.GetEnvironmentVariable("TMP");
             if (Path.IsPathRooted(tmp))
             {

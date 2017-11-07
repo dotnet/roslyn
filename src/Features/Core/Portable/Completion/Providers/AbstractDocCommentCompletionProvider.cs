@@ -225,6 +225,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return items;
         }
 
+        protected IEnumerable<CompletionItem> GetItemTagItems()
+        {
+            return new[] { TermElementName, DescriptionElementName }.Select(GetItem);
+        }
+
         protected IEnumerable<CompletionItem> GetListItems()
         {
             return s_listTagNames.Select(GetItem);

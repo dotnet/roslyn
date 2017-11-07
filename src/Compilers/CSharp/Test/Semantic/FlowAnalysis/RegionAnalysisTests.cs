@@ -4189,7 +4189,7 @@ internal class Test
 
         [WorkItem(541946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541946")]
         [Fact]
-        public void LambdaInTenaryWithEmptyBody()
+        public void LambdaInTernaryWithEmptyBody()
         {
             var results = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;

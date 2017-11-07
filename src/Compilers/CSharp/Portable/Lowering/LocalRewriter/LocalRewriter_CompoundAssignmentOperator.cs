@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var memberContainingType = fieldOrEvent.ContainingType;
 
-                // From the verifier prospective type parameters do not contain fields or methods.
+                // From the verifier perspective type parameters do not contain fields or methods.
                 // the instance must be "boxed" to access the field
                 // It makes sense to box receiver before storing into a temp - no need to box twice.
                 rewrittenReceiver = BoxReceiver(rewrittenReceiver, memberContainingType);
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         // Ref returning properties count as variables and do not undergo the transformation
-                        // that value returning propertues require.
+                        // that value returning properties require.
                         var propertyAccess = (BoundPropertyAccess)originalLHS;
                         if (propertyAccess.PropertySymbol.RefKind == RefKind.None)
                         {
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     {
                         // Ref returning indexers count as variables and do not undergo the transformation
-                        // that value returning propertues require.
+                        // that value returning properties require.
                         var indexerAccess = (BoundIndexerAccess)originalLHS;
                         if (indexerAccess.Indexer.RefKind == RefKind.None)
                         {
