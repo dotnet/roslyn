@@ -773,7 +773,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     // Semantic model has a special case here that we match: if the underlying syntax is missing, don't create a conversion expression,
                     // and instead directly return the operand, which will be a BoundBadExpression. When we generate a node for the BoundBadExpression,
                     // the resulting IOperation will also have a null Type.
-                    Debug.Assert(boundConversion.Operand.Kind == BoundKind.BadExpression);
+                    Debug.Assert(boundConversion.Operand.Kind == BoundKind.BadExpression ||
+                                 ((boundConversion.Operand as BoundLambda)?.Body.Statements.SingleOrDefault() as BoundReturnStatement)?.
+                                     ExpressionOpt?.Kind == BoundKind.BadExpression);
                     return Create(boundConversion.Operand);
                 }
 
