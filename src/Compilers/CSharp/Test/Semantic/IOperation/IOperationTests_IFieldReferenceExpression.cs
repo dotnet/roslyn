@@ -305,5 +305,68 @@ IFieldReferenceOperation: System.Int32 C.i1 (Static) (OperationKind.FieldReferen
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReference_StaticField()
+        {
+            string source = @"
+class C
+{
+    static int i;
+
+    public static void M()
+    {
+        var i1 = /*<bind>*/C.i/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IFieldReferenceOperation: System.Int32 C.i (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'C.i')
+  Instance Receiver: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
+                //     static int i;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReference_InstanceField_InvalidAccessOffOfClass()
+        {
+            string source = @"
+class C
+{
+    int i;
+
+    public static void M()
+    {
+        var i1 = /*<bind>*/C.i/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'C.i')
+  Instance Receiver: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0120: An object reference is required for the non-static field, method, or property 'C.i'
+                //         var i1 = /*<bind>*/C.i/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.i").WithArguments("C.i").WithLocation(8, 28),
+                // CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
+                //     int i;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 9)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+
     }
 }

@@ -77,6 +77,60 @@ IPropertyReferenceOperation: System.Int32 C.I { get; } (Static) (OperationKind.P
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void IPropertyReference_StaticPropertyAccessOnClass()
+        {
+            string source = @"
+class C
+{
+    static int I { get; }
+
+    public static void M()
+    {
+        var i1 = /*<bind>*/C.I/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceOperation: System.Int32 C.I { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'C.I')
+  Instance Receiver: 
+    null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IPropertyReference_InstancePropertyAccessOnClass()
+        {
+            string source = @"
+class C
+{
+    int I { get; }
+
+    public static void M()
+    {
+        var i1 = /*<bind>*/C.I/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceOperation: System.Int32 C.I { get; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'C.I')
+  Instance Receiver: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0120: An object reference is required for the non-static field, method, or property 'C.I'
+                //         var i1 = /*<bind>*/C.I/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.I").WithArguments("C.I").WithLocation(8, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void IPropertyReference_StaticPropertyWithInstanceReceiver_Indexer()
         {
             string source = @"
@@ -109,6 +163,78 @@ IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System
                 // CS0176: Member 'C.list' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         var i1 = /*<bind>*/c.list[1]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.list").WithArguments("C.list").WithLocation(11, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IPropertyReference_StaticPropertyAccessOnClass_Indexer()
+        {
+            string source = @"
+using System.Collections.Generic;
+
+class C
+{
+    static List<int> list = new List<int>();
+
+    public static void M()
+    {
+        var i1 = /*<bind>*/C.list[1]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System.Int32>.this[System.Int32 index] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'C.list[1]')
+  Instance Receiver: 
+    IFieldReferenceOperation: System.Collections.Generic.List<System.Int32> C.list (Static) (OperationKind.FieldReference, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'C.list')
+      Instance Receiver: 
+        null
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IPropertyReference_InstancePropertyAccessOnClass_Indexer()
+        {
+            string source = @"
+using System.Collections.Generic;
+
+class C
+{
+    List<int> list = new List<int>();
+
+    public static void M()
+    {
+        var i1 = /*<bind>*/C.list[1]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IPropertyReferenceOperation: System.Int32 System.Collections.Generic.List<System.Int32>.this[System.Int32 index] { get; set; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'C.list[1]')
+  Instance Receiver: 
+    IFieldReferenceOperation: System.Collections.Generic.List<System.Int32> C.list (OperationKind.FieldReference, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'C.list')
+      Instance Receiver: 
+        null
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0120: An object reference is required for the non-static field, method, or property 'C.list'
+                //         var i1 = /*<bind>*/C.list[1]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.list").WithArguments("C.list").WithLocation(10, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

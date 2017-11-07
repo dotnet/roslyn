@@ -105,6 +105,64 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
+        Public Sub IPropertyReference_SharedPropertyAccessOnClass()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Shared Property P1 As Integer
+        Shared Sub S2()
+            Dim i1 As Integer = C1.P1'BIND:"C1.P1"
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IPropertyReferenceOperation: Property M1.C1.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'C1.P1')
+  Instance Receiver: 
+    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IPropertyReference_InstancePropertyAccessOnClass()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Property P1 As Integer
+        Shared Sub S2()
+            Dim i1 As Integer = C1.P1'BIND:"C1.P1"
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IPropertyReferenceOperation: Property M1.C1.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'C1.P1')
+  Instance Receiver: 
+    null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30469: Reference to a non-shared member requires an object reference.
+            Dim i1 As Integer = C1.P1'BIND:"C1.P1"
+                                ~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
         Public Sub IPropertyReference_SharedProperty()
             Dim source = <![CDATA[
 Option Strict On

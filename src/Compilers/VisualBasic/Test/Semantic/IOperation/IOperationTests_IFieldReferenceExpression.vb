@@ -189,5 +189,63 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IFieldReference_SharedFieldAccessOnClass()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Shared i1 As Integer = 1
+        Shared Sub S2()
+            Dim i1 = C1.i1'BIND:"C1.i1"
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldReferenceOperation: M1.C1.i1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'C1.i1')
+  Instance Receiver: 
+    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IFieldReference_InstanceFieldAccessOnClass()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Dim i1 As Integer = 1
+        Shared Sub S2()
+            Dim i1 = C1.i1'BIND:"C1.i1"
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldReferenceOperation: M1.C1.i1 As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'C1.i1')
+  Instance Receiver: 
+    null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30469: Reference to a non-shared member requires an object reference.
+            Dim i1 = C1.i1'BIND:"C1.i1"
+                     ~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

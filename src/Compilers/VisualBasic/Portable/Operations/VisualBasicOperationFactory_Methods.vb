@@ -170,7 +170,9 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             If symbol IsNot Nothing AndAlso
                node.WasCompilerGenerated AndAlso
-               symbol.IsStatic Then
+               symbol.IsStatic AndAlso
+               (node.Kind = BoundKind.MeReference OrElse
+                node.Kind = BoundKind.WithLValueExpressionPlaceholder) Then
                 Return Nothing
             End If
 
