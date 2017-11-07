@@ -272,6 +272,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
                         Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
 
+                        Assert.True(operation.Type == null || !operation.MustHaveNullType(), $"Unexpected non-null type: {operation.Type}");
+
                         if (operation.Parent == null)
                         {
                             roots.Add(operation);
