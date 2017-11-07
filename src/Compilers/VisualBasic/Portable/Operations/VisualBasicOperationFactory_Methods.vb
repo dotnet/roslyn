@@ -158,7 +158,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 outConversion:=outConversion,
                 semanticModel:=_semanticModel,
                 syntax:=If(argument, value.Syntax),
-                type:=Nothing,
                 constantValue:=Nothing,
                 isImplicit:=isImplicit OrElse argument Is Nothing)
         End Function

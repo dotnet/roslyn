@@ -1011,7 +1011,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Dimension Sizes(1):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4, IsImplicit) (Syntax: 'New Integer ... 1, 2, 3, 4}')
           Initializer: 
-            IArrayInitializerOperation (4 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 2, 3, 4}')
+            IArrayInitializerOperation (4 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2, 3, 4}')
               Element Values(4):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -1059,7 +1059,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Dimension Sizes(1):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4, IsImplicit) (Syntax: 'New Integer ... 1, 2, 3, 4}')
           Initializer: 
-            IArrayInitializerOperation (4 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 2, 3, 4}')
+            IArrayInitializerOperation (4 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2, 3, 4}')
               Element Values(4):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
