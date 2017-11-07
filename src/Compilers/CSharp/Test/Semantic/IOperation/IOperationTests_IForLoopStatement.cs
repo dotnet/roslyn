@@ -2816,5 +2816,53 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for 
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IForLoopStatement_InvalidIterationVariableDeclaration()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int i = 0;
+        /*<bind>*/for (int i = 0; true;)
+        {
+            System.Console.WriteLine(i);
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'for (int i  ... }')
+  Locals: Local_1: System.Int32 i
+  Condition: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  Before:
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid, IsImplicit) (Syntax: 'int i = 0')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i = 0')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i = 0')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+          Initializer: 
+            null
+  AtLoopBottom(0)
+  Body: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... iteLine(i);')
+        Expression: 
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'i')
+                  ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
+        }
     }
 }

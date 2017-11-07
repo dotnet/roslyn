@@ -1138,5 +1138,47 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
             VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        Public Sub IForEachLoopStatement_InvalidLoopControlVariableDeclaration()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Class C
+    Sub M(args As Integer())
+        Dim i as Integer = 0
+        For Each i as Integer In args'BIND:"For Each i as Integer In args"
+        Next i
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For Each i  ... Next i')
+  Locals: Local_1: i As System.Int32
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i as Integer')
+      Initializer: 
+        null
+  Collection: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'args')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'args')
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For Each i  ... Next i')
+  NextVariables(1):
+      ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30616: Variable 'i' hides a variable in an enclosing block.
+        For Each i as Integer In args'BIND:"For Each i as Integer In args"
+                 ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

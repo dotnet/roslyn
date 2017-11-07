@@ -1437,5 +1437,52 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub VerifyForToLoop_InvalidLoopControlVariableDeclaration()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Class C
+    Sub M()
+        Dim i as Integer = 0
+        For i as Integer = 0 To 10'BIND:"For i as Integer = 0 To 10"
+        Next i
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For i as In ... Next i')
+  Locals: Local_1: i As System.Int32
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i as Integer')
+      Initializer: 
+        null
+  InitialValue: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+  LimitValue: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+  StepValue: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For i as In ... Next i')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'For i as In ... Next i')
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i as In ... Next i')
+  NextVariables(1):
+      ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30616: Variable 'i' hides a variable in an enclosing block.
+        For i as Integer = 0 To 10'BIND:"For i as Integer = 0 To 10"
+            ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

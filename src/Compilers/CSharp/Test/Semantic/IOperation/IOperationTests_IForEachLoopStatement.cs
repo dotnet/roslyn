@@ -1232,5 +1232,49 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_InvalidLoopControlVariableDeclaration()
+        {
+            string source = @"
+class X
+{
+    public static void M(int[] x)
+    {
+        int i = 0;
+        /*<bind>*/foreach (int i in x)
+        {
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... }')
+  Locals: Local_1: System.Int32 i
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'int')
+      Initializer: 
+        null
+  Collection: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'x')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'x')
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  NextVariables(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,32): error CS0136: A local or parameter named 'i' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         /*<bind>*/foreach (int i in x)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "i").WithArguments("i").WithLocation(7, 32),
+                // file.cs(6,13): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         int i = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
