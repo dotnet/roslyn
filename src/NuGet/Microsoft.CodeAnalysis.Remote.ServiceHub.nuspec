@@ -31,8 +31,10 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.dll" target="lib\net46" />
     <file src="Dlls\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.xml" target="lib\net46" />
+    <file src="Dlls\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>
