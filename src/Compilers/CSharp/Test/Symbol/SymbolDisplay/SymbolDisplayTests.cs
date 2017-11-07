@@ -5965,5 +5965,130 @@ class C
                 SymbolDisplayPartKind.ParameterName, // c
                 SymbolDisplayPartKind.Punctuation); // )
         }
+
+        [Fact]
+        public void LocalVariable_01()
+        {
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        int x = 0;
+        x++;
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateStandardCompilation(srcTree);
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var declarator = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+
+            Verify(
+                local.ToMinimalDisplayParts(
+                    semanticModel,
+                    declarator.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)),
+                "int x",
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName); // x
+
+            Assert.False(local.IsRef);
+            Assert.Equal(RefKind.None, local.RefKind);
+        }
+
+        [Fact]
+        public void LocalVariable_02()
+        {
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M(int y)
+    {
+        ref int x = y;
+        x++;
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateStandardCompilation(srcTree);
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var declarator = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+
+            Verify(
+                local.ToMinimalDisplayParts(
+                    semanticModel,
+                    declarator.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)),
+                "ref int x",
+                SymbolDisplayPartKind.Keyword, //ref
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName); // x
+
+            Verify(
+                local.ToMinimalDisplayParts(
+                    semanticModel,
+                    declarator.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "int x",
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName); // x
+
+            Assert.True(local.IsRef);
+            Assert.Equal(RefKind.Ref, local.RefKind);
+        }
+
+        [Fact]
+        public void LocalVariable_03()
+        {
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M(int y)
+    {
+        ref readonly int x = y;
+        x++;
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateStandardCompilation(srcTree);
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var declarator = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+
+            Verify(
+                local.ToMinimalDisplayParts(
+                    semanticModel,
+                    declarator.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)),
+                "ref readonly int x",
+                SymbolDisplayPartKind.Keyword, //ref
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, //readonly
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName); // x
+
+            Verify(
+                local.ToMinimalDisplayParts(
+                    semanticModel,
+                    declarator.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "int x",
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName); // x
+
+            Assert.True(local.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, local.RefKind);
+        }
     }
 }

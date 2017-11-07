@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -1313,9 +1314,16 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            ' We have 2 OperationKind.None operations in the operation tree:
+            ' (1) BoundUnstructedExceptionHandlingStatement for the method block with Resume statement
+            ' (2) BoundResumeStatement for Resume statement
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(NoneOperationTestAnalyzer.NoneOperationDescriptor.Id, <![CDATA[Public Sub Barney  
+        Resume  
+    End Sub]]>).WithLocation(22, 5),
                                            Diagnostic(NoneOperationTestAnalyzer.NoneOperationDescriptor.Id, "Resume").WithLocation(23, 9))
         End Sub
 
@@ -2093,6 +2101,102 @@ End Module
             comp.VerifyAnalyzerDiagnostics({New TrueFalseUnaryOperationTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x").WithLocation(27, 12),
                 Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x AndAlso y").WithLocation(33, 12))
+        End Sub
+
+        <WorkItem(9202, "https://github.com/dotnet/roslyn/issues/9202")>
+        <Fact>
+        Public Sub IOperationFeatureFlagVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Sub M()
+        Dim a = 1
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            ' with IOperation disabled (by default), public methods
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New AnalysisContextAnalyzer}, Nothing, Nothing, True,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.AnalysisContextAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New CompilationStartAnalysisContextAnalyzer}, Nothing, Nothing, True,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.CompilationStartAnalysisContextAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New SemanticModelAnalyzer}, Nothing, Nothing, True,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.SemanticModelAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1))
+
+            ' with IOperation disabled (by default), internal methods
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New AnalysisContextInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(AnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New CompilationStartAnalysisContextInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(CompilationStartAnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New SemanticModelInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(SemanticModelInternalAnalyzer.GetOperationInternalDescriptor.Id, "1").WithLocation(3, 17))
+
+            ' with IOperation enabled, public methods
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New AnalysisContextAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(AnalysisContextAnalyzer.OperationActionDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New CompilationStartAnalysisContextAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(CompilationStartAnalysisContextAnalyzer.OperationActionDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New SemanticModelAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(SemanticModelAnalyzer.GetOperationDescriptor.Id, "1").WithLocation(3, 17))
+
+            ' with IOperation enabled, internal methods
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New AnalysisContextInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(AnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New CompilationStartAnalysisContextInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(CompilationStartAnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New SemanticModelInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(SemanticModelInternalAnalyzer.GetOperationInternalDescriptor.Id, "1").WithLocation(3, 17))
+        End Sub
+
+        <Fact>
+        Public Sub TestOperationBlockAnalyzer_EmptyMethodBody()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M()
+    End Sub
+    
+    Public Sub M2(i as Integer)
+    End Sub
+    
+    Public Sub M3(Optional i as Integer = 0)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New OperationBlockAnalyzer}, Nothing, Nothing, False,
+                                            Diagnostic("ID", "M").WithArguments("M", "Block").WithLocation(2, 16),
+                                            Diagnostic("ID", "M2").WithArguments("M2", "Block").WithLocation(5, 16),
+                                            Diagnostic("ID", "M3").WithArguments("M3", "ParameterInitializer").WithLocation(8, 16),
+                                            Diagnostic("ID", "M3").WithArguments("M3", "Block").WithLocation(8, 16))
         End Sub
     End Class
 End Namespace
