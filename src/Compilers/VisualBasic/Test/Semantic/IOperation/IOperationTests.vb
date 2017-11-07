@@ -852,7 +852,7 @@ Public Class Test
 End Class
 ]]>.Value
 
-            Dim comp = CreateVisualBasicCompilation(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateVisualBasicCompilation(source)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 

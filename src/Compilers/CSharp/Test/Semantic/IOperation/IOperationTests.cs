@@ -183,7 +183,7 @@ public class Test
     }
 }
 ";
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var comp = CreateStandardCompilation(text);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
