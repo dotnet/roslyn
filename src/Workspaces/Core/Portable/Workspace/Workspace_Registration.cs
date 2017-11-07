@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
 
             var registration = GetWorkspaceRegistration(textContainer);
 
-            RaiseTextRegistrationChangedEvents(registration, newWorkspace: this);
+            SetAndRaiseTextRegistrationChangedEvents(registration, newWorkspace: this);
         }
 
         /// <summary>
@@ -58,22 +58,19 @@ namespace Microsoft.CodeAnalysis
             // guard us from being called with wrong text container.
             if (registration.Workspace == this)
             {
-                RaiseTextRegistrationChangedEvents(registration, newWorkspace: null);
+                SetAndRaiseTextRegistrationChangedEvents(registration, newWorkspace: null);
             }
         }
 
-        private void RaiseTextRegistrationChangedEvents(WorkspaceRegistration registration, Workspace newWorkspace, [CallerMemberName] string eventName = null)
+        private void SetAndRaiseTextRegistrationChangedEvents(WorkspaceRegistration registration, Workspace newWorkspace, [CallerMemberName] string eventName = null)
         {
             var oldWorkspace = registration.Workspace;
-
-            // set workspace right away, but events are lazy. 
-            // people, who is checking Registration.Workspace directly, will see the change right away but
-            // people, that listens to the event, won't see the change right away
             registration.SetWorkspace(newWorkspace);
-            this.ScheduleTask(() =>
-            {
-                registration.RaiseEvents(oldWorkspace, newWorkspace);
-            }, eventName);
+
+            // workspace change event is synchronous events. and it doesn't use workspace events queue since 
+            // WorkspaceRegistration is not associated with 1 specific workspace. workspace events queue is specific to 1 workspace
+            // using multiple queues that belong to multiple workspace will cause events to be out of order
+            registration.RaiseEvents(oldWorkspace, newWorkspace);
         }
 
         private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)

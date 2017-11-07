@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly object _gate;
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
+        private readonly Dictionary<Workspace, Dictionary<DocumentId, ImmutableArray<Action<DiagnosticsUpdatedArgs>>>> _documentSubscriptions;
 
         [ImportingConstructor]
         public DiagnosticService([ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) : this()
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _gate = new object();
             _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
+            _documentSubscriptions = new Dictionary<Workspace, Dictionary<DocumentId, ImmutableArray<Action<DiagnosticsUpdatedArgs>>>>();
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
@@ -54,16 +56,63 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        public IDisposable Subscribe(Workspace workspace, DocumentId documentId, Action<DiagnosticsUpdatedArgs> action)
+        {
+            // diagnostic service's events are asynchronous events, so any actions against it should be serialized through
+            // the events queue
+            var eventToken = _listener.BeginAsyncOperation("Subscribe");
+            _eventQueue.ScheduleTask(() =>
+            {
+                lock (_gate)
+                {
+                    var subscriptions = _documentSubscriptions.GetOrAdd(workspace, _ => new Dictionary<DocumentId, ImmutableArray<Action<DiagnosticsUpdatedArgs>>>());
+                    var actions = subscriptions.GetOrAdd(documentId, _ => ImmutableArray<Action<DiagnosticsUpdatedArgs>>.Empty);
+                    subscriptions[documentId] = actions.Add(action);
+                }
+
+            }).CompletesAsyncOperation(eventToken);
+
+            return new Subscription(this, workspace, documentId, action);
+        }
+
+        private void Unsubscribe(Workspace workspace, DocumentId documentId, Action<DiagnosticsUpdatedArgs> action)
+        {
+            // diagnostic service's events are asynchronous events, so any actions against it should be serialized through
+            // the events queue
+            var eventToken = _listener.BeginAsyncOperation("Unsubscribe");
+            _eventQueue.ScheduleTask(() =>
+            {
+                lock (_gate)
+                {
+                    if (!_documentSubscriptions.TryGetValue(workspace, out var subscriptions) ||
+                        !subscriptions.TryGetValue(documentId, out var actions))
+                    {
+                        return;
+                    }
+
+                    subscriptions[documentId] = actions.Remove(action);
+                    if (subscriptions[documentId].Length > 0)
+                    {
+                        return;
+                    }
+
+                    subscriptions.Remove(documentId);
+                    if (subscriptions.Count > 0)
+                    {
+                        return;
+                    }
+
+                    _documentSubscriptions.Remove(workspace);
+                }
+            }).CompletesAsyncOperation(eventToken);
+        }
+
         private void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
         {
             Contract.ThrowIfNull(sender);
             var source = (IDiagnosticUpdateSource)sender;
 
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
-            if (!RequireRunningEventTasks(source, ev))
-            {
-                return;
-            }
 
             var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
             _eventQueue.ScheduleTask(() =>
@@ -74,29 +123,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
+                // first raise global events
                 ev.RaiseEvent(handler => handler(sender, args));
+
+                // and then raise document specific events
+                RaiseDocumentEvents(args);
+
             }).CompletesAsyncOperation(eventToken);
         }
 
-        private bool RequireRunningEventTasks(
-            IDiagnosticUpdateSource source, EventMap.EventHandlerSet<EventHandler<DiagnosticsUpdatedArgs>> ev)
+        private void RaiseDocumentEvents(DiagnosticsUpdatedArgs args)
         {
-            // basically there are 2 cases when there is no event handler registered. 
-            // first case is when diagnostic update source itself provide GetDiagnostics functionality. 
-            // in that case, DiagnosticService doesn't need to track diagnostics reported. so, it bail out right away.
-            // second case is when diagnostic source doesn't provide GetDiagnostics functionality. 
-            // in that case, DiagnosticService needs to track diagnostics reported. so it need to enqueue background 
-            // work to process given data regardless whether there is event handler registered or not.
-            // this could be separated in 2 tasks, but we already saw cases where there are too many tasks enqueued, 
-            // so I merged it to one. 
-
-            // if it doesn't SupportGetDiagnostics, we need to process reported data, so enqueue task.
-            if (!source.SupportGetDiagnostics)
+            ImmutableArray<Action<DiagnosticsUpdatedArgs>> actions;
+            lock (_gate)
             {
-                return true;
+                // not document specific diagnostics
+                if (args.DocumentId == null)
+                {
+                    return;
+                }
+
+                if (!_documentSubscriptions.TryGetValue(args.Workspace, out var subscriptions) ||
+                    !subscriptions.TryGetValue(args.DocumentId, out actions))
+                {
+                    return;
+                }
             }
 
-            return ev.HasHandlers;
+            foreach (var action in actions)
+            {
+                action(args);
+            }
         }
 
         private bool UpdateDataMap(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
@@ -155,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             RaiseDiagnosticsUpdated(sender, e);
         }
 
-        public IEnumerable<DiagnosticData> GetDiagnostics(
+        public IEnumerable<DiagnosticData> GetCachedDiagnostics(
             Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             if (id != null)
@@ -365,6 +422,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.DocumentId = args.DocumentId;
                 this.Id = args.Id;
                 this.Diagnostics = diagnostics;
+            }
+        }
+
+        private class Subscription : IDisposable
+        {
+            private readonly DiagnosticService _service;
+            private readonly Workspace _workspace;
+            private readonly DocumentId _documentId;
+            private readonly Action<DiagnosticsUpdatedArgs> _action;
+
+            public Subscription(
+                DiagnosticService service,
+                Workspace workspace,
+                DocumentId documentId,
+                Action<DiagnosticsUpdatedArgs> action)
+            {
+                _service = service;
+                _workspace = workspace;
+                _documentId = documentId;
+                _action = action;
+            }
+
+            public void Dispose()
+            {
+                _service.Unsubscribe(_workspace, _documentId, _action);
             }
         }
     }

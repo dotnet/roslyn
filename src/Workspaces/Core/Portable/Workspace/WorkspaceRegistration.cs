@@ -26,12 +26,21 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal sealed class WorkspaceChangedEventArgs : EventArgs
+    public sealed class WorkspaceChangedEventArgs : EventArgs
     {
+        /// <summary>
+        /// Point to old workspace it was associated with. it can be null
+        /// if it was never associated with a workspace before
+        /// </summary>
         public readonly Workspace OldWorkspace;
+
+        /// <summary>
+        /// Point to new workspace it is associated with. it can be null
+        /// if it is being removed.
+        /// </summary>
         public readonly Workspace NewWorkspace;
 
-        public WorkspaceChangedEventArgs(Workspace oldWorkspace, Workspace newWorkspace)
+        internal WorkspaceChangedEventArgs(Workspace oldWorkspace, Workspace newWorkspace)
         {
             OldWorkspace = oldWorkspace;
             NewWorkspace = newWorkspace;

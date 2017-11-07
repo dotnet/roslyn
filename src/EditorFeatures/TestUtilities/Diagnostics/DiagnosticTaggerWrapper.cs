@@ -136,15 +136,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
             }
 
-            // if workspace waiter exist, wait for it first.
-            var workspaceWaiter = (IAsynchronousOperationWaiter)_workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>()
-                        .FirstOrDefault(l => l.Metadata.FeatureName == FeatureAttribute.Workspace)?.Value;
-
-            if (workspaceWaiter != null)
-            {
-                await workspaceWaiter.CreateWaitTask();
-            }
-
             await _asyncListener.CreateWaitTask();
         }
 

@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void Shutdown(IDiagnosticUpdateSource source, Workspace workspace)
         {
+            // we use event queue to preserve order between events. listener
+            // will get all diagnostics changed async events before Shutdown happened.
             var eventToken = _listener.BeginAsyncOperation(nameof(Shutdown));
             _eventQueue.ScheduleTask(() =>
             {

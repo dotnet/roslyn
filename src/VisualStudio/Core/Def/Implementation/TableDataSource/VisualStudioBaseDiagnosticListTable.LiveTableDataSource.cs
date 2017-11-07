@@ -230,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override ImmutableArray<TableItem<DiagnosticData>> GetItems()
                 {
                     var provider = _source._diagnosticService;
-                    var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, cancellationToken: CancellationToken.None)
+                    var items = provider.GetCachedDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, cancellationToken: CancellationToken.None)
                                         .Where(ShouldInclude).Select(d => new TableItem<DiagnosticData>(d, GenerateDeduplicationKey));
 
                     return items.ToImmutableArrayOrEmpty();

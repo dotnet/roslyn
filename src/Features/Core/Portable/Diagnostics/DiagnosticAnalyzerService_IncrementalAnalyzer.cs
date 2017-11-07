@@ -42,29 +42,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ShutdownAnalyzerFrom(Workspace workspace)
         {
             // this should be only called once analyzer associated with the workspace is done.
-            // this will let diagnostic service to remove data associated with the workspace from this source
+            // DiagnosticAnalyzerService implements IDiagnosticUpdateSource and register itself to IDiagnosticService
+            // and IDiagnosticService will hold onto some data from this source to do book keeping.
+            // this will tell IDiagnosticService to drop any information related to the workspace from this
+            // otherwise, IDiagnosticService can hold onto some information which causes memory leaks.
+            //
+            // to preserve order of events, we use event queue to serialize events. we use explicit queue for it
+            // rather than using UI thread and its message queue to archieve same thing implicitly.
             var asyncToken = Listener.BeginAsyncOperation(nameof(ShutdownAnalyzerFrom));
             _eventQueue.ScheduleTask(() =>
             {
-                // workspace such as previewWorkspace, which can come and go on the fly, will use this to remove data saved. 
-                // but since this doesn't raise diagnostic removed events, if there are others
-                // who hold onto diagnostics reported, it is their responsibility to clean them up when workspace
-                // goes away
+                // workspace such as previewWorkspace, which can come and go on the fly, will use this to remove data saved
+                // in IDiagnosticService. but since diagnostic changed events are something anyone can listen to, there might
+                // be other listener who hold onto its event args reported by DiagnosticChanged event. for those, its
+                // the listener's responsibility to clean thsoe up when workspace goes away.
                 _registrationService.Shutdown(this, workspace);
             }).CompletesAsyncOperation(asyncToken);
         }
 
         private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
         {
-            // subscribe to active context changed event for new workspace
-            workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
-
             return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, _hostAnalyzerManager, _hostDiagnosticUpdateSource);
-        }
-
-        private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
-        {
-            Reanalyze(e.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
         }
     }
 }
