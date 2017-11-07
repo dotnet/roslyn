@@ -6535,7 +6535,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_PtrIndexSingle, node);
                 }
-                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)), CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
+                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)).MakeCompilerGenerated(), 
+                    CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
             }
 
             if (pointedAtType.SpecialType == SpecialType.System_Void)
@@ -7192,11 +7193,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = BindConditionalAccessReceiver(conditionalAccessNode, diagnostics);
             }
 
-            if (receiver.HasAnyErrors)
-            {
-                return receiver;
-            }
-
             // create surrogate receiver
             var receiverType = receiver.Type;
             if (receiverType?.IsNullableType() == true)
@@ -7204,7 +7200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverType = receiverType.GetNullableUnderlyingType();
             }
 
-            receiver = new BoundConditionalReceiver(receiver.Syntax, 0, receiverType) { WasCompilerGenerated = true };
+            receiver = new BoundConditionalReceiver(receiver.Syntax, 0, receiverType ?? CreateErrorType(), hasErrors: receiver.HasErrors) { WasCompilerGenerated = true };
             return receiver;
         }
 

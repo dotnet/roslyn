@@ -6872,6 +6872,7 @@ public class MyClass
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_PtrExpected, Line = 15, Column = 7 } });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0196ERR_PtrIndexSingle()
         {
@@ -6887,10 +6888,27 @@ unsafe public class MyClass
       // j = i[1];
    }
 }";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,11): error CS0196: A pointer must be indexed by only one value
                 //       j = i[1,2];   // CS0196
                 Diagnostic(ErrorCode.ERR_PtrIndexSingle, "i[1,2]"));
+
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
+
+            Assert.Equal("i[1,2]", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i[1,2]')
+  Children(2):
+      ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'i')
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i[1,2]')
+        Children(2):
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+");
         }
 
         [Fact]
@@ -12484,6 +12502,8 @@ class C
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(23004, "https://github.com/dotnet/roslyn/issues/23004")]
         public void CS0856ERR_IndexedPropertyRequiresParams01()
         {
             var source1 =
@@ -12522,6 +12542,19 @@ End Interface";
                 Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "i.R").WithArguments("I.R").WithLocation(8, 9),
                 // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'I.R[int, int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "i.R[1]").WithArguments("y", "I.R[int, int, int]").WithLocation(9, 9));
+
+            var tree = compilation2.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
+
+            Assert.Equal("i.R[1]", node.ToString());
+
+            compilation2.VerifyOperationTree(node, expectedOperationTree:
+@"
+IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid) (Syntax: 'i.R[1]')
+  Children(2):
+      IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: I, IsInvalid) (Syntax: 'i')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+");
         }
 
         [Fact]
@@ -22918,6 +22951,8 @@ class Program
 
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(23009, "https://github.com/dotnet/roslyn/issues/23009")]
         public void ConditionalElementAccess001()
         {
             var text = @"
@@ -22947,7 +22982,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (11,18): error CS0175: Use of keyword 'base' is not valid in this context
     //         var x6 = base?.ToString();
     Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(11, 18),
@@ -22970,8 +23005,23 @@ class Program
     //         var x5 = null?.ToString();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "<null>").WithLocation(24, 22)
     );
-        }
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().First();
 
+            Assert.Equal("base?.ToString()", node.ToString());
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:
+@"
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'base?.ToString()')
+  Operation: 
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Object, IsInvalid) (Syntax: 'base')
+  WhenNotNull: 
+    IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
+      Instance Receiver: 
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'base')
+      Arguments(0)
+");
+        }
 
         [Fact]
         [WorkItem(976765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/976765")]

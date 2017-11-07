@@ -187,16 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerAccess = (BoundIndexerAccess)expr;
                         if (valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef)
                         {
-                            expr = indexerAccess.Update(indexerAccess.ReceiverOpt,
-                               indexerAccess.Indexer,
-                               indexerAccess.Arguments,
-                               indexerAccess.ArgumentNamesOpt,
-                               indexerAccess.ArgumentRefKindsOpt,
-                               indexerAccess.Expanded,
-                               indexerAccess.ArgsToParamsOpt,
-                               indexerAccess.BinderOpt,
-                               useSetterForDefaultArgumentGeneration: true,
-                               type: indexerAccess.Type);
+                            expr = indexerAccess.Update(useSetterForDefaultArgumentGeneration: true);
                         }
                     }
                     break;
