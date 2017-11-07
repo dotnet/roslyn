@@ -282,5 +282,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
         End Function
+
+        Public Function RemoveObjectCastIfAny(semanticModel As SemanticModel, node As SyntaxNode) As SyntaxNode Implements ISemanticFactsService.RemoveObjectCastIfAny
+            Dim cast = TryCast(node, CastExpressionSyntax)
+
+            If cast IsNot Nothing Then
+                Dim typeSymbol = semanticModel.GetTypeInfo(cast.Type).Type
+
+                If typeSymbol?.SpecialType = SpecialType.System_Object Then
+                    Return cast.Expression
+                End If
+            End If
+
+            Return node
+        End Function
+
     End Class
 End Namespace

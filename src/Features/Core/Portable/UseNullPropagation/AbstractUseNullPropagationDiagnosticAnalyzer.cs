@@ -133,15 +133,15 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var conditionPartToCheck = conditionRightIsNull ? conditionLeft : conditionRight;
             var whenPartToCheck = isEquals ? whenFalseNode : whenTrueNode;
 
-            var whenPartMatch = GetWhenPartMatch(syntaxFacts, conditionPartToCheck, whenPartToCheck);
+            var semanticFacts = GetSemanticFactsService();
+            var semanticModel = context.SemanticModel;
+            var whenPartMatch = GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel, conditionPartToCheck, whenPartToCheck);
             if (whenPartMatch == null)
             {
                 return;
             }
 
             // ?. is not available in expression-trees.  Disallow the fix in that case.
-            var semanticFacts = GetSemanticFactsService();
-            var semanticModel = context.SemanticModel;
 
             var type = semanticModel.GetTypeInfo(conditionalExpression).Type;
             if (type?.IsValueType == true)
@@ -182,8 +182,9 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         internal static SyntaxNode GetWhenPartMatch(
-            ISyntaxFactsService syntaxFacts, SyntaxNode expressionToMatch, SyntaxNode whenPart)
+            ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, SemanticModel semanticModel, SyntaxNode expressionToMatch, SyntaxNode whenPart)
         {
+            expressionToMatch = semanticFacts.RemoveObjectCastIfAny(semanticModel ,expressionToMatch);
             var current = whenPart;
             while (true)
             {
