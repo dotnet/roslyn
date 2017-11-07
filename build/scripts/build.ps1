@@ -27,6 +27,7 @@ param (
     [switch]$sign = $false,
     [switch]$pack = $false,
     [string]$msbuildDir = "",
+    [string]$signType = "",
 
     # Test options 
     [switch]$test32 = $false,
@@ -513,9 +514,12 @@ function Run-SignTool() {
     try {
         $signTool = Join-Path (Get-PackageDir "RoslynTools.Microsoft.SignTool") "tools\SignTool.exe"
         $signToolArgs = "-msbuildPath `"$msbuild`""
-        if (-not $official) {
-            $signToolArgs += " -test"
+        switch ($signType) {
+            "real" { break; }
+            "test" { $signToolArgs += " -testSign"; break; }
+            default { $signToolArgs += " -test"; break; }
         }
+
         $signToolArgs += " `"$configDir`""
         Exec-Console $signTool $signToolArgs
     }
