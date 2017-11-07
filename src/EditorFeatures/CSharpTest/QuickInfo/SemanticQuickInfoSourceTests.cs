@@ -3028,7 +3028,7 @@ class C
                 select y;
     }
 }",
-                MainDescription($"({FeaturesResources.range_variable}) int y"));
+                MainDescription($"({FeaturesResources.range_variable}) int y (+ 1 {FeaturesResources.overload})"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3579,7 +3579,7 @@ class B
         public async Task TestLetIdentifier1()
         {
             await TestInMethodAsync("var q = from e in \"\" let $$y = 1 let a = new { y } select a;",
-                MainDescription($"({FeaturesResources.range_variable}) int y"));
+                MainDescription($"({FeaturesResources.range_variable}) int y (+ 1 {FeaturesResources.overload})"));
         }
 
         [WorkItem(545295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545295")]
