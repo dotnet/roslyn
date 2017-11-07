@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SymbolInfo GetSymbolInfoForQuery(BoundQueryClause bound)
         {
-            var call = bound?.Operation as BoundCall;
+            var call = (bound?.Operation as BoundCall) ?? (bound.UnoptimizedForm as BoundQueryClause)?.Operation as BoundCall;
             if (call == null)
             {
                 return SymbolInfo.None;
@@ -1114,6 +1114,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var bound = GetBoundQueryClause(node);
+            return GetSymbolInfoForQuery(bound);
+        }
+
+        public override SymbolInfo GetSymbolInfo(QueryClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var bound = GetBoundQueryClause(node);
             return GetSymbolInfoForQuery(bound);

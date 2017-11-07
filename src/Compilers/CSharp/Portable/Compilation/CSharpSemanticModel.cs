@@ -492,6 +492,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Gets the semantic information associated with a select or group clause.
+        /// </summary>
+        public abstract SymbolInfo GetSymbolInfo(QueryClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
         /// 
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
@@ -4532,6 +4537,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetSymbolInfo(cref, cancellationToken);
                 case SelectOrGroupClauseSyntax selectOrGroupClause:
                     return this.GetSymbolInfo(selectOrGroupClause, cancellationToken);
+                case OrderByClauseSyntax orderByClauseSyntax when orderByClauseSyntax.Orderings[0].AscendingOrDescendingKeyword.Kind() == SyntaxKind.None:
+                    return this.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken);
+                case QueryClauseSyntax whereClauseSyntax:
+                    return this.GetSymbolInfo(whereClauseSyntax, cancellationToken);
                 case OrderingSyntax orderingSyntax:
                     return this.GetSymbolInfo(orderingSyntax, cancellationToken);
             }
