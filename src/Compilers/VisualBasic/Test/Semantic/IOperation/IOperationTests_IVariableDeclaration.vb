@@ -26,7 +26,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -57,7 +56,6 @@ IVariableDeclarationGroupOperation (3 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i2 As Integer')
@@ -65,7 +63,6 @@ IVariableDeclarationGroupOperation (3 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'b1 As Boolean')
@@ -73,7 +70,6 @@ IVariableDeclarationGroupOperation (3 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: b1 As System.Boolean) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -114,7 +110,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -150,11 +145,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -192,7 +185,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: '')
@@ -200,7 +192,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol:  As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -238,11 +229,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol:  As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -277,7 +266,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
         ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
@@ -306,7 +294,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
         ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
@@ -315,7 +302,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i3 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i3')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
         ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
@@ -347,7 +333,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ReturnInt()')
         IInvocationOperation (Function Program.ReturnInt() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'ReturnInt()')
@@ -382,7 +367,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ReturnInt()')
         IInvocationOperation (Function Program.ReturnInt() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'ReturnInt()')
@@ -394,7 +378,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ReturnInt()')
         IInvocationOperation (Function Program.ReturnInt() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'ReturnInt()')
@@ -427,7 +410,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: p1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
         IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -458,11 +440,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
         IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -494,7 +474,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As ?) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New')
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'New')
@@ -527,11 +506,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As ?) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As ?) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New')
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'New')
@@ -564,11 +541,9 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
         IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -580,7 +555,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: b1 As System.Boolean) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= False')
         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
@@ -608,7 +582,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: b1 As System.Boolean) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
   IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'i1, i2 As New Integer')
@@ -616,11 +589,9 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
         IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -664,7 +635,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
                 Initializer: 
                   null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -691,11 +661,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1()')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -738,7 +706,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
                 Initializer: 
                   null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer')
         IInvalidOperation (OperationKind.Invalid, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'As New Integer')
@@ -786,7 +753,6 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 4')
               Initializer: 
                 null
-        IgnoredArguments(0)
   Initializer: 
     null
 ]]>.Value
@@ -815,7 +781,6 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: s As System.String()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's')
         Initializer: 
           null
-        IgnoredArguments(0)
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= {"Hello", "World"}')
       IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String()) (Syntax: '{"Hello", "World"}')
@@ -852,7 +817,6 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: d As System.Nullable(Of System.Int32)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd%?')
         Initializer: 
           null
-        IgnoredArguments(0)
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 42')
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '42')
@@ -885,11 +849,9 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: d As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'd')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: x As System.Nullable(Of System.Int32)) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x%?')
         Initializer: 
           null
-        IgnoredArguments(0)
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 42')
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '42')
@@ -934,107 +896,81 @@ IVariableDeclarationOperation (26 declarators) (OperationKind.VariableDeclaratio
       IVariableDeclaratorOperation (Symbol: a As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: b As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'b')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: c As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: d As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'd')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: e As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: f As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'f')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: g As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'g')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: h As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'h')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: j As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'j')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: k As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'k')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: l As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'l')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: m As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'm')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: n As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'n')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: o As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'o')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: p As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: q As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'q')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: r As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'r')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: s As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 's')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: t As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 't')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: u As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'u')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: v As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: w As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'w')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: z As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'z')
         Initializer: 
           null
-        IgnoredArguments(0)
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 1')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -1069,7 +1005,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: x As System.Int32()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x()')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New Integ ... 1, 2, 3, 4}')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer ... 1, 2, 3, 4}')
@@ -1118,7 +1053,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '1')
                 Initializer: 
                   null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New Integ ... 1, 2, 3, 4}')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer ... 1, 2, 3, 4}')
@@ -1170,7 +1104,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
                 Initializer: 
                   null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: y As System.Int32()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y(2)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'y(2)')
@@ -1183,7 +1116,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
                 Initializer: 
                   null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer')
         IInvalidOperation (OperationKind.Invalid, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'As New Integer')
@@ -1234,11 +1166,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
                 Initializer: 
                   null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -1280,11 +1210,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
                 Initializer: 
                   null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer')
         IInvalidOperation (OperationKind.Invalid, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'As New Integer')
@@ -1323,7 +1251,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: y As System.Int32()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y(10)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'y(10)')
@@ -1336,7 +1263,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
                 Initializer: 
                   null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer')
         IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
@@ -1383,7 +1309,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
                 Initializer: 
                   null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: y As System.String()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y$(11)')
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'y$(11)')
@@ -1396,7 +1321,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '11')
                 Initializer: 
                   null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -1438,7 +1362,6 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End 
             IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
               Initializer: 
                 null
-              IgnoredArguments(0)
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C')
             IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
@@ -1519,7 +1442,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1555,7 +1477,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1564,7 +1485,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -1599,7 +1519,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer')
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i1')
@@ -1635,11 +1554,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer')
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i1')
@@ -1684,7 +1601,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1716,7 +1632,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1725,7 +1640,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -1762,7 +1676,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
         ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'i1')
@@ -1795,7 +1708,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
         ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'i1')
@@ -1804,7 +1716,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i3 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i3')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
         ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'i1')
@@ -1843,7 +1754,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= Int1()')
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
@@ -1884,7 +1794,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= Int1()')
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
@@ -1898,7 +1807,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= Int1()')
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
@@ -1938,7 +1846,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As ?) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New')
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'i1')
@@ -1974,11 +1881,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As ?) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As ?) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New')
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'i1')
@@ -2020,7 +1925,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -2029,7 +1933,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol:  As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: '')
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: '')
@@ -2076,7 +1979,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -2111,11 +2013,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -2153,7 +2053,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
         IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -2188,11 +2087,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
         IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -2227,11 +2124,9 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer')
         IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer')
@@ -2243,7 +2138,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: b1 As System.Boolean) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= False')
         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
@@ -2271,7 +2165,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
@@ -2302,7 +2195,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
@@ -2314,7 +2206,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '2')
@@ -2346,7 +2237,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
         ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i1')
@@ -2375,7 +2265,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
         ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i1')
@@ -2384,7 +2273,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i3 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i3')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
         ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i1')
@@ -2416,7 +2304,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= Int1()')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
@@ -2454,7 +2341,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= Int1()')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
@@ -2469,7 +2355,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= Int1()')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
@@ -2503,7 +2388,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As ?) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -2541,11 +2425,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As ?) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: i2 As ?) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -2586,7 +2468,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -2623,7 +2504,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -2633,7 +2513,6 @@ IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -2673,11 +2552,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: i1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol:  As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value
@@ -2761,11 +2638,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: x As System.Object) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol: y As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -2823,7 +2698,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: x As Test) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Test')
         IObjectCreationOperation (Constructor: Sub Test..ctor()) (OperationKind.ObjectCreation, Type: Test) (Syntax: 'New Test')
@@ -2876,11 +2750,9 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: x As Test) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
         Initializer: 
           null
-        IgnoredArguments(0)
       IVariableDeclaratorOperation (Symbol: y As Test) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y')
         Initializer: 
           null
-        IgnoredArguments(0)
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Test')
       IObjectCreationOperation (Constructor: Sub Test..ctor()) (OperationKind.ObjectCreation, Type: Test) (Syntax: 'New Test')

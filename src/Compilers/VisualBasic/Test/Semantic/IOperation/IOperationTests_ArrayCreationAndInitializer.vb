@@ -408,7 +408,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: a As System.Object()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= {}')
         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Object()) (Syntax: '{}')
@@ -1220,7 +1219,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '2')
                 Initializer: 
                   null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value

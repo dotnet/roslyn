@@ -317,7 +317,6 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                   Initializer: 
                     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ }')
                       Initializers(0)
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var j = new ...  x = { } };')
@@ -339,7 +338,6 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                             Initializer: 
                               IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ }')
                                 Initializers(0)
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var k = new ... Test() { };')
@@ -353,7 +351,6 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                   Initializer: 
                     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: MemberInitializerTest) (Syntax: '{ }')
                       Initializers(0)
-            IgnoredArguments(0)
       Initializer: 
         null
 ";
@@ -1942,7 +1939,6 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                             Initializer: 
                               IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ }')
                                 Initializers(0)
-            IgnoredArguments(0)
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = new Mem ... int> { } };')
@@ -2001,7 +1997,6 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                       Initializers(1):
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '{ }')
                             Children(0)
-            IgnoredArguments(0)
       Initializer: 
         null
 ";
@@ -2106,7 +2101,6 @@ IBlockOperation (3 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '1')
                             Children(1):
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var tc = ne ...  ""hello"" };')
@@ -2126,7 +2120,6 @@ IBlockOperation (3 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '""hello""')
                             Children(1):
                                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hello"", IsInvalid) (Syntax: '""hello""')
-            IgnoredArguments(0)
       Initializer: 
         null
   IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 0;')
@@ -2590,7 +2583,6 @@ IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '1')
                             Children(1):
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'C coll2 = new C { 1 };')
@@ -2607,7 +2599,6 @@ IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                           IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
                             Children(1):
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'D coll3 = n ... { 1, 2 } };')
@@ -2625,7 +2616,6 @@ IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                             Children(2):
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'E coll4 = new E { 1 };')
@@ -2642,7 +2632,6 @@ IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                           IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
                             Children(1):
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-            IgnoredArguments(0)
       Initializer: 
         null
   IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 0;')

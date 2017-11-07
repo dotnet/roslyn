@@ -1849,7 +1849,6 @@ IVariableDeclaratorOperation (Symbol: (System.Int64, System.Int64, System.Int64,
             Arguments(0)
             Initializer: 
               null
-  IgnoredArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3918,7 +3917,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                     Elements(2):
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-          IgnoredArguments(0)
     Initializer: 
       null
 ";

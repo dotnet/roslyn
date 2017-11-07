@@ -143,7 +143,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
               IVariableDeclaratorOperation (Symbol: value As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'value')
                 Initializer: 
                   null
-                IgnoredArguments(0)
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= System.Th ... ment(index)')
               IInvocationOperation (Function System.Threading.Interlocked.Increment(ByRef location As System.Int32) As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'System.Thre ... ment(index)')
@@ -258,7 +257,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
               IVariableDeclaratorOperation (Symbol: value As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'value')
                 Initializer: 
                   null
-                IgnoredArguments(0)
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= System.Th ... ment(index)')
               IInvocationOperation (Function System.Threading.Interlocked.Increment(ByRef location As System.Int32) As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'System.Thre ... ment(index)')
@@ -337,7 +335,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
               IVariableDeclaratorOperation (Symbol: value As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'value')
                 Initializer: 
                   null
-                IgnoredArguments(0)
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= System.Th ... ment(index)')
               IInvocationOperation (Function System.Threading.Interlocked.Increment(ByRef location As System.Int32) As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'System.Thre ... ment(index)')
@@ -642,7 +639,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
               IVariableDeclaratorOperation (Symbol: value As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'value')
                 Initializer: 
                   null
-                IgnoredArguments(0)
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= System.Th ... ment(index)')
               IInvocationOperation (Function System.Threading.Interlocked.Increment(ByRef location As System.Int32) As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'System.Thre ... ment(index)')
@@ -867,7 +863,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
               IVariableDeclaratorOperation (Symbol: j As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j')
                 Initializer: 
                   null
-                IgnoredArguments(0)
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -957,7 +952,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
               IVariableDeclaratorOperation (Symbol: j As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j')
                 Initializer: 
                   null
-                IgnoredArguments(0)
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')

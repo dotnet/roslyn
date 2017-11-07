@@ -675,7 +675,6 @@ ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchCla
     IVariableDeclaratorOperation (Symbol: ex As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ex')
       Initializer: 
         null
-      IgnoredArguments(0)
   Filter: 
     IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'ex Is Nothing')
       Left: 

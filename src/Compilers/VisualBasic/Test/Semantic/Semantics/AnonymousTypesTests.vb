@@ -123,7 +123,6 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: v1 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v1')
             Initializer: 
               null
-            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New With {.a = tr}')
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = tr}')
@@ -144,7 +143,6 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: v2 As System.Object) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'v2')
             Initializer: 
               null
-            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New With {.a = {{tr}}}')
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = {{tr}}}')
@@ -732,7 +730,6 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'err')
             Initializer: 
               null
-            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New With {<a/>.<_>}')
           IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid) (Syntax: 'New With {<a/>.<_>}')
@@ -744,7 +741,6 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ok')
             Initializer: 
               null
-            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New With {<a/>.<__>}')
           IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')

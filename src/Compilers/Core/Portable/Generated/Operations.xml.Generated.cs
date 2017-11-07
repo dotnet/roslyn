@@ -5436,16 +5436,16 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                if (Initializer != null)
-                {
-                    yield return Initializer;
-                }
                 if (!IgnoredArguments.IsEmpty)
                 {
                     foreach (var arg in IgnoredArguments)
                     {
                         yield return arg;
                     }
+                }
+                if (Initializer != null)
+                {
+                    yield return Initializer;
                 }
             }
         }
@@ -5489,7 +5489,7 @@ namespace Microsoft.CodeAnalysis.Operations
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
-            _lazyIgnoredArguments = ignoredArguments;
+            _lazyIgnoredArguments = ignoredArguments ?? throw new ArgumentNullException(nameof(ignoredArguments));
         }
 
         protected override IVariableInitializerOperation InitializerImpl => _lazyInitializer.Value;

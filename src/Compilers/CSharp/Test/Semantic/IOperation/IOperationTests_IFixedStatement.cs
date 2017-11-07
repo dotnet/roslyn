@@ -48,7 +48,6 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed(int * ... }')
                               IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i')
-                IgnoredArguments(0)
           Initializer: 
             null
       IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
@@ -123,7 +122,6 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                               IFieldReferenceOperation: System.Int32 C.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
-                IgnoredArguments(0)
               IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &i2')
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i2')
@@ -134,7 +132,6 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                               IFieldReferenceOperation: System.Int32 C.i2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i2')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i2')
-                IgnoredArguments(0)
           Initializer: 
             null
       IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
@@ -204,7 +201,6 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                               IFieldReferenceOperation: System.Int32 C.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
-                IgnoredArguments(0)
           Initializer: 
             null
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
@@ -222,7 +218,6 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                                     IFieldReferenceOperation: System.Int32 C.i2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i2')
                                       Instance Receiver: 
                                         IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i2')
-                      IgnoredArguments(0)
                 Initializer: 
                   null
             IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
@@ -282,7 +277,6 @@ IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'fixed (int* .
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
                     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                       Children(0)
-                IgnoredArguments(0)
           Initializer: 
             null
       IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
@@ -346,7 +340,6 @@ IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'fixed (int* .
                               IFieldReferenceOperation: System.Int32 C.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
-                IgnoredArguments(0)
           Initializer: 
             null
       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')

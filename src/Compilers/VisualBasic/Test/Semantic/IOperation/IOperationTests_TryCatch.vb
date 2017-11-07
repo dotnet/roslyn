@@ -44,7 +44,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
           IVariableDeclaratorOperation (Symbol: ex As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ex')
             Initializer: 
               null
-            IgnoredArguments(0)
         Filter: 
           IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
             Left: 
@@ -108,7 +107,6 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Priva
             IVariableDeclaratorOperation (Symbol: ex As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ex')
               Initializer: 
                 null
-              IgnoredArguments(0)
           Filter: 
             IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
               Left: 
@@ -165,7 +163,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
           IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
-            IgnoredArguments(0)
         Filter: 
           null
         Handler: 
@@ -203,7 +200,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
           IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
-            IgnoredArguments(0)
         Filter: 
           IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
             Left: 
@@ -254,7 +250,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
           IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
-            IgnoredArguments(0)
         Filter: 
           null
         Handler: 
@@ -265,7 +260,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
           IVariableDeclaratorOperation (Symbol: e As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
-            IgnoredArguments(0)
         Filter: 
           IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
             Left: 
@@ -316,7 +310,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
           IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
-            IgnoredArguments(0)
         Filter: 
           null
         Handler: 
@@ -327,7 +320,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
           IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
             Initializer: 
               null
-            IgnoredArguments(0)
         Filter: 
           IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
             Left: 
@@ -696,7 +688,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
               IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
                 Initializer: 
                   null
-                IgnoredArguments(0)
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -735,7 +726,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
           IVariableDeclaratorOperation (Symbol: ex As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ex')
             Initializer: 
               null
-            IgnoredArguments(0)
         Filter: 
           null
         Handler: 
@@ -747,7 +737,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
                     IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
                       Initializer: 
                         null
-                      IgnoredArguments(0)
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -788,7 +777,6 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try'BIND:"T ... End Try'
               IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
                 Initializer: 
                   null
-                IgnoredArguments(0)
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -823,7 +811,6 @@ ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'Try'BIND:"T .
           IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
             Initializer: 
               null
-            IgnoredArguments(0)
         Filter: 
           null
         Handler: 
@@ -861,7 +848,6 @@ ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.Cat
     IVariableDeclaratorOperation (Symbol: e As System.IO.IOException) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e')
       Initializer: 
         null
-      IgnoredArguments(0)
   Filter: 
     IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
       Left: 

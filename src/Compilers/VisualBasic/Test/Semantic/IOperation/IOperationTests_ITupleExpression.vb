@@ -52,7 +52,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: t As (System.Int32, System.Int32)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
@@ -115,7 +114,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: t As (System.UInt32, System.UInt32)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.UInt32, System.UInt32), IsImplicit) (Syntax: '(1, 2)')
@@ -187,7 +185,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: t As (System.UInt32, System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, Nothing)')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.UInt32, System.String), IsImplicit) (Syntax: '(1, Nothing)')
@@ -255,7 +252,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: t As (A As System.Int32, B As System.Int32)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (A:=1, B:=2)')
         ITupleOperation (OperationKind.Tuple, Type: (A As System.Int32, B As System.Int32)) (Syntax: '(A:=1, B:=2)')
@@ -314,7 +310,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: t As (A As System.Int32, B As System.Int32)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (1, 2)')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (A As System.Int32, B As System.Int32), IsImplicit) (Syntax: '(1, 2)')
@@ -382,7 +377,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: t As (A As System.Int16, B As System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (A:=1, B:=Nothing)')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (A As System.Int16, B As System.String), IsImplicit) (Syntax: '(A:=1, B:=Nothing)')
@@ -495,7 +489,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: t As (A As System.Int16, B As System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (New C(0), c1)')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (A As System.Int16, B As System.String), IsImplicit) (Syntax: '(New C(0), c1)')
@@ -597,7 +590,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: t As C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (0, Nothing)')
         IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(x As (System.Int32, System.String)) As C) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: '(0, Nothing)')
@@ -686,7 +678,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: t As (System.Int32, System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= c1')
         IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As (System.Int32, System.String)) (OperationKind.Conversion, Type: (System.Int32, System.String), IsImplicit) (Syntax: 'c1')
@@ -792,7 +783,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: t As (System.Int16, System.String)) (OperationKind.VariableDeclarator, Type: null) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (New C(0), c1)')
         ITupleOperation (OperationKind.Tuple, Type: (System.Int16, c1 As System.String), IsInvalid) (Syntax: '(New C(0), c1)')

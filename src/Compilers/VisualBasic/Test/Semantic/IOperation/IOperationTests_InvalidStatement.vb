@@ -27,11 +27,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
           Initializer: 
             null
-          IgnoredArguments(0)
         IVariableDeclaratorOperation (Symbol:  As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ]]>.Value

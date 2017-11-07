@@ -60,7 +60,6 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                   Arguments(0)
                   Initializer: 
                     null
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x2 = ne ... ield = 2 };')
@@ -81,7 +80,6 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Field')
                             Right: 
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x3 = ne ... ty1 = """" };')
@@ -102,7 +100,6 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Property1')
                             Right: 
                               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x4 = ne ... ield = 2 };')
@@ -130,7 +127,6 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Field')
                             Right: 
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x5 = ne ... = true } };')
@@ -162,7 +158,6 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                                                 IInstanceReferenceOperation (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Field')
                                           Right: 
                                             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var e1 = ne ... rty2 = 1 };')
@@ -186,7 +181,6 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 Operand: 
                                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var e2 = new F() { """" };')
@@ -203,7 +197,6 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '""""')
                             Children(1):
                                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsInvalid) (Syntax: '""""')
-            IgnoredArguments(0)
       Initializer: 
         null
 ";

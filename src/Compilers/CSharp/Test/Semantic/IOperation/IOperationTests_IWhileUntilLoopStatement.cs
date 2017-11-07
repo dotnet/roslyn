@@ -153,7 +153,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                     IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
                       Target: 
                         ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
-                IgnoredArguments(0)
           Initializer: 
             null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (value > ... }')
@@ -219,7 +218,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                     IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
                       Target: 
                         ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
-                IgnoredArguments(0)
           Initializer: 
             null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (value > ... }')
@@ -298,7 +296,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                     IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
                       Target: 
                         ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
-                IgnoredArguments(0)
           Initializer: 
             null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (value > ... }')
@@ -592,7 +589,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid)
                     IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++index')
                       Target: 
                         ILocalReferenceOperation: index (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'index')
-                IgnoredArguments(0)
           Initializer: 
             null
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (value > ... }')
@@ -758,7 +754,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-                IgnoredArguments(0)
           Initializer: 
             null
       IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')
@@ -847,7 +842,6 @@ IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: '
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-                IgnoredArguments(0)
           Initializer: 
             null
       IWhileLoopOperation (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'while (j <  ... }')

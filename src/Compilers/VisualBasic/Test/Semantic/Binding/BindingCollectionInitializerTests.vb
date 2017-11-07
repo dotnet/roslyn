@@ -394,7 +394,6 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: a As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
             Initializer: 
               null
-            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C2() ... .a = "goo"}')
           IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2() Wi ... .a = "goo"}')
@@ -415,7 +414,6 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: b As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b')
             Initializer: 
               null
-            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New C2() ... lo World!"}')
           IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'New C2() Fr ... lo World!"}')
@@ -432,7 +430,6 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: c As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c')
             Initializer: 
               null
-            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New C2()  ... lo World!"}')
           IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Fr ... lo World!"}')
@@ -449,7 +446,6 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: d As C2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd')
             Initializer: 
               null
-            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New C2()  ... .a = "goo"}')
           IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreation, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')

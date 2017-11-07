@@ -49,7 +49,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                       IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'F()')
                         ReturnedValue: 
                           null
-          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -134,7 +133,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                       IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'F()')
                         ReturnedValue: 
                           null
-          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -214,7 +212,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                         Instance Receiver: 
                           null
                         Arguments(0)
-          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -263,7 +260,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                             Instance Receiver: 
                               null
                             Arguments(0)
-          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -318,7 +314,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                           IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
                             ReturnedValue: 
                               null
-          IgnoredArguments(0)
     Initializer: 
       null
 ";
@@ -367,7 +362,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                             Instance Receiver: 
                               null
                             Arguments(0)
-          IgnoredArguments(0)
     Initializer: 
       null
 ";

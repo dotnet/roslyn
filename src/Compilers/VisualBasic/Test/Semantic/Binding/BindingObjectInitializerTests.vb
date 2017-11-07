@@ -811,7 +811,6 @@ IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
           IVariableDeclaratorOperation (Symbol: x As C3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
             Initializer: 
               null
-            IgnoredArguments(0)
       Initializer: 
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New C3() ... .X = "goo"}')
           IObjectCreationOperation (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreation, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')

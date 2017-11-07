@@ -170,7 +170,6 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
                                 Arguments(0)
                                 Initializer: 
                                   null
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object v2 = ... };')
@@ -221,7 +220,6 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
                                     IFieldReferenceOperation: ClassA.SSS ClassA.CCC (Static) (OperationKind.FieldReference, Type: ClassA.SSS) (Syntax: 'ClassA.CCC')
                                       Instance Receiver: 
                                         null
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object v3 = new { };')
@@ -235,7 +233,6 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>) (Syntax: 'new { }')
                       Initializers(0)
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var v4 = new { };')
@@ -246,7 +243,6 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new { }')
                 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>) (Syntax: 'new { }')
                   Initializers(0)
-            IgnoredArguments(0)
       Initializer: 
         null
 ";
@@ -1153,7 +1149,6 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                             Right: 
                               IInvalidOperation (OperationKind.Invalid, Type: SSS, IsInvalid) (Syntax: 'new SSS()')
                                 Children(0)
-            IgnoredArguments(0)
       Initializer: 
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'object v2 = ... };')
@@ -1202,7 +1197,6 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'ClassA.CCC')
                                       Children(1):
                                           IOperation:  (OperationKind.None, Type: null) (Syntax: 'ClassA')
-            IgnoredArguments(0)
       Initializer: 
         null
 ";
@@ -1278,7 +1272,6 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new { }')
             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>, IsInvalid) (Syntax: 'new { }')
               Initializers(0)
-        IgnoredArguments(0)
   Initializer: 
     null";
             var expectedDiagnostics = new DiagnosticDescription[] {

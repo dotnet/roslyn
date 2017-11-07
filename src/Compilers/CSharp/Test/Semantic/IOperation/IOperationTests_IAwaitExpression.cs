@@ -206,7 +206,6 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IVariableDeclaratorOperation (Symbol: await t) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 't')
           Initializer: 
             null
-          IgnoredArguments(0)
     Initializer: 
       null
 ";
