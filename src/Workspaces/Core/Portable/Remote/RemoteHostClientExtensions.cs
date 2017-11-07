@@ -230,10 +230,19 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                await remoteHostClient.IgnoreCancellationAsync(() =>
-                    remoteHostClient.TryRunRemoteAsync(
+                try
+                {
+                    // this will return false only if OOP doesn't exist. 
+                    // otherwise, it will throw and handled as usual. here we don't care about return value
+                    // since if OOP doesn't exist, this call is NOOP and don't have any meaning.
+                    await remoteHostClient.TryRunRemoteAsync(
                         WellKnownRemoteHostServices.RemoteHostService, solution,
-                        nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken)).ConfigureAwait(false);
+                        nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
+                }
+                catch (UnexpectedRemoteHostException)
+                {
+                    // ignore unexpected remote host failure
+                }
             }
         }
 
@@ -308,17 +317,26 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async Task IgnoreCancellationAsync(
-            this RemoteHostClient client, Func<Task> actionAsync)
+        /// <summary>
+        /// this is a workaround to not crash host when remote call is failed for a reason not
+        /// related to us. example will be extension manager failure, connection creation failure
+        /// and etc. this is a special exception that should be only used in very specific cases.
+        /// 
+        /// this inherits cancellation exception since we don't want this workaround to be too intrusive
+        /// on our code. we already handle cancellation gracefully and recover properly in most of cases
+        /// so we decided to use this workaround until underlying issues are fixed.
+        /// 
+        /// this is defined here due to layering issue.
+        /// 
+        /// in long term, we expect to move to NFW in most of our code base, 
+        /// and this situation should be naturally taken cared by the NFW framework
+        /// without this workaround
+        /// </summary>
+        public class UnexpectedRemoteHostException : OperationCanceledException
         {
-            try
+            public UnexpectedRemoteHostException() :
+                base("unexpected remote host exception", CancellationToken.None)
             {
-                await actionAsync().ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                // in error case, we could get operation cancelled exception.
-                // in that case, we already show info bar to users, so don't crash VS
             }
         }
     }

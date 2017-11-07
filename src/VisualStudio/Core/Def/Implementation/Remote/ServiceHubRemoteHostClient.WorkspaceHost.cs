@@ -80,14 +80,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 try
                 {
+                    // this will only return false if OOP doesn't exist. otherwise,
+                    // it will throw and handled as usual
                     _session.TryInvokeAsync(
                         nameof(IRemoteHostService.RegisterPrimarySolutionId),
                         new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
                 }
-                catch (OperationCanceledException)
+                catch (RemoteHostClientExtensions.UnexpectedRemoteHostException)
                 {
-                    // in error case, we could get operation cancelled exception.
-                    // in that case, we already show info bar to users, so don't crash VS
+                    // don't crash on unexpected remote host exception.
                 }
             }
 
@@ -96,15 +97,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 try
                 {
+                    // this will only return false if OOP doesn't exist. otherwise,
+                    // it will throw and handled as usual
                     _session.TryInvokeAsync(
                         nameof(IRemoteHostService.UnregisterPrimarySolutionId),
                         new object[] { solutionId, synchronousShutdown },
                         CancellationToken.None).Wait(CancellationToken.None);
                 }
-                catch (OperationCanceledException)
+                catch (RemoteHostClientExtensions.UnexpectedRemoteHostException)
                 {
-                    // in error case, we could get operation cancelled exception.
-                    // in that case, we already show info bar to users, so don't crash VS
+                    // don't crash on unexpected remote host exception.
                 }
             }
 
