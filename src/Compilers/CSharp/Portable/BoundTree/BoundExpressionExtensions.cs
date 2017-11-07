@@ -224,6 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TupleLiteral:
                     return false;
                 case BoundKind.DefaultExpression:
+                    {
+                        var defaultExpression = (BoundDefaultExpression)expr;
+                        return ((object)defaultExpression.Type == null) ? (bool?)null : defaultExpression.IsNullable;
+                    }
                 case BoundKind.Literal:
                 case BoundKind.UnboundLambda:
                     break;

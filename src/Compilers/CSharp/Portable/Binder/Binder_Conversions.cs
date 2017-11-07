@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
             if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
             {
-                source = ((BoundDefaultExpression)source).Update(constantValue, destination);
+                var defaultExpression = (BoundDefaultExpression)source;
+                source = defaultExpression.Update(defaultExpression.IsNullable, constantValue, destination);
             }
 
             return new BoundConversion(

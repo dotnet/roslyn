@@ -12699,6 +12699,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creating a null value of a non-nullable type..
+        /// </summary>
+        internal static string WRN_DefaultOfNonNullableType {
+            get {
+                return ResourceManager.GetString("WRN_DefaultOfNonNullableType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating a null value of a non-nullable type..
+        /// </summary>
+        internal static string WRN_DefaultOfNonNullableType_Title {
+            get {
+                return ResourceManager.GetString("WRN_DefaultOfNonNullableType_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The default value specified for parameter &apos;{0}&apos; will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
         /// </summary>
         internal static string WRN_DefaultValueForUnconsumedLocation {

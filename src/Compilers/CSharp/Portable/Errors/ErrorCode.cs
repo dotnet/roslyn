@@ -1491,6 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PatternWrongGenericTypeInVersion = 8314,
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
+        WRN_DefaultOfNonNullableType = 8599,
         WRN_NullAsNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
         WRN_NullReferenceReceiver = 8602,

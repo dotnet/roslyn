@@ -1126,8 +1126,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindDefaultExpression(DefaultExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            TypeSymbol type = this.BindType(node.Type, diagnostics).TypeSymbol;
-            return new BoundDefaultExpression(node, type);
+            var typeWithAnnotations = this.BindType(node.Type, diagnostics);
+            var type = typeWithAnnotations.TypeSymbol;
+            var isNullable = typeWithAnnotations.IsNullable;
+            Debug.Assert(isNullable.HasValue);
+            return new BoundDefaultExpression(node, isNullable: isNullable.GetValueOrDefault(), constantValueOpt: type.GetDefaultValue(), type: type);
         }
 
         /// <summary>

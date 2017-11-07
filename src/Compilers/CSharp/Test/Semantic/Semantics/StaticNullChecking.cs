@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public partial class StaticNullChecking : CSharpTestBase
+    public class StaticNullChecking : CSharpTestBase
     {
         private const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
@@ -3299,9 +3299,9 @@ struct S2
                 // (291,15): warning CS8602: Possible dereference of a null reference.
                 //         z30 = x30[y30];
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x30").WithLocation(291, 15),
-                // (296,15): warning CS8600: Cannot convert null to non-nullable reference.
+                // (296,15): warning CS8599: Creating a null value of a non-nullable type.
                 //         x31 = default(CL1);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(CL1)").WithLocation(296, 15),
+                Diagnostic(ErrorCode.WRN_DefaultOfNonNullableType, "default(CL1)").WithLocation(296, 15),
                 // (301,19): hidden CS8607: Expression is probably never null.
                 //         var y32 = new CL1() ?? x32;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new CL1()").WithLocation(301, 19),
@@ -9112,9 +9112,9 @@ class C
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (10,14): warning CS8600: Cannot convert null to non-nullable reference.
+                // (10,14): warning CS8599: Creating a null value of a non-nullable type.
                 //         x1 = default(C);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(C)").WithLocation(10, 14)
+                Diagnostic(ErrorCode.WRN_DefaultOfNonNullableType, "default(C)").WithLocation(10, 14)
                 );
         }
 
@@ -15053,9 +15053,9 @@ class Program
                 // (16,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = null as string?;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null as string?").WithLocation(16, 22),
-                // (17,22): warning CS8600: Cannot convert null to non-nullable reference.
+                // (17,22): warning CS8599: Creating a null value of a non-nullable type.
                 //         p.LastName = default(string);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(17, 22),
+                Diagnostic(ErrorCode.WRN_DefaultOfNonNullableType, "default(string)").WithLocation(17, 22),
                 // (18,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         p.LastName = default;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(18, 22),
@@ -15134,9 +15134,9 @@ static class Extensions
                 // (15,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
                 //         (null as string?).F();
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string?").WithArguments("s", "void Extensions.F(string s)").WithLocation(15, 10),
-                // (16,9): warning CS8600: Cannot convert null to non-nullable reference.
+                // (16,9): warning CS8599: Creating a null value of a non-nullable type.
                 //         default(string).F();
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(16, 9),
+                Diagnostic(ErrorCode.WRN_DefaultOfNonNullableType, "default(string)").WithLocation(16, 9),
                 // (17,11): hidden CS8605: Result of the comparison is possibly always true.
                 //         ((p != null) ? p.MiddleName : null).F();
                 Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "p != null").WithLocation(17, 11),
@@ -15217,9 +15217,9 @@ class Program
                 // (16,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
                 //         G(null as string?);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string?").WithArguments("name", "void Program.G(string name)").WithLocation(16, 11),
-                // (17,11): warning CS8600: Cannot convert null to non-nullable reference.
+                // (17,11): warning CS8599: Creating a null value of a non-nullable type.
                 //         G(default(string));
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(17, 11),
+                Diagnostic(ErrorCode.WRN_DefaultOfNonNullableType, "default(string)").WithLocation(17, 11),
                 // (18,11): warning CS8600: Cannot convert null to non-nullable reference.
                 //         G(default);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(18, 11),
@@ -15297,9 +15297,9 @@ class Program
                 // (14,27): warning CS8603: Possible null reference return.
                 //     static string F5() => null as string?;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string?").WithLocation(14, 27),
-                // (15,27): warning CS8600: Cannot convert null to non-nullable reference.
+                // (15,27): warning CS8599: Creating a null value of a non-nullable type.
                 //     static string F6() => default(string);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(15, 27),
+                Diagnostic(ErrorCode.WRN_DefaultOfNonNullableType, "default(string)").WithLocation(15, 27),
                 // (16,27): warning CS8600: Cannot convert null to non-nullable reference.
                 //     static string F7() => default;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(16, 27),
@@ -15315,7 +15315,7 @@ class Program
         }
 
         [Fact]
-        public void SuppressNullableWarning()
+        public void SuppressNullableWarning_01()
         {
             var source =
 @"class C
@@ -15324,7 +15324,7 @@ class Program
     {
         G(null!);
         G((null as string)!);
-        G(default(string)!);
+        G(default(string)!); // Cannot suppress warning from default(string)
         G(default!);
         G(s!);
     }
@@ -15344,7 +15344,7 @@ class Program
                 //         G((null as string)!);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "(null as string)!").WithArguments("static null checking", "8.0").WithLocation(6, 11),
                 // (7,11): error CS8107: Feature 'static null checking' is not available in C# 7. Please use language version 8.0 or greater.
-                //         G(default(string)!);
+                //         G(default(string)!); // Cannot suppress warning from default(string)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default(string)!").WithArguments("static null checking", "8.0").WithLocation(7, 11),
                 // (8,11): error CS8107: Feature 'static null checking' is not available in C# 7. Please use language version 8.0 or greater.
                 //         G(default!);
@@ -15362,7 +15362,32 @@ class Program
             comp = CreateStandardCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,11): warning CS8599: Creating a null value of a non-nullable type.
+                //         G(default(string)!); // Cannot suppress warning from default(string)
+                Diagnostic(ErrorCode.WRN_DefaultOfNonNullableType, "default(string)").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void SuppressNullableWarning_02()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+        G(default(string?));
+        G(default(string?)!);
+    }
+    static void G(string s)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,11): warning CS8600: Cannot convert null to non-nullable reference.
+                //         G(default(string?));
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string?)").WithLocation(5, 11));
         }
 
         [Fact]
