@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Variables to be fixed.
         /// </summary>
-        IVariableDeclarationsOperation Variables { get; }
+        IVariableDeclarationGroupOperation Variables { get; }
         /// <summary>
         /// Body of the fixed, over which the variables are fixed.
         /// </summary>

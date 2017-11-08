@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
                 // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
-                Debug.Assert(false);
+                Debug.Assert(false, e.ToString());
             }
 
             return null;

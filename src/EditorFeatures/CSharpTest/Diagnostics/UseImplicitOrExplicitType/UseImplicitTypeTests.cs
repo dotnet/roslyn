@@ -1749,5 +1749,216 @@ class C
 }",
 options: ImplicitTypeEverywhere());
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class C
+{
+    static void M()
+    {
+        [|Span<int>|] x = stackalloc int [10];
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class C
+{
+    static void M(bool choice)
+    {
+        [|Span<int>|] x = choice ? stackalloc int [10] : stackalloc int [100];
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+class C
+{
+    static void M()
+    {
+        [|Span<int>|] x = (Span<int>)stackalloc int [100];
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task SuggestVarOnLambdasWithNestedStackAllocs()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.Linq;
+class C
+{
+    unsafe static void M()
+    {
+        [|int|] x = new int[] { 1, 2, 3 }.First(i =>
+        {
+            int* y = stackalloc int[10];
+            return i == 1;
+        });
+    }
+}", @"
+using System.Linq;
+class C
+{
+    unsafe static void M()
+    {
+        var x = new int[] { 1, 2, 3 }.First(i =>
+        {
+            int* y = stackalloc int[10];
+            return i == 1;
+        });
+    }
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task SuggestVarOnAnonymousMethodsWithNestedStackAllocs()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.Linq;
+class C
+{
+    unsafe static void M()
+    {
+        [|int|] x = new int[] { 1, 2, 3 }.First(delegate (int i)
+        {
+            int* y = stackalloc int[10];
+            return i == 1;
+        });
+    }
+}", @"
+using System.Linq;
+class C
+{
+    unsafe static void M()
+    {
+        var x = new int[] { 1, 2, 3 }.First(delegate (int i)
+        {
+            int* y = stackalloc int[10];
+            return i == 1;
+        });
+    }
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task SuggestVarOnStackAllocsNestedInLambdas()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.Linq;
+class C
+{
+    unsafe static void M()
+    {
+        var x = new int[] { 1, 2, 3 }.First(i =>
+        {
+            [|int*|] y = stackalloc int[10];
+            return i == 1;
+        });
+    }
+}", @"
+using System.Linq;
+class C
+{
+    unsafe static void M()
+    {
+        var x = new int[] { 1, 2, 3 }.First(i =>
+        {
+            var y = stackalloc int[10];
+            return i == 1;
+        });
+    }
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task SuggestVarOnStackAllocsNestedInAnonymousMethods()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.Linq;
+class C
+{
+    unsafe static void M()
+    {
+        var x = new int[] { 1, 2, 3 }.First(delegate (int i)
+        {
+            [|int*|] y = stackalloc int[10];
+            return i == 1;
+        });
+    }
+}", @"
+using System.Linq;
+class C
+{
+    unsafe static void M()
+    {
+        var x = new int[] { 1, 2, 3 }.First(delegate (int i)
+        {
+            var y = stackalloc int[10];
+            return i == 1;
+        });
+    }
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(22768, "https://github.com/dotnet/roslyn/issues/22768")]
+        public async Task SuggestVarOnStackAllocsInOuterMethodScope()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    unsafe static void M()
+    {
+        [|int*|] x = stackalloc int [10];
+    }
+}", @"
+class C
+{
+    unsafe static void M()
+    {
+        var x = stackalloc int [10];
+    }
+}", options: ImplicitTypeEverywhere());
+        }
     }
 }

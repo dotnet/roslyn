@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis
 
                     cc.RegisterOperationBlockStartAction(oc =>
                     {
-                        oc.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.Operation), OperationKind.VariableDeclarations);
+                        oc.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.Operation), OperationKind.VariableDeclarationGroup);
                         oc.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.OperationBlockEnd));
                     });
                 });
@@ -834,12 +834,37 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (_actionKind == ActionKind.Operation)
                 {
-                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), OperationKind.VariableDeclarations);
+                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), OperationKind.VariableDeclarationGroup);
                 }
                 else
                 {
                     context.RegisterOperationBlockAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
                 }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class OperationBlockAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "OperationBlock for {0}: {1}",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockAction(c =>
+                {
+                    foreach (var operationRoot in c.OperationBlocks)
+                    {
+                        var diagnostic = Diagnostic.Create(Descriptor, c.OwningSymbol.Locations[0], c.OwningSymbol.Name, operationRoot.Kind);
+                        c.ReportDiagnostic(diagnostic);
+                    }
+                });
             }
         }
 

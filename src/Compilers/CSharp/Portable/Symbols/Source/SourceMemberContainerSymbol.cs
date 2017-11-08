@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
-            if (_lazyMembersDictionary != null || MemberNames.Contains(name))
+            if (_lazyMembersDictionary != null || declaration.MemberNames.Contains(name))
             {
                 return GetMembers(name);
             }

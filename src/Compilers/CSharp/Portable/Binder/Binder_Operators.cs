@@ -2605,7 +2605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!operand.HasAnyErrors)
                     {
                         Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
-                        operand = BadExpression(node, operand);
+                        operand = BadExpression(node, operand).MakeCompilerGenerated();
                     }
 
                     return true;
