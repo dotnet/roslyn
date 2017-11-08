@@ -162,8 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                     isNullable = ((PropertySymbol)symbol).Type.IsNullable;
                     break;
+                default:
+                    return null;
             }
-            return Invert(isNullable);
+            return (isNullable == null) ? (bool?)null : !isNullable.GetValueOrDefault();
         }
 
         protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
@@ -2923,11 +2925,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!other.Reachable);
                 return false;
             }
-        }
-
-        private static bool? Invert(bool? b)
-        {
-            return (b == null) ? (bool?)null : !b.GetValueOrDefault();
         }
 
 #if REFERENCE_STATE
