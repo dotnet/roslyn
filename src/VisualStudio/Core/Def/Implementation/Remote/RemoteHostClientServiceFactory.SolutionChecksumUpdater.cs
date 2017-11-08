@@ -109,19 +109,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _event.Release();
             }
 
-            private Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
+            private async Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
             {
-                return _service.Workspace.SynchronizePrimaryWorkspaceAsync(_service.Workspace.CurrentSolution, cancellationToken);
-            }
-
-            private static void CancelAndDispose(CancellationTokenSource cancellationSource)
-            {
-                // cancel running tasks
-                cancellationSource.Cancel();
-
-                // dispose cancellation token source
-                cancellationSource.Dispose();
+                try
+                {
+                    await _service.Workspace.SynchronizePrimaryWorkspaceAsync(_service.Workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                }
+                catch (JsonRpcEx.UnexpectedRemoteHostException)
+                {
+                    // ignore unexpected remote host exception. it is allowed here since it is part of OOP engine.
+                    // no one outside of engine should ever catch this exception or care about it.
+                    // we catch here so that we don't physically crash VS and give users time to save and exist VS
+                }
             }
         }
+
+        private static void CancelAndDispose(CancellationTokenSource cancellationSource)
+        {
+            // cancel running tasks
+            cancellationSource.Cancel();
+
+            // dispose cancellation token source
+            cancellationSource.Dispose();
+        }
     }
+}
 }

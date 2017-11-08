@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         nameof(IRemoteHostService.RegisterPrimarySolutionId),
                         new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
                 }
-                catch (RemoteHostClientExtensions.UnexpectedRemoteHostException)
+                catch (JsonRpcEx.UnexpectedRemoteHostException)
                 {
                     // ignore unexpected remote host exception. it is allowed here since it is part of OOP engine.
                     // no one outside of engine should ever catch this exception or care about it.
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         new object[] { solutionId, synchronousShutdown },
                         CancellationToken.None).Wait(CancellationToken.None);
                 }
-                catch (RemoteHostClientExtensions.UnexpectedRemoteHostException)
+                catch (JsonRpcEx.UnexpectedRemoteHostException)
                 {
                     // ignore unexpected remote host exception. it is allowed here since it is part of OOP engine.
                     // no one outside of engine should ever catch this exception or care about it.

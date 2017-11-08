@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // throw special cancellation token to indicate this unexpected situation has happened
             // we create new exception since throw sets stacktrace of the exception
-            throw new RemoteHostClientExtensions.UnexpectedRemoteHostException();
+            throw new UnexpectedRemoteHostException();
         }
 
         protected void Disconnect()
@@ -239,6 +239,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// this is a workaround to not crash host when remote call is failed for a reason not
+        /// related to us. example will be extension manager failure, connection creation failure
+        /// and etc. this is a special exception that should be only used in very specific cases.
+        /// 
+        /// no one except code related to OOP engine should care about this exception. 
+        /// if this is fired, then VS is practicially in corrupted/crashed mode. we just didn't
+        /// physically crashed VS due to feedbacks that want to give users time to save their works.
+        /// when this is fired, VS clearly shows users to save works and restart VS since VS is crashed.
+        /// 
+        /// so no one should ever, outside of OOP engine, try to catch this exception and try to recover.
+        /// 
+        /// that facts this inherits cancellation exception is an implementation detail to make VS not physically crash.
+        /// it doesn't mean one should try to recover from it or treat it as cancellation exception.
+        /// 
+        /// we choose cancellation exception since we didn't want this workaround to be too intrusive.
+        /// on our code. we already handle cancellation gracefully and recover properly in most of cases.
+        /// but that doesn't mean we want to let users to keep use VS. like I stated above, once this is
+        /// fired, VS is logically crashed. we just want VS to be stable enough until users save and exist VS.
+        /// 
+        /// this is a workaround since we would like to go back to normal crash behavior
+        /// if enough of the above issues are fixed or we implements official NFW framework in Roslyn
+        /// </summary>
+        public class UnexpectedRemoteHostException : OperationCanceledException
+        {
+            public UnexpectedRemoteHostException() :
+                base("unexpected remote host exception", CancellationToken.None)
+            {
+            }
         }
     }
 }

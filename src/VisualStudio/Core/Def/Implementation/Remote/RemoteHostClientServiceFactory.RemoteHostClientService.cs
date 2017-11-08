@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
                         nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync), (object)checksums, cancellationToken).ConfigureAwait(false);
                 }
-                catch(RemoteHostClientExtensions.UnexpectedRemoteHostException)
+                catch(JsonRpcEx.UnexpectedRemoteHostException)
                 {
                     // ignore unexpected remote host exception. it is allowed here since it is part of OOP engine.
                     // no one outside of engine should ever catch this exception or care about it.
