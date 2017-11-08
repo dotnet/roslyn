@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void AppendOperationTree(SemanticModel model, SyntaxNode node, StringBuilder actualTextBuilder, int initialIndent = 0)
         {
-            IOperation operation = model.GetOperationInternal(node);
+            IOperation operation = model.GetOperation(node);
             if (operation != null)
             {
                 string operationTree = OperationTreeVerifier.GetOperationTree(model.Compilation, operation, initialIndent);
