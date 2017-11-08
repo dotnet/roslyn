@@ -5,19 +5,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class BaseCSharpCompoundAssignmentOperation : BaseCompoundAssignmentExpression
     {
-        private static readonly CommonConversion CSharpConversion = new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, methodSymbol: null);
-
-        protected BaseCSharpCompoundAssignmentOperation(Operations.BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseCSharpCompoundAssignmentOperation(Conversion inConversion, Conversion outConversion, Operations.BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            InConversionInternal = inConversion;
+            OutConversionInternal = outConversion;
         }
 
-        public override CommonConversion InConversion => CSharpConversion;
-        public override CommonConversion OutConversion => CSharpConversion;
+        internal Conversion InConversionInternal { get; }
+        internal Conversion OutConversionInternal { get; }
+
+        public override CommonConversion InConversion => InConversionInternal.ToCommonConversion();
+        public override CommonConversion OutConversion => OutConversionInternal.ToCommonConversion();
     }
 
     internal class CSharpCompoundAssignmentOperation : BaseCSharpCompoundAssignmentOperation
     {
-        public CSharpCompoundAssignmentOperation(IOperation target, IOperation value, Operations.BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public CSharpCompoundAssignmentOperation(IOperation target, IOperation value, Conversion inConversion, Conversion outConversion, Operations.BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             TargetImpl = target;
             ValueImpl = value;
@@ -31,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
-        public LazyCSharpCompoundAssignmentOperation(Lazy<IOperation> target, Lazy<IOperation> value, Operations.BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCSharpCompoundAssignmentOperation(Lazy<IOperation> target, Lazy<IOperation> value, Conversion inConversion, Conversion outConversion, Operations.BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+            base(inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyTarget = target;
             _lazyValue = value;
