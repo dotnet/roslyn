@@ -241,6 +241,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         F3 = z;
     }
+    internal C(object x, object y, string z) : base()
+    {
+        F3 = z;
+    }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -250,24 +254,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 // (7,13): warning CS8618: Non-nullable field 'F3' is uninitialized.
                 //     private C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(7, 13),
-                // (11,14): warning CS8618: Non-nullable field 'F3' is uninitialized.
-                //     internal C(object x) : this()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(11, 14),
-                // (11,14): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                //     internal C(object x) : this()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(11, 14),
-                // (15,14): warning CS8618: Non-nullable field 'F2' is uninitialized.
-                //     internal C(object x, object y) : this(x)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(15, 14),
-                // (15,14): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                //     internal C(object x, object y) : this(x)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(15, 14),
-                // (19,14): warning CS8618: Non-nullable field 'F2' is uninitialized.
-                //     internal C(object x, object y, object z) : this()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(19, 14),
-                // (19,14): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                //     internal C(object x, object y, object z) : this()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(19, 14));
+                // (23,14): warning CS8618: Non-nullable field 'F2' is uninitialized.
+                //     internal C(object x, object y, string z) : base()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(23, 14),
+                // (23,14): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                //     internal C(object x, object y, string z) : base()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(23, 14));
         }
 
         [Fact]
