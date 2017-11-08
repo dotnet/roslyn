@@ -52,6 +52,7 @@ Microsoft.CodeAnalysis.IOperation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNod
 Microsoft.CodeAnalysis.IOperation.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.IPropertySymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.IPropertySymbol.ReturnsByRefReadonly.get -> bool
+Microsoft.CodeAnalysis.ModuleMetadata.IsDisposed.get -> bool
 Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AddressOf = 64 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AnonymousFunction = 35 -> Microsoft.CodeAnalysis.OperationKind
@@ -502,6 +503,7 @@ abstract Microsoft.CodeAnalysis.SemanticModel.RootCore.get -> Microsoft.CodeAnal
 override Microsoft.CodeAnalysis.Operations.OperationWalker.DefaultVisit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Operations.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Optional<T>.ToString() -> string
+static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.ModuleMetadata module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation> debugInformationProvider, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, System.Reflection.Metadata.StandaloneSignatureHandle> localSignatureProvider, bool hasPortableDebugInformation) -> Microsoft.CodeAnalysis.Emit.EmitBaseline
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentName(this Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation dynamicExpression, int index) -> string
@@ -512,6 +514,7 @@ static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentRefKind(
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentRefKind(this Microsoft.CodeAnalysis.Operations.IDynamicObjectCreationOperation dynamicExpression, int index) -> Microsoft.CodeAnalysis.RefKind?
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation declarationGroup) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation declaration) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
+static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetVariableInitializer(this Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation declarationOperation) -> Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
