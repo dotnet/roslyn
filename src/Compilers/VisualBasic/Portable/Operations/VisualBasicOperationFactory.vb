@@ -272,7 +272,12 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundAssignmentOperatorOperation(boundAssignmentOperator As BoundAssignmentOperator) As IOperation
-            If boundAssignmentOperator.LeftOnTheRightOpt IsNot Nothing Then
+            If boundAssignmentOperator.Syntax.IsKind(SyntaxKind.MidAssignmentStatement) Then
+                ' We don't support mid statements currently. Return a none operation for them
+                Dim constantValue = ConvertToOptional(TryCast(boundAssignmentOperator, BoundExpression)?.ConstantValueOpt)
+                Dim isImplicit As Boolean = boundAssignmentOperator.WasCompilerGenerated
+                Return Operation.CreateOperationNone(_semanticModel, boundAssignmentOperator.Syntax, constantValue, Function() GetIOperationChildren(boundAssignmentOperator), isImplicit)
+            ElseIf boundAssignmentOperator.LeftOnTheRightOpt IsNot Nothing Then
                 Return CreateCompoundAssignment(boundAssignmentOperator)
             Else
                 Dim isImplicit As Boolean = boundAssignmentOperator.WasCompilerGenerated

@@ -2,11 +2,19 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Operations
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub CompoundAssignment_NullArgumentToGetConversionThrows()
+            Assert.Throws(Of ArgumentNullException)("compoundOperation", Function() TryCast(Nothing, ICompoundAssignmentOperation).GetInConversion())
+            Assert.Throws(Of ArgumentNullException)("compoundOperation", Function() TryCast(Nothing, ICompoundAssignmentOperation).GetOutConversion())
+        End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
