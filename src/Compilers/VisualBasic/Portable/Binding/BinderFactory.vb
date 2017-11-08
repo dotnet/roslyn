@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim declarator = DirectCast(node, VariableDeclaratorSyntax)
                             ' Declaration should have initializer or AsNew.
                             Debug.Assert(declarator.Initializer IsNot Nothing OrElse TryCast(declarator.AsClause, AsNewClauseSyntax) IsNot Nothing)
-                            ' more than one name may happen if there is a syntax error or AsNew clause with multiple fields
+                            ' more than one name may happen if there is a syntax error or AsNew clause with multiple fields/properties
                             Debug.Assert(declarator.Names.Count > 0)
 
                             containingNamedTypeBinder = GetContainingNamedTypeBinderForMemberNode(node.Parent.Parent, containingBinder)
@@ -284,13 +284,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim identifier = declarator.Names(0).Identifier
                             fieldOrProperty = containingNamedTypeBinder.ContainingType.FindFieldOrProperty(identifier.ValueText, identifier.Span, _tree)
 
-                            ' Handle multiple fields initialized with AsNew clause
+                            ' Handle multiple fields/properties initialized with AsNew clause
                             If declarator.Names.Count > 1 Then
                                 Dim builder = ArrayBuilder(Of Symbol).GetInstance
                                 For Each name In declarator.Names.Skip(1)
                                     identifier = name.Identifier
-                                    Dim additionalField As Symbol = containingNamedTypeBinder.ContainingType.FindFieldOrProperty(identifier.ValueText, identifier.Span, _tree)
-                                    builder.Add(additionalField)
+                                    Dim additionalFieldOrProperty As Symbol = containingNamedTypeBinder.ContainingType.FindFieldOrProperty(identifier.ValueText, identifier.Span, _tree)
+                                    builder.Add(additionalFieldOrProperty)
                                 Next
                                 additionalFieldsOrProperties = builder.ToImmutableAndFree
                             End If
