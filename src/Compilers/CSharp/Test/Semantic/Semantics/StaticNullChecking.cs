@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public partial class StaticNullChecking : CSharpTestBase
+    public class StaticNullChecking : CSharpTestBase
     {
         private const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
