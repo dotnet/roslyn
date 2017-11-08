@@ -8,6 +8,7 @@ using Word = System.UInt32;
 
 namespace Microsoft.CodeAnalysis
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct BitVector : IEquatable<BitVector>
     {
         private const Word ZeroWord = 0;
@@ -348,6 +349,16 @@ namespace Microsoft.CodeAnalysis
         {
             if (capacity <= 0) return 0;
             return WordsForCapacity(capacity) + 1;
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            var value = new char[_capacity];
+            for (int i = 0; i < _capacity; i++)
+            {
+                value[_capacity - i - 1] = this[i] ? '1' : '0';
+            }
+            return new string(value);
         }
     }
 }

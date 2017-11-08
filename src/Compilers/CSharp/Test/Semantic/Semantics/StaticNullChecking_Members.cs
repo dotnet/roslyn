@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -287,6 +288,9 @@ class Program
                 // (17,13): warning CS8601: Possible null reference assignment.
                 //         o = c.A.A; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.A.A").WithLocation(17, 13),
+                // (18,13): warning CS8601: Possible null reference assignment.
+                //         o = c.B.F; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.B.F").WithLocation(18, 13),
                 // (21,13): warning CS8601: Possible null reference assignment.
                 //         o = c.A.A; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.A.A").WithLocation(21, 13),
@@ -313,7 +317,74 @@ class Program
         [Fact]
         public void ModifyMembers_Properties()
         {
-            // PROTOTYPE(NullableReferenceTypes): As above with properties.
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    internal object? P { get; set; }
+}
+class C
+{
+    internal C? A { get; set; }
+    internal S B;
+}
+class Program
+{
+    static void M()
+    {
+        object o;
+        C c = new C();
+        o = c.A.A; // 1
+        o = c.B.P; // 1
+        c.A = new C();
+        c.B = new S();
+        o = c.A.A; // 2
+        o = c.B.P; // 2
+        c.A.A = new C();
+        c.B.P = new C();
+        o = c.A.A; // 3
+        o = c.B.P; // 3
+        c.A = new C();
+        c.B = new S();
+        o = c.A.A; // 4
+        o = c.B.P; // 4
+        c = new C();
+        o = c.A.A; // 5
+        o = c.B.P; // 5
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //         o = c.A.A; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.A").WithLocation(17, 13),
+                // (17,13): warning CS8601: Possible null reference assignment.
+                //         o = c.A.A; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.A.A").WithLocation(17, 13),
+                // (18,13): warning CS8601: Possible null reference assignment.
+                //         o = c.B.P; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.B.P").WithLocation(18, 13),
+                // (21,13): warning CS8601: Possible null reference assignment.
+                //         o = c.A.A; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.A.A").WithLocation(21, 13),
+                // (22,13): warning CS8601: Possible null reference assignment.
+                //         o = c.B.P; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.B.P").WithLocation(22, 13),
+                // (29,13): warning CS8601: Possible null reference assignment.
+                //         o = c.A.A; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.A.A").WithLocation(29, 13),
+                // (30,13): warning CS8601: Possible null reference assignment.
+                //         o = c.B.P; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.B.P").WithLocation(30, 13),
+                // (32,13): warning CS8602: Possible dereference of a null reference.
+                //         o = c.A.A; // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.A").WithLocation(32, 13),
+                // (32,13): warning CS8601: Possible null reference assignment.
+                //         o = c.A.A; // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.A.A").WithLocation(32, 13),
+                // (33,13): warning CS8601: Possible null reference assignment.
+                //         o = c.B.P; // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.B.P").WithLocation(33, 13));
         }
 
         [Fact]
@@ -361,6 +432,117 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b.A.F").WithLocation(26, 13));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Handle struct properties that are not auto-properties.
+        [Fact(Skip = "Struct property not auto-property")]
+        public void ModifyMembers_StructPropertyExplicitAccessors()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    private object? _p;
+    internal object? P { get { return _p; } set { _p = value; } }
+}
+class C
+{
+    S F;
+    void M()
+    {
+        object o;
+        o = F.P; // 1
+        F.P = new object();
+        o = F.P; // 2
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8601: Possible null reference assignment.
+                //         o = F.P; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F.P").WithLocation(13, 13));
+        }
+
+        [Fact]
+        public void ModifyMembers_StructPropertyFromMetadata()
+        {
+            var source0 =
+@"public struct S
+{
+    public object? P { get; set; }
+}";
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular8);
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"#pragma warning disable 0649
+class C
+{
+    S F;
+    void M()
+    {
+        object o;
+        o = F.P; // 1
+        F.P = new object();
+        o = F.P; // 2
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8601: Possible null reference assignment.
+                //         o = F.P; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F.P").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void ModifyMembers_ClassPropertyNoBackingField()
+        {
+            var source =
+@"#pragma warning disable 0649
+class C
+{
+    object? P { get { return null; } set { } }
+    void M()
+    {
+        object o;
+        o = P; // 1
+        P = new object();
+        o = P; // 2
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8601: Possible null reference assignment.
+                //         o = P; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "P").WithLocation(8, 13));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Handle struct properties that are not auto-properties.
+        [Fact(Skip = "Struct property not auto-property")]
+        public void ModifyMembers_StructPropertyNoBackingField()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    internal object? P { get { return null; } set { } }
+}
+class C
+{
+    S F;
+    void M()
+    {
+        object o;
+        o = F.P; // 1
+        F.P = new object();
+        o = F.P; // 2
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8601: Possible null reference assignment.
+                //         o = F.P; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F.P").WithLocation(12, 13));
+        }
+
         [Fact]
         public void ModifyMembers_Conditional()
         {
@@ -385,7 +567,7 @@ class Program
         public void GenericType()
         {
             // PROTOTYPE(NullableReferenceTypes): Test members of generic and constructed
-            // classes, structs, interfaces.
+            // classes, structs, interfaces. In particular, fields and properties of type T.
         }
 
         [Fact]
@@ -404,6 +586,108 @@ class Program
         }
 
         [Fact]
+        public void ObjectInitializer()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A
+{
+    internal object? F1;
+    internal object? F2;
+}
+class B
+{
+    internal A? G;
+}
+class Program
+{
+    static void F()
+    {
+        (new B() { G = new A() { F1 = new object() } }).G.F1.ToString();
+        B b;
+        b = new B() { G = new A() { F1 = new object() } };
+        b.G.F1.ToString(); // 1
+        b.G.F2.ToString(); // 1
+        b = new B() { G = new A() { F2 = new object() } };
+        b.G.F1.ToString(); // 2
+        b.G.F2.ToString(); // 2
+        b = new B() { G = new A() };
+        b.G.F1.ToString(); // 3
+        b.G.F2.ToString(); // 3
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         b.G.F2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.G.F2").WithLocation(19, 9),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         b.G.F1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.G.F1").WithLocation(21, 9),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         b.G.F1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.G.F1").WithLocation(24, 9),
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         b.G.F2.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.G.F2").WithLocation(25, 9));
+        }
+
+        [Fact]
+        public void ObjectInitializer_Struct()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct A
+{
+    internal object? F1;
+    internal object? F2;
+}
+struct B
+{
+    internal A G;
+}
+class Program
+{
+    static void F()
+    {
+        (new B() { G = new A() { F1 = new object() } }).G.F1.ToString();
+        B b;
+        b = new B() { G = new A() { F1 = new object() } };
+        b.G.F1.ToString(); // 1
+        b.G.F2.ToString(); // 1
+        b = new B() { G = new A() { F2 = new object() } };
+        b.G.F1.ToString(); // 2
+        b.G.F2.ToString(); // 2
+        b = new B() { G = new A() };
+        b.G.F1.ToString(); // 3
+        b.G.F2.ToString(); // 3
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         b.G.F2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.G.F2").WithLocation(19, 9),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         b.G.F1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.G.F1").WithLocation(21, 9),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         b.G.F1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.G.F1").WithLocation(24, 9),
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         b.G.F2.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.G.F2").WithLocation(25, 9));
+        }
+
+        [Fact]
+        public void ObjectInitializer_DerivedType()
+        {
+            // PROTOTYPE(NullableReferenceTypes): Test assigning base members in derived type initializer:
+            // Base b = new Derived() { BaseField = e1, DerivedField = e2 };
+            // b.BaseField.ToString();
+        }
+
+        [Fact]
         public void DynamicInstance()
         {
             // PROTOTYPE(NullableReferenceTypes): Test members of dynamic instance.
@@ -419,6 +703,8 @@ class Program
         public void Tuple()
         {
             // PROTOTYPE(NullableReferenceTypes): Test tuple fields, including Rest.
+            // Virtual field should be tracked as actual field. Checking one or assigning
+            // to one should affect both.
         }
 
         [Fact]
@@ -432,6 +718,98 @@ class Program
         {
             // PROTOTYPE(NullableReferenceTypes): Test combinations of
             // checks and dereferences inside and outside local functions.
+        }
+
+        [Fact]
+        public void ExplicitBackingFields()
+        {
+            // PROTOTYPE(NullableReferenceTypes): Test references within the
+            // class to property and associated backing field. The two should be
+            // tracked independently. Test for classes and structs.
+        }
+
+        [Fact]
+        public void FieldCycle_01()
+        {
+            var source =
+@"class C
+{
+    C? F;
+    void M()
+    {
+        F = this;
+        F.F.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         F.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F.F").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void FieldCycle_02()
+        {
+            var source =
+@"class C
+{
+    C? F;
+    void M()
+    {
+        F = new C() { F = this };
+        F.F.ToString();
+        F.F.F.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         F.F.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F.F.F").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void FieldCycle_Struct()
+        {
+            // PROTOTYPE(NullableReferenceTypes): Is NullableWalker invoked for
+            // a recursive struct, even though the struct definition is invalid?
+        }
+
+        // Valid struct since the property is not backed by a field.
+        // PROTOTYPE(NullableReferenceTypes): Handle struct properties that are not auto-properties.
+        [Fact(Skip = "Struct property not auto-property")]
+        public void PropertyCycle_Struct()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    internal S(object? f)
+    {
+        F = f;
+    }
+    internal object? F;
+    internal S P
+    {
+        get { return new S(F); }
+        set { F = value.F; }
+    }
+}
+class C
+{
+    static void M(S s)
+    {
+        s.P.F.ToString(); // 1
+        if (s.P.F == null) return;
+        s.P.F.ToString(); // 2
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         s.P.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.P.F").WithLocation(19, 9));
         }
     }
 }

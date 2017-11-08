@@ -101,6 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _requireOutParamsAssigned;
 
         /// <summary>
+        /// Track fields of classes in addition to structs.
+        /// </summary>
+        private readonly bool _trackClassFields;
+
+        /// <summary>
         /// The topmost method of this analysis.
         /// </summary>
         protected MethodSymbol topLevelMethod;
@@ -126,13 +131,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
             bool trackClassFields = false)
-            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments, trackClassFields: trackClassFields)
+            : base(compilation, member, node, new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this.currentMethodOrLambda = member as MethodSymbol;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _requireOutParamsAssigned = requireOutParamsAssigned;
+            _trackClassFields = trackClassFields;
             this.topLevelMethod = member as MethodSymbol;
         }
 
@@ -143,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments = false,
             HashSet<Symbol> initiallyAssignedVariables = null)
-            : base(compilation, member, node, emptyStructs ?? new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments, trackClassFields: false)
+            : base(compilation, member, node, emptyStructs ?? new EmptyStructTypeCache(compilation, !compilation.FeatureStrictEnabled), trackUnassignments: trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
@@ -754,6 +760,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)receiver != null &&
                 receiver.Kind != BoundKind.TypeExpression &&
                 MayRequireTrackingReceiverType(receiver.Type);
+        }
+
+        private bool MayRequireTrackingReceiverType(TypeSymbol type)
+        {
+            return (object)type != null &&
+                (_trackClassFields || type.TypeKind == TypeKind.Struct);
+        }
+
+        protected bool MayRequireTracking(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
+        {
+            return
+                (object)fieldSymbol != null && //simplifies calling pattern for events
+                receiverOpt != null &&
+                !fieldSymbol.IsStatic &&
+                !fieldSymbol.IsFixed &&
+                receiverOpt.Kind != BoundKind.TypeExpression &&
+                MayRequireTrackingReceiverType(receiverOpt.Type) &&
+                !receiverOpt.Type.IsPrimitiveRecursiveStruct();
         }
 
         #endregion Tracking reads/writes of variables for warnings

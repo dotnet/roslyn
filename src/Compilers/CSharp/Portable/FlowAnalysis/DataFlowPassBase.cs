@@ -40,9 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol member,
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
-            bool trackUnassignments,
-            bool trackClassFields)
-            : base(compilation, member, node, trackUnassignments: trackUnassignments, trackClassFields: trackClassFields)
+            bool trackUnassignments)
+            : base(compilation, member, node, trackUnassignments: trackUnassignments)
         {
             _emptyStructTypeCache = emptyStructs;
         }
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
-            if (symbol is RangeVariableSymbol) return -1;
+            if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
 
@@ -172,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member);
 
-        protected Symbol GetNonFieldSymbol(int slot)
+        protected Symbol GetNonMemberSymbol(int slot)
         {
             VariableIdentifier variableId = variableBySlot[slot];
             while (variableId.ContainingSlot > 0)

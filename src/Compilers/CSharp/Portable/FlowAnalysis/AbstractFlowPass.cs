@@ -23,9 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
-            bool trackUnassignments = false,
-            bool trackClassFields = false)
-            : base(compilation, member, node, trackClassFields: trackClassFields)
+            bool trackUnassignments = false)
+            : base(compilation, member, node)
         {
             this.trackUnassignments = trackUnassignments;
         }
