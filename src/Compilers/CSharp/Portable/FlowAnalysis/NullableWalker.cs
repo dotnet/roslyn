@@ -122,23 +122,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var id = variableBySlot[i];
                 // Initialize non-struct members with the declared nullability.
                 // (Struct members are handled by InheritNullableStateOfTrackableStruct.)
-                bool? isNullable = null;
+                bool? isNotNull = null;
                 int slot = id.ContainingSlot;
                 if (slot > 0 && variableBySlot[slot].Symbol.GetTypeOrReturnType().TypeKind != TypeKind.Struct)
                 {
-                    var symbol = id.Symbol;
-                    switch (symbol.Kind)
-                    {
-                        case SymbolKind.Field:
-                            isNullable = ((FieldSymbol)symbol).Type.IsNullable;
-                            break;
-                        case SymbolKind.Property:
-                            isNullable = ((PropertySymbol)symbol).Type.IsNullable;
-                            break;
-                    }
+                    isNotNull = GetMemberIsNotNull(id.Symbol);
                 }
-                state[i] = Invert(isNullable);
+                state[i] = isNotNull;
             }
+        }
+
+        private void Assign(ref LocalState state, int slot, bool? isNotNull)
+        {
+            state[slot] = isNotNull;
+            ResetMembers(ref state, slot);
+        }
+
+        // Reset nullable state for any fields or properties reachable from this slot.
+        private void ResetMembers(ref LocalState state, int slot)
+        {
+            for (int i = slot + 1; i < state.Capacity; i++)
+            {
+                var id = variableBySlot[i];
+                if (id.ContainingSlot == slot)
+                {
+                    Assign(ref state, i, GetMemberIsNotNull(id.Symbol));
+                }
+            }
+        }
+
+        private static bool? GetMemberIsNotNull(Symbol symbol)
+        {
+            bool? isNullable = null;
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Field:
+                    isNullable = ((FieldSymbol)symbol).Type.IsNullable;
+                    break;
+                case SymbolKind.Property:
+                    isNullable = ((PropertySymbol)symbol).Type.IsNullable;
+                    break;
+            }
+            return Invert(isNullable);
         }
 
         protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
@@ -452,16 +477,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, (value ?? node).Syntax);
                         }
+                        if (slot > 0)
+                        {
+                            ResetMembers(ref this.State, slot);
+                        }
                     }
                     else if (slot > 0)
                     {
                         if (slot >= this.State.Capacity) Normalize(ref this.State);
 
-                        this.State[slot] = isByRefTarget ?
+                        Assign(ref this.State, slot, isByRefTarget ?
                             // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                             // regardless of what value is being assigned. 
                             (targetIsNullable == true) ? (bool?)false : null :
-                            valueIsNotNull;
+                            valueIsNotNull);
                     }
 
                     if (slot > 0 && targetType.TypeSymbol.IsAnonymousType && targetType.TypeSymbol.IsClassType() &&
@@ -528,6 +557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Can this be combined with
+        // handling of class fields and properties in Normalize?
         private void InheritNullableStateOfFieldOrProperty(int targetContainerSlot, int valueContainerSlot, Symbol fieldOrProperty, bool isByRefTarget)
         {
             TypeSymbolWithAnnotations fieldOrPropertyType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(fieldOrProperty);
@@ -564,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         value = (fieldOrPropertyType.IsNullable == true) ? (bool?)false : null;
                     }
 
-                    this.State[targetMemberSlot] = value;
+                    Assign(ref this.State, targetMemberSlot, value);
                 }
 
                 if (fieldOrPropertyType.TypeSymbol.IsAnonymousType && fieldOrPropertyType.TypeSymbol.IsClassType())
@@ -586,6 +617,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Can this be combined with
+        // handling of class fields and properties in Normalize?
         private void InheritNullableStateOfAnonymousTypeInstance(TypeSymbol targetType, int targetSlot, int valueSlot, bool isByRefTarget)
         {
             Debug.Assert(targetSlot > 0);
@@ -652,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (slot >= this.State.Capacity) Normalize(ref this.State);
 
-                            this.State[slot] = (paramType.IsNullable == true) ? (bool?)false : null;
+                            Assign(ref this.State, slot, (paramType.IsNullable == true) ? (bool?)false : null);
                         }
 
                         if (paramType.TypeSymbol.IsAnonymousType && paramType.TypeSymbol.IsClassType())
@@ -699,8 +732,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(IsConditionalState);
             if (slot > 0)
             {
-                this.StateWhenTrue[slot] = false;
-                this.StateWhenFalse[slot] = true;
+                Assign(ref this.StateWhenTrue, slot, false);
+                Assign(ref this.StateWhenFalse, slot, true);
             }
 
             return result;
@@ -903,6 +936,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.State.Reachable && IsTrackableType(node.Type))
             {
                 _implicitReceiver = GetOrCreateObjectCreationPlaceholder(node);
+                // PROTOTYPE(NullableReferenceTypes): This generates a new slot
+                // for every `new` expression. Can these slots be temporary?
                 var slot = MakeSlot(node);
                 if (slot > 0)
                 {
@@ -1187,11 +1222,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (op == BinaryOperatorKind.Equal)
                                 {
-                                    this.StateWhenFalse[slot] = true;
+                                    Assign(ref this.StateWhenFalse, slot, true);
                                 }
                                 else
                                 {
-                                    this.StateWhenTrue[slot] = true;
+                                    Assign(ref this.StateWhenTrue, slot, true);
                                 }
                             }
                         }
@@ -1281,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (slot >= this.State.Capacity) Normalize(ref this.State);
 
-                this.State[slot] = true;
+                Assign(ref this.State, slot, true);
             }
 
             VisitRvalue(node.AccessExpression);

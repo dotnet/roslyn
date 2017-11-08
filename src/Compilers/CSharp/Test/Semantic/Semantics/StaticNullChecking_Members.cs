@@ -150,7 +150,29 @@ class B : A
         }
 
         [Fact]
-        public void ModifyMember()
+        public void ModifyMembers_01()
+        {
+            var source =
+@"#pragma warning disable 0649
+class C
+{
+    object? F;
+    static void M(C c)
+    {
+        if (c.F == null) return;
+        c = new C();
+        c.F.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         c.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void ModifyMembers_02()
         {
             var source =
 @"#pragma warning disable 0649
@@ -219,7 +241,83 @@ class Program
         }
 
         [Fact]
-        public void ModifyMember_Struct()
+        public void ModifyMembers_03()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    internal object? F;
+}
+class C
+{
+    internal C? A;
+    internal S B;
+}
+class Program
+{
+    static void M()
+    {
+        object o;
+        C c = new C();
+        o = c.A.A; // 1
+        o = c.B.F; // 1
+        c.A = new C();
+        c.B = new S();
+        o = c.A.A; // 2
+        o = c.B.F; // 2
+        c.A.A = new C();
+        c.B.F = new C();
+        o = c.A.A; // 3
+        o = c.B.F; // 3
+        c.A = new C();
+        c.B = new S();
+        o = c.A.A; // 4
+        o = c.B.F; // 4
+        c = new C();
+        o = c.A.A; // 5
+        o = c.B.F; // 5
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //         o = c.A.A; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.A").WithLocation(17, 13),
+                // (17,13): warning CS8601: Possible null reference assignment.
+                //         o = c.A.A; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.A.A").WithLocation(17, 13),
+                // (21,13): warning CS8601: Possible null reference assignment.
+                //         o = c.A.A; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.A.A").WithLocation(21, 13),
+                // (22,13): warning CS8601: Possible null reference assignment.
+                //         o = c.B.F; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.B.F").WithLocation(22, 13),
+                // (29,13): warning CS8601: Possible null reference assignment.
+                //         o = c.A.A; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.A.A").WithLocation(29, 13),
+                // (30,13): warning CS8601: Possible null reference assignment.
+                //         o = c.B.F; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.B.F").WithLocation(30, 13),
+                // (32,13): warning CS8602: Possible dereference of a null reference.
+                //         o = c.A.A; // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.A").WithLocation(32, 13),
+                // (32,13): warning CS8601: Possible null reference assignment.
+                //         o = c.A.A; // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.A.A").WithLocation(32, 13),
+                // (33,13): warning CS8601: Possible null reference assignment.
+                //         o = c.B.F; // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.B.F").WithLocation(33, 13));
+        }
+
+        [Fact]
+        public void ModifyMembers_Properties()
+        {
+            // PROTOTYPE(NullableReferenceTypes): As above with properties.
+        }
+
+        [Fact]
+        public void ModifyMembers_Struct()
         {
             var source =
 @"#pragma warning disable 0649
@@ -264,14 +362,14 @@ class Program
         }
 
         [Fact]
-        public void ModifyMember_Conditional()
+        public void ModifyMembers_Conditional()
         {
             // PROTOTYPE(NullableReferenceTypes): Modify
             // member in one branch of conditional.
         }
 
         [Fact]
-        public void ModifyMember_ByRef()
+        public void ModifyMembers_ByRef()
         {
             // PROTOTYPE(NullableReferenceTypes): Invalidate
             // by passing one of the members by reference.
