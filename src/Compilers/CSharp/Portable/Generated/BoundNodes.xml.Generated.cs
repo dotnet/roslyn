@@ -3750,7 +3750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundParameter : BoundExpression
     {
-        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, TypeSymbol type, bool hasErrors)
+        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, RangeVariableSymbol associatedRangeVariable, TypeSymbol type, bool hasErrors)
             : base(BoundKind.Parameter, syntax, type, hasErrors)
         {
 
@@ -3758,9 +3758,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.ParameterSymbol = parameterSymbol;
+            this.AssociatedRangeVariable = associatedRangeVariable;
         }
 
-        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, TypeSymbol type)
+        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, RangeVariableSymbol associatedRangeVariable, TypeSymbol type)
             : base(BoundKind.Parameter, syntax, type)
         {
 
@@ -3768,21 +3769,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.ParameterSymbol = parameterSymbol;
+            this.AssociatedRangeVariable = associatedRangeVariable;
         }
 
 
         public ParameterSymbol ParameterSymbol { get; }
+
+        public RangeVariableSymbol AssociatedRangeVariable { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitParameter(this);
         }
 
-        public BoundParameter Update(ParameterSymbol parameterSymbol, TypeSymbol type)
+        public BoundParameter Update(ParameterSymbol parameterSymbol, RangeVariableSymbol associatedRangeVariable, TypeSymbol type)
         {
-            if (parameterSymbol != this.ParameterSymbol || type != this.Type)
+            if (parameterSymbol != this.ParameterSymbol || associatedRangeVariable != this.AssociatedRangeVariable || type != this.Type)
             {
-                var result = new BoundParameter(this.Syntax, parameterSymbol, type, this.HasErrors);
+                var result = new BoundParameter(this.Syntax, parameterSymbol, associatedRangeVariable, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8971,7 +8975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitParameter(BoundParameter node)
         {
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.ParameterSymbol, type);
+            return node.Update(node.ParameterSymbol, node.AssociatedRangeVariable, type);
         }
         public override BoundNode VisitLabelStatement(BoundLabelStatement node)
         {
@@ -10254,6 +10258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("parameter", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("parameterSymbol", node.ParameterSymbol, null),
+                new TreeDumperNode("associatedRangeVariable", node.AssociatedRangeVariable, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
