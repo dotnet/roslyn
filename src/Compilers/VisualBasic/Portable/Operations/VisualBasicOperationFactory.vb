@@ -272,25 +272,10 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundAssignmentOperatorOperation(boundAssignmentOperator As BoundAssignmentOperator) As IOperation
-            Dim assignmentInfo = GetAssignmentInfo(boundAssignmentOperator)
-            Dim isImplicit As Boolean = boundAssignmentOperator.WasCompilerGenerated
-            If assignmentInfo.OperationKind = OperationKind.CompoundAssignment Then
-
-                Dim operatorKind As BinaryOperatorKind = assignmentInfo.OperatorKind
-                Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Left))
-
-                ' right now, parent of right operand is set to the temporary IOperation, reset the parent
-                ' we basically need to do this since we skip BoundAssignmentOperator.Right from IOperation tree
-                Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(assignmentInfo.RightNode))
-
-                Dim operatorMethod As IMethodSymbol = assignmentInfo.OperatorMethod
-                Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
-                Dim type As ITypeSymbol = boundAssignmentOperator.Type
-                Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
-                Dim isLifted As Boolean = boundAssignmentOperator.Type.IsNullableType()
-                Dim isChecked As Boolean = assignmentInfo.IsChecked
-                Return New LazyVisualBasicCompoundAssignmentOperation(target, value, assignmentInfo.InConversion, assignmentInfo.OutConversion, operatorKind, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+            If boundAssignmentOperator.LeftOnTheRightOpt IsNot Nothing Then
+                Return CreateCompoundAssignment(boundAssignmentOperator)
             Else
+                Dim isImplicit As Boolean = boundAssignmentOperator.WasCompilerGenerated
                 Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Left))
                 Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Right))
                 Dim isRef As Boolean = False
@@ -445,33 +430,31 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundBinaryOperatorOperation(boundBinaryOperator As BoundBinaryOperator) As IBinaryOperation
-            Dim operatorKind As BinaryOperatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind, boundBinaryOperator.Left)
-            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundBinaryOperator.Left))
-            Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundBinaryOperator.Right))
-            Dim operatorMethod As IMethodSymbol = Nothing
+            Dim binaryOperatorInfo = GetBinaryOperatorInfo(boundBinaryOperator)
+            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(binaryOperatorInfo.LeftOperand))
+            Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(binaryOperatorInfo.RightOperand))
             Dim syntax As SyntaxNode = boundBinaryOperator.Syntax
             Dim type As ITypeSymbol = boundBinaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundBinaryOperator.ConstantValueOpt)
-            Dim isLifted As Boolean = (boundBinaryOperator.OperatorKind And VisualBasic.BinaryOperatorKind.Lifted) <> 0
-            Dim isChecked As Boolean = boundBinaryOperator.Checked
-            Dim isCompareText As Boolean = (boundBinaryOperator.OperatorKind And VisualBasic.BinaryOperatorKind.CompareText) <> 0
             Dim isImplicit As Boolean = boundBinaryOperator.WasCompilerGenerated
-            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyBinaryOperatorExpression(binaryOperatorInfo.OperatorKind, leftOperand, rightOperand, binaryOperatorInfo.IsLifted,
+                                                    binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
+                                                    _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundUserDefinedBinaryOperatorOperation(boundUserDefinedBinaryOperator As BoundUserDefinedBinaryOperator) As IBinaryOperation
-            Dim operatorKind As BinaryOperatorKind = Helper.DeriveBinaryOperatorKind(boundUserDefinedBinaryOperator.OperatorKind, leftOpt:=Nothing)
-            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(boundUserDefinedBinaryOperator, 0))
-            Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(boundUserDefinedBinaryOperator, 1))
-            Dim operatorMethod As IMethodSymbol = If(boundUserDefinedBinaryOperator.UnderlyingExpression.Kind = BoundKind.Call, boundUserDefinedBinaryOperator.Call.Method, Nothing)
+            Dim binaryOperatorInfo = GetUserDefinedBinaryOperatorInfo(boundUserDefinedBinaryOperator)
+            Dim leftOperand As Lazy(Of IOperation) =
+                New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(boundUserDefinedBinaryOperator, binaryOperatorInfo.LeftOperand))
+            Dim rightOperand As Lazy(Of IOperation) =
+                New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(boundUserDefinedBinaryOperator, binaryOperatorInfo.RightOperand))
             Dim syntax As SyntaxNode = boundUserDefinedBinaryOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedBinaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedBinaryOperator.ConstantValueOpt)
-            Dim isLifted As Boolean = (boundUserDefinedBinaryOperator.OperatorKind And VisualBasic.BinaryOperatorKind.Lifted) <> 0
-            Dim isChecked As Boolean = boundUserDefinedBinaryOperator.Checked
-            Dim isCompareText As Boolean = False
             Dim isImplicit As Boolean = boundUserDefinedBinaryOperator.WasCompilerGenerated
-            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyBinaryOperatorExpression(binaryOperatorInfo.OperatorKind, leftOperand, rightOperand, binaryOperatorInfo.IsLifted,
+                                                    binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
+                                                    _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBinaryConditionalExpressionOperation(boundBinaryConditionalExpression As BoundBinaryConditionalExpression) As ICoalesceOperation
@@ -528,7 +511,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
 
-            Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundTryCast.ConversionKind, Nothing))
+            Dim conversion As Conversion = CreateConversion(boundTryCast)
             Dim isTryCast As Boolean = True
             Dim isChecked As Boolean = False
             Return New LazyVisualBasicConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
@@ -550,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
 
-            Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundDirectCast.ConversionKind, Nothing))
+            Dim conversion As Conversion = CreateConversion(boundDirectCast)
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
             Return New LazyVisualBasicConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
@@ -576,8 +559,9 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
             Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated OrElse Not boundConversion.ExplicitCastInCode
 
-            Dim conversionInformation = CreateConversionOperand(boundConversion.Operand, boundConversion.ConversionKind, boundConversion.Syntax, boundConversion.Type)
-            Dim methodSymbol As MethodSymbol = conversionInformation.MethodSymbol
+            Dim conversionOperandAndMethod = GetConversionInfo(boundConversion)
+            Dim conversionInformation = CreateConversionOperand(conversionOperandAndMethod.Operand, boundConversion.ConversionKind, boundConversion.Syntax, boundConversion.Type)
+            Dim methodSymbol As MethodSymbol = conversionOperandAndMethod.Method
             Dim operand As Lazy(Of IOperation) = conversionInformation.Operation
             Dim isDelegateCreation As Boolean = conversionInformation.IsDelegateCreation
 
@@ -587,7 +571,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
 
-            Dim conversion = New Conversion(New KeyValuePair(Of VisualBasic.ConversionKind, MethodSymbol)(boundConversion.ConversionKind, methodSymbol))
+            Dim conversion As Conversion = CreateConversion(boundConversion)
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
             Return New LazyVisualBasicConversionExpression(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)

@@ -1227,7 +1227,7 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x /= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1248,7 +1248,7 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x ^= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Power, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1260,7 +1260,7 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x &= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1369,7 +1369,7 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x /= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Divide) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1390,7 +1390,7 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x ^= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Power) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -1402,7 +1402,7 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x &= y')
     Expression: 
       ICompoundAssignmentOperation (BinaryOperatorKind.Concatenate) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Left: 
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
