@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 foreach (var node in root.DescendantNodesAndSelf())
                 {
-                    var operation = semanticModel.GetOperationInternal(node);
+                    var operation = semanticModel.GetOperation(node);
                     if (operation != null)
                     {
                         // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
