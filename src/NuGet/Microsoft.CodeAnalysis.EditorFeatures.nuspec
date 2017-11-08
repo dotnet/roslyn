@@ -30,11 +30,15 @@
     <tags>$tags$</tags>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\EditorFeatures\Microsoft.CodeAnalysis.EditorFeatures.dll" target="lib\net46" />
     <file src="Dlls\EditorFeatures\Microsoft.CodeAnalysis.EditorFeatures.xml" target="lib\net46" />
+    <file src="Dlls\EditorFeatures\Microsoft.CodeAnalysis.EditorFeatures.pdb*" target="lib\net46" />
     <file src="Dlls\CSharpEditorFeatures\Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll" target="lib\net46" />
     <file src="Dlls\CSharpEditorFeatures\Microsoft.CodeAnalysis.CSharp.EditorFeatures.xml" target="lib\net46" />
+    <file src="Dlls\CSharpEditorFeatures\Microsoft.CodeAnalysis.CSharp.EditorFeatures.pdb*" target="lib\net46" />
     <file src="Dlls\BasicEditorFeatures\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" target="lib\net46" />
     <file src="Dlls\BasicEditorFeatures\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml" target="lib\net46" />
+    <file src="Dlls\BasicEditorFeatures\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.pdb*" target="lib\net46" />
   </files>
 </package>

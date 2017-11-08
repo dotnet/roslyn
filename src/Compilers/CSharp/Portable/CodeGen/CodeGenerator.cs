@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool EnablePEVerifyCompat()
         {
-            return _module.Compilation.FeaturePEVerifyCompatEnabled;
+            return _module.Compilation.LanguageVersion < LanguageVersion.CSharp7_2 || _module.Compilation.FeaturePEVerifyCompatEnabled;
         }
 
         private LocalDefinition LazyReturnTemp
