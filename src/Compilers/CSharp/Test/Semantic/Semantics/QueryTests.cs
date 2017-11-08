@@ -500,8 +500,6 @@ class Query
     }
 }
 ";
-            // BoundRangeVariable still doesn't have an IOperation API: https://github.com/dotnet/roslyn/issues/21238
-
             string expectedOperationTree = @"
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'from x1 in  ... elect x1+x2')
   Expression: 
@@ -703,8 +701,6 @@ class Query
     }
 }
 ";
-            // BoundRangeVariable still doesn't have an IOperation API: https://github.com/dotnet/roslyn/issues/21238
-
             string expectedOperationTree = @"
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x1 in  ... .ToString()')
   Expression: 
