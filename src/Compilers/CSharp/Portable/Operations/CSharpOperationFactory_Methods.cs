@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
-                return null;
+                return OperationFactory.EmptyOperation;
             }
 
             // Static members cannot have an implicit this receiver
