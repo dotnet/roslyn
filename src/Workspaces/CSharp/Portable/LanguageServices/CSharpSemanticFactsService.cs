@@ -257,20 +257,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SpecializedCollections.SingletonEnumerable(
                 semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
-
-        public SyntaxNode RemoveObjectCastIfAny(SemanticModel semanticModel, SyntaxNode node)
-        {
-            if (node is CastExpressionSyntax cast)
-            {
-                var typeSymbol = semanticModel.GetTypeInfo(cast.Type).Type;
-
-                if (typeSymbol?.SpecialType == SpecialType.System_Object)
-                {
-                    return cast.Expression;
-                }
-            }
-
-            return node;
-        }
     }
 }

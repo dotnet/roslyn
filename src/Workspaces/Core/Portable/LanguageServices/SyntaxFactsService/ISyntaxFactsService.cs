@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right);
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
+        bool IsCastExpression(SyntaxNode node);
+        void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
+
         bool IsInvocationExpression(SyntaxNode node);
         bool IsExpressionOfInvocationExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node);

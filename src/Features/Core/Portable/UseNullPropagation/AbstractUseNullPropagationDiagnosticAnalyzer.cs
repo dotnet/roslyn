@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         internal static SyntaxNode GetWhenPartMatch(
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, SemanticModel semanticModel, SyntaxNode expressionToMatch, SyntaxNode whenPart)
         {
-            expressionToMatch = semanticFacts.RemoveObjectCastIfAny(semanticModel ,expressionToMatch);
+            expressionToMatch = RemoveObjectCastIfAny(syntaxFacts, semanticModel, expressionToMatch);
             var current = whenPart;
             while (true)
             {
@@ -205,6 +205,22 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
                 current = unwrapped;
             }
+        }
+
+        private static SyntaxNode RemoveObjectCastIfAny(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (syntaxFacts.IsCastExpression(node))
+            {
+                syntaxFacts.GetPartsOfCastExpression(node, out var type, out var expression);
+                var typeSymbol = semanticModel.GetTypeInfo(type).Type;
+
+                if (typeSymbol?.SpecialType == SpecialType.System_Object)
+                {
+                    return expression;
+                }
+            }
+
+            return node;
         }
 
         private static SyntaxNode Unwrap(ISyntaxFactsService syntaxFacts, SyntaxNode node)
