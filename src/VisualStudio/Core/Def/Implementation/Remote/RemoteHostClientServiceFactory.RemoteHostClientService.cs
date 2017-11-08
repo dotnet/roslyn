@@ -206,7 +206,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
                 catch(RemoteHostClientExtensions.UnexpectedRemoteHostException)
                 {
-                    // ignore unexpected remote host failure
+                    // ignore unexpected remote host exception. it is allowed here since it is part of OOP engine.
+                    // no one outside of engine should ever catch this exception or care about it.
+                    // we catch here so that we don't physically crash VS and give users time to save and exist VS
                 }
 
                 return client;

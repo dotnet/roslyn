@@ -59,16 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
-                // Handle this case by throwing a proper cancellation exception instead.
-                // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
-                cancellationToken.ThrowIfCancellationRequested();
-
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
+                HandleException(ex, cancellationToken);
             }
         }
 
@@ -82,16 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
-                // Handle this case by throwing a proper cancellation exception instead.
-                // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
-                cancellationToken.ThrowIfCancellationRequested();
+                HandleException(ex, cancellationToken);
 
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
                 return Contract.FailWithReturn<T>("can't reach here");
             }
         }
@@ -107,16 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
             {
-                // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
-                // Handle this case by throwing a proper cancellation exception instead.
-                // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
-                cancellationToken.ThrowIfCancellationRequested();
-
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
+                HandleException(ex, cancellationToken);
             }
         }
 
@@ -131,18 +105,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
             {
-                // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
-                // Handle this case by throwing a proper cancellation exception instead.
-                // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
-                cancellationToken.ThrowIfCancellationRequested();
+                HandleException(ex, cancellationToken);
 
-                LogError($"exception: {ex.ToString()}");
-
-                // this is to make us not crash. we should remove this once we figure out
-                // what is causing this
-                ThrowOwnCancellationToken();
                 return Contract.FailWithReturn<T>("can't reach here");
             }
+        }
+
+        private void HandleException(Exception ex, CancellationToken cancellationToken)
+        {
+            // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
+            // Handle this case by throwing a proper cancellation exception instead.
+            // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
+            cancellationToken.ThrowIfCancellationRequested();
+
+            LogError($"exception: {ex.ToString()}");
+
+            // we are getting unexpected exception from service hub. rather than doing hard crash on unexpected exception,
+            // we decide to do soft crash where we show info bar to users saying VS got corrupted and users should save
+            // thier works and close VS.
+            //
+            // currently, the way we do soft crash is throwing cancellation exception of our own. since after this point,
+            // we consider VS is crashed, no caller should attempt to catch this exception and try to recover or care about
+            // this exception.
+            // in our point of view, VS is crashed. we just let VS process to alive so that users can save thier work.
+            //
+            // after this point, think it as OOM happened. like certain code path in Roslyn where we let VS to alive after OOM
+            // one should consider VS as unusable and crashed. only there so that users can save thier work.
+            //
+            // once we have proper non fatal watson framework, we should remove this and let generic NFW to take care of this
+            // situation. until then, this is a workaround we have.
+            ThrowOwnCancellationToken();
         }
 
         // these are for debugging purpose. once we find out root cause of the issue
@@ -157,7 +149,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return true;
             }
 
-            // once we fix all pending vso bugs, we should remove these 
+            // there was several bugs around VsixDiscoveryService, ExtensionManager, StreamJsonRpc and service hub itself
+            // that throws unexpected exceptions that we are tracking, once they are fixed, we should remove these 
             // and return false so that original exception propagate to the top.
             // for now, we NFW and return true so that we can throw special cancellation exception
             // so that VS doesn't crash.

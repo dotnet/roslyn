@@ -241,7 +241,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (UnexpectedRemoteHostException)
                 {
-                    // ignore unexpected remote host failure
+                    // ignore unexpected remote host exception. it is allowed here since it is part of OOP engine.
+                    // no one outside of engine should ever catch this exception or care about it.
+                    // we catch here so that we don't physically crash VS and give users time to save and exist VS
                 }
             }
         }
@@ -322,15 +324,23 @@ namespace Microsoft.CodeAnalysis.Remote
         /// related to us. example will be extension manager failure, connection creation failure
         /// and etc. this is a special exception that should be only used in very specific cases.
         /// 
-        /// this inherits cancellation exception since we don't want this workaround to be too intrusive
-        /// on our code. we already handle cancellation gracefully and recover properly in most of cases
-        /// so we decided to use this workaround until underlying issues are fixed.
+        /// no one except code related to OOP engine should care about this exception. 
+        /// if this is fired, then VS is practicially in corrupted/crashed mode. we just didn't
+        /// physically crashed VS due to feedbacks that want to give users time to save their works.
+        /// when this is fired, VS clearly shows users to save works and restart VS since VS is crashed.
         /// 
-        /// this is defined here due to layering issue.
+        /// so no one should ever, outside of OOP engine, try to catch this exception and try to recover.
         /// 
-        /// in long term, we expect to move to NFW in most of our code base, 
-        /// and this situation should be naturally taken cared by the NFW framework
-        /// without this workaround
+        /// that facts this inherits cancellation exception is an implementation detail to make VS not physically crash.
+        /// it doesn't mean one should try to recover from it or treat it as cancellation exception.
+        /// 
+        /// we choose cancellation exception since we didn't want this workaround to be too intrusive.
+        /// on our code. we already handle cancellation gracefully and recover properly in most of cases.
+        /// but that doesn't mean we want to let users to keep use VS. like I stated above, once this is
+        /// fired, VS is logically crashed. we just want VS to be stable enough until users save and exist VS.
+        /// 
+        /// this is a workaround since we would like to go back to normal crash behavior
+        /// if enough of the above issues are fixed or we implements official NFW framework in Roslyn
         /// </summary>
         public class UnexpectedRemoteHostException : OperationCanceledException
         {
