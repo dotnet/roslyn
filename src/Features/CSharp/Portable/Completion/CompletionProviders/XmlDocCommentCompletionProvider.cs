@@ -101,7 +101,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement ||
                     token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
                 {
-                    items.AddRange(GetNestedItems(declaredSymbol));
+                    // Avoid including language keywords when following < or <text, since these cases should only be
+                    // attempting to complete the XML name (which for language keywords is 'see'). While the parser
+                    // treats the 'name' in '< name' as an XML name, we don't treat it like that here so the completion
+                    // experience is consistent for '< ' and '< n'.
+                    var xmlNameOnly = token.IsKind(SyntaxKind.LessThanToken)
+                        || (token.Parent.IsKind(SyntaxKind.XmlName) && !token.HasLeadingTrivia);
+                    var includeKeywords = !xmlNameOnly;
+
+                    items.AddRange(GetNestedItems(declaredSymbol, includeKeywords));
                 }
 
                 if (token.Parent.Parent is XmlElementSyntax xmlElement)

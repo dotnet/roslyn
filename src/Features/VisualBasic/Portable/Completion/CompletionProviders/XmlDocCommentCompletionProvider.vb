@@ -110,7 +110,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim grandParent = parentElement?.Parent
 
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedItems(symbol))
+                ' Avoid including language keywords when following < Or <text, since these cases should only be
+                ' attempting to complete the XML name (which for language keywords Is 'see'). The VB parser treats
+                ' spaces after a < character as trailing whitespace, even if an identifier follows it on the same line.
+                ' Therefore, the consistent VB experience says we never show keywords for < followed by spaces.
+                Dim xmlNameOnly = token.IsKind(SyntaxKind.LessThanToken) OrElse token.Parent.IsKind(SyntaxKind.XmlName)
+                Dim includeKeywords = Not xmlNameOnly
+
+                items.AddRange(GetNestedItems(symbol, includeKeywords))
                 AddXmlElementItems(items, grandParent)
             ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso
                    token.Parent.IsParentKind(SyntaxKind.DocumentationCommentTrivia) Then
@@ -120,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 items.AddRange(GetTopLevelItems(symbol, parent))
             ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso
                    token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedItems(symbol))
+                items.AddRange(GetNestedItems(symbol, includeKeywords:=True))
                 Dim xmlElement = token.Parent.Parent
 
                 AddXmlElementItems(items, xmlElement)

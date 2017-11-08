@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis
                 while (currentCandidate != null)
                 {
                     // get operation
-                    var tree = SemanticModel.GetOperationInternal(currentCandidate);
+                    var tree = SemanticModel.GetOperation(currentCandidate);
                     if (tree != null)
                     {
                         // walk down operation tree to see whether this tree contains parent of this operation

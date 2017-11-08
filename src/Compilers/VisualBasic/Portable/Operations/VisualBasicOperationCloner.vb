@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared ReadOnly Property Instance As OperationCloner = New VisualBasicOperationCloner()
 
         Public Overrides Function VisitArgument(operation As IArgumentOperation, argument As Object) As IOperation
-            Return New VisualBasicArgument(operation.ArgumentKind, operation.Parameter, Visit(operation.Value), operation.GetInConversion(), operation.GetOutConversion(), DirectCast(operation, Operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit)
+            Return New VisualBasicArgument(operation.ArgumentKind, operation.Parameter, Visit(operation.Value), operation.GetInConversion(), operation.GetOutConversion(), DirectCast(operation, Operation).SemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit)
         End Function
 
         Public Overrides Function VisitConversion(operation As IConversionOperation, argument As Object) As IOperation

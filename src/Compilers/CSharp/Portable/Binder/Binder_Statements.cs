@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol elementType = binder.GetIteratorElementType(node, diagnostics);
             BoundExpression argument = (node.Expression == null)
-                ? BadExpression(node)
+                ? BadExpression(node).MakeCompilerGenerated()
                 : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
 

@@ -4517,15 +4517,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is experimental and unsupported; use &apos;/features:{1}&apos; to enable..
-        /// </summary>
-        internal static string ERR_FeatureIsExperimental {
-            get {
-                return ResourceManager.GetString("ERR_FeatureIsExperimental", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not implemented in this compiler..
         /// </summary>
         internal static string ERR_FeatureIsUnimplemented {
