@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class BaseCSharpArgument : BaseArgument
     {
-        public BaseCSharpArgument(ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseCSharpArgument(ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+            base(argumentKind, parameter, semanticModel, syntax, constantValue, isImplicit)
         {
         }
 
@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed class CSharpArgument : BaseCSharpArgument
     {
-        public CSharpArgument(ArgumentKind argumentKind, IParameterSymbol parameter, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
+        public CSharpArgument(ArgumentKind argumentKind, IParameterSymbol parameter, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+            base(argumentKind, parameter, semanticModel, syntax, constantValue, isImplicit)
         {
             ValueImpl = value;
         }
@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyCSharpArgument(ArgumentKind argumentKind, IParameterSymbol parameter, Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCSharpArgument(ArgumentKind argumentKind, IParameterSymbol parameter, Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+            base(argumentKind, parameter, semanticModel, syntax, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new ArgumentNullException(nameof(value));
-        }        
+        }
 
         protected override IOperation ValueImpl => _lazyValue.Value;
     }

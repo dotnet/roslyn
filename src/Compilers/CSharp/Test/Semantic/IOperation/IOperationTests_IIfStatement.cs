@@ -205,7 +205,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m > 
                 Instance Receiver: 
                   null
                 Arguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'm')
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'm')
                       ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -219,7 +219,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m > 
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'n')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'n')
                   ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -277,7 +277,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m > 
                 Instance Receiver: 
                   null
                 Arguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'm')
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'm')
                       ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -289,7 +289,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m > 
                 Instance Receiver: 
                   null
                 Arguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'n')
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'n')
                       ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -345,7 +345,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m >=
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '""Nothing is ... er than m.""')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""Nothing is ... er than m.""')
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Nothing is larger than m."") (Syntax: '""Nothing is ... er than m.""')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -401,7 +401,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (n > 
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '""Result1""')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""Result1""')
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Result1"") (Syntax: '""Result1""')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -421,7 +421,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (n > 
                 Instance Receiver: 
                   null
                 Arguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '""Result2""')
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""Result2""')
                       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Result2"") (Syntax: '""Result2""')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -433,7 +433,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (n > 
                 Instance Receiver: 
                   null
                 Arguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '""Result3""')
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""Result3""')
                       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Result3"") (Syntax: '""Result3""')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -467,11 +467,11 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (int.
       Instance Receiver: 
         null
       Arguments(2):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: System.String) (Syntax: 's')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: null) (Syntax: 's')
             ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument, Type: System.Int32) (Syntax: 'out var i')
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument, Type: null) (Syntax: 'out var i')
             IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
               ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -483,7 +483,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (int.
           Instance Receiver: 
             null
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '$""i ={i}, s ={s}""')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '$""i ={i}, s ={s}""')
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""i ={i}, s ={s}""')
                   Parts(4):
                       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'i =')
@@ -515,7 +515,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (int.
           Instance Receiver: 
             null
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '$""i ={i}, s ={s}""')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '$""i ={i}, s ={s}""')
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""i ={i}, s ={s}""')
                   Parts(4):
                       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'i =')
@@ -584,7 +584,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
           Instance Receiver: 
             null
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.Int32) (Syntax: 'A()')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'A()')
                 IInvocationOperation ( System.Int32 P.A()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'A()')
                   Instance Receiver: 
                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'A')
@@ -636,16 +636,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
             Instance Receiver: 
               IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'A')
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument, Type: null) (Syntax: 'int.TryPars ...  out var i)')
                   IInvocationOperation (System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
                     Instance Receiver: 
                       null
                     Arguments(2):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: System.String) (Syntax: 's')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: null) (Syntax: 's')
                           ILocalReferenceOperation: s (OperationKind.LocalReference, Type: System.String) (Syntax: 's')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument, Type: System.Int32) (Syntax: 'out var i')
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument, Type: null) (Syntax: 'out var i')
                           IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
                             ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -696,7 +696,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
             Instance Receiver: 
               null
             Arguments(2):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument, Type: System.Boolean) (Syntax: 'o is int i')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument, Type: null) (Syntax: 'o is int i')
                   IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is int i')
                     Expression: 
                       ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
@@ -704,7 +704,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
                       IDeclarationPatternOperation (Declared Symbol: System.Int32 i) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument, Type: null) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -752,7 +752,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (obj 
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: 'str')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'str')
                   ILocalReferenceOperation: str (OperationKind.LocalReference, Type: System.String) (Syntax: 'str')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -796,7 +796,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
           Instance Receiver: 
             null
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: System.Object) (Syntax: '25')
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null) (Syntax: '25')
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '25')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
@@ -849,7 +849,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
             Instance Receiver: 
               null
             Arguments(2):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument, Type: System.Boolean) (Syntax: 'o is int i')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument, Type: null) (Syntax: 'o is int i')
                   IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is int i')
                     Expression: 
                       ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
@@ -857,7 +857,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
                       IDeclarationPatternOperation (Declared Symbol: System.Int32 i) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument, Type: System.Int32) (Syntax: '1')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument, Type: null) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -906,7 +906,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
             Instance Receiver: 
               null
             Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: 'str')
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'str')
                   ILocalReferenceOperation: str (OperationKind.LocalReference, Type: System.String) (Syntax: 'str')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1145,7 +1145,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (d.Ge
                   Operand: 
                     IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: System.Object) (Syntax: 'x')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: null) (Syntax: 'x')
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 

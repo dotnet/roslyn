@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -255,6 +257,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
 #if TEST_IOPERATION_INTERFACE
             var compilation = createCompilation();
+            var roots = ArrayBuilder<IOperation>.GetInstance();
 
             foreach (var tree in compilation.SyntaxTrees)
             {
@@ -268,9 +271,48 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
                         Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
+
+                        Assert.True(operation.Type == null || !operation.MustHaveNullType(), $"Unexpected non-null type: {operation.Type}");
+
+                        if (operation.Parent == null)
+                        {
+                            roots.Add(operation);
+                        }
                     }
                 }
             }
+
+            var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+
+            foreach (var root in roots)
+            {
+                foreach (var operation in root.DescendantsAndSelf())
+                {
+                    if (!operation.IsImplicit)
+                    {
+                        try
+                        {
+                            explictNodeMap.Add(operation.Syntax, operation);
+                        }
+                        catch (ArgumentException)
+                        {
+                            Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
+                        }
+                    }
+
+                    if (operation.Kind == OperationKind.Argument)
+                    {
+                        var argument = (IArgumentOperation)operation;
+
+                        if (argument.ArgumentKind == ArgumentKind.DefaultValue)
+                        {
+                            Assert.True(argument.Descendants().All(n => n.IsImplicit), $"Explicit node in default argument value ({argument.Syntax.RawKind}): {argument.Syntax.ToString()}");
+                        }
+                    }
+                }
+            }
+
+            roots.Free();
 #endif
         }
     }

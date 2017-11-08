@@ -62,7 +62,7 @@ End Module
             Dim assignment1 As ISimpleAssignmentOperation = DirectCast(expression1, ISimpleAssignmentOperation)
             Assert.Equal(assignment1.Value.Kind, OperationKind.BinaryOperator)
             Dim add1 As IBinaryOperation = DirectCast(assignment1.Value, IBinaryOperation)
-            Assert.Equal(add1.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
+            Assert.Equal(add1.OperatorKind, Operations.BinaryOperatorKind.Add)
             Assert.Null(add1.OperatorMethod)
             Dim left1 As IOperation = add1.LeftOperand
             Assert.Equal(left1.Kind, OperationKind.LocalReference)
@@ -83,8 +83,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, Is
           Left: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
           Right: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
-")
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')")
 
             ' x = x + y passes semantic analysis.
 
@@ -96,7 +95,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, Is
             Dim assignment2 As ISimpleAssignmentOperation = DirectCast(expression2, ISimpleAssignmentOperation)
             Assert.Equal(assignment2.Value.Kind, OperationKind.BinaryOperator)
             Dim add2 As IBinaryOperation = DirectCast(assignment2.Value, IBinaryOperation)
-            Assert.Equal(add2.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
+            Assert.Equal(add2.OperatorKind, Operations.BinaryOperatorKind.Add)
             Assert.NotNull(add2.OperatorMethod)
             Assert.Equal(add2.OperatorMethod.Name, "op_Addition")
             Dim left2 As IOperation = add2.LeftOperand
@@ -129,7 +128,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             Dim assignment3 As ISimpleAssignmentOperation = DirectCast(expression3, ISimpleAssignmentOperation)
             Assert.Equal(assignment3.Value.Kind, OperationKind.UnaryOperator)
             Dim negate3 As IUnaryOperation = DirectCast(assignment3.Value, IUnaryOperation)
-            Assert.Equal(negate3.OperatorKind, CodeAnalysis.Operations.UnaryOperatorKind.Minus)
+            Assert.Equal(negate3.OperatorKind, Operations.UnaryOperatorKind.Minus)
             Assert.Null(negate3.OperatorMethod)
             Dim operand3 As IOperation = negate3.Operand
             Assert.Equal(operand3.Kind, OperationKind.LocalReference)
@@ -192,7 +191,7 @@ End Module
             Dim value1 As ILocalReferenceOperation = TryCast(assignment1.Value, ILocalReferenceOperation)
             Assert.NotNull(value1)
             Assert.Equal(value1.Local.Name, "y")
-            Assert.Equal(assignment1.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
+            Assert.Equal(assignment1.OperatorKind, Operations.BinaryOperatorKind.Add)
             Assert.Null(assignment1.OperatorMethod)
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
@@ -218,7 +217,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             Dim value2 As ILocalReferenceOperation = TryCast(assignment2.Value, ILocalReferenceOperation)
             Assert.NotNull(value2)
             Assert.Equal(value2.Local.Name, "b")
-            Assert.Equal(assignment2.OperatorKind, CodeAnalysis.Operations.BinaryOperatorKind.Add)
+            Assert.Equal(assignment2.OperatorKind, Operations.BinaryOperatorKind.Add)
             Assert.NotNull(assignment2.OperatorMethod)
             Assert.Equal(assignment2.OperatorMethod.Name, "op_Addition")
 
@@ -290,7 +289,9 @@ End Class]]>.Value
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i = 0 T ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
-    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+    IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
+      Initializer: 
+        null
   InitialValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 
@@ -377,8 +378,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
           Operand: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-")
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:=
 "IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')
@@ -390,8 +390,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
         Arguments(0)
         Initializer: 
           null
-      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-")
+      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')")
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:=
 "IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'Test1(AddressOf Main)')
@@ -442,7 +441,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... essOf c1.S}')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .a = AddressOf c1.S')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Key .a = AddressOf c1.S')
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
@@ -675,8 +674,7 @@ End Module]]>.Value
 ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchClause, Type: null) (Syntax: 'Catch ex As ...  Is Nothing')
   Locals: Local_1: ex As System.Exception
   ExceptionDeclarationOrExpression: 
-    IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'ex')
-      Variables: Local_1: ex As System.Exception
+    IVariableDeclaratorOperation (Symbol: ex As System.Exception) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ex')
       Initializer: 
         null
   Filter: 
@@ -835,6 +833,40 @@ IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, T
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(23001, "https://github.com/dotnet/roslyn/issues/23001")>
+        Public Sub TestGetOperationForQualifiedName()
+            Dim source = <![CDATA[
+Public Class Test
+	Private Class A
+		Public b As B
+	End Class
+	Private Class B
+	End Class
+
+	Private Sub M(a As A)
+		Dim x2 As Integer = a.b'BIND:"a.b"
+	End Sub
+End Class
+]]>.Value
+
+            Dim comp = CreateVisualBasicCompilation(source)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+
+            ' Verify we return non-null operation only for topmost member access expression.
+            Dim expr = CompilationUtils.FindBindingText(Of MemberAccessExpressionSyntax)(comp, tree.FilePath)
+            Assert.Equal("a.b", expr.ToString())
+            Dim operation = model.GetOperation(expr)
+            Assert.NotNull(operation)
+            Assert.Equal(OperationKind.FieldReference, operation.Kind)
+            Dim fieldOperation = DirectCast(operation, IFieldReferenceOperation)
+            Assert.Equal("b", fieldOperation.Field.Name)
+
+            ' Verify we return null operation for child nodes of member access expression.
+            Assert.Null(model.GetOperation(expr.Name))
         End Sub
     End Class
 End Namespace

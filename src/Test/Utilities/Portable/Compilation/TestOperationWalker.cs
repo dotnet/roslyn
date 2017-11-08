@@ -55,18 +55,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitBlock(operation);
         }
 
-        public override void VisitVariableDeclarations(IVariableDeclarationsOperation operation)
+        public override void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation)
         {
-            base.VisitVariableDeclarations(operation);
+            base.VisitVariableDeclarationGroup(operation);
+        }
+
+        public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
+        {
+            var symbol = operation.Symbol;
+
+            base.VisitVariableDeclarator(operation);
         }
 
         public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
         {
-            foreach (var symbol in operation.Variables)
-            {
-                // empty loop body, just want to make sure it won't crash.
-            }
-
             base.VisitVariableDeclaration(operation);
         }
 
@@ -109,16 +111,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public override void VisitDoLoop(IDoLoopOperation operation)
-        {
-            var doLoopKind = operation.DoLoopKind;
-            WalkLoop(operation);
-
-            base.VisitDoLoop(operation);
-        }
-
         public override void VisitWhileLoop(IWhileLoopOperation operation)
         {
+            var conditionIsTop = operation.ConditionIsTop;
+            var conditionIsUntil = operation.ConditionIsUntil;
             WalkLoop(operation);
 
             base.VisitWhileLoop(operation);
@@ -369,6 +365,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitConditional(IConditionalOperation operation)
         {
+            bool isRef = operation.IsRef;
             base.VisitConditional(operation);
         }
 
@@ -534,6 +531,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)
         {
+            bool isRef = operation.IsRef;
             base.VisitSimpleAssignment(operation);
         }
 

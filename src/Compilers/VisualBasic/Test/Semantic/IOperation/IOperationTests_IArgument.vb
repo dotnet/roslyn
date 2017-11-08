@@ -616,7 +616,7 @@ IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32(
           Dimension Sizes(1):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'M2(1, 2, 3)')
           Initializer: 
-            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1, 2, 3)')
+            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'M2(1, 2, 3)')
               Element Values(2):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -659,7 +659,7 @@ IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32(
           Dimension Sizes(1):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2(1)')
           Initializer: 
-            IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1)')
+            IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'M2(1)')
               Element Values(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1081,12 +1081,12 @@ End Class]]>.Value
             Dim result = GetOperationAndSyntaxForTest(Of InvocationExpressionSyntax)(compilation, fileName)
 
             Dim expectedInKind = ConversionKind.Widening Or ConversionKind.UserDefined
-            Dim exptectedInMethod = compilation.GetSymbolsWithName(Function (name As string)
+            Dim exptectedInMethod = compilation.GetSymbolsWithName(Function(name As String)
                                                                        Return name = "op_Implicit"
                                                                    End Function, SymbolFilter.Member).Single()
 
             Dim expectedOutKind = ConversionKind.Narrowing Or ConversionKind.UserDefined
-            Dim expectedOutMethod = compilation.GetSymbolsWithName(Function (name As string)
+            Dim expectedOutMethod = compilation.GetSymbolsWithName(Function(name As String)
                                                                        Return name = "op_Explicit"
                                                                    End Function, SymbolFilter.Member).Single()
 
@@ -1186,7 +1186,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M2(1)')
               Initializer: 
-                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1)')
+                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'M2(1)')
                   Element Values(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1222,7 +1222,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'M2(0, 1)')
               Initializer: 
-                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'M2(0, 1)')
+                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'M2(0, 1)')
                   Element Values(2):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1365,7 +1365,7 @@ IObjectCreationOperation (Constructor: Sub Program..ctor(ParamArray a As System.
           Dimension Sizes(1):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'Program')
           Initializer: 
-            IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'Program')
+            IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'Program')
               Element Values(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1399,7 +1399,7 @@ IObjectCreationOperation (Constructor: Sub Program..ctor(ParamArray a As System.
           Dimension Sizes(1):
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'Program')
           Initializer: 
-            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32(), IsImplicit) (Syntax: 'Program')
+            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'Program')
               Element Values(2):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1424,20 +1424,23 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationsOperation (1 declarations) (OperationKind.VariableDeclarations, Type: null) (Syntax: 'Dim a(0 To  ...  As Integer')
-  IVariableDeclarationOperation (1 variables) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a(0 To 20)')
-    Variables: Local_1: a As System.Int32()
-    Initializer: 
-      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'a(0 To 20)')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'a(0 To 20)')
-          Dimension Sizes(1):
-              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 21, IsImplicit) (Syntax: '0 To 20')
-                Left: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
-                Right: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 20')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim a(0 To  ...  As Integer')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'a(0 To 20) As Integer')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: a As System.Int32()) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a(0 To 20)')
           Initializer: 
-            null
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'a(0 To 20)')
+              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'a(0 To 20)')
+                Dimension Sizes(1):
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 21, IsImplicit) (Syntax: '0 To 20')
+                      Left: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0 To 20')
+                Initializer: 
+                  null
+    Initializer: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
