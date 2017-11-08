@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the range variable maps directly to a use of the parameter of that name
                         var value = base.parameterMap[qv.Name];
                         Debug.Assert(value.Count == 1);
-                        translation = new BoundParameter(node, value.Single()) { WasCompilerGenerated = true };
+                        translation = new BoundParameter(node, value.Single());
                     }
                     else
                     {
                         // if the query variable map for this variable is non empty, we always start with the current
                         // lambda's first parameter, which is a transparent identifier.
                         Debug.Assert(base.lambdaSymbol.Parameters[0].Name.StartsWith(transparentIdentifierPrefix, StringComparison.Ordinal));
-                        translation = new BoundParameter(node, base.lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
+                        translation = new BoundParameter(node, base.lambdaSymbol.Parameters[0]);
                         for (int i = path.Length - 1; i >= 0; i--)
                         {
                             var nextField = path[i];

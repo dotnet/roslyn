@@ -239,6 +239,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundQueryClauseOperation((BoundQueryClause)boundNode);
                 case BoundKind.DelegateCreationExpression:
                     return CreateBoundDelegateCreationExpressionOperation((BoundDelegateCreationExpression)boundNode);
+                case BoundKind.RangeVariable:
+                    return Create(((BoundRangeVariable)boundNode).Value);
                 default:
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
