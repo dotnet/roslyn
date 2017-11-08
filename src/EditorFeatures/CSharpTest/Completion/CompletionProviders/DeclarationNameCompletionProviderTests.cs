@@ -649,7 +649,45 @@ class Test
             {
                 workspace.Options = originalOptions;
             }
+		}
 
+        [WorkItem(21837, "https://github.com/dotnet/roslyn/issues/21837")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutParameterNamesSuggested()
+        {
+            var markup = @"
+class Test
+{
+    void Do<T>(out T goo)
+    {
+        Do(out Test $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+            await VerifyItemExistsAsync(markup, "goo");
+        }
+
+        [WorkItem(21837, "https://github.com/dotnet/roslyn/issues/21837")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutParameterNamesSuggestedMultipleNames()
+        {
+            var markup = @"
+class Zed {}
+class Test
+{
+    void Do(out Zed boo) {}
+
+    void Do(out Test goo)
+    {
+        Do(out var $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test"); // type name of one overload
+            await VerifyItemExistsAsync(markup, "goo"); // parameter name of one overload
+            await VerifyItemExistsAsync(markup, "zed"); // type name of other overload
+            await VerifyItemExistsAsync(markup, "boo"); // parameter name of other overload
         }
     }
 }

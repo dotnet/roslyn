@@ -440,13 +440,13 @@ namespace ConsoleApp1
         private async Task VerifyNoType(string markup)
         {
             var result = await GetResultsAsync(markup);
-            Assert.Null(result.Type);
+            Assert.Null(result.Types[0]);
         }
 
         private async Task VerifyTypeName(string markup, string typeName)
         {
             var result = await GetResultsAsync(markup);
-            Assert.Equal(typeName, result.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            Assert.Equal(typeName, result.Types[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
         }
 
         private async Task VerifyNoModifiers(string markup)

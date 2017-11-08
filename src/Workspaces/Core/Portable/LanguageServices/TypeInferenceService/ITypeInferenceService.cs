@@ -33,18 +33,24 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal struct TypeInferenceInfo
     {
         public TypeInferenceInfo(ITypeSymbol type)
+            : this(type, false, parameterName: null)
         {
-            InferredType = type;
-            IsParams = false;
         }
 
         public TypeInferenceInfo(ITypeSymbol type, bool isParams)
+            : this(type, isParams, parameterName: null)
+        {
+        }
+
+        public TypeInferenceInfo(ITypeSymbol type, bool isParams, string parameterName)
         {
             InferredType = type;
             IsParams = isParams;
+            ParameterName = parameterName;
         }
 
         public ITypeSymbol InferredType { get; }
         public bool IsParams { get; }
+        public string ParameterName { get; }
     }
 }

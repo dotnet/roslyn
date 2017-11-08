@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var nameInfo = await NameDeclarationInfo.GetDeclarationInfo(document, position, cancellationToken).ConfigureAwait(false);
             var baseNames = GetBaseNames(semanticModel, nameInfo);
-            if (baseNames == default)
+            if (baseNames.IsDefaultOrEmpty)
             {
                 return;
             }
@@ -62,21 +62,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
         }
 
-        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel,  NameDeclarationInfo nameInfo)
+        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo info)
         {
-            if (nameInfo.Alias != null)
+            ImmutableArray<ImmutableArray<string>>.Builder baseNames = ImmutableArray.CreateBuilder<ImmutableArray<string>>();
+            if (!info.Aliases.IsDefaultOrEmpty)
             {
-                return NameGenerator.GetBaseNames(nameInfo.Alias);
+                var aliasNames = info.Aliases.Distinct().SelectMany(alias => NameGenerator.GetBaseNames(alias)).Distinct();
+                foreach (var name in aliasNames)
+                {
+                    baseNames.Add(name);
+                }
+            }
+            else if (!info.Types.IsDefaultOrEmpty)
+            {
+                var typeNames = info.Types
+                    .Where(IsValidType)
+                    .ToSet()
+                    .Select(t => UnwrapType(t, semanticModel.Compilation))
+                    .SelectMany(t => NameGenerator.GetBaseNames(t))
+                    .Distinct();
+
+                foreach (var name in typeNames)
+                {
+                    baseNames.Add(name);
+                }
             }
 
-            if (!IsValidType(nameInfo.Type))
+            if (!info.ParameterNames.IsDefaultOrEmpty)
             {
-                return default;
+                // In the `out var` case, also suggest the name of the out parameter
+                foreach (var parameterName in info.ParameterNames.Select(p => ImmutableArray.Create(p)))
+                {
+                    baseNames.Add(parameterName);
+                }
             }
 
-            var type = UnwrapType(nameInfo.Type, semanticModel.Compilation);
-            var baseNames = NameGenerator.GetBaseNames(type);
-            return baseNames;
+            return baseNames.ToImmutable();
+
         }
 
         private bool IsValidType(ITypeSymbol type)
@@ -215,10 +237,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
         {
             return CommonCompletionItem.Create(
-                name, 
-                CompletionItemRules.Default, 
-                glyph: glyph, 
-                sortText: sortText, 
+                name,
+                CompletionItemRules.Default,
+                glyph: glyph,
+                sortText: sortText,
                 description: CSharpFeaturesResources.Suggested_name.ToSymbolDisplayParts());
         }
     }
