@@ -129,9 +129,7 @@ End Structure
 Class Clazz
     Sub TEST(i As Integer)
         With New SSS(Me.ToString())
-            Static s As Action = Sub()
-                                     .A = ""'BIND:".A"
-                                 End Sub
+            .A = ""'BIND:".A"
         End With
     End Sub
 End Class]]>.Value
@@ -144,8 +142,8 @@ IFieldReferenceOperation: SSS.A As System.String (Static) (OperationKind.FieldRe
 
             Dim expectedDiagnostics = <![CDATA[
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-                                     .A = ""'BIND:".A"
-                                     ~~
+            .A = ""'BIND:".A"
+            ~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)

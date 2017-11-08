@@ -13,9 +13,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _cache As ConcurrentDictionary(Of BoundNode, IOperation) =
             New ConcurrentDictionary(Of BoundNode, IOperation)(concurrencyLevel:=2, capacity:=10)
 
-        Private ReadOnly _lazyNothingOperation As Lazy(Of IOperation) =
-            New Lazy(Of IOperation)(Function() Nothing)
-
         Private ReadOnly _semanticModel As SemanticModel
 
         Public Sub New(semanticModel As SemanticModel)
@@ -370,8 +367,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundCallOperation(boundCall As BoundCall) As IInvocationOperation
             Dim targetMethod As IMethodSymbol = boundCall.Method
 
-            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
-                    Function() CreateReceiverOperation(If(boundCall.ReceiverOpt, boundCall.MethodGroupOpt?.ReceiverOpt), targetMethod))
+            Dim instance As Lazy(Of IOperation) = CreateReceiverOperation(If(boundCall.ReceiverOpt, boundCall.MethodGroupOpt?.ReceiverOpt), targetMethod)
             Dim isVirtual As Boolean =
                 targetMethod IsNot Nothing AndAlso
                 instance IsNot Nothing AndAlso
@@ -620,7 +616,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Dim receiverOpt As BoundExpression = If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt)
 
-            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateReceiverOperation(receiverOpt, method))
+            Dim instance As Lazy(Of IOperation) = CreateReceiverOperation(receiverOpt, method)
 
             ' The compiler creates a BoundDelegateCreationExpression node for the AddressOf expression, and that's the node we want to use for the operand
             ' of the IDelegateCreationExpression parent
@@ -765,8 +761,8 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundPropertyAccessOperation(boundPropertyAccess As BoundPropertyAccess) As IPropertyReferenceOperation
             Dim [property] As IPropertySymbol = boundPropertyAccess.PropertySymbol
-            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
-                    Function() CreateReceiverOperation(If(boundPropertyAccess.ReceiverOpt, boundPropertyAccess.PropertyGroupOpt?.ReceiverOpt), [property]))
+            Dim instance As Lazy(Of IOperation) =
+                CreateReceiverOperation(If(boundPropertyAccess.ReceiverOpt, boundPropertyAccess.PropertyGroupOpt?.ReceiverOpt), [property])
 
             Dim arguments As Lazy(Of ImmutableArray(Of IArgumentOperation)) = New Lazy(Of ImmutableArray(Of IArgumentOperation))(
                 Function()
@@ -799,7 +795,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundEventAccessOperation(boundEventAccess As BoundEventAccess) As IEventReferenceOperation
             Dim [event] As IEventSymbol = boundEventAccess.EventSymbol
-            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateReceiverOperation(boundEventAccess.ReceiverOpt, [event]))
+            Dim instance As Lazy(Of IOperation) = CreateReceiverOperation(boundEventAccess.ReceiverOpt, [event])
 
             Dim syntax As SyntaxNode = boundEventAccess.Syntax
             Dim type As ITypeSymbol = boundEventAccess.Type
@@ -811,7 +807,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundFieldAccessOperation(boundFieldAccess As BoundFieldAccess) As IFieldReferenceOperation
             Dim field As IFieldSymbol = boundFieldAccess.FieldSymbol
             Dim isDeclaration As Boolean = False
-            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateReceiverOperation(boundFieldAccess.ReceiverOpt, field))
+            Dim instance As Lazy(Of IOperation) = CreateReceiverOperation(boundFieldAccess.ReceiverOpt, field)
 
             Dim syntax As SyntaxNode = boundFieldAccess.Syntax
             Dim type As ITypeSymbol = boundFieldAccess.Type
@@ -1204,7 +1200,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileLoopOperation
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWhileStatement.Condition))
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWhileStatement.Body))
-            Dim ignoredCondition As Lazy(Of IOperation) = _lazyNothingOperation
+            Dim ignoredCondition As Lazy(Of IOperation) = OperationFactory.NullOperation
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
             Dim conditionIsTop As Boolean = True
             Dim conditionIsUntil As Boolean = False
@@ -1236,7 +1232,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundLabelStatementOperation(boundLabelStatement As BoundLabelStatement) As ILabeledOperation
             Dim label As ILabelSymbol = boundLabelStatement.Label
-            Dim statement As Lazy(Of IOperation) = _lazyNothingOperation
+            Dim statement As Lazy(Of IOperation) = OperationFactory.NullOperation
             Dim syntax As SyntaxNode = boundLabelStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1381,7 +1377,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 boundInstance = receiver
             End If
 
-            Dim eventReferenceInstance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateReceiverOperation(boundInstance, eventSymbol))
+            Dim eventReferenceInstance As Lazy(Of IOperation) = CreateReceiverOperation(boundInstance, eventSymbol)
 
             Dim eventReference As Lazy(Of IEventReferenceOperation) = New Lazy(Of IEventReferenceOperation)(Function() As IEventReferenceOperation
                                                                                                                 Return New LazyEventReferenceExpression(eventSymbol,
@@ -1483,7 +1479,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundAnonymousTypePropertyAccessOperation(boundAnonymousTypePropertyAccess As BoundAnonymousTypePropertyAccess) As IPropertyReferenceOperation
-            Dim instance As Lazy(Of IOperation) = _lazyNothingOperation
+            Dim instance As Lazy(Of IOperation) = OperationFactory.NullOperation
             Dim [property] As IPropertySymbol = DirectCast(boundAnonymousTypePropertyAccess.ExpressionSymbol, IPropertySymbol)
             Dim arguments As Lazy(Of ImmutableArray(Of IArgumentOperation)) = New Lazy(Of ImmutableArray(Of IArgumentOperation))(Function() ImmutableArray(Of IArgumentOperation).Empty)
             Dim syntax As SyntaxNode = boundAnonymousTypePropertyAccess.Syntax

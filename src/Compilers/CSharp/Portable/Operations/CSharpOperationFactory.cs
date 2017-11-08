@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly ConcurrentDictionary<BoundNode, IOperation> _cache =
             new ConcurrentDictionary<BoundNode, IOperation>(concurrencyLevel: 2, capacity: 10);
 
-        private readonly Lazy<IOperation> _lazyNullOperation =
-            new Lazy<IOperation>(() => null);
-
         private readonly SemanticModel _semanticModel;
 
         public CSharpOperationFactory(SemanticModel semanticModel)
@@ -482,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IPropertyReferenceOperation CreateBoundAnonymousPropertyDeclarationOperation(BoundAnonymousPropertyDeclaration boundAnonymousPropertyDeclaration)
         {
             PropertySymbol property = boundAnonymousPropertyDeclaration.Property;
-            Lazy<IOperation> instance = _lazyNullOperation;
+            Lazy<IOperation> instance = OperationFactory.NullOperation;
             Lazy<ImmutableArray<IArgumentOperation>> arguments = new Lazy<ImmutableArray<IArgumentOperation>>(() => ImmutableArray<IArgumentOperation>.Empty);
             SyntaxNode syntax = boundAnonymousPropertyDeclaration.Syntax;
             ITypeSymbol type = boundAnonymousPropertyDeclaration.Type;
@@ -594,14 +591,15 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
         {
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => boundObjectInitializerMember.MemberSymbol.IsStatic ?
-                                                                   null :
-                                                                   new InstanceReferenceExpression(
-                                                                       semanticModel: _semanticModel,
-                                                                       syntax: boundObjectInitializerMember.Syntax,
-                                                                       type: boundObjectInitializerMember.ReceiverType,
-                                                                       constantValue: default(Optional<object>),
-                                                                       isImplicit: true));
+            Lazy<IOperation> instance = boundObjectInitializerMember.MemberSymbol.IsStatic ?
+                                            OperationFactory.NullOperation :
+                                            new Lazy<IOperation>(() =>
+                                                new InstanceReferenceExpression(
+                                                semanticModel: _semanticModel,
+                                                syntax: boundObjectInitializerMember.Syntax,
+                                                type: boundObjectInitializerMember.ReceiverType,
+                                                constantValue: default(Optional<object>),
+                                                isImplicit: true));
 
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
             ITypeSymbol type = boundObjectInitializerMember.Type;
@@ -1310,7 +1308,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundWhileStatement.Condition));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundWhileStatement.Body));
-            Lazy<IOperation> ignoredCondition = _lazyNullOperation;
+            Lazy<IOperation> ignoredCondition = OperationFactory.NullOperation;
             ImmutableArray<ILocalSymbol> locals = boundWhileStatement.Locals.As<ILocalSymbol>();
             bool conditionIsTop = true;
             bool conditionIsUntil = false;
@@ -1325,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundDoStatement.Condition));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundDoStatement.Body));
-            Lazy<IOperation> ignoredCondition = _lazyNullOperation;
+            Lazy<IOperation> ignoredCondition = OperationFactory.NullOperation;
             bool conditionIsTop = false;
             bool conditionIsUntil = false;
             ImmutableArray<ILocalSymbol> locals = boundDoStatement.Locals.As<ILocalSymbol>();
@@ -1367,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
-                loopControlVariable = _lazyNullOperation;
+                loopControlVariable = OperationFactory.NullOperation;
             }
 
             Lazy<IOperation> collection = new Lazy<IOperation>(() => Create(boundForEachStatement.Expression));
@@ -1561,7 +1559,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarations = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() => ImmutableArray.Create(CreateVariableDeclaratorInternal(boundLocalDeclaration, varDeclarator)));
             bool multiVariableImplicit = boundLocalDeclaration.WasCompilerGenerated;
             // In C#, the MultiVariable initializer will always be null, but we can't pass null as the actual lazy. We assume that all lazy elements always exist
-            Lazy<IVariableInitializerOperation> initializer = OperationFactory.EmptyInitializer;
+            Lazy<IVariableInitializerOperation> initializer = OperationFactory.NullInitializer;
             IVariableDeclarationOperation multiVariableDeclaration = new LazyVariableDeclaration(declarations, initializer, _semanticModel, varDeclaration, null, default, multiVariableImplicit);
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -1576,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<ImmutableArray<IVariableDeclaratorOperation>> declarators = new Lazy<ImmutableArray<IVariableDeclaratorOperation>>(() =>
                 boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration => CreateVariableDeclarator(declaration)));
             // In C#, the MultiVariable initializer will always be null, but we can't pass null as the actual lazy. We assume that all lazy elements always exist
-            Lazy<IVariableInitializerOperation> initializer = OperationFactory.EmptyInitializer;
+            Lazy<IVariableInitializerOperation> initializer = OperationFactory.NullInitializer;
 
             // The syntax for the boundMultipleLocalDeclarations can either be a LocalDeclarationStatement or a VariableDeclaration, depending on the context
             // (using/fixed statements vs variable declaration)

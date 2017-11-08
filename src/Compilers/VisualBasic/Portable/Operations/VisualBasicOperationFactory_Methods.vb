@@ -162,9 +162,9 @@ Namespace Microsoft.CodeAnalysis.Operations
                 isImplicit:=isImplicit OrElse argument Is Nothing)
         End Function
 
-        Private Function CreateReceiverOperation(node As BoundNode, symbol As ISymbol) As IOperation
+        Private Function CreateReceiverOperation(node As BoundNode, symbol As ISymbol) As Lazy(Of IOperation)
             If node Is Nothing OrElse node.Kind = BoundKind.TypeExpression Then
-                Return Nothing
+                Return OperationFactory.NullOperation
             End If
 
             If symbol IsNot Nothing AndAlso
@@ -173,10 +173,10 @@ Namespace Microsoft.CodeAnalysis.Operations
                (node.Kind = BoundKind.MeReference OrElse
                 node.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse
                 node.Kind = BoundKind.WithRValueExpressionPlaceholder) Then
-                Return Nothing
+                Return OperationFactory.NullOperation
             End If
 
-            Return Create(node)
+            Return New Lazy(Of IOperation)(Function() Create(node))
         End Function
 
         Private Shared Function ParameterIsParamArray(parameter As VisualBasic.Symbols.ParameterSymbol) As Boolean

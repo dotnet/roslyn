@@ -95,13 +95,13 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
-                return OperationFactory.EmptyOperation;
+                return OperationFactory.NullOperation;
             }
 
             // Static members cannot have an implicit this receiver
             if (symbol != null && symbol.IsStatic && instance.WasCompilerGenerated && instance.Kind == BoundKind.ThisReference)
             {
-                return OperationFactory.EmptyOperation;
+                return OperationFactory.NullOperation;
             }
 
             return new Lazy<IOperation>(() => Create(instance));
