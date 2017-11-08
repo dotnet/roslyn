@@ -4968,7 +4968,7 @@ class C
 
             var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,31): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                // (6,31): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (short X, string Y) = (Alice: 1, Bob: null);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(Alice: 1, Bob: null)").WithArguments("System.ValueTuple`2").WithLocation(6, 31),
                 // (6,32): warning CS8123: The tuple element name 'Alice' is ignored because a different name or no name is specified by the target type '(short, string)'.

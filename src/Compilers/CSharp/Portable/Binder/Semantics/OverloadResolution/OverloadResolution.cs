@@ -2257,7 +2257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Downgrade result to Neither if conversion used by the winner isn't actually valid method group conversion.
-                        // This is necessary to preserve compatibility, otherwise we might dismiss "worse", but trully applicable candidate
+                        // This is necessary to preserve compatibility, otherwise we might dismiss "worse", but truly applicable candidate
                         // based on a "better", but, in reality, erroneous one.
                         if (node?.Kind == BoundKind.MethodGroup)
                         {

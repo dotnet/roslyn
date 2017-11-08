@@ -8625,6 +8625,7 @@ End Module
         Public Sub MissingCompilerAssembly()
             Dim dir = Temp.CreateDirectory()
             Dim vbcPath = dir.CopyFile(GetType(Vbc).Assembly.Location).Path
+            dir.CopyFile(GetType(Compilation).Assembly.Location)
 
             ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
             Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
@@ -8634,7 +8635,6 @@ End Module
                 result.Output.Trim())
 
             ' Missing System.Collections.Immutable.dll.
-            dir.CopyFile(GetType(Compilation).Assembly.Location)
             dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
@@ -8645,7 +8645,7 @@ End Module
 
         <ConditionalFact(GetType(WindowsOnly))>
         <WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")>
-        Public Sub PdbPathNotEmittedWitoutPdb()
+        Public Sub PdbPathNotEmittedWithoutPdb()
             Dim dir = Temp.CreateDirectory()
 
             Dim src = MakeTrivialExe(directory:=dir.Path)

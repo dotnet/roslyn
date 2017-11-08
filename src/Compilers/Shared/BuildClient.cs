@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     out sessionKey,
                     out errorMessage))
             {
-                Console.Out.WriteLine(errorMessage);
+                textWriter.WriteLine(errorMessage);
                 return RunCompilationResult.Failed;
             }
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // Build could not be completed on the server.
                     return null;
                 default:
-                    // Will not happen with our server but hypothetically could be sent by a rouge server.  Should
+                    // Will not happen with our server but hypothetically could be sent by a rogue server.  Should
                     // not let that block compilation.
                     Debug.Assert(false);
                     return null;
@@ -191,11 +191,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
+#if NET46
             return true;
+#else
+            // (Not NET46 -> on CoreCLR)
+            // The native invoke ends up giving us both CoreRun and the exe file.
+            // Need to find a good way to remove the host as well as the EXE argument.
+            // https://github.com/dotnet/roslyn/issues/6677
+            return false;
+#endif
         }
 
         /// <summary>
-        /// When running on Windows we can't take the commmand line which was provided to the 
+        /// When running on Windows we can't take the command line which was provided to the 
         /// Main method of the application.  That will go through normal windows command line 
         /// parsing which eliminates artifacts like quotes.  This has the effect of normalizing
         /// the below command line options, which are semantically different, into the same

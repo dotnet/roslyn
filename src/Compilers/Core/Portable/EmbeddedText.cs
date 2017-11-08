@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         public SourceHashAlgorithm ChecksumAlgorithm { get; }
 
         /// <summary>
-        /// The <see cref="ChecksumAlgorithm"/> hash of the uncrompressed bytes
+        /// The <see cref="ChecksumAlgorithm"/> hash of the uncompressed bytes
         /// that's saved to the PDB.
         /// </summary>
         public ImmutableArray<byte> Checksum { get; }

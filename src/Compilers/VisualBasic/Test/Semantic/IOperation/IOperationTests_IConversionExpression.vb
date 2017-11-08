@@ -2463,7 +2463,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub ConversionExpressin_Implicit_WideningConstantConversion()
+        Public Sub ConversionExpression_Implicit_WideningConstantConversion()
             Dim source = <![CDATA[
 Option Strict On
 Module Module1

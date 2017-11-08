@@ -47,8 +47,10 @@
     </dependencies>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.dll" target="lib\netstandard1.3" />
     <file src="Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

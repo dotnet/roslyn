@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Cached "this" local, used to store the captured "this", which is safe to cache locally since "this" 
-        /// is sematically immutable.
+        /// is semantically immutable.
         /// It would be hard for such caching to happen at JIT level (since JIT does not know that it never changes).
         /// NOTE: this field is null when we are not caching "this" which happens when
         ///       - not optimizing

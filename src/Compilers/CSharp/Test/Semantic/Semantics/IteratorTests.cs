@@ -294,7 +294,7 @@ namespace RoslynYield
         [WorkItem(5390, "https://github.com/dotnet/roslyn/issues/5390")]
         public void TopLevelYieldReturn()
         {
-            // The imcomplete statement is intended
+            // The incomplete statement is intended
             var text = "yield return int.";
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
             comp.VerifyDiagnostics(

@@ -3723,7 +3723,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
 
         [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]
         [Fact]
-        public void NSaliasSystemIsGlobal()
+        public void NSAliasSystemIsGlobal()
         {
             string source = @"
 using System = global;

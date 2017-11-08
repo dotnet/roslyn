@@ -368,6 +368,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
+        Public Function IsInInContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+            ' NOTE: VB does not support in parameters. Always return False here.
+            Return False
+        End Function
+
+        <Extension()>
         Public Function IsOnlyWrittenTo(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
             If expression.IsRightSideOfDot() Then
                 expression = TryCast(expression.Parent, ExpressionSyntax)

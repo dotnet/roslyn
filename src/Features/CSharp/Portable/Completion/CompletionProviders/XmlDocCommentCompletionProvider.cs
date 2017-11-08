@@ -112,23 +112,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     items.AddRange(GetNestedItems(declaredSymbol, includeKeywords));
                 }
 
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListElementName)
+                if (token.Parent.Parent is XmlElementSyntax xmlElement)
                 {
-                    items.AddRange(GetListItems());
+                    AddXmlElementItems(items, xmlElement.StartTag);
                 }
 
-                if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
+                if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) && 
+                    token.Parent.Parent.Parent is XmlElementSyntax nestedXmlElement)
                 {
-                    var element = (XmlElementSyntax)token.Parent.Parent.Parent;
-                    if (element.StartTag.Name.LocalName.ValueText == ListElementName)
-                    {
-                        items.AddRange(GetListItems());
-                    }
-                }
-
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListHeaderElementName)
-                {
-                    items.AddRange(GetListHeaderItems());
+                    AddXmlElementItems(items, nestedXmlElement.StartTag);
                 }
 
                 if (token.Parent.Parent is DocumentationCommentTriviaSyntax ||
@@ -138,23 +130,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            if (token.Parent.Kind() == SyntaxKind.XmlElementStartTag)
+            if (token.Parent is XmlElementStartTagSyntax startTag &&
+                token == startTag.GreaterThanToken)
             {
-                var startTag = (XmlElementStartTagSyntax)token.Parent;
-
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListElementName)
-                {
-                    items.AddRange(GetListItems());
-                }
-
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListHeaderElementName)
-                {
-                    items.AddRange(GetListHeaderItems());
-                }
+                AddXmlElementItems(items, startTag);
             }
 
             items.AddRange(GetAlwaysVisibleItems());
             return items;
+        }
+
+        private void AddXmlElementItems(List<CompletionItem> items, XmlElementStartTagSyntax startTag)
+        {
+            var xmlElementName = startTag.Name.LocalName.ValueText;
+            if (xmlElementName == ListElementName)
+            {
+                items.AddRange(GetListItems());
+            }
+            else if (xmlElementName == ListHeaderElementName)
+            {
+                items.AddRange(GetListHeaderItems());
+            }
+            else if (xmlElementName == ItemElementName)
+            {
+                items.AddRange(GetItemTagItems());
+            }
         }
 
         private bool IsAttributeNameContext(SyntaxToken token, int position, out string elementName, out ISet<string> attributeNames)

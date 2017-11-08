@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (!field.IsReadOnly)
             {
                 // in a case if we have a writeable struct field with a receiver that only has a readable home we would need to pass it via a temp.
-                // it would be advantageous to make a temp for the field, not for the the outer struct, since the field is smaller and we can get to is by feching references.
+                // it would be advantageous to make a temp for the field, not for the the outer struct, since the field is smaller and we can get to is by fetching references.
                 // NOTE: this would not be profitable if we have to satisfy verifier, since for verifiability 
                 //       we would not be able to dig for the inner field using references and the outer struct will have to be copied to a temp anyways.
                 if (!EnablePEVerifyCompat())

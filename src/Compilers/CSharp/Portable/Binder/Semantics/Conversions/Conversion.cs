@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            Debug.Assert(isTrivial, "this conversion needs addtitional data: " + kind);
+            Debug.Assert(isTrivial, "this conversion needs additional data: " + kind);
         }
 
         internal static Conversion GetTrivialConversion(ConversionKind kind)

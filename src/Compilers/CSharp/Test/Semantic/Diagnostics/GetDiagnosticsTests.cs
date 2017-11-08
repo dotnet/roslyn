@@ -70,7 +70,7 @@ class D
         }
 
         [Fact]
-        public void DiagnosticsFilteredForInsersectingIntervals()
+        public void DiagnosticsFilteredForIntersectingIntervals()
         {
             var source = @"
 class C : Abracadabra
@@ -283,10 +283,10 @@ namespace N1
                     }
                     else
                     {
-                        var compilationCompeletedEvent = compEvent as CompilationUnitCompletedEvent;
-                        if (compilationCompeletedEvent != null)
+                        var compilationCompletedEvent = compEvent as CompilationUnitCompletedEvent;
+                        if (compilationCompletedEvent != null)
                         {
-                            Assert.True(completedCompilationUnits.Add(compilationCompeletedEvent.CompilationUnit.FilePath));
+                            Assert.True(completedCompilationUnits.Add(compilationCompletedEvent.CompilationUnit.FilePath));
                         }
                     }
                 }

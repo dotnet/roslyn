@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parameterInitializers = GetParameterInitializers(propertyStatement.ParameterList)
             Dim initializer As SyntaxNode = propertyStatement.Initializer
             If initializer Is Nothing Then
-                initializer = GetAsNewClauseIntializer(propertyStatement.AsClause)
+                initializer = GetAsNewClauseInitializer(propertyStatement.AsClause)
             End If
             Return parameterInitializers.Concat(initializer)
         End Function
@@ -166,13 +166,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function GetInitializerNode(variableDeclarator As VariableDeclaratorSyntax) As SyntaxNode
             Dim initializer As SyntaxNode = variableDeclarator.Initializer
             If initializer Is Nothing Then
-                initializer = GetAsNewClauseIntializer(variableDeclarator.AsClause)
+                initializer = GetAsNewClauseInitializer(variableDeclarator.AsClause)
             End If
 
             Return initializer
         End Function
 
-        Private Shared Function GetAsNewClauseIntializer(asClause As AsClauseSyntax) As SyntaxNode
+        Private Shared Function GetAsNewClauseInitializer(asClause As AsClauseSyntax) As SyntaxNode
             ' The As New clause itself is necessary rather than the embedded New expression, so that the
             ' code block associated with the declaration appears as an initializer for the purposes
             ' of executing analyzer actions.

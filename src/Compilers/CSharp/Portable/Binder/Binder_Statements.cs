@@ -2661,20 +2661,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = this.ContainingMemberOrLambda as LambdaSymbol;
             if ((object)lambda != null)
             {
+                Location location = getLocationForDiagnostics(syntax);
                 if (IsInAsyncMethod())
                 {
                     // Cannot convert async {0} to intended delegate type. An async {0} may return void, Task or Task<T>, none of which are convertible to '{1}'.
                     Error(diagnostics, ErrorCode.ERR_CantConvAsyncAnonFuncReturns,
-                        syntax,
+                        location,
                         lambda.MessageID.Localize(), lambda.ReturnType);
                 }
                 else
                 {
                     // Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
                     Error(diagnostics, ErrorCode.ERR_CantConvAnonMethReturns,
-                        syntax,
+                        location,
                         lambda.MessageID.Localize());
                 }
+            }
+
+            Location getLocationForDiagnostics(SyntaxNode node)
+            {
+                switch (node)
+                {
+                    case LambdaExpressionSyntax lambdaSyntax:
+                        return Location.Create(lambdaSyntax.SyntaxTree,
+                            Text.TextSpan.FromBounds(lambdaSyntax.SpanStart, lambdaSyntax.ArrowToken.Span.End));
+
+                    case AnonymousMethodExpressionSyntax anonymousMethodSyntax:
+                        return Location.Create(anonymousMethodSyntax.SyntaxTree,
+                            Text.TextSpan.FromBounds(anonymousMethodSyntax.SpanStart,
+                                anonymousMethodSyntax.ParameterList?.Span.End ?? anonymousMethodSyntax.DelegateKeyword.Span.End));
+                }
+
+                return node.Location;
             }
         }
 

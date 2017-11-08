@@ -2509,6 +2509,39 @@ End Class",
 End Class")
         End Function
 
+        <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMyClassShouldNotBeRemoved() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class SomeType
+    Overridable Sub Test()
+    End Sub
+    Overridable Sub Test2()
+        [|MyClass|].Test()
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMyClassShouldBeRemoved() As Task
+            Await TestInRegularAndScriptAsync(
+"Class SomeType
+    Sub Test()
+    End Sub
+    Sub Test2()
+        [|MyClass|].Test()
+    End Sub
+End Class",
+"Class SomeType
+    Sub Test()
+    End Sub
+    Sub Test2()
+        Test()
+    End Sub
+End Class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
             Await TestDiagnosticInfoAsync(

@@ -1201,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var position = node.SpanStart;
             if (node is StatementSyntax)
             {
-                // skip zero-width tokens to get the postion, but never get past the end of the node
+                // skip zero-width tokens to get the position, but never get past the end of the node
                 int betterPosition = node.GetFirstToken(includeZeroWidth: false).SpanStart;
                 if (betterPosition < node.Span.End)
                 {
@@ -2751,7 +2751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //                         [           ]
         //                              \GetDeclaredSymbol => Field: (string Alice, short Bob).Alice
         //
-        // In partiucular, the location of the field declaration is "Alice: null" and not the "string"
+        // In particular, the location of the field declaration is "Alice: null" and not the "string"
         //                 the location of the type is "(Alice: null, Bob: 2)" and not the "(string, short)"
         //
         // The reason for this behavior is that, even though there might not be other references to "Alice" field in the code, 

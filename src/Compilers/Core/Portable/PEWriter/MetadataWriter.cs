@@ -339,7 +339,7 @@ namespace Microsoft.Cci
         /// if the reference is available in the current generation.
         /// Deltas are not required to return rows from previous generations.
         /// </summary>
-        protected abstract bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle);
+        protected abstract bool TryGetTypeReferenceHandle(ITypeReference reference, out TypeReferenceHandle handle);
 
         /// <summary>
         /// Return full metadata handle of the type reference, adding
@@ -368,7 +368,7 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<ITypeReference> GetTypeSpecs();
 
         /// <summary>
-        /// Returns full metadata handle the stanadlone signature, adding
+        /// Returns full metadata handle the standalone signature, adding
         /// the signature to the index for this generation if missing.
         /// Deltas are not required to return rows from previous generations.
         /// </summary>
@@ -1601,7 +1601,7 @@ namespace Microsoft.Cci
         private TypeReferenceHandle GetTypeReferenceHandle(ITypeReference typeReference)
         {
             TypeReferenceHandle result;
-            if (this.TryGetTypeRefeferenceHandle(typeReference, out result))
+            if (this.TryGetTypeReferenceHandle(typeReference, out result))
             {
                 return result;
             }

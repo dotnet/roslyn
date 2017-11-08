@@ -40,12 +40,16 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" target="lib\net46" />
     <file src="Dlls\Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.xml" target="lib\net46" />
+    <file src="Dlls\Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.pdb*" target="lib\net46" />
     <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" target="lib\net46" />
     <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.xml" target="lib\net46" />
+    <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.pdb*" target="lib\net46" />
     <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" target="lib\netstandard1.3" />
     <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

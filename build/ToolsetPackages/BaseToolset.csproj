@@ -25,8 +25,8 @@
     <PackageReference Include="RoslynTools.Microsoft.SignTool" Version="$(RoslynToolsMicrosoftSignToolVersion)" />
     <PackageReference Include="RoslynTools.Microsoft.VSIXExpInstaller" Version="$(RoslynToolsMicrosoftVSIXExpInstallerVersion)" />
     <PackageReference Include="RoslynTools.ReferenceAssemblies" Version="$(RoslynToolsReferenceAssembliesVersion)" />
-    <PackageReference Include="GitLink" Version="$(GitLinkVersion)" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" />
     <PackageReference Include="xunit.runner.wpf" Version="$(xunitrunnerwpfVersion)" />
+    <PackageReference Include="pdb2pdb" Version="$(Pdb2PdbVersion)" />
   </ItemGroup>
 </Project>

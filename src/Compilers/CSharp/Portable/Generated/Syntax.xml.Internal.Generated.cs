@@ -5834,10 +5834,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
   internal sealed partial class ArgumentSyntax : CSharpSyntaxNode
   {
     internal readonly NameColonSyntax nameColon;
-    internal readonly SyntaxToken refOrOutKeyword;
+    internal readonly SyntaxToken refKindKeyword;
     internal readonly ExpressionSyntax expression;
 
-    internal ArgumentSyntax(SyntaxKind kind, NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ArgumentSyntax(SyntaxKind kind, NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 3;
@@ -5846,17 +5846,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AdjustFlagsAndWidth(nameColon);
             this.nameColon = nameColon;
         }
-        if (refOrOutKeyword != null)
+        if (refKindKeyword != null)
         {
-            this.AdjustFlagsAndWidth(refOrOutKeyword);
-            this.refOrOutKeyword = refOrOutKeyword;
+            this.AdjustFlagsAndWidth(refKindKeyword);
+            this.refKindKeyword = refKindKeyword;
         }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
     }
 
 
-    internal ArgumentSyntax(SyntaxKind kind, NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression, SyntaxFactoryContext context)
+    internal ArgumentSyntax(SyntaxKind kind, NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
@@ -5866,17 +5866,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AdjustFlagsAndWidth(nameColon);
             this.nameColon = nameColon;
         }
-        if (refOrOutKeyword != null)
+        if (refKindKeyword != null)
         {
-            this.AdjustFlagsAndWidth(refOrOutKeyword);
-            this.refOrOutKeyword = refOrOutKeyword;
+            this.AdjustFlagsAndWidth(refKindKeyword);
+            this.refKindKeyword = refKindKeyword;
         }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
     }
 
 
-    internal ArgumentSyntax(SyntaxKind kind, NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
+    internal ArgumentSyntax(SyntaxKind kind, NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
         : base(kind)
     {
         this.SlotCount = 3;
@@ -5885,10 +5885,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AdjustFlagsAndWidth(nameColon);
             this.nameColon = nameColon;
         }
-        if (refOrOutKeyword != null)
+        if (refKindKeyword != null)
         {
-            this.AdjustFlagsAndWidth(refOrOutKeyword);
-            this.refOrOutKeyword = refOrOutKeyword;
+            this.AdjustFlagsAndWidth(refKindKeyword);
+            this.refKindKeyword = refKindKeyword;
         }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
@@ -5897,7 +5897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>NameColonSyntax node representing the optional name arguments.</summary>
     public NameColonSyntax NameColon { get { return this.nameColon; } }
     /// <summary>SyntaxToken representing the optional ref or out keyword.</summary>
-    public SyntaxToken RefOrOutKeyword { get { return this.refOrOutKeyword; } }
+    public SyntaxToken RefKindKeyword { get { return this.refKindKeyword; } }
     /// <summary>ExpressionSyntax node representing the argument.</summary>
     public ExpressionSyntax Expression { get { return this.expression; } }
 
@@ -5906,7 +5906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         switch (index)
         {
             case 0: return this.nameColon;
-            case 1: return this.refOrOutKeyword;
+            case 1: return this.refKindKeyword;
             case 2: return this.expression;
             default: return null;
         }
@@ -5927,11 +5927,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         visitor.VisitArgument(this);
     }
 
-    public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
+    public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
     {
-        if (nameColon != this.NameColon || refOrOutKeyword != this.RefOrOutKeyword || expression != this.Expression)
+        if (nameColon != this.NameColon || refKindKeyword != this.RefKindKeyword || expression != this.Expression)
         {
-            var newNode = SyntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
+            var newNode = SyntaxFactory.Argument(nameColon, refKindKeyword, expression);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -5946,12 +5946,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new ArgumentSyntax(this.Kind, this.nameColon, this.refOrOutKeyword, this.expression, diagnostics, GetAnnotations());
+         return new ArgumentSyntax(this.Kind, this.nameColon, this.refKindKeyword, this.expression, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new ArgumentSyntax(this.Kind, this.nameColon, this.refOrOutKeyword, this.expression, GetDiagnostics(), annotations);
+         return new ArgumentSyntax(this.Kind, this.nameColon, this.refKindKeyword, this.expression, GetDiagnostics(), annotations);
     }
 
     internal ArgumentSyntax(ObjectReader reader)
@@ -5964,11 +5964,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          AdjustFlagsAndWidth(nameColon);
          this.nameColon = nameColon;
       }
-      var refOrOutKeyword = (SyntaxToken)reader.ReadValue();
-      if (refOrOutKeyword != null)
+      var refKindKeyword = (SyntaxToken)reader.ReadValue();
+      if (refKindKeyword != null)
       {
-         AdjustFlagsAndWidth(refOrOutKeyword);
-         this.refOrOutKeyword = refOrOutKeyword;
+         AdjustFlagsAndWidth(refKindKeyword);
+         this.refKindKeyword = refKindKeyword;
       }
       var expression = (ExpressionSyntax)reader.ReadValue();
       if (expression != null)
@@ -5982,7 +5982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       base.WriteTo(writer);
       writer.WriteValue(this.nameColon);
-      writer.WriteValue(this.refOrOutKeyword);
+      writer.WriteValue(this.refKindKeyword);
       writer.WriteValue(this.expression);
     }
 
@@ -10322,7 +10322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
   }
 
-  /// <summary>Class which represents a simple pattern-maching expresion using the "is" keyword.</summary>
+  /// <summary>Class which represents a simple pattern-matching expression using the "is" keyword.</summary>
   internal sealed partial class IsPatternExpressionSyntax : ExpressionSyntax
   {
     internal readonly ExpressionSyntax expression;
@@ -35975,9 +35975,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override CSharpSyntaxNode VisitArgument(ArgumentSyntax node)
     {
       var nameColon = (NameColonSyntax)this.Visit(node.NameColon);
-      var refOrOutKeyword = (SyntaxToken)this.Visit(node.RefOrOutKeyword);
+      var refKindKeyword = (SyntaxToken)this.Visit(node.RefKindKeyword);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
-      return node.Update(nameColon, refOrOutKeyword, expression);
+      return node.Update(nameColon, refKindKeyword, expression);
     }
 
     public override CSharpSyntaxNode VisitNameColon(NameColonSyntax node)
@@ -38859,12 +38859,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
+    public ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
     {
 #if DEBUG
-      if (refOrOutKeyword != null)
+      if (refKindKeyword != null)
       {
-      switch (refOrOutKeyword.Kind)
+      switch (refKindKeyword.Kind)
       {
         case SyntaxKind.RefKeyword:
         case SyntaxKind.OutKeyword:
@@ -38872,7 +38872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refOrOutKeyword");
+          throw new ArgumentException("refKindKeyword");
       }
       }
       if (expression == null)
@@ -38880,10 +38880,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Argument, nameColon, refOrOutKeyword, expression, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Argument, nameColon, refKindKeyword, expression, this.context, out hash);
       if (cached != null) return (ArgumentSyntax)cached;
 
-      var result = new ArgumentSyntax(SyntaxKind.Argument, nameColon, refOrOutKeyword, expression, this.context);
+      var result = new ArgumentSyntax(SyntaxKind.Argument, nameColon, refKindKeyword, expression, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -45784,12 +45784,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
+    public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
     {
 #if DEBUG
-      if (refOrOutKeyword != null)
+      if (refKindKeyword != null)
       {
-      switch (refOrOutKeyword.Kind)
+      switch (refKindKeyword.Kind)
       {
         case SyntaxKind.RefKeyword:
         case SyntaxKind.OutKeyword:
@@ -45797,7 +45797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refOrOutKeyword");
+          throw new ArgumentException("refKindKeyword");
       }
       }
       if (expression == null)
@@ -45805,10 +45805,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Argument, nameColon, refOrOutKeyword, expression, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Argument, nameColon, refKindKeyword, expression, out hash);
       if (cached != null) return (ArgumentSyntax)cached;
 
-      var result = new ArgumentSyntax(SyntaxKind.Argument, nameColon, refOrOutKeyword, expression);
+      var result = new ArgumentSyntax(SyntaxKind.Argument, nameColon, refKindKeyword, expression);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);

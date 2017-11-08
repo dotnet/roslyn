@@ -996,14 +996,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // if binding root is enum member decleration, make it equal value
+            // if binding root is enum member declaration, make it equal value
             // we need to do this since node map doesn't contain bound node for enum member decl
             if (bindingRoot is EnumMemberDeclarationSyntax enumMember && enumMember.EqualsValue?.FullSpan.Contains(node.Span) == true)
             {
                 return enumMember.EqualsValue;
             }
 
-            // if binding root is property member decleration, make it equal value
+            // if binding root is property member declaration, make it equal value
             // we need to do this since node map doesn't contain bound node for property initializer
             if (bindingRoot is PropertyDeclarationSyntax propertyMember && propertyMember.Initializer?.FullSpan.Contains(node.Span) == true)
             {

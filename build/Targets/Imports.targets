@@ -118,12 +118,6 @@
     </When>
   </Choose>
 
-  <!-- Settings for strong name signing -->
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-      <!-- Strong name signing is not supported on non-Windows platforms -->
-      <PublicSign>true</PublicSign>
-  </PropertyGroup>
-
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
       <Choose>
@@ -145,6 +139,10 @@
             <DelaySign>false</DelaySign>
             <PublicKey>$(RoslynInternalKey)</PublicKey>
             <PublicKeyToken>fc793a00266884fb</PublicKeyToken>
+          </PropertyGroup>
+          <!-- Real-signing is not currently supported cross-platform -->
+          <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+              <PublicSign>true</PublicSign>
           </PropertyGroup>
         </Otherwise>
       </Choose>
@@ -471,8 +469,13 @@
       MSBuildMinimumDisplayVersion="MSBuild 15.3"
       />
 
+    <PropertyGroup>
+      <ShortSdkVersion Condition=" $(dotnetSdkVersion.IndexOf('-')) > 0 ">$(dotnetSdkVersion.Substring(0, $(dotnetSdkVersion.IndexOf('-'))))</ShortSdkVersion>
+      <ShortSdkVersion Condition=" $(dotnetSdkVersion.IndexOf('-')) &lt;= 0 ">$(dotnetSdkVersion)</ShortSdkVersion>
+    </PropertyGroup>
+
     <Error 
-      Text="The 2.0 SDK is required to build this repo"
+      Text="The $(ShortSdkVersion) SDK is required to build this repo"
       Condition="'$(UsingMicrosoftNETSdk)' == '' AND '$(RoslynSdkProject)' == 'true'" />
   </Target> 
 
@@ -513,4 +516,28 @@
     </ItemGroup>
   </Target>
 
+  <!-- 
+    Prepare inputs for Symbol Store publishing.
+     
+    The imported targets populate ArtifactsSymStoreDirectory with links to binaries and Windows PDBs produced either 
+    directly by the build or converted from Portable PDBs produced by the build.
+    In official build the content of ArtifactsSymStoreDirectory is uploaded to a symbol server.
+  -->
+  <PropertyGroup>
+    <PublishOutputToSymStore Condition="'$(Nonshipping)' == 'true'">false</PublishOutputToSymStore>
+  </PropertyGroup>
+
+  <Import Project="RepoToolset\SymStore.targets" />
+
+  <Import Project="RepoToolset\SourceLink.targets" Condition="'$(EnableSourceLink)' == 'true' and '$(GitHeadSha)' != ''"/>
+
+  <PropertyGroup>
+    <PathMap Condition="'$(DeterministicSourceRoot)' != ''">$(RepoRoot)=$(DeterministicSourceRoot)</PathMap>
+  </PropertyGroup>
+
+  <Target Name="_CheckForSpacesInPathMap"
+          BeforeTargets="CoreCompile">
+    <Error Text="PathMap, DeterministicSourceRoot and RepoRoot shall not contain spaces (https://github.com/dotnet/roslyn/issues/22835)" 
+           Condition="$(PathMap.Contains(' '))" />
+  </Target>
 </Project>
