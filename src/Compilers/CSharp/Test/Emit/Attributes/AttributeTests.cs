@@ -1244,36 +1244,39 @@ public class Test
                     : new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
                         "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
 
+                var constantExpected = "1844674407800451891300";
+
+                string[] decimalAttributeExpected = new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" };
+
                 var prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
                 var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 if (isFromSource)
                 {
-                    AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" }),
-                        GetAttributeStrings(field1.GetAttributes()));
+                    AssertEx.SetEqual(fieldAttributesExpected.Concat(decimalAttributeExpected), GetAttributeStrings(field1.GetAttributes()));
                 }
                 else
                 {
                     AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field1.GetAttributes()));
+                    Assert.Equal(constantExpected, field1.ConstantValue.ToString());
                 }
 
                 var prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
                 var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
-                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" }),
-                    GetAttributeStrings(field2.GetAttributes()));
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(decimalAttributeExpected), GetAttributeStrings(field2.GetAttributes()));
 
                 var field3 = @class.GetMember<FieldSymbol>("field");
                 if (isFromSource)
                 {
-                    AssertEx.SetEqual(new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" },
-                        GetAttributeStrings(field3.GetAttributes()));
+                    AssertEx.SetEqual(decimalAttributeExpected, GetAttributeStrings(field3.GetAttributes()));
                 }
                 else
                 {
                     Assert.Empty(GetAttributeStrings(field3.GetAttributes()));
+                    Assert.Equal(constantExpected, field3.ConstantValue.ToString());
                 }
             };
 
