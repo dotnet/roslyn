@@ -2,10 +2,9 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <Import Project="RepoToolset\GitHash.props" />
+ 
   <!-- This controls the version numbers of the build that we are producing -->
-
-  <Import Project="Packages.props" />
-  <Import Project="FixedPackages.props" />
 
   <PropertyGroup>
     <!-- This is the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
@@ -76,35 +75,14 @@
     </Otherwise>
   </Choose>
 
-  <Choose>
-    <When Condition="'$(OfficialBuild)' != 'true'">
-      <!-- On non-official builds we don't burn in a git sha.  In large part because it
-           hurts our determinism efforts as binaries which should be the same between
-           builds will not (due to developers building against different HEAD
-           values). -->
-      <PropertyGroup>
-        <GitHeadSha>&lt;developer build&gt;</GitHeadSha>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(BUILD_SOURCEVERSION)' != ''">
-      <PropertyGroup>
-        <GitHeadSha>$(BUILD_SOURCEVERSION)</GitHeadSha>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(BUILD_SOURCEVERSION)' == '' AND '$(GIT_COMMIT)' != ''">
-      <PropertyGroup>
-        <GitHeadSha>$(GIT_COMMIT)</GitHeadSha>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <GitHeadSha>Not found</GitHeadSha>
-        <DotGitDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../.git'))</DotGitDir>
-        <HeadFileContent Condition="Exists('$(DotGitDir)/HEAD')">$([System.IO.File]::ReadAllText('$(DotGitDir)/HEAD').Trim())</HeadFileContent>
-        <RefPath Condition="$(HeadFileContent.StartsWith('ref: '))">$(DotGitDir)/$(HeadFileContent.Substring(5))</RefPath>
-        <GitHeadSha Condition="'$(RefPath)' != '' AND Exists('$(RefPath)')">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadSha>
-        <GitHeadSha Condition="'$(HeadFileContent)' != '' AND '$(RefPath)' == ''">$(HeadFileContent)</GitHeadSha>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
+  <PropertyGroup>
+    <!-- On non-official builds we don't burn in a git sha.  In large part because it
+         hurts our determinism efforts as binaries which should be the same between
+         builds will not (due to developers building against different HEAD
+         values). -->
+    <CommitHashDisplay>&lt;developer build&gt;</CommitHashDisplay>
+    <CommitHashDisplay Condition="'$(OfficialBuild)' == 'true'">$(GitHeadSha)</CommitHashDisplay>
+    
+    <InformationalVersion>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(CommitHashDisplay)</InformationalVersion>
+  </PropertyGroup>
 </Project>
