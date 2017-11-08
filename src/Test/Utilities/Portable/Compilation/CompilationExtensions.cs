@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -267,7 +268,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     if (operation != null)
                     {
                         // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
-                        Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
+                        //Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
+
+                        // Make sure that all static member references or invocations of static methods do not have implicit IInstanceReferenceOperations
+                        // as their receivers
+                        if (operation is IMemberReferenceOperation memberReference &&
+                            memberReference.Member.IsStatic &&
+                            memberReference.Instance is IInstanceReferenceOperation)
+                        {
+                            Assert.False(memberReference.Instance.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                        }
+                        else if (operation is IInvocationOperation invocation &&
+                                 invocation.TargetMethod.IsStatic &&
+                                 invocation.Instance is IInstanceReferenceOperation)
+                        {
+                            Assert.False(invocation.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                        }
                     }
                 }
             }
