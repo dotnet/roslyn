@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Operations
         CommonConversion InConversion { get; }
 
         /// <summary>
-        /// Conversion appliec to the result of the compound operation, before it is assigned back to
+        /// Conversion applied to the result of the binary operation, before it is assigned back to
         /// <see cref="IAssignmentOperation.Target"/>.
         /// </summary>
         CommonConversion OutConversion { get; }
