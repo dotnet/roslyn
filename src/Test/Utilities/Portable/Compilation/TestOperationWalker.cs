@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitPropertyInitializer(IPropertyInitializerOperation operation)
         {
-            var initializedProperty = operation.InitializedProperty;
+            var initializedProperty = operation.InitializedProperties;
 
             base.VisitPropertyInitializer(operation);
         }
