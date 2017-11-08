@@ -579,9 +579,6 @@
   <data name="TupleUnderlyingTypeMustBeTupleCompatible" xml:space="preserve">
     <value>The underlying type for a tuple must be tuple-compatible.</value>
   </data>
-  <data name="IOperationFeatureDisabled" xml:space="preserve">
-    <value>Feature 'IOperation' is disabled.</value>
-  </data>
   <data name="UnrecognizedResourceFileFormat" xml:space="preserve">
     <value>Unrecognized resource file format.</value>
   </data>

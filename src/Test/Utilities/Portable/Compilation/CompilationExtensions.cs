@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void AppendOperationTree(SemanticModel model, SyntaxNode node, StringBuilder actualTextBuilder, int initialIndent = 0)
         {
-            IOperation operation = model.GetOperationInternal(node);
+            IOperation operation = model.GetOperation(node);
             if (operation != null)
             {
                 string operationTree = OperationTreeVerifier.GetOperationTree(model.Compilation, operation, initialIndent);
@@ -256,6 +257,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
 #if TEST_IOPERATION_INTERFACE
             var compilation = createCompilation();
+            var roots = ArrayBuilder<IOperation>.GetInstance();
 
             foreach (var tree in compilation.SyntaxTrees)
             {
@@ -268,25 +270,64 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     if (operation != null)
                     {
                         // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
-                        //Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
+                        Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
 
-                        // Make sure that all static member references or invocations of static methods do not have implicit IInstanceReferenceOperations
-                        // as their receivers
-                        if (operation is IMemberReferenceOperation memberReference &&
-                            memberReference.Member.IsStatic &&
-                            memberReference.Instance is IInstanceReferenceOperation)
+                        Assert.True(operation.Type == null || !operation.MustHaveNullType(), $"Unexpected non-null type: {operation.Type}");
+
+                        if (operation.Parent == null)
                         {
-                            Assert.False(memberReference.Instance.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
-                        }
-                        else if (operation is IInvocationOperation invocation &&
-                                 invocation.TargetMethod.IsStatic &&
-                                 invocation.Instance is IInstanceReferenceOperation)
-                        {
-                            Assert.False(invocation.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                            roots.Add(operation);
                         }
                     }
                 }
             }
+
+            var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+
+            foreach (var root in roots)
+            {
+                foreach (var operation in root.DescendantsAndSelf())
+                {
+                    if (!operation.IsImplicit)
+                    {
+                        try
+                        {
+                            explictNodeMap.Add(operation.Syntax, operation);
+                        }
+                        catch (ArgumentException)
+                        {
+                            Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
+                        }
+                    }
+
+                    if (operation.Kind == OperationKind.Argument)
+                    {
+                        var argument = (IArgumentOperation)operation;
+
+                        if (argument.ArgumentKind == ArgumentKind.DefaultValue)
+                        {
+                            Assert.True(argument.Descendants().All(n => n.IsImplicit), $"Explicit node in default argument value ({argument.Syntax.RawKind}): {argument.Syntax.ToString()}");
+                        }
+                    }
+
+                    // Make sure that all static member references or invocations of static methods do not have implicit IInstanceReferenceOperations
+                    // as their receivers
+                    if (operation is IMemberReferenceOperation memberReference &&
+                        memberReference.Member.IsStatic &&
+                        memberReference.Instance is IInstanceReferenceOperation)
+                    {
+                        Assert.False(memberReference.Instance.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                    }
+                    else if (operation is IInvocationOperation invocation &&
+                             invocation.TargetMethod.IsStatic &&
+                             invocation.Instance is IInstanceReferenceOperation)
+                    {
+                        Assert.False(invocation.IsImplicit, $"Implicit IInstanceReceiver on {operation.Syntax}");
+                    }
+                }
+            }
+
+            roots.Free();
 #endif
         }
     }

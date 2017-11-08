@@ -5603,7 +5603,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
               Initializer: 
-                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1}')
+                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1}')
                   Element Values(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       Arguments(1):
@@ -5663,7 +5663,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
                   Initializer: 
-                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1}')
+                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1}')
                       Element Values(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           Arguments(1):
@@ -5754,7 +5754,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           Dimension Sizes(1):
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {3}')
                           Initializer: 
-                            IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{3}')
+                            IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{3}')
                               Element Values(1):
                                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
                   Arguments(1):
@@ -7368,7 +7368,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, 3}')
               Initializer: 
-                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 3}')
+                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 3}')
                   Element Values(2):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -7381,7 +7381,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {2, 3}')
                   Initializer: 
-                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{2, 3}')
+                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{2, 3}')
                       Element Values(2):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -7460,7 +7460,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
                   Initializer: 
-                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1}')
+                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1}')
                       Element Values(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           Arguments(4):
@@ -7472,7 +7472,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       Dimension Sizes(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {2, 3}')
                       Initializer: 
-                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{2, 3}')
+                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{2, 3}')
                           Element Values(2):
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -7524,7 +7524,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {4, 5}')
                   Initializer: 
-                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{4, 5}')
+                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{4, 5}')
                       Element Values(2):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
@@ -8701,7 +8701,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Initializer: 
-                IArrayInitializerOperation (6 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 2, 3, 4, 2, 3}')
+                IArrayInitializerOperation (6 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2, 3, 4, 2, 3}')
                   Element Values(6):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -8772,7 +8772,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Initializer: 
-                IArrayInitializerOperation (6 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 2, 3, 4, 2, 3}')
+                IArrayInitializerOperation (6 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2, 3, 4, 2, 3}')
                   Element Values(6):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -8849,7 +8849,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Initializer: 
-                IArrayInitializerOperation (6 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 2, 3, 4, 2, 3}')
+                IArrayInitializerOperation (6 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2, 3, 4, 2, 3}')
                   Element Values(6):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -8933,7 +8933,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Initializer: 
-                IArrayInitializerOperation (6 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 2, 3, 4, 2, 3}')
+                IArrayInitializerOperation (6 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2, 3, 4, 2, 3}')
                   Element Values(6):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -9063,7 +9063,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       Dimension Sizes(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, 2}')
                       Initializer: 
-                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 2}')
+                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2}')
                           Element Values(2):
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -9115,7 +9115,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, 2}')
                   Initializer: 
-                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 2}')
+                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 2}')
                       Element Values(2):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -9749,7 +9749,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, 3}')
               Initializer: 
-                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 3}')
+                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 3}')
                   Element Values(2):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -9762,7 +9762,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {2, 3}')
                   Initializer: 
-                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{2, 3}')
+                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{2, 3}')
                       Element Values(2):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -9849,7 +9849,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
                   Initializer: 
-                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1}')
+                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1}')
                       Element Values(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           Arguments(4):
@@ -9861,7 +9861,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       Dimension Sizes(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {2, 3}')
                       Initializer: 
-                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{2, 3}')
+                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{2, 3}')
                           Element Values(2):
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -9913,7 +9913,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {4, 5}')
                   Initializer: 
-                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{4, 5}')
+                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{4, 5}')
                       Element Values(2):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
@@ -10025,7 +10025,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       Dimension Sizes(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
                       Initializer: 
-                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1}')
+                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1}')
                           Element Values(1):
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Arguments(4):
@@ -10041,7 +10041,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                   Dimension Sizes(1):
                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
                                   Initializer: 
-                                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1}')
+                                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1}')
                                       Element Values(1):
                                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                           Arguments(4):
@@ -10053,7 +10053,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                       Dimension Sizes(1):
                                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
                                       Initializer: 
-                                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1}')
+                                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1}')
                                           Element Values(1):
                                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -10100,7 +10100,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                   Dimension Sizes(1):
                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
                                   Initializer: 
-                                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1}')
+                                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1}')
                                       Element Values(1):
                                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11273,7 +11273,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
               Dimension Sizes(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {3, 4}')
               Initializer: 
-                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{3, 4}')
+                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{3, 4}')
                   Element Values(2):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
@@ -11377,7 +11377,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
                       Dimension Sizes(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {3, 4}')
                       Initializer: 
-                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{3, 4}')
+                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{3, 4}')
                           Element Values(2):
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
@@ -11396,7 +11396,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
                                       Dimension Sizes(1):
                                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, 3}')
                                       Initializer: 
-                                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1, 3}')
+                                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, 3}')
                                           Element Values(2):
                                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -11496,7 +11496,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       Dimension Sizes(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
                       Initializer: 
-                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1}')
+                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1}')
                           Element Values(1):
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Arguments(2):
@@ -11514,7 +11514,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                       Dimension Sizes(1):
                                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {2}')
                                       Initializer: 
-                                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{2}')
+                                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{2}')
                                           Element Values(1):
                                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11547,7 +11547,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                   Dimension Sizes(1):
                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {3}')
                                   Initializer: 
-                                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{3}')
+                                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{3}')
                                       Element Values(1):
                                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11629,7 +11629,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {3, 4}')
                   Initializer: 
-                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{3, 4}')
+                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{3, 4}')
                       Element Values(2):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
@@ -11690,7 +11690,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                                                   Dimension Sizes(1):
                                                                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
                                                                                   Initializer: 
-                                                                                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{1}')
+                                                                                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1}')
                                                                                       Element Values(1):
                                                                                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                                                                           Arguments(2):
@@ -11708,7 +11708,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                                                                   Dimension Sizes(1):
                                                                                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {2}')
                                                                                                   Initializer: 
-                                                                                                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{2}')
+                                                                                                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{2}')
                                                                                                       Element Values(1):
                                                                                                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                                                                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11741,7 +11741,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                                                               Dimension Sizes(1):
                                                                                                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {3}')
                                                                                               Initializer: 
-                                                                                                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: System.Int32()) (Syntax: '{3}')
+                                                                                                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{3}')
                                                                                                   Element Values(1):
                                                                                                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
                                                                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

@@ -46,7 +46,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of AssignmentStatementSyntax).ToArray()
@@ -171,7 +171,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of AssignmentStatementSyntax).ToArray()
@@ -289,7 +289,9 @@ End Class]]>.Value
 IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i = 0 T ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
-    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+    IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
+      Initializer: 
+        null
   InitialValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 
@@ -344,7 +346,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim tree = comp.SyntaxTrees.Single()
 
             comp.AssertTheseDiagnostics(
@@ -439,7 +441,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... essOf c1.S}')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .a = AddressOf c1.S')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Key .a = AddressOf c1.S')
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
@@ -831,6 +833,40 @@ IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, T
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(23001, "https://github.com/dotnet/roslyn/issues/23001")>
+        Public Sub TestGetOperationForQualifiedName()
+            Dim source = <![CDATA[
+Public Class Test
+	Private Class A
+		Public b As B
+	End Class
+	Private Class B
+	End Class
+
+	Private Sub M(a As A)
+		Dim x2 As Integer = a.b'BIND:"a.b"
+	End Sub
+End Class
+]]>.Value
+
+            Dim comp = CreateVisualBasicCompilation(source)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+
+            ' Verify we return non-null operation only for topmost member access expression.
+            Dim expr = CompilationUtils.FindBindingText(Of MemberAccessExpressionSyntax)(comp, tree.FilePath)
+            Assert.Equal("a.b", expr.ToString())
+            Dim operation = model.GetOperation(expr)
+            Assert.NotNull(operation)
+            Assert.Equal(OperationKind.FieldReference, operation.Kind)
+            Dim fieldOperation = DirectCast(operation, IFieldReferenceOperation)
+            Assert.Equal("b", fieldOperation.Field.Name)
+
+            ' Verify we return null operation for child nodes of member access expression.
+            Assert.Null(model.GetOperation(expr.Name))
         End Sub
     End Class
 End Namespace

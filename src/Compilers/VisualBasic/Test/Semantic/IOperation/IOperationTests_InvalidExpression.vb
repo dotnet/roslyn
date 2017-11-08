@@ -409,7 +409,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: X(), IsInvalid) (Syn
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'Program - 1')
   Initializer: 
-    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: X(), IsInvalid) (Syntax: '{{1}}')
+    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{{1}}')
       Element Values(1):
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '{1}')
             Children(0)

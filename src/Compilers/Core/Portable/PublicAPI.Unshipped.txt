@@ -36,6 +36,7 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBloc
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockEndActionsCount.set -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockStartActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockStartActionsCount.set -> void
+Microsoft.CodeAnalysis.ILocalSymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.IMethodSymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRefReadonly.get -> bool
 Microsoft.CodeAnalysis.IOperation
@@ -188,12 +189,6 @@ Microsoft.CodeAnalysis.Operations.CommonConversion.IsNumeric.get -> bool
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsReference.get -> bool
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsUserDefined.get -> bool
 Microsoft.CodeAnalysis.Operations.CommonConversion.MethodSymbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
-Microsoft.CodeAnalysis.Operations.DoLoopKind
-Microsoft.CodeAnalysis.Operations.DoLoopKind.DoUntilBottomLoop = 3 -> Microsoft.CodeAnalysis.Operations.DoLoopKind
-Microsoft.CodeAnalysis.Operations.DoLoopKind.DoUntilTopLoop = 4 -> Microsoft.CodeAnalysis.Operations.DoLoopKind
-Microsoft.CodeAnalysis.Operations.DoLoopKind.DoWhileBottomLoop = 1 -> Microsoft.CodeAnalysis.Operations.DoLoopKind
-Microsoft.CodeAnalysis.Operations.DoLoopKind.DoWhileTopLoop = 2 -> Microsoft.CodeAnalysis.Operations.DoLoopKind
-Microsoft.CodeAnalysis.Operations.DoLoopKind.None = 0 -> Microsoft.CodeAnalysis.Operations.DoLoopKind
 Microsoft.CodeAnalysis.Operations.IAddressOfOperation
 Microsoft.CodeAnalysis.Operations.IAddressOfOperation.Reference.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IAnonymousFunctionOperation
@@ -260,6 +255,7 @@ Microsoft.CodeAnalysis.Operations.IConditionalAccessOperation.Operation.get -> M
 Microsoft.CodeAnalysis.Operations.IConditionalAccessOperation.WhenNotNull.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IConditionalOperation
 Microsoft.CodeAnalysis.Operations.IConditionalOperation.Condition.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IConditionalOperation.IsRef.get -> bool
 Microsoft.CodeAnalysis.Operations.IConditionalOperation.WhenFalse.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IConditionalOperation.WhenTrue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IConstantPatternOperation
@@ -279,10 +275,6 @@ Microsoft.CodeAnalysis.Operations.IDefaultCaseClauseOperation
 Microsoft.CodeAnalysis.Operations.IDefaultValueOperation
 Microsoft.CodeAnalysis.Operations.IDelegateCreationOperation
 Microsoft.CodeAnalysis.Operations.IDelegateCreationOperation.Target.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Operations.IDoLoopOperation
-Microsoft.CodeAnalysis.Operations.IDoLoopOperation.Condition.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Operations.IDoLoopOperation.DoLoopKind.get -> Microsoft.CodeAnalysis.Operations.DoLoopKind
-Microsoft.CodeAnalysis.Operations.IDoLoopOperation.IgnoredCondition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation
 Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation.Operation.get -> Microsoft.CodeAnalysis.IOperation
@@ -373,7 +365,7 @@ Microsoft.CodeAnalysis.Operations.ILoopOperation.Body.get -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.Operations.ILoopOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.ILoopOperation.LoopKind.get -> Microsoft.CodeAnalysis.Operations.LoopKind
 Microsoft.CodeAnalysis.Operations.IMemberInitializerOperation
-Microsoft.CodeAnalysis.Operations.IMemberInitializerOperation.InitializedMember.get -> Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation
+Microsoft.CodeAnalysis.Operations.IMemberInitializerOperation.InitializedMember.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IMemberInitializerOperation.Initializer.get -> Microsoft.CodeAnalysis.Operations.IObjectOrCollectionInitializerOperation
 Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation
 Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation.Instance.get -> Microsoft.CodeAnalysis.IOperation
@@ -418,6 +410,7 @@ Microsoft.CodeAnalysis.Operations.IRelationalCaseClauseOperation.Value.get -> Mi
 Microsoft.CodeAnalysis.Operations.IReturnOperation
 Microsoft.CodeAnalysis.Operations.IReturnOperation.ReturnedValue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ISimpleAssignmentOperation
+Microsoft.CodeAnalysis.Operations.ISimpleAssignmentOperation.IsRef.get -> bool
 Microsoft.CodeAnalysis.Operations.ISingleValueCaseClauseOperation
 Microsoft.CodeAnalysis.Operations.ISingleValueCaseClauseOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ISizeOfOperation
@@ -465,13 +458,15 @@ Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation.Symbol.get -> Mic
 Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation
 Microsoft.CodeAnalysis.Operations.IWhileLoopOperation
 Microsoft.CodeAnalysis.Operations.IWhileLoopOperation.Condition.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IWhileLoopOperation.ConditionIsTop.get -> bool
+Microsoft.CodeAnalysis.Operations.IWhileLoopOperation.ConditionIsUntil.get -> bool
+Microsoft.CodeAnalysis.Operations.IWhileLoopOperation.IgnoredCondition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.LoopKind
-Microsoft.CodeAnalysis.Operations.LoopKind.Do = 1 -> Microsoft.CodeAnalysis.Operations.LoopKind
-Microsoft.CodeAnalysis.Operations.LoopKind.For = 3 -> Microsoft.CodeAnalysis.Operations.LoopKind
-Microsoft.CodeAnalysis.Operations.LoopKind.ForEach = 5 -> Microsoft.CodeAnalysis.Operations.LoopKind
-Microsoft.CodeAnalysis.Operations.LoopKind.ForTo = 4 -> Microsoft.CodeAnalysis.Operations.LoopKind
+Microsoft.CodeAnalysis.Operations.LoopKind.For = 2 -> Microsoft.CodeAnalysis.Operations.LoopKind
+Microsoft.CodeAnalysis.Operations.LoopKind.ForEach = 4 -> Microsoft.CodeAnalysis.Operations.LoopKind
+Microsoft.CodeAnalysis.Operations.LoopKind.ForTo = 3 -> Microsoft.CodeAnalysis.Operations.LoopKind
 Microsoft.CodeAnalysis.Operations.LoopKind.None = 0 -> Microsoft.CodeAnalysis.Operations.LoopKind
-Microsoft.CodeAnalysis.Operations.LoopKind.While = 2 -> Microsoft.CodeAnalysis.Operations.LoopKind
+Microsoft.CodeAnalysis.Operations.LoopKind.While = 1 -> Microsoft.CodeAnalysis.Operations.LoopKind
 Microsoft.CodeAnalysis.Operations.OperationExtensions
 Microsoft.CodeAnalysis.Operations.OperationVisitor
 Microsoft.CodeAnalysis.Operations.OperationVisitor.OperationVisitor() -> void
@@ -552,7 +547,6 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDeconstructionAs
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDefaultCaseClause(Microsoft.CodeAnalysis.Operations.IDefaultCaseClauseOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDefaultValue(Microsoft.CodeAnalysis.Operations.IDefaultValueOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDelegateCreation(Microsoft.CodeAnalysis.Operations.IDelegateCreationOperation operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDoLoop(Microsoft.CodeAnalysis.Operations.IDoLoopOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDynamicIndexerAccess(Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDynamicInvocation(Microsoft.CodeAnalysis.Operations.IDynamicInvocationOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDynamicMemberReference(Microsoft.CodeAnalysis.Operations.IDynamicMemberReferenceOperation operation) -> void
@@ -644,7 +638,6 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDefaultCaseClause(Microsoft.CodeAnalysis.Operations.IDefaultCaseClauseOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDefaultValue(Microsoft.CodeAnalysis.Operations.IDefaultValueOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDelegateCreation(Microsoft.CodeAnalysis.Operations.IDelegateCreationOperation operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDoLoop(Microsoft.CodeAnalysis.Operations.IDoLoopOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDynamicIndexerAccess(Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDynamicInvocation(Microsoft.CodeAnalysis.Operations.IDynamicInvocationOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitDynamicMemberReference(Microsoft.CodeAnalysis.Operations.IDynamicMemberReferenceOperation operation, TArgument argument) -> TResult

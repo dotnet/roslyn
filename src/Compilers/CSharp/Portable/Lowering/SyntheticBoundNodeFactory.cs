@@ -1269,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            if (refKind == RefKind.Out || refKind == RefKind.In)
+            if (refKind == RefKind.Out)
             {
                 refKind = RefKind.Ref;
             }

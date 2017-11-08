@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void IInvocation_StaticMethodWithInstanceReciever()
+        public void IInvocation_StaticMethodWithInstanceReceiver()
         {
             string source = @"
 class C
@@ -94,7 +94,5 @@ IInvocationOperation (void C.M1()) (OperationKind.Invocation, Type: System.Void,
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
-
-
     }
 }

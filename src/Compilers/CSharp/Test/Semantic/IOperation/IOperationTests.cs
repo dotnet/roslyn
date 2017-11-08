@@ -50,7 +50,7 @@ public class Cls
   Instance Receiver: 
     null
   Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: System.Int32[]) (Syntax: 'null')
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'null')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -88,7 +88,7 @@ public class C
         a = b = c = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -127,6 +127,27 @@ public class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(22964, "https://github.com/dotnet/roslyn/issues/22964")]
+        [Fact]
+        public void GlobalStatement_Parent()
+        {
+            var source =
+@"
+System.Console.WriteLine();
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var statement = tree.GetRoot().DescendantNodes().OfType<StatementSyntax>().Single();
+            var model = compilation.GetSemanticModel(tree);
+            var operation = model.GetOperation(statement);
+
+            Assert.Equal(OperationKind.ExpressionStatement, operation.Kind);
+            Assert.Null(operation.Parent);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestParentOperations()
         {
@@ -137,6 +158,46 @@ public class C
             var model = compilation.GetSemanticModel(tree);
 
             VerifyParentOperations(model);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(23001, "https://github.com/dotnet/roslyn/issues/23001")]
+        [Fact]
+        public void TestGetOperationForQualifiedName()
+        {
+            var text = @"using System;
+
+public class Test
+{
+    class A
+    {
+        public B b;
+    }
+    class B
+    {
+    }
+    
+    void M(A a)
+    {
+        int x2 = /*<bind>*/a.b/*</bind>*/;
+    }
+}
+";
+            var comp = CreateStandardCompilation(text);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // Verify we return non-null operation only for topmost member access expression.
+            var expr = (MemberAccessExpressionSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            Assert.Equal("a.b", expr.ToString());
+            var operation = model.GetOperation(expr);
+            Assert.NotNull(operation);
+            Assert.Equal(OperationKind.FieldReference, operation.Kind);
+            var fieldOperation = (IFieldReferenceOperation)operation;
+            Assert.Equal("b", fieldOperation.Field.Name);
+
+            // Verify we return null operation for child nodes of member access expression.
+            Assert.Null(model.GetOperation(expr.Name));
         }
     }
 }

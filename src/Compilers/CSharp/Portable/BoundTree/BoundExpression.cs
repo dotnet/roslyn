@@ -167,6 +167,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<PropertySymbol> OriginalIndexersOpt { get; private set; }
 
+        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration)
+        {
+            if (useSetterForDefaultArgumentGeneration != this.UseSetterForDefaultArgumentGeneration)
+            {
+                var result = new BoundIndexerAccess(
+                   this.Syntax,
+                   this.ReceiverOpt,
+                   this.Indexer,
+                   this.Arguments,
+                   this.ArgumentNamesOpt,
+                   this.ArgumentRefKindsOpt,
+                   this.Expanded,
+                   this.ArgsToParamsOpt,
+                   this.BinderOpt,
+                   useSetterForDefaultArgumentGeneration,
+                   this.Type,
+                   this.HasErrors)
+                {
+                    WasCompilerGenerated = this.WasCompilerGenerated,
+                    OriginalIndexersOpt = this.OriginalIndexersOpt
+                };
+
+                return result;
+            }
+
+            return this;
+        }
+
         public override LookupResultKind ResultKind
         {
             get
