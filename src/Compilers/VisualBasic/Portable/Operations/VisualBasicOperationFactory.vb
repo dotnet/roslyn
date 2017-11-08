@@ -939,12 +939,21 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return New LazyParameterInitializer(parameter, value, kind, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundRValuePlaceholderOperation(boundRValuePlaceholder As BoundRValuePlaceholder) As IPlaceholderOperation
+        Private Function CreateBoundRValuePlaceholderOperation(boundRValuePlaceholder As BoundRValuePlaceholder) As IOperation
             Dim syntax As SyntaxNode = boundRValuePlaceholder.Syntax
             Dim type As ITypeSymbol = boundRValuePlaceholder.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundRValuePlaceholder.ConstantValueOpt)
             Dim isImplicit As Boolean = boundRValuePlaceholder.WasCompilerGenerated
-            Return New PlaceholderExpression(_semanticModel, syntax, type, constantValue, isImplicit)
+            If syntax.IsKind(SyntaxKind.ConditionalAccessExpression) Then
+                ' BoundConditionalAccessReceiver isn't actually used until local rewriting, until then that node will be a
+                ' BoundRValuePlaceholder with a sytnax node of the entire conditional access. So we dig through the syntax
+                ' to get the expression being conditionally accessed, and return an IConditionalAccessInstanceOperation
+                ' instead of a PlaceholderOperation
+                syntax = DirectCast(syntax, ConditionalAccessExpressionSyntax).Expression
+                Return New ConditionalAccessInstanceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
+            Else
+                Return New PlaceholderExpression(_semanticModel, syntax, type, constantValue, isImplicit)
+            End If
         End Function
 
         Private Function CreateBoundIfStatementOperation(boundIfStatement As BoundIfStatement) As IConditionalOperation
