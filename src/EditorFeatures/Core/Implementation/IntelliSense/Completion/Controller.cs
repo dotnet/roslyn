@@ -208,9 +208,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return null;
             }
 
-            return _isDebugger
+            var options = _isDebugger
                 ? workspace.Options.WithDebuggerCompletionOptions()
                 : workspace.Options;
+
+            var service = workspace.Services.GetService<ICaretIsInSnippetExpansionFieldService>();
+            if (service.CaretIsInSnippetExpansionField(TextView))
+            {
+                options = options.WithChangedOption(CompletionControllerOptions.TextEditorSnippetFieldIsActive, true);
+            }
+
+            return options;
         }
 
         private void CommitItem(CompletionItem item)

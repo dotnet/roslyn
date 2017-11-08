@@ -52,5 +52,6 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public static readonly Option<bool> FilterOutOfScopeLocals = new Option<bool>(nameof(CompletionControllerOptions), nameof(FilterOutOfScopeLocals), defaultValue: true);
         public static readonly Option<bool> ShowXmlDocCommentCompletion = new Option<bool>(nameof(CompletionControllerOptions), nameof(ShowXmlDocCommentCompletion), defaultValue: true);
+        public static readonly Option<bool> TextEditorSnippetFieldIsActive = new Option<bool>(nameof(CompletionControllerOptions), nameof(TextEditorSnippetFieldIsActive), defaultValue: false);
     }
 }

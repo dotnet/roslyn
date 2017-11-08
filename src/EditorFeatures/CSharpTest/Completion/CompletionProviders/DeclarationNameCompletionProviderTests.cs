@@ -649,7 +649,32 @@ class Test
             {
                 workspace.Options = originalOptions;
             }
+        }
 
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void NotIfSnippetsActive()
+        {
+            var markup = @"
+class Test
+{
+    void Do<T>(out T goo)
+    {
+        Do(out Test $$
+    }
+}
+";
+            var workspace = WorkspaceFixture.GetWorkspace();
+            var originalOptions = workspace.Options;
+            workspace.Options = originalOptions.WithChangedOption(CompletionControllerOptions.TextEditorSnippetFieldIsActive, true);
+            try
+            {
+                await VerifyNoItemsExistAsync(markup);
+            }
+            finally
+            {
+                workspace.Options = originalOptions;
+            }
         }
     }
 }
