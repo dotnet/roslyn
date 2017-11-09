@@ -1541,5 +1541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
+
+        ERR_AttributeCtorInParameter = 8358,
     }
 }

@@ -4994,7 +4994,7 @@ public class D
         }
 
         [Fact]
-        public void ReadonlyAddress()
+        public void ReadonlyAddressConstrained()
         {
             string source = @"
 public class D
@@ -5052,6 +5052,204 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
   IL_0031:  ret       
 }
 ");
+        }
+
+        [WorkItem(22858, "https://github.com/dotnet/roslyn/issues/22858")]
+        [Fact]
+        public void CovariantArrayRefParam()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                Test(ref ((object[])new string[] { ""hi"", ""hello"" })[0]);
+            }
+            catch (System.ArrayTypeMismatchException)
+            {
+                System.Console.WriteLine(""PASS"");
+            }
+        }
+
+        static void Test(ref object r)
+        {
+            throw null;
+        }
+    }";
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"PASS", verify: true);
+
+            compilation.VerifyIL("Program.Main(string[])",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  4
+  .locals init (object[] V_0)
+  .try
+  {
+    IL_0000:  ldc.i4.2
+    IL_0001:  newarr     ""string""
+    IL_0006:  dup
+    IL_0007:  ldc.i4.0
+    IL_0008:  ldstr      ""hi""
+    IL_000d:  stelem.ref
+    IL_000e:  dup
+    IL_000f:  ldc.i4.1
+    IL_0010:  ldstr      ""hello""
+    IL_0015:  stelem.ref
+    IL_0016:  stloc.0
+    IL_0017:  ldloc.0
+    IL_0018:  ldc.i4.0
+    IL_0019:  ldelema    ""object""
+    IL_001e:  call       ""void Program.Test(ref object)""
+    IL_0023:  leave.s    IL_0032
+  }
+  catch System.ArrayTypeMismatchException
+  {
+    IL_0025:  pop
+    IL_0026:  ldstr      ""PASS""
+    IL_002b:  call       ""void System.Console.WriteLine(string)""
+    IL_0030:  leave.s    IL_0032
+  }
+  IL_0032:  ret
+}
+");
+        }
+
+        [WorkItem(22841, "https://github.com/dotnet/roslyn/issues/22841")]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        [Fact]
+        public void ReadonlyAddressInParam()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var stringArray = new string[] { ""hi"", ""hello"" };
+            var objectArray = (object[])stringArray;
+
+            Test(objectArray[0]);
+        }
+
+        static void Test(in object r)
+        {
+            System.Console.WriteLine(r);
+        }
+    }";
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: false);
+
+            compilation.VerifyIL("Program.Main(string[])",
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  4
+  .locals init (object[] V_0)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""string""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldstr      ""hi""
+  IL_000d:  stelem.ref
+  IL_000e:  dup
+  IL_000f:  ldc.i4.1
+  IL_0010:  ldstr      ""hello""
+  IL_0015:  stelem.ref
+  IL_0016:  stloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4.0
+  IL_0019:  readonly.
+  IL_001b:  ldelema    ""object""
+  IL_0020:  call       ""void Program.Test(in object)""
+  IL_0025:  ret
+}
+");
+            compilation = CompileAndVerify(source, expectedOutput: @"hi",  verify: true, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            compilation.VerifyIL("Program.Main(string[])",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (object[] V_0,
+                object V_1)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""string""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldstr      ""hi""
+  IL_000d:  stelem.ref
+  IL_000e:  dup
+  IL_000f:  ldc.i4.1
+  IL_0010:  ldstr      ""hello""
+  IL_0015:  stelem.ref
+  IL_0016:  stloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4.0
+  IL_0019:  ldelem.ref
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  call       ""void Program.Test(in object)""
+  IL_0022:  ret
+}
+");
+        }
+
+        [WorkItem(22841, "https://github.com/dotnet/roslyn/issues/22841")]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        [Fact]
+        public void ReadonlyAddressStrict()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var stringArray = new string[] { ""hi"", ""hello"" };
+            var objectArray = (object[])stringArray;
+
+            Test(GetElementRef(objectArray));
+        }
+
+        static ref readonly T GetElementRef<T>(T[] objectArray)
+        {
+            Test(in objectArray[0]);
+            return ref objectArray[0];
+        }
+
+        static void Test<T>(in T r)
+        {
+            System.Console.Write(r);
+        }
+    }";
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: false);
+
+            var expectedIL = @"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  call       ""void Program.Test<T>(in T)""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  readonly.
+  IL_0012:  ldelema    ""T""
+  IL_0017:  ret
+}
+";
+            compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
+
+            // expect the same IL in the compat case since direct references are required and must be emitted with "readonly.", even though unverifiable
+            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: false, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
         }
 
         [Fact]

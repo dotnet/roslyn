@@ -23496,5 +23496,29 @@ class Program
                 Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9)
                 );
         }
+
+        [Fact, WorkItem(22880, "https://github.com/dotnet/roslyn/issues/22880")]
+        public void AttributeCtorInParam()
+        {
+            var text = @"
+[A(1)]
+class A : System.Attribute {
+  A(in int x) { }
+}
+
+[B()]
+class B : System.Attribute {
+  B(in int x = 1) { }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (7,2): error CS8355: Cannot use attribute constructor 'B.B(in int)' because it is has 'in' parameters.
+                // [B()]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2),
+                // (2,2): error CS8355: Cannot use attribute constructor 'A.A(in int)' because it is has 'in' parameters.
+                // [A(1)]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
+                );
+        }
     }
 }
