@@ -141,9 +141,9 @@ throw new Exception(""Error!"");
 
             Assert.True(result.ContainsErrors);
             AssertEx.AssertEqualToleratingWhitespaceDifferences("OK", result.Output);
-            AssertEx.AssertStartsWithToleratingWhitespaceDifferences($@"
-System.Exception: Error!
-   at Submission#0.<<Initialize>>d__0.MoveNext() in {cwd}{Path.DirectorySeparatorChar}a.csx:line 2
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+Error!
+   + <Initialize>.MoveNext() at {cwd}{Path.DirectorySeparatorChar}a.csx : 2
 ", result.Errors);
         }
     }
