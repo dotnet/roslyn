@@ -1805,21 +1805,21 @@ class Program
 
     static async Task TestNotAwaited()
     {
-        array[6] = Foo1();
+        array[6] = Moo1();
     }
 
     static async Task TestAwaited()
     {
-        array[6] = await Foo();
+        array[6] = await Moo();
     }
 
-    static int Foo1()
+    static int Moo1()
     {
         System.Console.WriteLine(""hello"");
         return 123;
     }
 
-    static async Task<int> Foo()
+    static async Task<int> Moo()
     {
         System.Console.WriteLine(""hello"");
         return 123;
