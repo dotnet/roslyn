@@ -590,7 +590,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDec
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void IVariableDeclaration_InvalidIgnoredArguments_VerifyChildren()
+        public void IVariableDeclaration_InvalidIgnoredArgumentsWithInitializer_VerifyChildren()
         {
             string source = @"
 class C
@@ -608,6 +608,67 @@ class C
             Assert.Equal(2, declarator.Children.Count());
             Assert.Equal(OperationKind.Literal, declarator.Children.First().Kind);
             Assert.Equal(OperationKind.VariableInitializer, declarator.Children.ElementAt(1).Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredArguments_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x[10]/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            var declarator = (IVariableDeclaratorOperation)operation;
+            Assert.Equal(1, declarator.Children.Count());
+            Assert.Equal(OperationKind.Literal, declarator.Children.First().Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_WithInitializer_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x = 1/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            var declarator = (IVariableDeclaratorOperation)operation;
+            Assert.Equal(1, declarator.Children.Count());
+            Assert.Equal(OperationKind.VariableInitializer, declarator.Children.ElementAt(0).Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_NoChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            Assert.Empty(operation.Children);
         }
 
         #endregion

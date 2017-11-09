@@ -5436,12 +5436,9 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                if (!IgnoredArguments.IsEmpty)
+                foreach (var arg in IgnoredArguments)
                 {
-                    foreach (var arg in IgnoredArguments)
-                    {
-                        yield return arg;
-                    }
+                    yield return arg;
                 }
                 if (Initializer != null)
                 {

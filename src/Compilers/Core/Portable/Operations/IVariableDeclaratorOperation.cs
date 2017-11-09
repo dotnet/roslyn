@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IVariableInitializerOperation Initializer { get; }
 
         /// <summary>
-        /// Additional arguments supplied to the declarator in error cases, ignored by the compiler. This only used for C# cases, of
+        /// Additional arguments supplied to the declarator in error cases, ignored by the compiler. This only used for the C# case of
         /// DeclaredArgumentSyntax nodes on a VariableDeclaratorSyntax.
         /// </summary>
         ImmutableArray<IOperation> IgnoredArguments { get; }
