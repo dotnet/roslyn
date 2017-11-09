@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 string fieldName = GeneratedNames.AsyncAwaiterFieldName(slotIndex);
-                result = F.StateMachineField(awaiterType, fieldName, SynthesizedLocalKind.AwaiterField, slotIndex, localNameOpt: null);
+                result = F.StateMachineField(awaiterType, fieldName, SynthesizedLocalKind.AwaiterField, slotIndex);
                 _awaiterFields.Add(awaiterType, result);
             }
 

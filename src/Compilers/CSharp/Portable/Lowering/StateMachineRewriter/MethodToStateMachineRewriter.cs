@@ -283,10 +283,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(local.SynthesizedKind.IsLongLived());
 
                 CapturedSymbolReplacement proxy;
+                bool reused = false;
                 if (!proxies.TryGetValue(local, out proxy))
                 {
-                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type, local), isReusable: true);
-
+                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type, out reused, local), isReusable: true);
                     proxies.Add(local, proxy);
                 }
 
@@ -296,14 +296,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
                     local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
-                    var field = ((CapturedToStateMachineFieldReplacement)proxy).HoistedField;
-
                     // NB: This is the case when the local backed by recycled field will not be visible in debugger.
-                    //     The backing field could be reused in Release and it may so happen that it was originally created for a local with a different name.
-                    //     Since the field name encodes the name of the local that it represents, nothing can be done about that here. Do not add such fields to the scope.
-                    if (field.LocalNameOpt == local.Name)
+                    //     It may be possible in the future, but for now a backing field can be mapped only to a single local.
+                    if (!reused)
                     {
-                        hoistedLocalsWithDebugScopes.Add(field);
+                        hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxy).HoistedField);
                     }
                 }
             }
@@ -422,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, LocalSymbol local = null)
+        private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, out bool reused, LocalSymbol local = null)
         {
             // In debug builds we don't reuse any hoisted variable.
             Debug.Assert(F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release);
@@ -432,15 +429,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var field = fields.Last();
                 fields.RemoveLast();
+                reused = true;
                 return field;
             }
-            
+
+            reused = false;
             var slotIndex = _nextHoistedFieldId++;
 
             if (local?.SynthesizedKind == SynthesizedLocalKind.UserDefined)
             {
                 string fieldName = GeneratedNames.MakeHoistedLocalFieldName(SynthesizedLocalKind.UserDefined, slotIndex, local.Name);
-                return F.StateMachineField(type, fieldName, SynthesizedLocalKind.UserDefined, slotIndex, local.Name);
+                return F.StateMachineField(type, fieldName, SynthesizedLocalKind.UserDefined, slotIndex);
             }
 
             return F.StateMachineField(type, GeneratedNames.ReusableHoistedLocalFieldName(slotIndex));
@@ -626,11 +625,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         string fieldName = GeneratedNames.MakeHoistedLocalFieldName(kind, slotIndex);
-                        hoistedField = F.StateMachineField(expr.Type, fieldName, new LocalSlotDebugInfo(kind, id), slotIndex, localNameOpt: null);
+                        hoistedField = F.StateMachineField(expr.Type, fieldName, new LocalSlotDebugInfo(kind, id), slotIndex);
                     }
                     else
                     {
-                        hoistedField = GetOrAllocateReusableHoistedField(fieldType);
+                        hoistedField = GetOrAllocateReusableHoistedField(fieldType, reused: out _);
                     }
 
                     hoistedFields.Add(hoistedField);

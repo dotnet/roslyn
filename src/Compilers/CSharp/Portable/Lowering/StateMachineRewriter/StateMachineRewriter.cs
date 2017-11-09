@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         string fieldName = GeneratedNames.MakeHoistedLocalFieldName(synthesizedKind, slotIndex, local.Name);
-                        field = F.StateMachineField(fieldType, fieldName, new LocalSlotDebugInfo(synthesizedKind, id), slotIndex, local.Name);
+                        field = F.StateMachineField(fieldType, fieldName, new LocalSlotDebugInfo(synthesizedKind, id), slotIndex);
                     }
 
                     if (field != null)
