@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend Class VisualBasicCompoundAssignmentOperation
+    Friend NotInheritable Class VisualBasicCompoundAssignmentOperation
         Inherits BaseVisualBasicCompoundAssignmentOperation
 
         Public Sub New(target As IOperation, value As IOperation, inConversion As Conversion, outConversion As Conversion, operatorKind As Operations.BinaryOperatorKind, isLifted As Boolean, isChecked As Boolean, operatorMethod As IMethodSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides ReadOnly Property ValueImpl As IOperation
     End Class
 
-    Friend Class LazyVisualBasicCompoundAssignmentOperation
+    Friend NotInheritable Class LazyVisualBasicCompoundAssignmentOperation
         Inherits BaseVisualBasicCompoundAssignmentOperation
 
         Private ReadOnly _lazyTarget As Lazy(Of IOperation)

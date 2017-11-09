@@ -720,9 +720,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(compoundAssignment));
             }
 
-            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignemnt)
+            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignment)
             {
-                return csharpCompoundAssignemnt.InConversionInternal;
+                return csharpCompoundAssignment.InConversionInternal;
             }
             else
             {

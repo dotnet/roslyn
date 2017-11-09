@@ -20,13 +20,13 @@ Namespace Microsoft.CodeAnalysis.Operations
             Select Case boundAssignment.Right.Kind
                 Case BoundKind.Conversion
                     Dim inConversionNode = DirectCast(boundAssignment.Right, BoundConversion)
-                    Dim converisonInfo = GetConversionInfo(inConversionNode)
-                    binaryOperator = converisonInfo.Operand
+                    Dim conversionInfo = GetConversionInfo(inConversionNode)
+                    binaryOperator = conversionInfo.Operand
                     outConversion = CreateConversion(inConversionNode)
                 Case BoundKind.UserDefinedBinaryOperator, BoundKind.BinaryOperator
                     binaryOperator = boundAssignment.Right
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(boundAssignment)
             End Select
 
             Dim operatorInfo As BinaryOperatorInfo
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     operatorInfo = GetUserDefinedBinaryOperatorInfo(userDefinedOperator)
                     rightOperand = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(userDefinedOperator, operatorInfo.RightOperand))
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(boundAssignment)
             End Select
 
             Dim leftOnTheRight As BoundExpression = operatorInfo.LeftOperand
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                   _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Friend Structure BinaryOperatorInfo
+        Private Structure BinaryOperatorInfo
             Public Sub New(leftOperand As BoundExpression,
                            rightOperand As BoundExpression,
                            binaryOperatorKind As BinaryOperatorKind,
@@ -258,10 +258,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Shared Function GetChildOfBadExpressionBoundNode(parent As BoundNode, index As Integer) As BoundExpression
             Dim badParent As BoundBadExpression = TryCast(parent, BoundBadExpression)
             If badParent?.ChildBoundNodes.Length > index Then
-                Dim child As BoundExpression = badParent.ChildBoundNodes(index)
-                If child IsNot Nothing Then
-                    Return child
-                End If
+                Return badParent.ChildBoundNodes(index)
             End If
 
             Return Nothing

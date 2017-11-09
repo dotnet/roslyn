@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override CommonConversion OutConversion => OutConversionInternal.ToCommonConversion();
     }
 
-    internal class CSharpCompoundAssignmentOperation : BaseCSharpCompoundAssignmentOperation
+    internal sealed class CSharpCompoundAssignmentOperation : BaseCSharpCompoundAssignmentOperation
     {
         public CSharpCompoundAssignmentOperation(IOperation target, IOperation value, Conversion inConversion, Conversion outConversion, Operations.BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override IOperation ValueImpl { get; }
     }
 
-    internal class LazyCSharpCompoundAssignmentOperation : BaseCSharpCompoundAssignmentOperation
+    internal sealed class LazyCSharpCompoundAssignmentOperation : BaseCSharpCompoundAssignmentOperation
     {
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
-        public LazyCSharpCompoundAssignmentOperation(Lazy<IOperation> target, Lazy<IOperation> value, Conversion inConversion, Conversion outConversion, Operations.BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public LazyCSharpCompoundAssignmentOperation(Lazy<IOperation> target, Lazy<IOperation> value, Conversion inConversion, Conversion outConversion, Operations.BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyTarget = target;
