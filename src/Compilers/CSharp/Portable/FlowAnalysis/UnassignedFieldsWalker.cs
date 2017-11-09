@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -30,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (HasThisConstructorInitializer(method))
+            {
+                return;
+            }
+
             var walker = new UnassignedFieldsWalker(compilation, method, node, diagnostics);
             try
             {
@@ -40,6 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 walker.Free();
             }
+        }
+
+        private static bool HasThisConstructorInitializer(MethodSymbol method)
+        {
+            Debug.Assert(method.DeclaringSyntaxReferences.Length <= 1);
+            var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as ConstructorDeclarationSyntax;
+            return syntax?.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer;
         }
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)

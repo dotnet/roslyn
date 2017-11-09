@@ -9,10 +9,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public partial class StaticNullChecking : CSharpTestBase
+    public class StaticNullChecking_TypeInference : CSharpTestBase
     {
-        // PROTOTYPE(NullableReferenceTypes): `default(string)` should be non-nullable string.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Default_NonNullable()
         {
             var source =
@@ -22,35 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         var s = default(string);
         s.ToString();
-    }
-}";
-
-            var comp = CreateStandardCompilation(
-                source,
-                parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (5,17): warning CS8600: Cannot convert null to non-nullable reference.
-                //         var s = default(string);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(5, 17));
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
-            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(false, symbol.Type.IsNullable);
-        }
-
-        [Fact]
-        public void Default_Nullable()
-        {
-            var source =
-@"class C
-{
-    static void Main()
-    {
-        var s = default(string?);
-        s.ToString();
+        var i = default(int);
+        i.ToString();
     }
 }";
 
@@ -64,9 +36,260 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
-            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+            symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
+            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            Assert.Equal(false, symbol.Type.IsNullable);
+        }
+
+        [Fact]
+        public void Default_Nullable()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var s = default(string?);
+        s.ToString();
+        var i = default(int?);
+        i.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+            symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
+            Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Report CS0453 for T?.
+        [Fact(Skip = "CS0453")]
+        public void Default_TUnconstrained()
+        {
+            var source =
+@"class C
+{
+    static void F<T>()
+    {
+        var s = default(T);
+        s.ToString();
+        var t = default(T?);
+        t.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,25): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         var t = default(T?);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "T?").WithArguments("System.Nullable<T>", "T", "T").WithLocation(7, 25));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
+            Assert.Equal("T", symbol.Type.ToTestDisplayString());
+            Assert.Equal(false, symbol.Type.IsNullable);
+            symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
+            Assert.Equal("T?", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+        }
+
+        [Fact]
+        public void Default_TClass()
+        {
+            var source =
+@"class C
+{
+    static void F<T>() where T : class
+    {
+        var s = default(T);
+        s.ToString();
+        var t = default(T?);
+        t.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(8, 9));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
+            Assert.Equal("T", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+            symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
+            // PROTOTYPE(NullableReferenceTypes): Should be "T?".
+            Assert.Equal("T", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+        }
+
+        [Fact]
+        public void DefaultInferred_NonNullable()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        string s = default;
+        s.ToString();
+        int i = default;
+        i.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8600: Cannot convert null to non-nullable reference.
+                //         string s = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(5, 20));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(false, symbol.Type.IsNullable);
+            symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
+            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            Assert.Equal(false, symbol.Type.IsNullable);
+        }
+
+        [Fact]
+        public void DefaultInferred_Nullable()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        string? s = default;
+        s.ToString();
+        int? i = default;
+        i.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+            symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
+            Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Report CS0453 for T?.
+        [Fact(Skip = "CS0453")]
+        public void DefaultInferred_TUnconstrained()
+        {
+            var source =
+@"class C
+{
+    static void F<T>()
+    {
+        T s = default;
+        s.ToString();
+        T? t = default;
+        t.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         T? t = default;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "T?").WithArguments("System.Nullable<T>", "T", "T").WithLocation(7, 9));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
+            Assert.Equal("T", symbol.Type.ToTestDisplayString());
+            Assert.Equal(false, symbol.Type.IsNullable);
+            symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
+            Assert.Equal("T?", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+        }
+
+        [Fact]
+        public void DefaultInferred_TClass()
+        {
+            var source =
+@"class C
+{
+    static void F<T>() where T : class
+    {
+        T s = default;
+        s.ToString();
+        T? t = default;
+        t.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8600: Cannot convert null to non-nullable reference.
+                //         T s = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(5, 15),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(8, 9));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
+            Assert.Equal("T", symbol.Type.ToTestDisplayString());
+            Assert.Equal(false, symbol.Type.IsNullable);
+            symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
+            // PROTOTYPE(NullableReferenceTypes): Should be "T?".
+            Assert.Equal("T", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
