@@ -122,16 +122,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // we catch here so that we don't physically crash VS and give users time to save and exist VS
                 }
             }
-        }
 
-        private static void CancelAndDispose(CancellationTokenSource cancellationSource)
-        {
-            // cancel running tasks
-            cancellationSource.Cancel();
+            private static void CancelAndDispose(CancellationTokenSource cancellationSource)
+            {
+                // cancel running tasks
+                cancellationSource.Cancel();
 
-            // dispose cancellation token source
-            cancellationSource.Dispose();
+                // dispose cancellation token source
+                cancellationSource.Dispose();
+            }
         }
     }
-}
 }
