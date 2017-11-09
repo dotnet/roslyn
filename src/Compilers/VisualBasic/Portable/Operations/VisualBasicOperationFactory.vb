@@ -946,7 +946,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isImplicit As Boolean = boundRValuePlaceholder.WasCompilerGenerated
             If syntax.IsKind(SyntaxKind.ConditionalAccessExpression) Then
                 ' BoundConditionalAccessReceiver isn't actually used until local rewriting, until then that node will be a
-                ' BoundRValuePlaceholder with a sytnax node of the entire conditional access. So we dig through the syntax
+                ' BoundRValuePlaceholder with a syntax node of the entire conditional access. So we dig through the syntax
                 ' to get the expression being conditionally accessed, and return an IConditionalAccessInstanceOperation
                 ' instead of a PlaceholderOperation
                 syntax = DirectCast(syntax, ConditionalAccessExpressionSyntax).Expression
