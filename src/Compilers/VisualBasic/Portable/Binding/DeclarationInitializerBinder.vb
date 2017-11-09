@@ -36,7 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(symbol As Symbol, additionalSymbols As ImmutableArray(Of Symbol), [next] As Binder, root As VisualBasicSyntaxNode)
             MyBase.New([next])
             Debug.Assert((symbol.Kind = SymbolKind.Field) OrElse (symbol.Kind = SymbolKind.Property) OrElse (symbol.Kind = SymbolKind.Parameter))
-            Debug.Assert(additionalSymbols.All(Function(s) s.Kind = SymbolKind.Field OrElse s.Kind = SymbolKind.Property))
+            Debug.Assert(additionalSymbols.All(Function(s) s.Kind = symbol.Kind AndAlso (s.Kind = SymbolKind.Field OrElse s.Kind = SymbolKind.Property)))
+            Debug.Assert(symbol.Kind <> SymbolKind.Parameter OrElse additionalSymbols.IsEmpty)
             Me._symbol = symbol
             Me._additionalSymbols = additionalSymbols
             Debug.Assert(root IsNot Nothing)
@@ -56,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Additional members associated with the binding context
-        ''' Currently, this field is only used for multiple field symbols initialized by an AsNew field initializer, e.g. "Dim x, y As New Integer"
+        ''' Currently, this field is only used for multiple field/property symbols initialized by an AsNew initializer, e.g. "Dim x, y As New Integer" or "WithEvents x, y as New Object"
         ''' </summary>
         Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
             Get

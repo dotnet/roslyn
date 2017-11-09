@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Additional members associated with the binding context
-        ''' Currently, this field is only used for multiple field symbols initialized by an AsNew field initializer, e.g. "Dim x, y As New Integer"
+        ''' Currently, this field is only used for multiple field/property symbols initialized by an AsNew initializer, e.g. "Dim x, y As New Integer" or "WithEvents x, y as New Object"
         ''' </summary>
         Public Overridable ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
             Get

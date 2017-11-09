@@ -192,6 +192,34 @@ IFieldInitializerOperation (2 initialized fields) (OperationKind.FieldInitialize
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub SingleFieldInitializerErrorCase()
+            Dim source = <![CDATA[
+Class C1
+    Dim x, y As Object = Me'BIND:"= Me"
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (2 initialized fields) (OperationKind.FieldInitializer, Type: null, IsInvalid) (Syntax: '= Me')
+  Field_1: C1.x As System.Object
+  Field_2: C1.y As System.Object
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Me')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'Me')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+    Dim x, y As Object = Me'BIND:"= Me"
+        ~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
         Public Sub MultipleWithEventsInitializers()
             Dim source = <![CDATA[
 Class C1
@@ -223,7 +251,7 @@ IPropertyInitializerOperation (2 initialized properties) (OperationKind.Property
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
-        Public Sub SingleWithEventsInitializers()
+        Public Sub SingleWithEventsInitializersErrorCase()
             Dim source = <![CDATA[
 Class C1
     Public Sub New(c As C1)

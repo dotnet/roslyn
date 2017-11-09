@@ -90,8 +90,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Iterator Function GetInitializedFieldsOrProperties(binder As Binder) As IEnumerable(Of Symbol)
             Yield Me.MemberSymbol
 
-            For Each additionalField In binder.AdditionalContainingMembers
-                Yield additionalField
+            For Each additionalSymbol In binder.AdditionalContainingMembers
+                Yield additionalSymbol
             Next
         End Function
 
