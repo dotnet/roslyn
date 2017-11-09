@@ -1212,10 +1212,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitPropertyInitializer(IPropertyInitializerOperation operation)
         {
             LogString(nameof(IPropertyInitializerOperation));
-            LogSymbol(operation.InitializedProperty, header: " (Property");
-            LogString(")");
-            LogCommonPropertiesAndNewLine(operation);
 
+            if (operation.InitializedProperties.Length <= 1)
+            {
+                if (operation.InitializedProperties.Length == 1)
+                {
+                    LogSymbol(operation.InitializedProperties[0], header: " (Property");
+                    LogString(")");
+                }
+
+                LogCommonPropertiesAndNewLine(operation);
+            }
+            else
+            {
+                LogString($" ({operation.InitializedProperties.Length} initialized properties)");
+                LogCommonPropertiesAndNewLine(operation);
+
+                Indent();
+
+                int index = 1;
+                foreach (var property in operation.InitializedProperties)
+                {
+                    LogSymbol(property, header: $"Property_{index++}");
+                    LogNewLine();
+                }
+
+                Unindent();
+            }
+            
             base.VisitPropertyInitializer(operation);
         }
 

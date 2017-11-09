@@ -394,7 +394,7 @@ Microsoft.CodeAnalysis.Operations.IPatternCaseClauseOperation.Label.get -> Micro
 Microsoft.CodeAnalysis.Operations.IPatternCaseClauseOperation.Pattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation
 Microsoft.CodeAnalysis.Operations.IPatternOperation
 Microsoft.CodeAnalysis.Operations.IPropertyInitializerOperation
-Microsoft.CodeAnalysis.Operations.IPropertyInitializerOperation.InitializedProperty.get -> Microsoft.CodeAnalysis.IPropertySymbol
+Microsoft.CodeAnalysis.Operations.IPropertyInitializerOperation.InitializedProperties.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IPropertySymbol>
 Microsoft.CodeAnalysis.Operations.IPropertyReferenceOperation
 Microsoft.CodeAnalysis.Operations.IPropertyReferenceOperation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IArgumentOperation>
 Microsoft.CodeAnalysis.Operations.IPropertyReferenceOperation.Property.get -> Microsoft.CodeAnalysis.IPropertySymbol
