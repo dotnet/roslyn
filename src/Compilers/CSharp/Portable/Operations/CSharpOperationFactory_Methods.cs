@@ -77,18 +77,21 @@ namespace Microsoft.CodeAnalysis.Operations
                 initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, initializerIsImplicit);
             }
 
+            ImmutableArray<IOperation> ignoredArguments = boundLocalDeclaration.ArgumentsOpt.IsDefault ?
+                                                            ImmutableArray<IOperation>.Empty :
+                                                            boundLocalDeclaration.ArgumentsOpt.SelectAsArray(arg => Create(arg));
             ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol;
             SyntaxNode syntaxNode = boundLocalDeclaration.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default;
             bool isImplicit = false;
 
-            return new VariableDeclarator(symbol, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new VariableDeclarator(symbol, initializer, ignoredArguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocal boundLocal)
         {
-            return new VariableDeclarator(boundLocal.LocalSymbol, initializer: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
+            return new VariableDeclarator(boundLocal.LocalSymbol, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
         }
 
         private Lazy<IOperation> CreateReceiverOperation(BoundNode instance, ISymbol symbol)
