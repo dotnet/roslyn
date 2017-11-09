@@ -12,7 +12,7 @@
     <OutputType>vsix</OutputType>
   </PropertyGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
+  <Import Project="$(NuGetPackageRoot)\microbuild.plugins.swixbuild\$(MicroBuildPluginsSwixBuildVersion)\build\MicroBuild.Plugins.*.props" />
 
   <PropertyGroup>
     <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);Version=$(VsixVersion);OutputPath=$(RoslynOutputPath);RepoRoot=$(RepoRoot)</PackagePreprocessorDefinitions>
@@ -23,8 +23,5 @@
     <Package Include="Microsoft.CodeAnalysis.Compilers.swr" />
   </ItemGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
-
-  <!-- Disable automatic signing. This will be signed in the batch phase -->
-  <Target Name="AddTargetPathToFilesToSign" />
+  <Import Project="$(NuGetPackageRoot)\microbuild.plugins.swixbuild\$(MicroBuildPluginsSwixBuildVersion)\build\MicroBuild.Plugins.*.targets" />
 </Project>

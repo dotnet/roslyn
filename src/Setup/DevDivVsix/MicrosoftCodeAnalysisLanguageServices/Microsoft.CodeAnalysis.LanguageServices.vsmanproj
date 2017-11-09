@@ -12,8 +12,7 @@
     <ValidateManifest>false</ValidateManifest>
   </PropertyGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
+  <Import Project="$(NuGetPackageRoot)\microbuild.plugins.swixbuild\$(MicroBuildPluginsSwixBuildVersion)\build\MicroBuild.Plugins.*.props" />
 
   <ItemGroup>
     <MergeManifest Include="$(OutputPath)\..\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
@@ -24,6 +23,5 @@
 
   <Target Name="ValidateManifest" />
 
-  <!-- Disable automatic signing. This will be signed in the batch phase -->
-  <Target Name="AddTargetPathToFilesToSign" />
+  <Import Project="$(NuGetPackageRoot)\microbuild.plugins.swixbuild\$(MicroBuildPluginsSwixBuildVersion)\build\MicroBuild.Plugins.*.targets" />
 </Project>
