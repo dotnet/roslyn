@@ -5207,4 +5207,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
   </data>
+  <data name="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment" xml:space="preserve">
+    <value>{0} is not a valid C# compound assignment operation</value>
+  </data>
 </root>

@@ -5521,4 +5521,7 @@
   <data name="FEATURE_LeadingDigitSeparator" xml:space="preserve">
     <value>leading digit separator</value>
   </data>
+  <data name="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment" xml:space="preserve">
+    <value>{0} is not a valid Visual Basic compound assignment operation</value>
+  </data>
 </root>

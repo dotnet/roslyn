@@ -974,6 +974,8 @@ namespace Microsoft.CodeAnalysis.Operations
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundCompoundAssignmentOperator.Operator.Kind);
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundCompoundAssignmentOperator.Left));
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundCompoundAssignmentOperator.Right));
+            Conversion inConversion = boundCompoundAssignmentOperator.LeftConversion;
+            Conversion outConversion = boundCompoundAssignmentOperator.FinalConversion;
             bool isLifted = boundCompoundAssignmentOperator.Operator.Kind.IsLifted();
             bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked();
             IMethodSymbol operatorMethod = boundCompoundAssignmentOperator.Operator.Method;
@@ -981,7 +983,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundCompoundAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundCompoundAssignmentOperator.ConstantValue);
             bool isImplicit = boundCompoundAssignmentOperator.WasCompilerGenerated;
-            return new LazyCompoundAssignmentExpression(operatorKind, isLifted, isChecked, target, value, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyCSharpCompoundAssignmentOperation(target, value, inConversion, outConversion, operatorKind, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IIncrementOrDecrementOperation CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)

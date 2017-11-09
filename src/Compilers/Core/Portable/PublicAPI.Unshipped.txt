@@ -246,10 +246,12 @@ Microsoft.CodeAnalysis.Operations.ICollectionElementInitializerOperation.AddMeth
 Microsoft.CodeAnalysis.Operations.ICollectionElementInitializerOperation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Operations.ICollectionElementInitializerOperation.IsDynamic.get -> bool
 Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation
+Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.InConversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.IsChecked.get -> bool
 Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.OperatorKind.get -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
 Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.OperatorMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.OutConversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.Operations.IConditionalAccessInstanceOperation
 Microsoft.CodeAnalysis.Operations.IConditionalAccessOperation
 Microsoft.CodeAnalysis.Operations.IConditionalAccessOperation.Operation.get -> Microsoft.CodeAnalysis.IOperation
