@@ -1766,6 +1766,78 @@ class TestCase
             CompileAndVerify(source, expected);
         }
 
+        [WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")]
+        [Fact]
+        public void SpillArrayAssign2()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static int[] array = new int[5];
+
+    static void Main(string[] args)
+    {
+        try
+        {
+            System.Console.WriteLine(""test not awaited"");
+            TestNotAwaited().Wait();
+        }
+        catch
+        {
+            System.Console.WriteLine(""exception thrown"");
+        }
+
+    System.Console.WriteLine();
+
+        try
+        {
+            System.Console.WriteLine(""test awaited"");
+            TestAwaited().Wait();
+        }
+        catch
+        {
+            System.Console.WriteLine(""exception thrown"");
+        }
+
+    }
+
+    static async Task TestNotAwaited()
+    {
+        array[6] = Foo1();
+    }
+
+    static async Task TestAwaited()
+    {
+        array[6] = await Foo();
+    }
+
+    static int Foo1()
+    {
+        System.Console.WriteLine(""hello"");
+        return 123;
+    }
+
+    static async Task<int> Foo()
+    {
+        System.Console.WriteLine(""hello"");
+        return 123;
+    }
+}";
+
+            var expected = @"
+test not awaited
+hello
+exception thrown
+
+test awaited
+hello
+exception thrown
+";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
+
         [Fact]
         public void SpillArrayLocal()
         {
@@ -3108,8 +3180,8 @@ public class AsyncBug {
 
             var v = CompileAndVerify(source, "System.Int32");
         }
-        [Fact]
 
+        [Fact]
         [WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")]
         public void MethodGroupConversionWithSpill()
         {
