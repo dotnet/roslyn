@@ -385,11 +385,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DeclarationExpression(Visit(operation.Expression), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, object argument)
-        {
-            return new CompoundAssignmentExpression(operation.OperatorKind, operation.IsLifted, operation.IsChecked, Visit(operation.Target), Visit(operation.Value), operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, object argument)
         {
             bool isDecrement = operation.Kind == OperationKind.Decrement;

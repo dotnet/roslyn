@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
@@ -539,6 +540,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var operatorMethod = operation.OperatorMethod;
             var binaryOperationKind = operation.OperatorKind;
+            var inConversion = operation.InConversion;
+            var outConversion = operation.OutConversion;
+
+            if (operation.Syntax.Language == LanguageNames.CSharp)
+            {
+                Assert.Throws<ArgumentException>("compoundAssignment", () => VisualBasic.VisualBasicExtensions.GetInConversion(operation));
+                Assert.Throws<ArgumentException>("compoundAssignment", () => VisualBasic.VisualBasicExtensions.GetOutConversion(operation));
+                var inConversionInteranl = CSharp.CSharpExtensions.GetInConversion(operation);
+                var outConversionInteranl = CSharp.CSharpExtensions.GetOutConversion(operation);
+            }
+            else
+            {
+                Assert.Throws<ArgumentException>("compoundAssignment", () => CSharp.CSharpExtensions.GetInConversion(operation));
+                Assert.Throws<ArgumentException>("compoundAssignment", () => CSharp.CSharpExtensions.GetOutConversion(operation));
+                var inConversionInternal = VisualBasic.VisualBasicExtensions.GetInConversion(operation);
+                var outConversionInternal = VisualBasic.VisualBasicExtensions.GetOutConversion(operation);
+            }
 
             base.VisitCompoundAssignment(operation);
         }

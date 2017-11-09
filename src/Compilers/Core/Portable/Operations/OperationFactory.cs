@@ -32,25 +32,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ExpressionStatement(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
 
-        public static IExpressionStatementOperation CreateCompoundAssignmentExpressionStatement(
-            IOperation target, IOperation value, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
-        {
-            var expression = new CompoundAssignmentExpression(
-                     operatorKind,
-                     isLifted,
-                     isChecked,
-                     target,
-                     value,
-                     operatorMethod,
-                     semanticModel,
-                     syntax,
-                     target.Type,
-                     default(Optional<object>),
-                     isImplicit);
-
-            return new ExpressionStatement(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
-        }
-
         public static ILiteralOperation CreateLiteralExpression(long value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
             return new LiteralExpression(semanticModel, syntax, resultType, constantValue: new Optional<object>(value), isImplicit: isImplicit);
