@@ -404,5 +404,140 @@ IObjectCreationOperation (Constructor: Sub [Class]..ctor()) (OperationKind.Objec
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")>
+        Public Sub ObjectCreationWithInvalidInitializer()
+            Dim source = <![CDATA[
+Class C
+    Public Sub M1()
+        Dim x1 = New C With {.MissingField = 1}'BIND:"New C With {.MissingField = 1}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'New C With  ... gField = 1}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: 'With {.MissingField = 1}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.MissingField = 1')
+            Left: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.MissingField = 1')
+                Children(1):
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'MissingField')
+                      Children(1):
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'New C With  ... gField = 1}')
+            Right: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30456: 'MissingField' is not a member of 'C'.
+        Dim x1 = New C With {.MissingField = 1}'BIND:"New C With {.MissingField = 1}"
+                              ~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22980"), WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")>
+        Public Sub ObjectCreationWithInvalidCollectionInitializer()
+            Dim source = <![CDATA[
+Class C
+    Public Sub M1()
+        Dim x1 = New C With {.MissingField = {x = 1}}'BIND:"New C With {.MissingField = {x = 1}}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'New C With  ...  = {x = 1}}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: 'With {.Miss ...  = {x = 1}}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.MissingField = {x = 1}')
+            Left: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.MissingField = {x = 1}')
+                Children(1):
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'MissingField')
+                      Children(1):
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'New C With  ...  = {x = 1}}')
+            Right: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '{x = 1}')
+                Children(1):
+                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '{x = 1}')
+                      Children(2):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '{x = 1}')
+                          IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{x = 1}')
+                            Element Values(1):
+                                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x = 1')
+                                  Left: 
+                                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x')
+                                      Children(0)
+                                  Right: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30456: 'MissingField' is not a member of 'C'.
+        Dim x1 = New C With {.MissingField = {x = 1}}'BIND:"New C With {.MissingField = {x = 1}}"
+                              ~~~~~~~~~~~~
+BC30451: 'x' is not declared. It may be inaccessible due to its protection level.
+        Dim x1 = New C With {.MissingField = {x = 1}}'BIND:"New C With {.MissingField = {x = 1}}"
+                                              ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")>
+        Public Sub ObjectCreationWithInvalidCollectionInitializer02()
+            Dim source = <![CDATA[
+Class C
+    Public Sub M1()
+        Dim x1 = New C With {.MissingField = {1}}'BIND:"New C With {.MissingField = {1}}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'New C With  ... ield = {1}}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: 'With {.Miss ... ield = {1}}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.MissingField = {1}')
+            Left: 
+              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.MissingField = {1}')
+                Children(1):
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'MissingField')
+                      Children(1):
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'New C With  ... ield = {1}}')
+            Right: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '{1}')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: '{1}')
+                    Dimension Sizes(1):
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '{1}')
+                    Initializer: 
+                      IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{1}')
+                        Element Values(1):
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30456: 'MissingField' is not a member of 'C'.
+        Dim x1 = New C With {.MissingField = {1}}'BIND:"New C With {.MissingField = {1}}"
+                              ~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

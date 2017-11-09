@@ -46,12 +46,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         public override bool OpenFileOnly(Workspace workspace) => false;
 
-        private static MethodInfo s_registerOperationActionInfo =
-            typeof(CompilationStartAnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
-
-        private static MethodInfo s_getOperationInfo =
-            typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
-
         protected abstract bool IsSupported(ParseOptions options);
 
         protected override void InitializeWorker(AnalysisContext context)
@@ -59,11 +53,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             context.RegisterCompilationStartAction(startContext =>
             {
                 var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
-                s_registerOperationActionInfo.Invoke(startContext, new object[]
-                {
-                    new Action<OperationAnalysisContext>(operationContext => AnalyzeOperation(operationContext, expressionTypeOpt)),
-                    ImmutableArray.Create(OperationKind.Throw)
-                });
+                startContext.RegisterOperationAction(operationContext => AnalyzeOperation(operationContext, expressionTypeOpt), OperationKind.Throw);
             });
         }
 
@@ -118,8 +108,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            var containingBlock = GetOperation(
-                semanticModel, ifOperation.Syntax.Parent, cancellationToken) as IBlockOperation;
+            var containingBlock = semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) as IBlockOperation;
             if (containingBlock == null)
             {
                 return;
@@ -314,8 +303,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             CancellationToken cancellationToken)
         {
             var throwStatement = throwOperation.Syntax;
-            var containingOperation = GetOperation(
-                semanticModel, throwStatement.Parent, cancellationToken);
+            var containingOperation = semanticModel.GetOperation(throwStatement.Parent, cancellationToken);
 
             if (containingOperation is IBlockOperation block)
             {
@@ -328,8 +316,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
                 // C# may have an intermediary block between the throw-statement
                 // and the if-statement.  Walk up one operation higher in that case.
-                containingOperation = GetOperation(
-                    semanticModel, throwStatement.Parent.Parent, cancellationToken);
+                containingOperation = semanticModel.GetOperation(throwStatement.Parent.Parent, cancellationToken);
             }
 
             if (containingOperation is IConditionalOperation conditionalOperation)
@@ -338,15 +325,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             return null;
-        }
-
-        private static IOperation GetOperation(
-            SemanticModel semanticModel,
-            SyntaxNode node,
-            CancellationToken cancellationToken)
-        {
-            return (IOperation)s_getOperationInfo.Invoke(
-                semanticModel, new object[] { node, cancellationToken });
         }
     }
 }

@@ -57,7 +57,7 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'fixed(int * ... }')
               Instance Receiver: 
                 null
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: System.String) (Syntax: '$""P is {*p}""')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '$""P is {*p}""')
                     IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""P is {*p}""')
                       Parts(2):
                           IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'P is ')
