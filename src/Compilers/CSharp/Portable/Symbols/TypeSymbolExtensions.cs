@@ -514,6 +514,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [ThreadStatic]
+        private static HashSet<TypeSymbol> _alreadyVisitedCache;
+
         /// <summary>
         /// Visit the given type and, in the case of compound types, visit all "sub type"
         /// (such as A in A[], or { A&lt;T&gt;, T, U } in A&lt;T&gt;.B&lt;U&gt;) invoking 'predicate'
@@ -523,6 +526,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static TypeSymbol VisitType<T>(this TypeSymbol type, Func<TypeSymbol, T, bool, bool> predicate, T arg)
         {
+            // Try getting cached HashSet
+            var alreadyVisited = _alreadyVisitedCache;
+            if (alreadyVisited != null)
+            {
+                _alreadyVisitedCache = null;
+            }
+            else
+            {
+                alreadyVisited = new HashSet<TypeSymbol>();
+            }
+
+            TypeSymbol result = type.VisitType(alreadyVisited, predicate, arg);
+
+            // Return HashSet to cache if not already one there
+            if (_alreadyVisitedCache == null)
+            {
+                alreadyVisited.Clear();
+                _alreadyVisitedCache = alreadyVisited;
+            }
+
+            return result;
+        }
+
+        private static TypeSymbol VisitType<T>(this TypeSymbol type, HashSet<TypeSymbol> alreadyVisited, Func<TypeSymbol, T, bool, bool> predicate, T arg)
+        {
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
             // doing the natural recursion.
@@ -531,10 +559,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             while (true)
             {
+                if (alreadyVisited.Contains(current))
+                {
+                    return null;
+                }
+
+                alreadyVisited.Add(current);
+
                 bool isNestedNamedType = false;
 
+                // Non-inlining virtual call, so get it once for both switches
+                var typeKind = current.TypeKind;
                 // Visit containing types from outer-most to inner-most.
-                switch (current.TypeKind)
+                switch (typeKind)
                 {
                     case TypeKind.Class:
                     case TypeKind.Struct:
@@ -546,10 +583,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = containingType.VisitType(predicate, arg);
-                                if ((object)result != null)
+                                if (!alreadyVisited.Contains(containingType))
                                 {
-                                    return result;
+                                    var result = containingType.VisitType(alreadyVisited, predicate, arg);
+                                    if ((object)result != null)
+                                    {
+                                        return result;
+                                    }
                                 }
                             }
                         }
@@ -565,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return current;
                 }
 
-                switch (current.TypeKind)
+                switch (typeKind)
                 {
                     case TypeKind.Error:
                     case TypeKind.Dynamic:
@@ -586,10 +626,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         foreach (var nestedType in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
                         {
-                            var result = nestedType.VisitType(predicate, arg);
-                            if ((object)result != null)
+                            if (!alreadyVisited.Contains(nestedType))
                             {
-                                return result;
+                                var result = nestedType.VisitType(alreadyVisited, predicate, arg);
+                                if ((object)result != null)
+                                {
+                                    return result;
+                                }
                             }
                         }
                         return null;
