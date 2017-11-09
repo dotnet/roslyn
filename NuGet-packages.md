@@ -40,6 +40,10 @@ For newer targets such as `net47`, `netstandard2.0`, `netcoreapp2.0`, the packag
 
 The above describes version 4.4.0 of the ValueTuple package. The package is produced from the corefx repo.
 
+### System.Memory
+
+This package will contain ref-like implementations of `Span<T>` and `ReadOnlySpan<T>` that work with C# 7.2 ref features.
+
 ### Microsoft.CodeDom.Providers.DotNetCompilerPlatform
 
 This package is produced by the ASP.NET team. You can find it [here on NuGet](https://www.nuget.org/packages/Microsoft.CodeDom.Providers.DotNetCompilerPlatform).
