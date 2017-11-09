@@ -1156,7 +1156,7 @@ class C
         </using>
         <hoistedLocalScopes>
           <slot />
-          <slot startOffset=""0x9f"" endOffset=""0x130"" />
+          <slot startOffset=""0x1a"" endOffset=""0x93"" />
           <slot startOffset=""0x9f"" endOffset=""0x130"" />
           <slot startOffset=""0x9f"" endOffset=""0x130"" />
         </hoistedLocalScopes>
