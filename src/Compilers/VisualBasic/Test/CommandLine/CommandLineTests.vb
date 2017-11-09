@@ -2978,6 +2978,39 @@ print Goodbye, World"
             Assert.Equal(KeyValuePair.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
         End Sub
 
+        ' PathMapKeepsCrossPlatformRoot and PathMapInconsistentSlashes should be in an
+        ' assembly that is ran cross-platform, but as no visual basic test assemblies are
+        ' run cross-platform, put this here in the hopes that this will eventually be ported.
+        <Theory>
+        <InlineData("C:\", "/", "C:\", "/")>
+        <InlineData("C:\temp\", "/temp/", "C:\temp", "/temp")>
+        <InlineData("C:\temp\", "/temp/", "C:\temp\", "/temp/")>
+        <InlineData("/", "C:\", "/", "C:\")>
+        <InlineData("/temp/", "C:\temp\", "/temp", "C:\temp")>
+        <InlineData("/temp/", "C:\temp\", "/temp/", "C:\temp\")>
+        Public Sub PathMapKeepsCrossPlatformRoot(expectedFrom As String, expectedTo As String, sourceFrom As String, sourceTo As String)
+            Dim pathmapArg = $"/pathmap:{sourceFrom}={sourceTo}"
+            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({pathmapArg, "a.cs"}, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), Nothing)
+            parsedArgs.Errors.Verify()
+            Dim expected = New KeyValuePair(Of String, String)(expectedFrom, expectedTo)
+            Assert.Equal(expected, parsedArgs.PathMap(0))
+        End Sub
+
+        <Fact>
+        Public Sub PathMapInconsistentSlashes()
+            Dim Parse = Function(args() As String) As VisualBasicCommandLineArguments
+                            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), Nothing)
+                            parsedArgs.Errors.Verify()
+                            Return parsedArgs
+                        End Function
+            Dim sep = PathUtilities.DirectorySeparatorChar
+            Assert.Equal(New KeyValuePair(Of String, String)("C:\temp/goo" + sep, "/temp\goo" + sep), Parse({"/pathmap:C:\temp/goo=/temp\goo", "a.cs"}).PathMap(0))
+            Assert.Equal(New KeyValuePair(Of String, String)("noslash" + sep, "withoutslash" + sep), Parse({"/pathmap:noslash=withoutslash", "a.cs"}).PathMap(0))
+            Dim doublemap = Parse({"/pathmap:/temp=/goo,/temp/=/bar", "a.cs"}).PathMap
+            Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/goo/"), doublemap(0))
+            Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/bar/"), doublemap(1))
+        End Sub
+
         <CompilerTrait(CompilerFeature.Determinism)>
         <Fact>
         Public Sub PathMapPdbDeterminism()

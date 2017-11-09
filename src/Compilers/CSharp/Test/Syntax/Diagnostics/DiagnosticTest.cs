@@ -2524,29 +2524,20 @@ class Program
         #region PathMap Linux Tests
         // Like the above (CoreCLR Signing Tests), these aren't actually syntax tests, but this is in one of only two assemblies tested on linux
 
-        [Fact]
-        public void PathMapKeepsCrossPlatformRoot()
+        [Theory]
+        [InlineData("C:\\", "/", "C:\\", "/")]
+        [InlineData("C:\\temp\\", "/temp/", "C:\\temp", "/temp")]
+        [InlineData("C:\\temp\\", "/temp/", "C:\\temp\\", "/temp/")]
+        [InlineData("/", "C:\\", "/", "C:\\")]
+        [InlineData("/temp/", "C:\\temp\\", "/temp", "C:\\temp")]
+        [InlineData("/temp/", "C:\\temp\\", "/temp/", "C:\\temp\\")]
+        public void PathMapKeepsCrossPlatformRoot(string expectedFrom, string expectedTo, string sourceFrom, string sourceTo)
         {
-            CSharpCommandLineArguments parse(params string[] args)
-            {
-                var parsedArgs = CSharpCommandLineParser.Default.Parse(args, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
-                parsedArgs.Errors.Verify();
-                return parsedArgs;
-            }
-
-            Assert.Equal(new KeyValuePair<string, string>("C:\\", "/"), parse("/pathmap:C:\\=/", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("C:\\", "/temp/"), parse("/pathmap:C:\\=/temp", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("C:\\", "/temp/"), parse("/pathmap:C:\\=/temp/", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("C:\\temp\\", "/"), parse("/pathmap:C:\\temp\\=/", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("C:\\temp\\", "/temp/"), parse("/pathmap:C:\\temp=/temp", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("C:\\temp\\", "/temp/"), parse("/pathmap:C:\\temp\\=/temp/", "a.cs").PathMap[0]);
-
-            Assert.Equal(new KeyValuePair<string, string>("/", "C:\\"), parse("/pathmap:/=C:\\", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("/", "C:\\temp\\"), parse("/pathmap:/=C:\\temp", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("/", "C:\\temp\\"), parse("/pathmap:/=C:\\temp\\", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("/temp/", "C:\\"), parse("/pathmap:/temp/=C:\\", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("/temp/", "C:\\temp\\"), parse("/pathmap:/temp=C:\\temp", "a.cs").PathMap[0]);
-            Assert.Equal(new KeyValuePair<string, string>("/temp/", "C:\\temp\\"), parse("/pathmap:/temp/=C:\\temp\\", "a.cs").PathMap[0]);
+            var pathmapArg = $"/pathmap:{sourceFrom}={sourceTo}";
+            var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { pathmapArg, "a.cs" }, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
+            parsedArgs.Errors.Verify();
+            var expected = new KeyValuePair<string, string>(expectedFrom, expectedTo);
+            Assert.Equal(expected, parsedArgs.PathMap[0]);
         }
 
         [Fact]
