@@ -4046,15 +4046,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BasePropertyInitializer : SymbolInitializer, IPropertyInitializerOperation
     {
-        public BasePropertyInitializer(IPropertySymbol initializedProperty, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BasePropertyInitializer(ImmutableArray<IPropertySymbol> initializedProperties, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            InitializedProperty = initializedProperty;
+            InitializedProperties = initializedProperties;
         }
         /// <summary>
-        /// Set method used to initialize the property.
+        /// Initialized properties. There can be multiple properties for Visual Basic 'WithEvents' declaration with AsNew clause.
         /// </summary>
-        public IPropertySymbol InitializedProperty { get; }
+        public ImmutableArray<IPropertySymbol> InitializedProperties { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4081,8 +4081,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class PropertyInitializer : BasePropertyInitializer, IPropertyInitializerOperation
     {
-        public PropertyInitializer(IPropertySymbol initializedProperty, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(initializedProperty, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public PropertyInitializer(ImmutableArray<IPropertySymbol> initializedProperties, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ValueImpl = value;
         }
@@ -4096,8 +4096,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyPropertyInitializer(IPropertySymbol initializedProperty, Lazy<IOperation> value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(initializedProperty, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyPropertyInitializer(ImmutableArray<IPropertySymbol> initializedProperties, Lazy<IOperation> value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
@@ -5440,16 +5440,22 @@ namespace Microsoft.CodeAnalysis.Operations
         public ILocalSymbol Symbol { get; }
 
         protected abstract IVariableInitializerOperation InitializerImpl { get; }
+        protected abstract ImmutableArray<IOperation> IgnoredArgumentsImpl { get; }
 
         /// <summary>
         /// Optional initializer of the variable.
         /// </summary>
         public IVariableInitializerOperation Initializer => Operation.SetParentOperation(InitializerImpl, this);
+        public ImmutableArray<IOperation> IgnoredArguments => Operation.SetParentOperation(IgnoredArgumentsImpl, this);
 
         public override IEnumerable<IOperation> Children
         {
             get
             {
+                foreach (var arg in IgnoredArguments)
+                {
+                    yield return arg;
+                }
                 if (Initializer != null)
                 {
                     yield return Initializer;
@@ -5473,13 +5479,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class VariableDeclarator : BaseVariableDeclarator
     {
-        public VariableDeclarator(ILocalSymbol symbol, IVariableInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public VariableDeclarator(ILocalSymbol symbol, IVariableInitializerOperation initializer, ImmutableArray<IOperation> ignoredArguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InitializerImpl = initializer;
+            IgnoredArgumentsImpl = ignoredArguments;
         }
 
         protected override IVariableInitializerOperation InitializerImpl { get; }
+        protected override ImmutableArray<IOperation> IgnoredArgumentsImpl { get; }
     }
 
     /// <summary>
@@ -5488,14 +5496,17 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class LazyVariableDeclarator : BaseVariableDeclarator
     {
         private readonly Lazy<IVariableInitializerOperation> _lazyInitializer;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyIgnoredArguments;
 
-        public LazyVariableDeclarator(ILocalSymbol symbol, Lazy<IVariableInitializerOperation> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyVariableDeclarator(ILocalSymbol symbol, Lazy<IVariableInitializerOperation> initializer, Lazy<ImmutableArray<IOperation>> ignoredArguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
+            _lazyIgnoredArguments = ignoredArguments ?? throw new ArgumentNullException(nameof(ignoredArguments));
         }
 
         protected override IVariableInitializerOperation InitializerImpl => _lazyInitializer.Value;
+        protected override ImmutableArray<IOperation> IgnoredArgumentsImpl => _lazyIgnoredArguments.Value;
     }
 
     internal abstract partial class BaseVariableDeclaration : Operation, IVariableDeclarationOperation

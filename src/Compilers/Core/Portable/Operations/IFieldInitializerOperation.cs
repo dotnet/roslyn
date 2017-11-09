@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IFieldInitializerOperation : ISymbolInitializerOperation
     {
         /// <summary>
-        /// Initialized fields. There can be multiple fields for Visual Basic fields declared with As New.
+        /// Initialized fields. There can be multiple fields for Visual Basic fields declared with AsNew clause.
         /// </summary>
         ImmutableArray<IFieldSymbol> InitializedFields { get; }
     }

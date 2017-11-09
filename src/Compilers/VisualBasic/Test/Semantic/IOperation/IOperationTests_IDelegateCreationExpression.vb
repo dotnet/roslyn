@@ -3406,6 +3406,102 @@ BC30002: Type 'NonExistant' is not defined.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IDelegateCreation_SharedAddressOfWithInstanceReceiver()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Shared Sub S1()
+        End Sub
+        Shared Sub S2()
+            Dim c1Instance As New C1
+            Dim a As Action = AddressOf c1Instance.S1'BIND:"AddressOf c1Instance.S1"
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IMethodReferenceOperation: Sub M1.C1.S1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf c1Instance.S1')
+  Instance Receiver: 
+    ILocalReferenceOperation: c1Instance (OperationKind.LocalReference, Type: M1.C1) (Syntax: 'c1Instance')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+            Dim a As Action = AddressOf c1Instance.S1'BIND:"AddressOf c1Instance.S1"
+                              ~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IDelegateCreation_SharedAddressOfAccessOnClass()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Shared Sub S1()
+        End Sub
+        Shared Sub S2()
+            Dim a As Action = AddressOf C1.S1'BIND:"AddressOf C1.S1"
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IMethodReferenceOperation: Sub M1.C1.S1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf C1.S1')
+  Instance Receiver: 
+    null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub IDelegateCreation_InstanceAddressOfAccessOnClass()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module M1
+    Class C1
+        Sub S1()
+        End Sub
+        Shared Sub S2()
+            Dim a As Action = AddressOf C1.S1'BIND:"AddressOf C1.S1"
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'AddressOf C1.S1')
+  Children(1):
+      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C1.S1')
+        Children(1):
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30469: Reference to a non-shared member requires an object reference.
+            Dim a As Action = AddressOf C1.S1'BIND:"AddressOf C1.S1"
+                              ~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
 #End Region
 
 #Region "Anonymous Delegates"

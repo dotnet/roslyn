@@ -162,6 +162,23 @@ Namespace Microsoft.CodeAnalysis.Operations
                 isImplicit:=isImplicit OrElse argument Is Nothing)
         End Function
 
+        Private Function CreateReceiverOperation(node As BoundNode, symbol As ISymbol) As Lazy(Of IOperation)
+            If node Is Nothing OrElse node.Kind = BoundKind.TypeExpression Then
+                Return OperationFactory.NullOperation
+            End If
+
+            If symbol IsNot Nothing AndAlso
+               node.WasCompilerGenerated AndAlso
+               symbol.IsStatic AndAlso
+               (node.Kind = BoundKind.MeReference OrElse
+                node.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse
+                node.Kind = BoundKind.WithRValueExpressionPlaceholder) Then
+                Return OperationFactory.NullOperation
+            End If
+
+            Return New Lazy(Of IOperation)(Function() Create(node))
+        End Function
+
         Private Shared Function ParameterIsParamArray(parameter As VisualBasic.Symbols.ParameterSymbol) As Boolean
             Return If(parameter.IsParamArray AndAlso parameter.Type.Kind = SymbolKind.ArrayType, DirectCast(parameter.Type, VisualBasic.Symbols.ArrayTypeSymbol).IsSZArray, False)
         End Function
@@ -323,8 +340,10 @@ Namespace Microsoft.CodeAnalysis.Operations
                         Return Nothing
                     End If
                 End Function)
+            Dim ignoredArguments As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function() ImmutableArray(Of IOperation).Empty)
 
-            Return New LazyVariableDeclarator(boundLocalDeclaration.LocalSymbol, initializer, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
+            Return New LazyVariableDeclarator(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationGroupOperation
